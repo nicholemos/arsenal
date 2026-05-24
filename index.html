@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arsenal do Mestre — Tormenta20</title>
+
+  <style>
+    @font-face {
+      font-family: "Tormenta";
+      src: url("poderes/assets/fonts/Tormenta.ttf") format("truetype");
+    }
+
+    :root {
+      --bg-dark-base: #06070c;
+      --bg-dark-surface: #0b0d14;
+      --bg-dark-panel: #11131e;
+      --bg-dark-panel-hover: #191c2b;
+      --border-color: #2a2e3d;
+      --text-primary: #e2d8c3;
+      --text-secondary: #a89f8a;
+      --text-muted: #6b6354;
+      --gold-primary: #c9933a;
+      --gold-secondary: #d4af37;
+      --gold-glow: rgba(201, 147, 58, 0.3);
+      --glass-bg: rgba(17, 19, 30, 0.75);
+      --glass-backdrop: blur(12px);
+      --font-heading: "Tormenta", serif;
+      --font-body: 'Segoe UI', sans-serif;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+    }
+
+    .theme-light {
+      --bg-dark-base: #f5f5f0;
+      --bg-dark-surface: #ffffff;
+      --bg-dark-panel: rgba(255, 255, 255, 0.92);
+      --bg-dark-panel-hover: rgba(255, 255, 255, 0.98);
+      --border-color: #d4d4d0;
+      --text-primary: #1a1a1a;
+      --text-secondary: #5a5a5a;
+      --text-muted: #8a8a8a;
+      --gold-primary: #d43d35;
+      --gold-secondary: #b81e16;
+      --gold-glow: rgba(212, 61, 53, 0.12);
+      --glass-bg: rgba(255, 255, 255, 0.92);
+      --glass-backdrop: blur(8px);
+    }
+
+    .theme-classic {
+      --bg-dark-base: #f0ece4;
+      --bg-dark-surface: #ffffff;
+      --bg-dark-panel: #ffffff;
+      --bg-dark-panel-hover: #f0ede6;
+      --border-color: #b0b8c8;
+      --text-primary: #2c3e50;
+      --text-secondary: #4a5568;
+      --text-muted: #7f8c8d;
+      --gold-primary: #e74c3c;
+      --gold-secondary: #c0392b;
+      --gold-glow: rgba(231, 76, 60, 0.2);
+      --glass-bg: rgba(255, 255, 255, 0.92);
+      --glass-backdrop: blur(8px);
+    }
+
+    .theme-classic body {
+      background: var(--bg-dark-base) !important;
+    }
+
+    .theme-classic header {
+      background: linear-gradient(185deg, #2c3e50 0%, #1a252f 100%) !important;
+      border-bottom: 2px solid #e74c3c !important;
+    }
+
+    .theme-classic .header-title {
+      color: #ecf0f1 !important;
+      text-shadow: none !important;
+    }
+
+    .theme-classic .header-home-btn,
+    .theme-classic .header-theme-btn {
+      color: #ecf0f1 !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+      background: rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .theme-classic .header-home-btn:hover,
+    .theme-classic .header-theme-btn:hover {
+      border-color: #e74c3c !important;
+      box-shadow: 0 0 10px rgba(231, 76, 60, 0.3) !important;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-dark-base);
+      background-image: radial-gradient(circle at center, var(--bg-dark-surface) 0%, var(--bg-dark-base) 100%);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      padding-bottom: 40px;
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    .theme-light body {
+      background-image: none !important;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      position: relative;
+      text-align: center;
+      padding: 40px 60px 28px;
+      z-index: 10;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .header-title {
+      font-family: "Tormenta", var(--font-heading);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--gold-primary), #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+      margin-bottom: 8px;
+    }
+
+    .theme-light .header-title {
+      background: none;
+      -webkit-text-fill-color: var(--gold-primary);
+      color: var(--gold-primary);
+      text-shadow: none;
+    }
+
+    .header-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      max-width: 500px;
+      margin: 0 auto;
+      opacity: 0.9;
+    }
+
+    .header-btns {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .header-home-btn,
+    .header-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      line-height: 1;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border-color);
+      color: var(--gold-primary);
+    }
+
+    .header-home-btn {
+      padding: 7px 12px;
+      border-radius: 8px;
+      gap: 5px;
+    }
+
+    .header-home-btn:hover {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .header-theme-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      padding: 0;
+    }
+
+    .header-theme-btn:hover {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 12px var(--gold-glow);
+      transform: scale(1.1);
+    }
+
+    .theme-light .header-home-btn,
+    .theme-light .header-theme-btn {
+      background: rgba(212, 61, 53, 0.06);
+    }
+
+    .theme-light .header-home-btn:hover,
+    .theme-light .header-theme-btn:hover {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    /* ===== CONTAINER ===== */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 16px;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin: 32px 0 14px 4px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    /* ===== GRID ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .card-btn {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-backdrop);
+      -webkit-backdrop-filter: var(--glass-backdrop);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 10px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-btn:hover {
+      border-color: var(--gold-primary);
+      box-shadow: 0 6px 20px var(--gold-glow);
+      transform: translateY(-3px);
+    }
+
+    .card-btn:active {
+      transform: scale(0.97);
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .card-btn span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    /* ===== ASSINATURA ===== */
+    .sig-wrap {
+      max-width: 1100px;
+      margin: 48px auto 20px;
+      padding: 0 16px;
+    }
+
+    .sig-card {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-backdrop);
+      -webkit-backdrop-filter: var(--glass-backdrop);
+      overflow: hidden;
+      transition: border-color 0.25s ease;
+    }
+
+    .sig-card:hover {
+      border-color: var(--gold-primary);
+    }
+
+    .sig-summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--bg-dark-surface);
+      color: var(--text-primary);
+      position: relative;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sig-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .sig-summary::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+    }
+
+    .sig-summary-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .sig-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(201, 147, 58, 0.06);
+      border: 1px solid rgba(201, 147, 58, 0.2);
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: var(--gold-primary);
+      text-transform: uppercase;
+    }
+
+    .sig-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.5px;
+    }
+
+    .sig-summary-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-secondary);
+    }
+
+    .sig-hint {
+      font-size: 12px;
+      opacity: 0.75;
+      white-space: nowrap;
+    }
+
+    .sig-chevron {
+      font-size: 14px;
+      transition: transform 0.2s ease;
+      color: var(--gold-primary);
+    }
+
+    .sig-card[open] .sig-chevron {
+      transform: rotate(180deg);
+    }
+
+    .sig-body {
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .sig-hero {
+      background: var(--bg-dark-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .sig-h3 {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      margin-bottom: 10px;
+    }
+
+    .sig-p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .sig-p:last-child {
+      margin-bottom: 0;
+    }
+
+    .sig-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+    }
+
+    .sig-col {
+      background: var(--bg-dark-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+    }
+
+    .sig-h4 {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 14px;
+    }
+
+    .sig-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-dark-panel);
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+      text-decoration: none;
+    }
+
+    .sig-link:hover {
+      transform: translateY(-2px);
+      border-color: var(--gold-primary);
+      box-shadow: 0 4px 12px var(--gold-glow);
+    }
+
+    .sig-link-main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .sig-link-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .sig-link-url {
+      color: var(--text-muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .sig-ext {
+      color: var(--gold-secondary);
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+
+    .sig-note {
+      margin-top: 14px;
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-color);
+      background: rgba(0, 0, 0, 0.01);
+      padding: 12px;
+    }
+
+    .sig-note-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--gold-secondary);
+      margin-bottom: 6px;
+    }
+
+    .sig-note-text {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .sig-footer {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-dark-surface);
+      display: flex;
+      justify-content: center;
+    }
+
+    .sig-footer-text {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      header {
+        padding: 30px 16px 24px;
+      }
+
+      .header-title {
+        font-size: clamp(1.5rem, 6vw, 2rem);
+      }
+
+      .header-btns {
+        position: static;
+        transform: none;
+        justify-content: center;
+        margin-top: 12px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .card-btn {
+        padding: 14px 8px;
+      }
+
+      .card-icon {
+        font-size: 1.6rem;
+      }
+
+      .card-btn span {
+        font-size: 0.8rem;
+      }
+
+      .sig-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sig-hint {
+        display: none;
+      }
+    }
+
+    .card-icon {
+      width: 200px;
+      /* Ajuste a largura como preferir */
+      height: auto;
+      /* Ajuste a altura como preferir */
+      object-fit: contain;
+      /* Garante que a imagem não distorça */
+    }
+
+    @media (max-width: 400px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1 class="header-title">Arsenal do Mestre</h1>
+    <p class="header-subtitle">Ferramentas essenciais para Tormenta20</p>
+    <div class="header-btns">
+      <button class="header-theme-btn" id="themeToggleBtn">🌓</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="section-title">Mesa de Jogo</div>
+    <div class="grid">
+      <a href="ficha/index.html" class="card-btn">
+        <img src="images/fichas.png" alt="Ícone de fichas" class="card-icon">
+      </a>
+      <a href="combate/index.html" class="card-btn">
+        <img src="images/combate.png" alt="Ícone de combate" class="card-icon">
+      </a>
+      <a href="dados/index.html" class="card-btn">
+        <img src="images/dados.png" alt="Ícone de dados" class="card-icon">
+      </a>
+      <a href="campanha/index.html" class="card-btn">
+        <img src="images/missoes.png" alt="Ícone de missoes" class="card-icon">
+      </a>
+      <a href="perigos/index.html" class="card-btn">
+        <img src="images/perigos.png" alt="Ícone de perigos" class="card-icon">
+      </a>
+    </div>
+
+    <div class="section-title">Consultas</div>
+    <div class="grid">
+      <a href="itens/index.html" class="card-btn">
+        <img src="images/inventario.png" alt="Ícone de Inventário" class="card-icon">
+      </a>
+      <a href="poderes/index.html" class="card-btn">
+        <img src="images/poderes.png" alt="Ícone de Poderes" class="card-icon">        
+      </a>
+      <a href="grimorio/index.html" class="card-btn">
+        <img src="images/grimorio.png" alt="Ícone de grimorio" class="card-icon">
+      </a>
+      <a href="ameacas/index.html" class="card-btn">
+        <img src="images/ameacas.png" alt="Ícone de ameacas" class="card-icon">
+      </a>
+    </div>
+
+    <div class="section-title">Planejamento</div>
+    <div class="grid">
+      <a href="calculadoraND_Tormenta/index.html" class="card-btn">
+        <img src="images/nd.png" alt="Ícone de Calculadora de ND" class="card-icon">
+      </a>
+      <a href="calculadora/index.html" class="card-btn">
+        <img src="images/calculadora.png" alt="Ícone de calculadora" class="card-icon">
+      </a>
+      <a href="EncontrosAleatorios/index.html" class="card-btn">
+        <img src="images/encontros.png" alt="Ícone de Encontros Aleatórios" class="card-icon">
+
+      </a>
+    </div>
+
+    <div class="section-title">Extras</div>
+    <div class="grid">
+      <a href="STR/index.html" class="card-btn">
+        <img src="images/STR.png" alt="Ícone de STR" class="card-icon">
+      </a>
+      <a href="libertacao/index.html" class="card-btn">
+        <img src="images/npc.png" alt="Ícone de NPCs" class="card-icon">      
+      </a>
+      <a href="macrosroll20/index.html" class="card-btn">
+        <img src="images/roll20.png" alt="Ícone de roll20" class="card-icon">
+      </a>
+    </div>
+
+  </main>
+
+  <section class="sig-wrap">
+    <details class="sig-card">
+      <summary class="sig-summary">
+        <div class="sig-summary-left">
+          <span class="sig-badge">Sobre</span>
+          <span class="sig-title">Créditos e outros projetos</span>
+        </div>
+        <div class="sig-summary-right">
+          <span class="sig-hint">clique para abrir</span>
+          <span class="sig-chevron" aria-hidden="true">▾</span>
+        </div>
+      </summary>
+
+      <div class="sig-body">
+        <div class="sig-hero">
+          <h3 class="sig-h3">Quem fez isso?</h3>
+          <p class="sig-p">
+            Olá! Meu nome é <strong>Nicholas Lemos</strong>.
+            Sou jogador de RPG, desenvolvedor de software e entusiasta de ferramentas para
+            <strong>Tormenta20</strong>.
+          </p>
+          <p class="sig-p">
+            Criei este arsenal porque senti falta de ferramentas
+            <strong>rápidas, claras e pensadas para a mesa</strong>, especialmente para mestres que lidam com muitos
+            inimigos, condições e regras ao mesmo tempo. A ideia é manter tudo <strong>visível, acessível e sem quebrar
+              o
+              ritmo</strong>.
+          </p>
+          <p class="sig-p">
+            Feedbacks, sugestões e ideias são sempre bem-vindos.
+          </p>
+        </div>
+        <div class="sig-grid">
+          <div class="sig-col">
+            <h4 class="sig-h4">Contato</h4>
+
+            <a class="sig-link"
+              href="https://api.whatsapp.com/send/?phone=5531992825753&text=Ol%C3%A1%2C+gostaria+de+tirar+uma+d%C3%BAvida.&type=phone_number&app_absent=0"
+              target="_blank" rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">WhatsApp</span>
+                <span class="sig-link-url">Fale comigo diretamente</span>
+              </div>
+              <span class="sig-ext">↗</span>
+            </a>
+
+            <a class="sig-link" href="https://www.linkedin.com/in/nicholas-lemos/" target="_blank"
+              rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">LinkedIn</span>
+                <span class="sig-link-url">Perfil profissional</span>
+              </div>
+              <span class="sig-ext">↗</span>
+            </a>
+
+            <a class="sig-link" href="https://github.com/nicholemos" target="_blank" rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">GitHub</span>
+                <span class="sig-link-url">Repositórios e projetos</span>
+              </div>
+              <span class="sig-ext">↗</span>
+            </a>
+
+            <div class="sig-note">
+              <div class="sig-note-title">Que tal um site para você?</div>
+              <div class="sig-note-text">
+                Dê uma olhada no modelo de site e me chame para conversarmos.
+                <br>
+                <a href="https://nicholemos.github.io/" target="_blank" rel="noopener noreferrer">
+                  https://nicholemos.github.io/
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="sig-col">
+            <h4 class="sig-h4">Este projeto</h4>
+
+            <a class="sig-link" href="https://nicholemos.github.io/combate/" target="_blank" rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">Gerenciador de Combate – Tormenta20</span>
+                <span class="sig-link-url">nicholemos.github.io/combate</span>
+              </div>
+              <span class="sig-ext" aria-hidden="true">↗</span>
+            </a>
+
+            <div class="sig-note">
+              <div class="sig-note-title">Dica rápida</div>
+              <div class="sig-note-text">
+                Os links abrem em nova aba. Durante a semana vamos polir cada ferramenta aos poucos.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sig-footer">
+          <span class="sig-footer-text">Feito para mesa rápida. Feedbacks são bem-vindos.</span>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <script>
+    (function () {
+      var btn = document.getElementById('themeToggleBtn');
+      var html = document.documentElement;
+      var key = 'hubTheme';
+      var themes = ['dark', 'light', 'classic'];
+      function applyTheme(theme) {
+        html.classList.remove('theme-light', 'theme-classic');
+        if (theme === 'light') html.classList.add('theme-light');
+        else if (theme === 'classic') html.classList.add('theme-classic');
+        localStorage.setItem(key, theme);
+        if (btn) {
+          btn.textContent = theme === 'dark' || theme === 'classic' ? '🌓' : '🌙';
+        }
+      }
+      var saved = localStorage.getItem(key) || 'dark';
+      applyTheme(saved);
+      if (btn) btn.addEventListener('click', function () {
+        var current = localStorage.getItem(key) || 'dark';
+        var idx = themes.indexOf(current);
+        var next = themes[(idx + 1) % themes.length];
+        applyTheme(next);
+      });
+    })();
+  </script>
+
+</body>
+
+</html>
