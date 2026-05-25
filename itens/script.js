@@ -975,6 +975,8 @@ function applyFilters() {
             filtered = filtered.filter(item => selectedTypes.includes(item.tipo));
         } else if (currentCategory === 'encantamento') {
             filtered = filtered.filter(item => selectedTypes.includes(item.tipo));
+        } else {
+            filtered = filtered.filter(item => selectedTypes.includes(item.tipo));
         }
     }
 
