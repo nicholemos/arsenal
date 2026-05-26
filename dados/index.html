@@ -14,6 +14,24 @@
             src: url("../poderes/assets/fonts/Tormenta.ttf") format("truetype");
         }
         :root {
+            /* Tema Padrão: Sangue */
+            --bg: #0a0404;
+            --surface: #120a0a;
+            --card: rgba(22, 14, 14, 0.75);
+            --card-border: #4a1414;
+            --gold: #cc0d0d;
+            --gold-light: #cfa053;
+            --gold-dim: #731010;
+            --parchment: #e8e4e4;
+            --parchment-dim: #a39898;
+            --glow: rgba(204, 13, 13, 0.35);
+            --text: #e8e4e4;
+            --muted: #736868;
+            --radius: 16px;
+        }
+
+        .theme-dark {
+            /* Tema Sombras */
             --bg: #06070c;
             --surface: #0b0e1a;
             --card: rgba(18, 23, 38, 0.72);
@@ -26,7 +44,162 @@
             --glow: rgba(200, 150, 50, 0.22);
             --text: #e2d8c3;
             --muted: #8e7d65;
-            --radius: 16px;
+        }
+
+        .theme-classic {
+            /* Tema Clássico */
+            --bg: #b1ada5;
+            --surface: #b3a6a6;
+            --card: #b3a6a6;
+            --card-border: #b0b8c8;
+            --gold: #e74c3c;
+            --gold-light: #e74c3c;
+            --gold-dim: #c0392b;
+            --parchment: #2c3e50;
+            --parchment-dim: #4a5568;
+            --glow: rgba(231, 76, 60, 0.2);
+            --text: #2c3e50;
+            --muted: #7f8c8d;
+        }
+
+        body.theme-classic {
+            background-color: var(--bg) !important;
+            background-image: none !important;
+        }
+
+        .theme-classic body::before {
+            display: none !important;
+        }
+
+        .theme-classic #stars-canvas {
+            display: none !important;
+        }
+
+        .theme-classic .modal-content {
+            background: #ffffff;
+            border-color: var(--card-border);
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.15);
+        }
+
+        .theme-classic input[type="text"] {
+            background: #fbfbf9;
+            border-color: var(--card-border);
+            color: var(--text);
+        }
+
+        .theme-classic .dice-btn {
+            background: rgba(231, 76, 60, 0.05);
+            border-color: rgba(231, 76, 60, 0.2);
+            color: var(--text);
+        }
+        .theme-classic .dice-btn:hover {
+            background: rgba(231, 76, 60, 0.15);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .theme-classic .btn-save {
+            background: linear-gradient(180deg, #e74c3c, #c0392b);
+            color: #ffffff;
+        }
+        .theme-classic .btn-cancel {
+            background: rgba(0,0,0,0.05);
+            color: var(--muted);
+            border-color: rgba(0,0,0,0.1);
+        }
+
+        /* ===== SVG Facets Theming ===== */
+        /* Default: Sangue stops */
+        #facGrad1 stop:first-child { stop-color: #3b0a0a; }
+        #facGrad1 stop:last-child { stop-color: #120303; }
+        
+        #facGrad2 stop:first-child { stop-color: #2b0606; }
+        #facGrad2 stop:last-child { stop-color: #0d0101; }
+        
+        #facGrad3 stop:first-child { stop-color: #1a0303; }
+        #facGrad3 stop:last-child { stop-color: #050000; }
+        
+        #edgeGrad stop { stop-color: #cc0d0d; }
+
+        /* Sombras */
+        .theme-dark #facGrad1 stop:first-child { stop-color: #4a371c; }
+        .theme-dark #facGrad1 stop:last-child { stop-color: #1e1408; }
+        
+        .theme-dark #facGrad2 stop:first-child { stop-color: #322411; }
+        .theme-dark #facGrad2 stop:last-child { stop-color: #140e05; }
+        
+        .theme-dark #facGrad3 stop:first-child { stop-color: #201509; }
+        .theme-dark #facGrad3 stop:last-child { stop-color: #0a0602; }
+        
+        .theme-dark #edgeGrad stop:first-child { stop-color: #ffe494; }
+        .theme-dark #edgeGrad stop:nth-child(2) { stop-color: #c9933a; }
+        .theme-dark #edgeGrad stop:last-child { stop-color: #70501a; }
+
+        /* Clássico */
+        .theme-classic #facGrad1 stop:first-child { stop-color: #fdf5f2; }
+        .theme-classic #facGrad1 stop:last-child { stop-color: #f5dfd5; }
+        
+        .theme-classic #facGrad2 stop:first-child { stop-color: #fcf1eb; }
+        .theme-classic #facGrad2 stop:last-child { stop-color: #ecd0c2; }
+        
+        .theme-classic #facGrad3 stop:first-child { stop-color: #f7ebe4; }
+        .theme-classic #facGrad3 stop:last-child { stop-color: #dfc2b4; }
+        
+        .theme-classic #edgeGrad stop { stop-color: #e74c3c; }
+
+        /* Theme Switcher classes */
+        .theme-switcher {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 3px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .theme-btn {
+            background: transparent;
+            border: none !important;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            transition: background 0.25s ease, transform 0.1s;
+            opacity: 0.55;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .theme-btn:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: scale(1.15);
+        }
+
+        .theme-btn.active {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) !important;
+        }
+
+        .theme-classic .theme-switcher {
+            border-color: rgba(0, 0, 0, 0.15);
+            background: rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .theme-classic .theme-btn:hover {
+            background: rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .theme-classic .theme-btn.active {
+            background: rgba(0, 0, 0, 0.12) !important;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15) !important;
         }
 
 
@@ -547,6 +720,12 @@
     <div class="app-title">Dice Roller</div>
     <div class="header-buttons">
         <a href="../index.html" class="icon-btn" title="Arsenal do Mestre" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-size:1.1rem;">🏠</a>
+        <!-- Theme Switcher -->
+        <div class="theme-switcher" id="theme-switcher">
+            <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
+            <button class="theme-btn" data-theme="dark" title="Tema Sombras (STR escuro)">🌑</button>
+            <button class="theme-btn" data-theme="classic" title="Tema Clássico (STR claro)">📜</button>
+        </div>
         <button class="icon-btn" id="btn-log" title="Histórico">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -1652,6 +1831,51 @@ if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermi
     if(typeof DeviceMotionEvent!=='undefined') window.addEventListener('devicemotion',handleMotion);
     else el.permOverlay.textContent=window.isSecureContext===false?'✦ Ativar Áudio (requer HTTPS) ✦':'✦ Ativar Áudio ✦';
 }
+
+// Theme Switcher Logic
+(function () {
+  var body = document.body;
+  var html = document.documentElement;
+  var key = 't20_theme';
+  
+  function applyTheme(theme) {
+    body.classList.remove('theme-dark', 'theme-classic');
+    html.classList.remove('theme-dark', 'theme-classic');
+    if (theme === 'dark') {
+      body.classList.add('theme-dark');
+      html.classList.add('theme-dark');
+    } else if (theme === 'classic') {
+      body.classList.add('theme-classic');
+      html.classList.add('theme-classic');
+    }
+    
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+    });
+    localStorage.setItem(key, theme);
+  }
+  
+  var saved = localStorage.getItem(key);
+  if (!saved) {
+    var oldTheme = localStorage.getItem('diceTheme') || localStorage.getItem('hubTheme');
+    if (oldTheme === 'dark') saved = 'dark';
+    else if (oldTheme === 'classic' || oldTheme === 'light') saved = 'classic';
+    else saved = 'blood';
+  }
+  applyTheme(saved);
+  
+  document.querySelectorAll('.theme-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyTheme(btn.getAttribute('data-theme'));
+    });
+  });
+
+  window.addEventListener('storage', function (e) {
+    if (e.key === key) {
+      applyTheme(e.newValue || 'blood');
+    }
+  });
+})();
 </script>
 </body>
 </html>

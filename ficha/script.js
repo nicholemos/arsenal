@@ -4111,55 +4111,37 @@ function exportRoll20() {
 // ============================================================
 //  SISTEMA DE ALTERNÂNCIA DE TEMA (CLARO / ESCURO)
 // ============================================================
-function toggleTheme() {
-    const body = document.body;
-    const themes = ['light', 'classic', 'dark'];
-    const current = localStorage.getItem('t20FichaTheme') || 'light';
-    const idx = themes.indexOf(current);
-    const next = themes[(idx + 1) % themes.length];
-    applyFichaTheme(next);
-}
-
 function applyFichaTheme(theme) {
     const body = document.body;
-    body.classList.remove('theme-dark', 'theme-classic');
-    if (theme === 'dark') body.classList.add('theme-dark');
+    body.classList.remove('theme-blood', 'theme-dark', 'theme-classic');
+    if (theme === 'blood') body.classList.add('theme-blood');
+    else if (theme === 'dark') body.classList.add('theme-dark');
     else if (theme === 'classic') body.classList.add('theme-classic');
-    localStorage.setItem('t20FichaTheme', theme);
-    updateThemeUI(theme);
-}
-
-function updateThemeUI(theme) {
-    const icon = document.getElementById('themeIcon');
-    const text = document.getElementById('themeText');
-    const btn = document.getElementById('btnToggleTheme');
-    if (theme === 'light') {
-        if (icon) icon.className = 'bi bi-brightness-high-fill';
-        if (text) text.innerText = 'Modo Claro';
-        if (btn) {
-            btn.className = 'btn btn-outline-warning btn-sm';
-            btn.title = 'Alternar para Modo Claro';
-        }
-    } else if (theme === 'classic') {
-        if (icon) icon.className = 'bi bi-moon-fill';
-        if (text) text.innerText = 'Modo Escuro';
-        if (btn) {
-            btn.className = 'btn btn-outline-secondary btn-sm';
-            btn.title = 'Alternar para Modo Escuro';
-        }
-    } else {
-        if (icon) icon.className = 'bi bi-sun-fill';
-        if (text) text.innerText = 'Modo Clássico';
-        if (btn) {
-            btn.className = 'btn btn-outline-warning btn-sm';
-            btn.title = 'Alternar para Modo Clássico';
-        }
-    }
+    
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+    });
+    localStorage.setItem('t20_theme', theme);
 }
 
 function initTheme() {
-    const savedTheme = localStorage.getItem('t20FichaTheme') || 'light';
-    applyFichaTheme(savedTheme);
+    var saved = localStorage.getItem('t20_theme');
+    if (!saved) {
+        var oldFicha = localStorage.getItem('t20FichaTheme');
+        var oldHub = localStorage.getItem('hubTheme');
+        var refTheme = oldFicha || oldHub;
+        if (refTheme === 'dark') saved = 'dark';
+        else if (refTheme === 'classic' || refTheme === 'light') saved = 'classic';
+        else saved = 'blood';
+    }
+    applyFichaTheme(saved);
+    
+    // Vincula ouvintes de evento aos botões do seletor
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyFichaTheme(btn.getAttribute('data-theme'));
+        });
+    });
 }
 
 // Inicializa o tema quando a página carregar

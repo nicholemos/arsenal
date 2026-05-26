@@ -27,11 +27,12 @@
                 <i class="bi bi-file-earmark-pdf"></i> Gerar PDF Oficial
             </button>
 
-            <!-- Botão Alternar Tema -->
-            <button class="btn btn-outline-warning btn-sm" id="btnToggleTheme" onclick="toggleTheme()"
-                title="Alternar Tema Claro/Escuro">
-                <i id="themeIcon" class="bi bi-sun-fill"></i> <span id="themeText">Modo Claro</span>
-            </button>
+            <!-- Theme Switcher -->
+            <div class="theme-switcher ms-1" id="theme-switcher">
+                <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
+                <button class="theme-btn" data-theme="dark" title="Tema Sombras (STR escuro)">🌑</button>
+                <button class="theme-btn" data-theme="classic" title="Tema Clássico (STR claro)">📜</button>
+            </div>
 
             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
                 <div>
