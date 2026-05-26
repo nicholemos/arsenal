@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         localStorage.setItem('t20SheetData', JSON.stringify(fichaData));
         alert(`Atributos${racaNome ? ` e raça "${racaNome}"` : ''}${tamanho ? ` (${tamanho})` : ''} enviados!\n\nA ficha será aberta em uma nova aba.`);
-        window.open('https://nicholemos.github.io/ficha/', '_blank');
+        window.open('https://nicholemos.github.io/arsenal/ficha/', '_blank');
     }
 
     // ── EVENT LISTENERS ───────────────────────────────────────
