@@ -1,39 +1,44 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   // =================================================================
-  // TEMA (CLARO / ESCURO / CLÁSSICO)
+  // TEMA (SANGUE / SOMBRAS / CLÁSSICO)
   // =================================================================
-  const themeToggle = document.getElementById("theme-toggle");
-  const stored = localStorage.getItem("liberTheme") || "dark";
-  document.documentElement.classList.add("theme-" + stored);
-
-  function applyTheme(theme) {
-    const themes = ["dark", "light", "classic"];
-    document.documentElement.classList.remove(
-      ...themes.map(t => "theme-" + t)
-    );
-    document.documentElement.classList.add("theme-" + theme);
-    localStorage.setItem("liberTheme", theme);
-    if (themeToggle) {
-      themeToggle.textContent =
-        theme === "dark" ? "☀️" :
-        theme === "light" ? "⚖️" :
-        "🌙";
+  (function () {
+    var body = document.body;
+    var key = 't20_theme';
+    
+    function applyTheme(theme) {
+      body.classList.remove('theme-dark', 'theme-classic');
+      document.documentElement.classList.remove('theme-dark', 'theme-classic');
+      if (theme === 'dark') {
+        body.classList.add('theme-dark');
+        document.documentElement.classList.add('theme-dark');
+      } else if (theme === 'classic') {
+        body.classList.add('theme-classic');
+        document.documentElement.classList.add('theme-classic');
+      }
+      
+      document.querySelectorAll('.theme-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+      });
+      localStorage.setItem(key, theme);
     }
-  }
-
-  if (themeToggle) {
-    themeToggle.textContent =
-      stored === "dark" ? "☀️" :
-      stored === "light" ? "⚖️" :
-      "🌙";
-
-    themeToggle.addEventListener("click", function () {
-      const current = localStorage.getItem("liberTheme") || "dark";
-      const next = current === "dark" ? "light" : current === "light" ? "classic" : "dark";
-      applyTheme(next);
+    
+    var saved = localStorage.getItem(key);
+    if (!saved) {
+      var oldTheme = localStorage.getItem('liberTheme') || localStorage.getItem('hubTheme');
+      if (oldTheme === 'dark') saved = 'dark';
+      else if (oldTheme === 'classic' || oldTheme === 'light') saved = 'classic';
+      else saved = 'blood';
+    }
+    applyTheme(saved);
+    
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyTheme(btn.getAttribute('data-theme'));
+      });
     });
-  }
+  })();
 
   // =================================================================
   // NÍVEIS DE AFINIDADE (Feature 1)

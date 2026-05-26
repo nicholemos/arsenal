@@ -8,6 +8,20 @@
 }
 
 :root {
+  /* Tema Sangue */
+  --bg-body: #0a0404;
+  --bg-card: rgba(22, 14, 14, 0.75);
+  --bg-surface: #120a0a;
+  --text-color: #e8e4e4;
+  --text-muted: #736868;
+  --border-color: rgba(204, 13, 13, 0.25);
+  --gold-primary: #cc0d0d;
+  --gold-secondary: #cfa053;
+  --gold-glow: rgba(204, 13, 13, 0.35);
+}
+
+.theme-dark {
+  /* Tema Sombras */
   --bg-body: #06070c;
   --bg-card: rgba(18, 23, 38, 0.72);
   --bg-surface: #0b0e1a;
@@ -17,22 +31,6 @@
   --gold-primary: #c9933a;
   --gold-secondary: #d4af37;
   --gold-glow: rgba(201, 147, 58, 0.22);
-}
-
-.theme-light {
-  --bg-body: #f2f4f7;
-  --bg-card: #ffffff;
-  --bg-surface: #e8eaed;
-  --text-color: #0f172a;
-  --text-muted: #475569;
-  --border-color: #d0d0d0;
-  --gold-primary: #d43d35;
-  --gold-secondary: #b81e16;
-  --gold-glow: rgba(212, 61, 53, 0.15);
-}
-
-.theme-light .header-title {
-  text-shadow: none;
 }
 
 /* ===== TEMA CLÁSSICO (STR original) ===== */
@@ -95,25 +93,51 @@ body {
   display: none;
 }
 
-/* Botão de tema */
-.header-theme-btn {
-  background: rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--border-color);
-  color: var(--gold-primary);
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: inline-flex;
+/* ===== THEME SWITCHER ===== */
+.theme-switcher {
+  display: flex;
+  gap: 4px;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px;
+  transition: border-color 0.25s ease;
 }
-.header-theme-btn:hover {
-  border-color: var(--gold-primary);
-  box-shadow: 0 0 12px var(--gold-glow);
-  transform: scale(1.1);
+
+.theme-btn {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  transition: background 0.25s ease, transform 0.1s;
+  opacity: 0.55;
+}
+
+.theme-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.15);
+}
+
+.theme-btn.active {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.theme-dark .theme-switcher {
+  border-color: rgba(201, 147, 58, 0.3);
+}
+
+.theme-classic .theme-switcher {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 h1 {
@@ -180,34 +204,26 @@ h1 {
   box-shadow: 0 0 10px var(--gold-glow);
 }
 
-.theme-light .header-home-btn,
-.theme-light .header-theme-btn {
-  color: var(--gold-primary);
-  border-color: var(--border-color);
-  background: rgba(212, 61, 53, 0.06);
-}
-
-.theme-light .header-home-btn:hover,
-.theme-light .header-theme-btn:hover {
-  border-color: var(--gold-primary);
-  box-shadow: 0 0 10px var(--gold-glow);
-}
-
-.theme-light .card {
+.theme-dark .card,
+.theme-classic .card {
   background-color: var(--bg-card);
   color: var(--text-color);
   border-color: var(--border-color);
 }
 
-.theme-light .form-select,
-.theme-light .form-control {
+.theme-dark .form-select,
+.theme-dark .form-control,
+.theme-classic .form-select,
+.theme-classic .form-control {
   background-color: var(--bg-surface);
   color: var(--text-color);
   border-color: var(--border-color);
 }
 
-.theme-light .form-select:focus,
-.theme-light .form-control:focus {
+.theme-dark .form-select:focus,
+.theme-dark .form-control:focus,
+.theme-classic .form-select:focus,
+.theme-classic .form-control:focus {
   border-color: var(--gold-primary);
 }
 
@@ -215,11 +231,6 @@ h1 {
 .text-warning { color: var(--gold-secondary) !important; }
 .text-primary { color: var(--gold-primary) !important; }
 .text-purple { color: var(--gold-primary) !important; }
-
-.theme-light .text-danger { color: var(--gold-primary) !important; }
-.theme-light .text-warning { color: var(--gold-secondary) !important; }
-.theme-light .text-primary { color: var(--gold-primary) !important; }
-.theme-light .text-purple { color: var(--gold-primary) !important; }
 
 @media (max-width: 600px) {
   .header-title { font-size: 1.1rem; }
@@ -242,14 +253,14 @@ h1 {
 }
 
 .theme-classic .header-home-btn,
-.theme-classic .header-theme-btn {
+.theme-classic .theme-switcher {
   color: #ecf0f1 !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
   background: rgba(0, 0, 0, 0.2) !important;
 }
 
 .theme-classic .header-home-btn:hover,
-.theme-classic .header-theme-btn:hover {
+.theme-classic .theme-switcher:hover {
   border-color: #e74c3c !important;
   box-shadow: 0 0 10px rgba(231, 76, 60, 0.3) !important;
 }

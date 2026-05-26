@@ -18,7 +18,12 @@
                 </div>
                 <div class="header-actions">
                     <a href="../index.html" class="header-btn" title="Arsenal do Mestre">🏠 Hub</a>
-                    <button id="theme-toggle" class="header-btn header-theme-btn" title="Alternar tema">☀️</button>
+                    <!-- Theme Switcher -->
+                    <div class="theme-switcher" id="theme-switcher">
+                        <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
+                        <button class="theme-btn" data-theme="dark" title="Tema Sombras (STR escuro)">🌑</button>
+                        <button class="theme-btn" data-theme="classic" title="Tema Clássico (STR claro)">📜</button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -638,7 +643,51 @@
             <div id="grimorioList" class="grimorio-list"></div>
         </div>
     </div>
+<script>
+(function () {
+  var body = document.body;
+  var html = document.documentElement;
+  var key = 't20_theme';
+  
+  function applyTheme(theme) {
+    body.classList.remove('theme-dark', 'theme-classic');
+    html.classList.remove('theme-dark', 'theme-classic');
+    if (theme === 'dark') {
+      body.classList.add('theme-dark');
+      html.classList.add('theme-dark');
+    } else if (theme === 'classic') {
+      body.classList.add('theme-classic');
+      html.classList.add('theme-classic');
+    }
+    
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+    });
+    localStorage.setItem(key, theme);
+  }
+  
+  var saved = localStorage.getItem(key);
+  if (!saved) {
+    var oldTheme = localStorage.getItem('r20Theme') || localStorage.getItem('hubTheme');
+    if (oldTheme === 'dark') saved = 'dark';
+    else if (oldTheme === 'classic' || oldTheme === 'light') saved = 'classic';
+    else saved = 'blood';
+  }
+  applyTheme(saved);
+  
+  document.querySelectorAll('.theme-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyTheme(btn.getAttribute('data-theme'));
+    });
+  });
 
+  window.addEventListener('storage', function (e) {
+    if (e.key === key) {
+      applyTheme(e.newValue || 'blood');
+    }
+  });
+})();
+</script>
 </body>
 
 </html>

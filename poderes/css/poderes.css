@@ -780,137 +780,137 @@
 .theme-classic .sig-link-url, .theme-classic .sig-footer-text { color: var(--text-muted); }
 
 /* ===================================================
-   TEMA CLARO — OVERRIDES DOS COMPONENTES DE PODERES
+   TEMA CLÁSSICO — OVERRIDES DOS COMPONENTES DE PODERES
    =================================================== */
 
-.theme-light body {
+.theme-classic body {
   background: var(--bg-main);
   color: var(--text-main);
 }
 
-.theme-light .header {
+.theme-classic .header {
   background: var(--str-slate);
   border-bottom: none;
   box-shadow: none;
 }
 
-.theme-light .header-title {
+.theme-classic .header-title {
   color: var(--str-accent);
   text-shadow: none;
 }
 
-.theme-light .search-container {
+.theme-classic .search-container {
   background: transparent;
   border: none;
 }
 
-.theme-light #searchInput,
-.theme-light #origensSearch,
-.theme-light #distincoesSearch {
+.theme-classic #searchInput,
+.theme-classic #origensSearch,
+.theme-classic #distincoesSearch {
   background: var(--bg-main);
   border: 1px solid var(--border);
   color: var(--text-main);
 }
 
-.theme-light #searchInput:focus,
-.theme-light #origensSearch:focus,
-.theme-light #distincoesSearch:focus {
+.theme-classic #searchInput:focus,
+.theme-classic #origensSearch:focus,
+.theme-classic #distincoesSearch:focus {
   border-color: var(--str-accent);
   box-shadow: 0 0 8px var(--glow);
   background: var(--bg-main);
 }
 
-.theme-light .filter-btn {
+.theme-classic .filter-btn {
   background: var(--card-bg);
   border-color: var(--border);
   color: var(--text-main);
 }
 
-.theme-light .filter-btn:hover {
+.theme-classic .filter-btn:hover {
   border-color: var(--str-accent);
   color: var(--str-accent);
 }
 
-.theme-light .filter-btn.active {
+.theme-classic .filter-btn.active {
   background: var(--str-accent);
   border-color: var(--str-accent);
   color: #fff;
 }
 
-.theme-light .power-card {
+.theme-classic .power-card {
   background: var(--card-bg);
   border-color: var(--border);
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.theme-light .power-card:hover {
+.theme-classic .power-card:hover {
   border-color: var(--str-accent);
   box-shadow: 0 4px 16px var(--glow);
 }
 
-.theme-light .power-name { color: var(--str-accent); }
-.theme-light .power-type { background: var(--str-slate-2); color: #fff; }
-.theme-light .power-meta { color: var(--text-muted); }
-.theme-light .power-desc { color: var(--text-main); }
-.theme-light .power-hint { color: var(--str-accent); opacity: 0.7; }
+.theme-classic .power-name { color: var(--str-accent); }
+.theme-classic .power-type { background: var(--str-slate-2); color: #fff; }
+.theme-classic .power-meta { color: var(--text-muted); }
+.theme-classic .power-desc { color: var(--text-main); }
+.theme-classic .power-hint { color: var(--str-accent); opacity: 0.7; }
 
-.theme-light #classSelector,
-.theme-light #godSelector,
-.theme-light #atlasRegionSelector {
+.theme-classic #classSelector,
+.theme-classic #godSelector,
+.theme-classic #atlasRegionSelector {
   background: var(--bg-main);
   border-color: var(--border);
   color: var(--text-main);
 }
 
-.theme-light #classSelector option,
-.theme-light #godSelector option,
-.theme-light #atlasRegionSelector option {
+.theme-classic #classSelector option,
+.theme-classic #godSelector option,
+.theme-classic #atlasRegionSelector option {
   background: var(--card-bg);
   color: var(--text-main);
 }
 
-.theme-light .power-card.in-cart-highlight {
+.theme-classic .power-card.in-cart-highlight {
   border-color: #27ae60 !important;
   box-shadow: 0 0 12px rgba(39,174,96,0.25) !important;
   background: rgba(39,174,96,0.06) !important;
 }
 
-.theme-light .power-card.in-cart-highlight .power-name { color: #4ade80 !important; }
+.theme-classic .power-card.in-cart-highlight .power-name { color: #4ade80 !important; }
 
 /* Modal dark */
-.theme-light #powerModal,
-.theme-light #origensModal {
+.theme-classic #powerModal,
+.theme-classic #origensModal {
   background: rgba(255, 255, 255, 0.5);
 }
 
-.theme-light .modal-content {
+.theme-classic .modal-content {
   background: #ffffff;
   border: 1px solid #d4d4d0;
   box-shadow: 0 16px 48px rgba(0,0,0,0.1), 0 0 20px rgba(0,0,0,0.03);
   color: var(--text-main);
 }
 
-.theme-light .modal-content h2 { color: var(--str-accent); }
-.theme-light .modal-meta { color: var(--text-muted); }
-.theme-light .close-btn { background: #f0f2f5; color: var(--text-muted); border-color: #d4d4d0; }
-.theme-light .close-btn:hover { background: #e4e6ea; color: var(--text-main); }
+.theme-classic .modal-content h2 { color: var(--str-accent); }
+.theme-classic .modal-meta { color: var(--text-muted); }
+.theme-classic .close-btn { background: #f0f2f5; color: var(--text-muted); border-color: #d4d4d0; }
+.theme-classic .close-btn:hover { background: #e4e6ea; color: var(--text-main); }
 
-.theme-light .modal-footer {
+.theme-classic .modal-footer {
   border-top-color: #d4d4d0;
 }
 
 /* Relações de poderes */
-.theme-light .relation-card {
+.theme-classic .relation-card {
   background: var(--card-bg);
   border-color: var(--border);
 }
-.theme-light .relation-card:hover {
+.theme-classic .relation-card:hover {
   border-color: var(--str-accent);
   box-shadow: 0 0 12px var(--glow);
   background: rgba(201, 147, 58, 0.08);
 }
 
-.theme-light .relation-name { color: var(--text-main); }
+.theme-classic .relation-name { color: var(--text-main); }
 
 /* ===== BOTÃO HOME E TEMA NO HEADER DE PODERES ===== */
 .header {
@@ -972,21 +972,21 @@
 }
 
 /* Light overrides dos botões */
-.theme-light .header-home-btn,
-.theme-light .header-theme-btn {
+.theme-classic .header-home-btn,
+.theme-classic .header-theme-btn {
   background: rgba(212, 61, 53, 0.06);
   border-color: var(--border);
   color: var(--str-accent);
 }
 
-.theme-light .header-home-btn:hover,
-.theme-light .header-theme-btn:hover {
+.theme-classic .header-home-btn:hover,
+.theme-classic .header-theme-btn:hover {
   border-color: var(--str-accent);
   box-shadow: 0 0 10px var(--glow);
 }
 
 /* Botão Voltar ao topo */
-.theme-light #backToTopBtn {
+.theme-classic #backToTopBtn {
   background: var(--str-accent);
   color: #fff;
   border: none;

@@ -1347,37 +1347,37 @@ document.addEventListener("DOMContentLoaded", () => {
     updateStatsDashboard();
     updateActiveFilterBadges();
 
-    // ===== TEMA CLARO/ESCURO/CLÁSSICO =====
+    // ===== TEMA SANGUE/SOMBRAS/CLÁSSICO =====
     (function initTheme() {
-        const toggle = document.getElementById('theme-toggle');
-        const saved = localStorage.getItem('grimorioTheme') || 'dark';
-        const themes = ['dark', 'light', 'classic'];
-        const icons = {
-            dark: '<i class="fa-solid fa-moon"></i>',
-            light: '<i class="fa-solid fa-sun"></i>',
-            classic: '<i class="fa-solid fa-gavel"></i>',
-        };
-        const htmlClass = {
-            dark: '',
-            light: 'theme-light',
-            classic: 'theme-classic',
-        };
+        var body = document.body;
+        var key = 't20_theme';
+        
         function applyTheme(theme) {
-            document.documentElement.classList.remove('theme-light', 'theme-classic');
-            if (htmlClass[theme]) {
-                document.documentElement.classList.add(htmlClass[theme]);
-            }
-            if (toggle) toggle.innerHTML = icons[theme];
-            localStorage.setItem('grimorioTheme', theme);
+            body.classList.remove('theme-dark', 'theme-classic');
+            if (theme === 'dark') body.classList.add('theme-dark');
+            else if (theme === 'classic') body.classList.add('theme-classic');
+            
+            document.querySelectorAll('.theme-btn').forEach(function (btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+            });
+            localStorage.setItem(key, theme);
+        }
+        
+        var saved = localStorage.getItem(key);
+        if (!saved) {
+            var oldGrimorio = localStorage.getItem('grimorioTheme');
+            var oldHub = localStorage.getItem('hubTheme');
+            var refTheme = oldGrimorio || oldHub;
+            if (refTheme === 'dark') saved = 'dark';
+            else if (refTheme === 'classic' || refTheme === 'light') saved = 'classic';
+            else saved = 'blood';
         }
         applyTheme(saved);
-        if (toggle) {
-            toggle.addEventListener('click', () => {
-                const current = localStorage.getItem('grimorioTheme') || 'dark';
-                const idx = themes.indexOf(current);
-                const next = themes[(idx + 1) % themes.length];
-                applyTheme(next);
+        
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                applyTheme(btn.getAttribute('data-theme'));
             });
-        }
+        });
     })();
 });

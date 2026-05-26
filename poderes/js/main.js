@@ -728,34 +728,37 @@ renderPowers(powersData);
 if (classFiltersDiv) classFiltersDiv.style.display = 'none';  // começa oculto
 setPathsOpen(false);
 
-// ===== TEMA CLARO/ESCURO/CLÁSSICO =====
+// ===== TEMA SANGUE/SOMBRAS/CLÁSSICO =====
 (function initTheme() {
-    const toggle = document.getElementById('theme-toggle');
-    const saved = localStorage.getItem('poderesTheme') || 'dark';
-    const themes = ['dark', 'light', 'classic'];
-    const icons = {
-        dark: '🌙',
-        light: '☀️',
-        classic: '⚖️',
-    };
     function applyTheme(theme) {
-        document.body.classList.remove('theme-light', 'theme-classic');
-        if (theme !== 'dark') {
-            document.body.classList.add(theme === 'light' ? 'theme-light' : 'theme-classic');
-        }
-        if (toggle) toggle.textContent = icons[theme];
-        localStorage.setItem('poderesTheme', theme);
+        document.body.classList.remove('theme-blood', 'theme-dark', 'theme-classic');
+        if (theme === 'blood') document.body.classList.add('theme-blood');
+        else if (theme === 'dark') document.body.classList.add('theme-dark');
+        else if (theme === 'classic') document.body.classList.add('theme-classic');
+        
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+        });
+        localStorage.setItem('t20_theme', theme);
+    }
+    
+    var saved = localStorage.getItem('t20_theme');
+    if (!saved) {
+        var oldPoderes = localStorage.getItem('poderesTheme');
+        var oldHub = localStorage.getItem('hubTheme');
+        var refTheme = oldPoderes || oldHub;
+        if (refTheme === 'dark') saved = 'dark';
+        else if (refTheme === 'classic' || refTheme === 'light') saved = 'classic';
+        else saved = 'blood';
     }
     applyTheme(saved);
     document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
-    if (toggle) {
-        toggle.addEventListener('click', () => {
-            const current = localStorage.getItem('poderesTheme') || 'dark';
-            const idx = themes.indexOf(current);
-            const next = themes[(idx + 1) % themes.length];
-            applyTheme(next);
+    
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyTheme(btn.getAttribute('data-theme'));
         });
-    }
+    });
 })();
 
 // --- LÓGICA DO BOTÃO VOLTAR AO TOPO ---

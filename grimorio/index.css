@@ -3,7 +3,52 @@
    ========================================================================== */
 
 :root {
-    /* Theme Colors */
+    /* Tema Sangue */
+    --bg-dark-base: #0a0404;
+    --bg-dark-surface: #120a0a;
+    --bg-dark-panel: #160e0e;
+    --bg-dark-panel-hover: #241414;
+    
+    --border-color: #4a1414;
+    --border-glow-gold: rgba(204, 13, 13, 0.4);
+    
+    --text-primary: #e8e4e4;
+    --text-secondary: #a39898;
+    --text-muted: #736868;
+    
+    /* Magical Gold Accents -> Red Accents */
+    --gold-primary: #cc0d0d;
+    --gold-secondary: #ff2e2e;
+    --gold-glow: rgba(204, 13, 13, 0.35);
+    
+    /* Magic School Colors (Neon glowing shades) */
+    --color-abj: #29b6f6; /* Abjuração: Blue */
+    --color-adi: #ffb74d; /* Adivinhação: Amber/Yellow */
+    --color-con: #00e5ff; /* Convocação: Cyan */
+    --color-enc: #ff80ab; /* Encantamento: Pink/Rose */
+    --color-evo: #ff1744; /* Evocação: Red */
+    --color-ilu: #e040fb; /* Ilusão: Purple */
+    --color-nec: #7c4dff; /* Necromancia: Violet/Purple */
+    --color-tra: #00e676; /* Transmutação: Green */
+
+    /* Glassmorphism effects */
+    --glass-bg: rgba(22, 14, 14, 0.75);
+    --glass-backdrop: blur(12px);
+    --glass-border: rgba(204, 13, 13, 0.15);
+    
+    /* Fonts */
+    --font-heading: "Tormenta", serif;
+    --font-heading-fancy: "Tormenta", serif;
+    --font-body: 'Segoe UI', sans-serif;
+    
+    /* Transitions */
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== TEMA SOMBRAS ===== */
+.theme-dark {
     --bg-dark-base: #07080c;
     --bg-dark-surface: #0e1017;
     --bg-dark-panel: #161922;
@@ -17,52 +62,13 @@
     --text-muted: #646b7e;
     
     /* Magical Gold Accents */
-    --gold-primary: #ffd54f;
+    --gold-primary: #c9933a;
     --gold-secondary: #d4af37;
-    --gold-glow: rgba(255, 213, 79, 0.4);
+    --gold-glow: rgba(201, 147, 58, 0.35);
     
-    /* Magic School Colors (Neon glowing shades) */
-    --color-abj: #29b6f6; /* Abjuração: Blue */
-    --color-adi: #ffb74d; /* Adivinhação: Amber/Yellow */
-    --color-con: #00e5ff; /* Convocação: Cyan */
-    --color-enc: #ff80ab; /* Encantamento: Pink/Rose */
-    --color-evo: #ff1744; /* Evocação: Red */
-    --color-ilu: #e040fb; /* Ilusão: Purple */
-    --color-nec: #7c4dff; /* Necromancia: Violet/Purple */
-    --color-tra: #00e676; /* Transmutação: Green */
-
     /* Glassmorphism effects */
     --glass-bg: rgba(14, 16, 23, 0.75);
-    --glass-backdrop: blur(12px);
     --glass-border: rgba(255, 255, 255, 0.05);
-    
-    /* Fonts */
-    --font-heading: "Tormenta", serif;
-    --font-heading-fancy: "Tormenta", serif;
-    --font-body: 'Segoe UI', sans-serif;
-    
-    /* Transitions */
-    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ===== TEMA CLARO ===== */
-.theme-light {
-    --bg-dark-base: #f2f4f7;
-    --bg-dark-surface: #ffffff;
-    --bg-dark-panel: #f0f2f5;
-    --bg-dark-panel-hover: #e8eaed;
-    --border-color: #d4d4d0;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --gold-primary: #d43d35;
-    --gold-secondary: #d43d35;
-    --gold-glow: rgba(212, 61, 53, 0.3);
-    --glass-bg: rgba(255, 255, 255, 0.85);
-    --glass-backdrop: blur(12px);
-    --glass-border: rgba(0, 0, 0, 0.06);
 }
 
 /* ===== TEMA CLÁSSICO ===== */
@@ -86,10 +92,6 @@
    ========================================================================== */
 
 .header-btns {
-    position: absolute;
-    top: 50%;
-    right: 20px;
-    transform: translateY(-50%);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -121,15 +123,13 @@
     background: rgba(0, 0, 0, 0.25);
 }
 
-.theme-light .header-home-btn,
-.theme-light .header-theme-btn {
+.theme-classic .header-home-btn {
     background: rgba(212, 61, 53, 0.06);
     border-color: var(--gold-primary);
     color: var(--gold-primary);
 }
 
-.theme-light .header-home-btn:hover,
-.theme-light .header-theme-btn:hover {
+.theme-classic .header-home-btn:hover {
     background: rgba(212, 61, 53, 0.12);
     box-shadow: 0 0 12px var(--gold-glow);
 }
@@ -261,6 +261,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    margin: 0 auto;
 }
 
 .stat-box {
@@ -2050,55 +2051,51 @@ body {
 }
 
 /* ==========================================================================
-   TEMA CLARO — COMPONENT OVERRIDES
+   TEMA CLÁSSICO — COMPONENT OVERRIDES
    ========================================================================== */
 
-.theme-light body {
+.theme-classic body {
     background: var(--bg-dark-base);
 }
 
-.theme-light .header-logo {
+.theme-classic .header-logo {
     color: var(--text-primary);
 }
 
-.theme-light .stat-box {
+.theme-classic .stat-box {
     background: var(--bg-dark-panel);
 }
 
-.theme-light .stat-box .stat-value {
+.theme-classic .stat-box .stat-value {
     color: var(--text-primary);
 }
 
-.theme-light .stat-box .stat-label {
+.theme-classic .stat-box .stat-label {
     color: var(--text-muted);
 }
 
-.theme-light .sidebar-panel {
+.theme-classic .sidebar-panel {
     background: var(--bg-dark-panel);
 }
 
-.theme-light .sidebar-panel h3 {
+.theme-classic .sidebar-panel h3 {
     color: var(--gold-primary);
 }
 
-.theme-light .filter-badge {
+.theme-classic .filter-badge {
     background: rgba(212, 61, 53, 0.06);
     border-color: var(--gold-primary);
     color: var(--gold-primary);
 }
 
-.theme-light .filter-badge i {
+.theme-classic .filter-badge i {
     color: var(--gold-primary);
 }
 
-.theme-light .filter-badge:hover {
+.theme-classic .filter-badge:hover {
     background: rgba(212, 61, 53, 0.12);
     border-color: var(--gold-primary);
 }
-
-/* ==========================================================================
-   TEMA CLÁSSICO — COMPONENT OVERRIDES
-   ========================================================================== */
 
 .theme-classic .app-header {
     background: linear-gradient(185deg, #2c3e50 0%, #1a252f 100%) !important;
@@ -2123,17 +2120,62 @@ body {
     color: #bdc3c7 !important;
 }
 
-.theme-classic .header-home-btn,
-.theme-classic .header-theme-btn {
+.theme-classic .header-home-btn {
     color: #ecf0f1 !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
     background: rgba(0, 0, 0, 0.2) !important;
 }
 
-.theme-classic .header-home-btn:hover,
-.theme-classic .header-theme-btn:hover {
+.theme-classic .header-home-btn:hover {
     border-color: #e74c3c !important;
     box-shadow: 0 0 10px rgba(231, 76, 60, 0.3) !important;
+}
+
+/* ===== THEME SWITCHER ===== */
+.theme-switcher {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px;
+  transition: border-color 0.25s ease;
+}
+
+.theme-btn {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  transition: background 0.25s ease, transform 0.1s;
+  opacity: 0.55;
+}
+
+.theme-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.15);
+}
+
+.theme-btn.active {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.theme-dark .theme-switcher {
+  border-color: rgba(201, 147, 58, 0.3);
+}
+
+.theme-classic .theme-switcher {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 

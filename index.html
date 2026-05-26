@@ -13,6 +13,28 @@
     }
 
     :root {
+      /* Tema Padrão: Sangue */
+      --bg-dark-base: #0a0404;
+      --bg-dark-surface: #120a0a;
+      --bg-dark-panel: #160e0e;
+      --bg-dark-panel-hover: #241414;
+      --border-color: #4a1414;
+      --text-primary: #e8e4e4;
+      --text-secondary: #a39898;
+      --text-muted: #736868;
+      --gold-primary: #cc0d0d;
+      --gold-secondary: #cfa053;
+      --gold-glow: rgba(204, 13, 13, 0.35);
+      --glass-bg: rgba(22, 14, 14, 0.75);
+      --glass-backdrop: blur(12px);
+      --font-heading: "Tormenta", serif;
+      --font-body: 'Segoe UI', sans-serif;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+    }
+
+    .theme-dark {
+      /* Tema: Sombras (STR Dark) */
       --bg-dark-base: #06070c;
       --bg-dark-surface: #0b0d14;
       --bg-dark-panel: #11131e;
@@ -26,29 +48,10 @@
       --gold-glow: rgba(201, 147, 58, 0.3);
       --glass-bg: rgba(17, 19, 30, 0.75);
       --glass-backdrop: blur(12px);
-      --font-heading: "Tormenta", serif;
-      --font-body: 'Segoe UI', sans-serif;
-      --radius-lg: 16px;
-      --radius-md: 10px;
-    }
-
-    .theme-light {
-      --bg-dark-base: #f5f5f0;
-      --bg-dark-surface: #ffffff;
-      --bg-dark-panel: rgba(255, 255, 255, 0.92);
-      --bg-dark-panel-hover: rgba(255, 255, 255, 0.98);
-      --border-color: #d4d4d0;
-      --text-primary: #1a1a1a;
-      --text-secondary: #5a5a5a;
-      --text-muted: #8a8a8a;
-      --gold-primary: #d43d35;
-      --gold-secondary: #b81e16;
-      --gold-glow: rgba(212, 61, 53, 0.12);
-      --glass-bg: rgba(255, 255, 255, 0.92);
-      --glass-backdrop: blur(8px);
     }
 
     .theme-classic {
+      /* Tema: Clássico (STR Classic) */
       --bg-dark-base: #f0ece4;
       --bg-dark-surface: #ffffff;
       --bg-dark-panel: #ffffff;
@@ -64,7 +67,7 @@
       --glass-backdrop: blur(8px);
     }
 
-    .theme-classic body {
+    body.theme-classic {
       background: var(--bg-dark-base) !important;
     }
 
@@ -73,20 +76,22 @@
       border-bottom: 2px solid #e74c3c !important;
     }
 
+    .theme-classic header::after {
+      display: none !important;
+    }
+
     .theme-classic .header-title {
       color: #ecf0f1 !important;
       text-shadow: none !important;
     }
 
-    .theme-classic .header-home-btn,
-    .theme-classic .header-theme-btn {
+    .theme-classic .header-home-btn {
       color: #ecf0f1 !important;
       border-color: rgba(255, 255, 255, 0.2) !important;
       background: rgba(0, 0, 0, 0.2) !important;
     }
 
-    .theme-classic .header-home-btn:hover,
-    .theme-classic .header-theme-btn:hover {
+    .theme-classic .header-home-btn:hover {
       border-color: #e74c3c !important;
       box-shadow: 0 0 10px rgba(231, 76, 60, 0.3) !important;
     }
@@ -106,10 +111,6 @@
       padding-bottom: 40px;
       transition: background-color 0.35s ease, color 0.35s ease;
       overflow-x: hidden;
-    }
-
-    .theme-light body {
-      background-image: none !important;
     }
 
     /* ===== HEADER ===== */
@@ -143,13 +144,6 @@
       margin-bottom: 8px;
     }
 
-    .theme-light .header-title {
-      background: none;
-      -webkit-text-fill-color: var(--gold-primary);
-      color: var(--gold-primary);
-      text-shadow: none;
-    }
-
     .header-subtitle {
       color: var(--text-secondary);
       font-size: 1rem;
@@ -165,12 +159,11 @@
       transform: translateY(-50%);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       z-index: 10;
     }
 
-    .header-home-btn,
-    .header-theme-btn {
+    .header-home-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -184,9 +177,6 @@
       background: rgba(0, 0, 0, 0.15);
       border: 1px solid var(--border-color);
       color: var(--gold-primary);
-    }
-
-    .header-home-btn {
       padding: 7px 12px;
       border-radius: 8px;
       gap: 5px;
@@ -197,29 +187,51 @@
       box-shadow: 0 0 10px var(--gold-glow);
     }
 
-    .header-theme-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      font-size: 1.2rem;
-      padding: 0;
+    /* ===== THEME SWITCHER ===== */
+    .theme-switcher {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 3px;
+      transition: border-color 0.25s ease;
     }
 
-    .header-theme-btn:hover {
-      border-color: var(--gold-primary);
-      box-shadow: 0 0 12px var(--gold-glow);
-      transform: scale(1.1);
+    .theme-btn {
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      transition: background 0.25s ease, transform 0.1s;
+      opacity: 0.55;
     }
 
-    .theme-light .header-home-btn,
-    .theme-light .header-theme-btn {
-      background: rgba(212, 61, 53, 0.06);
+    .theme-btn:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.15);
     }
 
-    .theme-light .header-home-btn:hover,
-    .theme-light .header-theme-btn:hover {
-      border-color: var(--gold-primary);
-      box-shadow: 0 0 10px var(--gold-glow);
+    .theme-btn.active {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+    }
+
+    .theme-dark .theme-switcher {
+      border-color: rgba(201, 147, 58, 0.3);
+    }
+
+    .theme-classic .theme-switcher {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(0, 0, 0, 0.2);
     }
 
     /* ===== CONTAINER ===== */
@@ -602,7 +614,12 @@
     <h1 class="header-title">Arsenal do Mestre</h1>
     <p class="header-subtitle">Ferramentas essenciais para Tormenta20</p>
     <div class="header-btns">
-      <button class="header-theme-btn" id="themeToggleBtn">🌓</button>
+      <!-- Theme Switcher -->
+      <div class="theme-switcher" id="theme-switcher">
+        <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
+        <button class="theme-btn" data-theme="dark" title="Tema Sombras (STR escuro)">🌑</button>
+        <button class="theme-btn" data-theme="classic" title="Tema Clássico (STR claro)">📜</button>
+      </div>
     </div>
   </header>
 
@@ -776,26 +793,44 @@
 
   <script>
     (function () {
-      var btn = document.getElementById('themeToggleBtn');
-      var html = document.documentElement;
-      var key = 'hubTheme';
-      var themes = ['dark', 'light', 'classic'];
+      var body = document.body;
+      var key = 't20_theme'; // Sincronizado com o bestiário (ameacas)
+      
       function applyTheme(theme) {
-        html.classList.remove('theme-light', 'theme-classic');
-        if (theme === 'light') html.classList.add('theme-light');
-        else if (theme === 'classic') html.classList.add('theme-classic');
-        localStorage.setItem(key, theme);
-        if (btn) {
-          btn.textContent = theme === 'dark' || theme === 'classic' ? '🌓' : '🌙';
+        // Remove classes antigas de tema
+        body.classList.remove('theme-dark', 'theme-classic');
+        
+        // Aplica o novo tema no body (se não for o padrão 'blood')
+        if (theme === 'dark') {
+          body.classList.add('theme-dark');
+        } else if (theme === 'classic') {
+          body.classList.add('theme-classic');
         }
+        
+        // Atualiza a classe ativa nos botões do seletor
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+        });
+        
+        localStorage.setItem(key, theme);
       }
-      var saved = localStorage.getItem(key) || 'dark';
+      
+      // Carrega o tema salvo com fallback de migração do antigo 'hubTheme'
+      var saved = localStorage.getItem(key);
+      if (!saved) {
+        var oldSaved = localStorage.getItem('hubTheme');
+        if (oldSaved === 'dark') saved = 'dark';
+        else if (oldSaved === 'classic' || oldSaved === 'light') saved = 'classic';
+        else saved = 'blood';
+      }
+      
       applyTheme(saved);
-      if (btn) btn.addEventListener('click', function () {
-        var current = localStorage.getItem(key) || 'dark';
-        var idx = themes.indexOf(current);
-        var next = themes[(idx + 1) % themes.length];
-        applyTheme(next);
+      
+      // Adiciona o ouvinte de eventos aos botões
+      document.querySelectorAll('.theme-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          applyTheme(btn.getAttribute('data-theme'));
+        });
       });
     })();
   </script>

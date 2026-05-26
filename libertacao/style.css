@@ -7,15 +7,18 @@
 }
 
 :root {
-    --bg-color: #1a1a1d;
-    --card-bg: #28282e;
-    --primary-text: #f5f5f5;
-    --secondary-text: #b3b3b3;
-    --accent-color: #6f2232;
-    --accent-hover: #952d42;
-    --success-color: #4CAF50;
-    --fail-color: #C3073F;
-    --border-color: #4e4e50;
+    /* Tema Sangue */
+    --bg-color: #0a0404;
+    --card-bg: #120a0a;
+    --bg-element: #1c0f0f;
+    --bg-input: #1c0f0f;
+    --primary-text: #e8e4e4;
+    --secondary-text: #a39898;
+    --accent-color: #cc0d0d;
+    --accent-hover: #ff2e2e;
+    --success-color: #27ae60;
+    --fail-color: #cc0d0d;
+    --border-color: rgba(204, 13, 13, 0.25);
     --font-main: 'Segoe UI', sans-serif;
     --font-title: 'Tormenta20', 'Teko', sans-serif;
 }
@@ -41,7 +44,7 @@ select {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid var(--border-color);
-    background-color: #333;
+    background-color: var(--bg-input);
     color: var(--primary-text);
     transition: all 0.3s ease;
 }
@@ -243,7 +246,7 @@ select:focus {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
-    background-color: #333;
+    background-color: var(--bg-element);
     cursor: pointer;
     transition: border-color 0.3s ease;
 }
@@ -344,7 +347,7 @@ select:focus {
 .npc-entry {
     border: 1px solid var(--border-color);
     border-radius: 5px;
-    background-color: #333;
+    background-color: var(--bg-element);
 }
 
 .npc-trigger {
@@ -467,7 +470,7 @@ select:focus {
 }
 
 .mission-box {
-    background: #333;
+    background: var(--bg-element);
     padding: 15px;
     border-left: 5px solid var(--accent-color);
     border-radius: 5px;
@@ -538,7 +541,7 @@ select:focus {
 }
 
 .solicitante-card {
-    background: #333;
+    background: var(--bg-element);
     border-radius: 8px;
     overflow: hidden;
 }
@@ -670,7 +673,7 @@ select:focus {
 /* --- Estilos para o card de Solicitante Expansível --- */
 
 .solicitante-card {
-    background: #333;
+    background: var(--bg-element);
     border-radius: 8px;
     overflow: hidden;
     /* Importante para o efeito de recolher */
@@ -836,72 +839,75 @@ npc-item::after {
 }
 
 /* =========================================================
-   THEME: LIGHT
+   THEME: DARK (Sombras)
    ========================================================= */
-.theme-light {
-    --bg-color: #faf5eb;
-    --card-bg: #fffcf5;
-    --primary-text: #3d2e0e;
-    --secondary-text: #8a7a5a;
-    --accent-color: #d4af37;
-    --accent-hover: #c9a830;
-    --success-color: #4CAF50;
-    --fail-color: #c0392b;
-    --border-color: #e0d5be;
+.theme-dark {
+    --bg-color: #06070c;
+    --card-bg: #0b0e1a;
+    --bg-element: #121524;
+    --bg-input: #121524;
+    --border-color: rgba(201, 147, 58, 0.2);
+    --primary-text: #e2d8c3;
+    --secondary-text: #8e7d65;
+    --accent-color: #c9933a;
+    --accent-hover: #d4af37;
+    --success-color: #2ecc71;
+    --fail-color: #e0483f;
 }
-.theme-light body {
+.theme-dark body {
     background-color: var(--bg-color);
     color: var(--primary-text);
 }
-.theme-light .main-header {
+.theme-dark .main-header {
     background-color: var(--card-bg);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid var(--border-color);
 }
-.theme-light .main-header h1 { color: var(--primary-text); }
-.theme-light .header-btn {
-    background: rgba(0, 0, 0, 0.04);
+.theme-dark .main-header h1 { color: var(--primary-text); }
+.theme-dark .header-btn {
+    background: rgba(255, 255, 255, 0.05);
     border-color: var(--border-color);
     color: var(--primary-text);
 }
-.theme-light .header-btn:hover {
+.theme-dark .header-btn:hover {
     border-color: var(--accent-color);
     color: var(--accent-color);
 }
-.theme-light .card { background: var(--card-bg); }
-.theme-light .card header { border-bottom-color: var(--border-color); }
-.theme-light .card h2 { color: var(--primary-text); }
-.theme-light button,
-.theme-light input,
-.theme-light select {
-    background: #f5f0e8;
+.theme-dark .card { background: var(--card-bg); }
+.theme-dark .card header { border-bottom-color: var(--border-color); }
+.theme-dark .card h2 { color: var(--primary-text); }
+.theme-dark button,
+.theme-dark input,
+.theme-dark select {
+    background: var(--bg-input);
     border-color: var(--border-color);
     color: var(--primary-text);
 }
-.theme-light button {
+.theme-dark button {
     background: var(--accent-color);
     border-color: var(--accent-color);
-    color: #3d2e0e;
+    color: #0d111a;
 }
-.theme-light button:hover {
+.theme-dark button:hover {
     background: var(--accent-hover);
     border-color: var(--accent-hover);
 }
-.theme-light .btn-save { background: var(--success-color); color: #fff; }
-.theme-light .btn-load { background: #2196F3; color: #fff; }
-.theme-light .btn-remove { background: var(--fail-color); color: #fff; }
-.theme-light .player-container { background: #f5f0e8; }
-.theme-light .npc-entry { background: #f5f0e8; }
-.theme-light .npc-item { background: var(--card-bg); }
-.theme-light .mission-box { background: #f5f0e8; }
-.theme-light .mission-box h4 { color: var(--primary-text); }
-.theme-light .solicitante-card { background: #f5f0e8; }
-.theme-light .modal-content { background: var(--card-bg); border-top-color: var(--accent-color); }
-.theme-light .modal-content h4 { color: var(--primary-text); }
-.theme-light .modal-content p { color: var(--secondary-text); }
-.theme-light #honrarias-conquistadas { background: var(--card-bg); }
-.theme-light .completed-mission-list .status-sucesso { background-color: rgba(76, 175, 80, 0.1); }
-.theme-light .completed-mission-list .status-falha { background-color: rgba(192, 57, 43, 0.1); }
-.theme-light .npc-name-display { background-color: rgba(0, 0, 0, 0.05); }
+.theme-dark .btn-save { background: var(--success-color); color: #fff; }
+.theme-dark .btn-load { background: #2196F3; color: #fff; }
+.theme-dark .btn-remove { background: var(--fail-color); color: #fff; }
+.theme-dark .player-container { background: var(--bg-element); }
+.theme-dark .npc-entry { background: var(--bg-element); }
+.theme-dark .npc-item { background: var(--card-bg); }
+.theme-dark .mission-box { background: var(--bg-element); }
+.theme-dark .mission-box h4 { color: var(--primary-text); }
+.theme-dark .solicitante-card { background: var(--bg-element); }
+.theme-dark .modal-content { background: var(--card-bg); border-top-color: var(--accent-color); }
+.theme-dark .modal-content h4 { color: var(--primary-text); }
+.theme-dark .modal-content p { color: var(--secondary-text); }
+.theme-dark #honrarias-conquistadas { background: var(--card-bg); }
+.theme-dark .completed-mission-list .status-sucesso { background-color: rgba(46, 204, 113, 0.1); }
+.theme-dark .completed-mission-list .status-falha { background-color: rgba(224, 72, 63, 0.1); }
+.theme-dark .npc-name-display { background-color: rgba(0, 0, 0, 0.3); }
 
 /* =========================================================
    THEME: CLASSIC (Azul + Vermelho)
@@ -909,6 +915,9 @@ npc-item::after {
 .theme-classic {
     --bg-color: #f0ece4;
     --card-bg: #ffffff;
+    --bg-element: #e8e2d6;
+    --bg-input: #ffffff;
+    --border-color: #b0b8c8;
     --primary-text: #2c3e50;
     --secondary-text: #5a6a7a;
     --accent-color: #e74c3c;
@@ -927,12 +936,14 @@ npc-item::after {
     box-shadow: none;
 }
 .theme-classic .main-header h1 { color: #ecf0f1; }
-.theme-classic .header-btn {
+.theme-classic .header-btn,
+.theme-classic .theme-switcher {
     background: rgba(0, 0, 0, 0.15);
     border-color: rgba(255, 255, 255, 0.12);
     color: #ecf0f1;
 }
-.theme-classic .header-btn:hover {
+.theme-classic .header-btn:hover,
+.theme-classic .theme-switcher:hover {
     border-color: #e74c3c;
     color: #e74c3c;
 }
@@ -992,7 +1003,7 @@ npc-item::after {
    FEATURE 3: ESTABELECIMENTOS EDITÁVEIS
    ========================================================= */
 .estab-card {
-  background: #333;
+  background: var(--bg-element);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 15px;
@@ -1037,14 +1048,12 @@ npc-item::after {
   flex: 1;
 }
 
-.theme-light .estab-card { background: #f5f0e8; }
-.theme-classic .estab-card { background: #e8e2d6; }
 
 /* =========================================================
    FEATURE 4: MISSÕES CUSTOMIZÁVEIS
    ========================================================= */
 .custom-mission-card {
-  background: #333;
+  background: var(--bg-element);
   border: 1px solid var(--border-color);
   border-left: 5px solid var(--accent-color);
   border-radius: 5px;
@@ -1089,8 +1098,6 @@ npc-item::after {
   background-color: var(--fail-color);
 }
 
-.theme-light .custom-mission-card { background: #f5f0e8; }
-.theme-classic .custom-mission-card { background: #e8e2d6; }
 
 /* =========================================================
    NPC MODAL (Ficha Rápida)
@@ -1104,7 +1111,7 @@ npc-item::after {
   border-radius: 8px;
   background-size: cover;
   background-position: center;
-  background-color: #333;
+  background-color: var(--bg-element);
   flex-shrink: 0;
   border: 2px solid var(--border-color);
 }
@@ -1140,4 +1147,51 @@ npc-item::after {
   #custom-estabs-board .player-form {
     flex-direction: column;
   }
+}
+
+/* ===== THEME SWITCHER ===== */
+.theme-switcher {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px;
+  transition: border-color 0.25s ease;
+}
+
+.theme-btn {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  transition: background 0.25s ease, transform 0.1s;
+  opacity: 0.55;
+}
+
+.theme-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.15);
+}
+
+.theme-btn.active {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.theme-dark .theme-switcher {
+  border-color: rgba(255, 213, 79, 0.3);
+}
+
+.theme-classic .theme-switcher {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
 }

@@ -1,4 +1,4 @@
-﻿const perigos = [
+const perigos = [
   {
     origem: "Tormenta 20 JdA",
     nd: "4",
@@ -1645,33 +1645,38 @@ function formatarEfeito(html) {
 carregarPerigos();
 
 // ================================================================
-//  TEMA CLARO/ESCURO/CLÁSSICO
+//  TEMA SANGUE/SOMBRAS/CLÁSSICO
 // ================================================================
 (function initTheme() {
-  var toggle = document.getElementById('themeToggle');
-  var root = document.documentElement;
-  var saved = localStorage.getItem('perigosTheme') || 'dark';
-  var themes = ['dark', 'light', 'classic'];
-  var icons = {
-    dark: '🌙',
-    light: '☀️',
-    classic: '⚖️',
-  };
+  var body = document.body;
+  var key = 't20_theme';
+
   function applyTheme(theme) {
-    root.classList.remove('theme-light', 'theme-classic');
-    if (theme !== 'dark') {
-      root.classList.add(theme === 'light' ? 'theme-light' : 'theme-classic');
-    }
-    if (toggle) toggle.textContent = icons[theme];
-    localStorage.setItem('perigosTheme', theme);
-  }
-  applyTheme(saved);
-  if (toggle) {
-    toggle.addEventListener('click', function() {
-      var current = localStorage.getItem('perigosTheme') || 'dark';
-      var idx = themes.indexOf(current);
-      var next = themes[(idx + 1) % themes.length];
-      applyTheme(next);
+    body.classList.remove('theme-dark', 'theme-classic');
+    if (theme === 'dark') body.classList.add('theme-dark');
+    else if (theme === 'classic') body.classList.add('theme-classic');
+
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
     });
+    localStorage.setItem(key, theme);
   }
+
+  var saved = localStorage.getItem(key);
+  if (!saved) {
+    var oldPerigos = localStorage.getItem('perigosTheme');
+    var oldHub = localStorage.getItem('hubTheme');
+    var refTheme = oldPerigos || oldHub;
+    if (refTheme === 'dark') saved = 'dark';
+    else if (refTheme === 'classic' || refTheme === 'light') saved = 'classic';
+    else saved = 'blood';
+  }
+
+  applyTheme(saved);
+
+  document.querySelectorAll('.theme-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyTheme(btn.getAttribute('data-theme'));
+    });
+  });
 })();

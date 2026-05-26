@@ -165,26 +165,35 @@ window.onload = () => {
     closeInventoryBtn = document.getElementById('closeInventoryBtn');
     mobileInvCount = document.getElementById('mobileInvCount');
 
-    // Inicialização do Tema Claro/Escuro/Clássico
-    const themeToggle = document.getElementById('theme-toggle');
-    const themes = ['dark', 'light', 'classic'];
+    // Inicialização do Tema Sangue/Sombras/Clássico
     function applyTheme(theme) {
-        document.body.classList.remove('theme-light', 'theme-classic');
-        if (theme === 'light') document.body.classList.add('theme-light');
+        document.body.classList.remove('theme-blood', 'theme-dark', 'theme-classic');
+        if (theme === 'blood') document.body.classList.add('theme-blood');
+        else if (theme === 'dark') document.body.classList.add('theme-dark');
         else if (theme === 'classic') document.body.classList.add('theme-classic');
-        if (themeToggle) themeToggle.textContent = theme === 'dark' || theme === 'classic' ? '☀️' : '🌙';
-        localStorage.setItem('diceTheme', theme);
-    }
-    const saved = localStorage.getItem('diceTheme') || 'dark';
-    applyTheme(saved);
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const current = localStorage.getItem('diceTheme') || 'dark';
-            const idx = themes.indexOf(current);
-            const next = themes[(idx + 1) % themes.length];
-            applyTheme(next);
+        
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
         });
+        localStorage.setItem('t20_theme', theme);
     }
+    
+    var saved = localStorage.getItem('t20_theme');
+    if (!saved) {
+        var oldDice = localStorage.getItem('diceTheme');
+        var oldHub = localStorage.getItem('hubTheme');
+        var refTheme = oldDice || oldHub;
+        if (refTheme === 'dark') saved = 'dark';
+        else if (refTheme === 'classic' || refTheme === 'light') saved = 'classic';
+        else saved = 'blood';
+    }
+    applyTheme(saved);
+    
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyTheme(btn.getAttribute('data-theme'));
+        });
+    });
 
     // 2. Carrega os dados e o inventário
     loadInventory();
