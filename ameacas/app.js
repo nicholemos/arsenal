@@ -1,6 +1,7 @@
 /* Ameaças de Arton - Application Logic */
 
 // Global State
+let currentTheme = 'blood'; // 'blood' | 'dark' | 'classic'
 let allThreats = [];
 let filteredThreats = [];
 let encounterList = [];
@@ -40,6 +41,7 @@ const ND_XP = {
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
+    loadSavedTheme();
     initCanvas();
     loadThreats();
     setupEventListeners();
@@ -75,11 +77,22 @@ function initCanvas() {
             this.size = Math.random() * 2.5 + 1;
             this.speedY = Math.random() * 1.2 + 0.4;
             this.speedX = Math.random() * 0.8 - 0.4;
-            // Orange/Red ember hues
-            const r = 255;
-            const g = Math.floor(Math.random() * 90) + 40;
-            const b = 0;
-            this.color = `rgba(${r}, ${g}, ${b}, ${Math.random() * 0.4 + 0.15})`;
+            
+            const alpha = (Math.random() * 0.4 + 0.4).toFixed(2);
+            
+            if (currentTheme === 'dark') {
+                // Gold/amber particles for dark slate theme
+                const r = Math.floor(Math.random() * 60) + 180;
+                const g = Math.floor(Math.random() * 60) + 120;
+                const b = Math.floor(Math.random() * 20);
+                this.color = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            } else {
+                // Default fire/red particles
+                const r = 255;
+                const g = Math.floor(Math.random() * 90) + 40;
+                const b = 0;
+                this.color = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
             this.alpha = 1;
             this.fade = Math.random() * 0.004 + 0.001;
         }
@@ -1165,6 +1178,11 @@ function setupEventListeners() {
     // Roll party initiative
     document.getElementById("btn-roll-party-initiative").addEventListener("click", rollAllInitiatives);
     
+    // Theme Switcher
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+    });
+    
     // Scroll to Top behavior
     const gridArea = document.querySelector(".threats-content-area");
     const scrollTopBtn = document.getElementById("btn-scroll-top");
@@ -1185,7 +1203,35 @@ function setupEventListeners() {
     });
 }
 
-// 10. Global Window Hooks (Needed for HTML Event Listeners)
+// 10. Theme Switcher
+function applyTheme(theme) {
+    currentTheme = theme;
+    
+    // Remove all theme classes from body
+    document.body.classList.remove('theme-dark', 'theme-classic');
+    
+    // Apply new theme class if not default
+    if (theme === 'dark') {
+        document.body.classList.add('theme-dark');
+    } else if (theme === 'classic') {
+        document.body.classList.add('theme-classic');
+    }
+    
+    // Update active button
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+    
+    // Save preference
+    localStorage.setItem('t20_theme', theme);
+}
+
+function loadSavedTheme() {
+    const saved = localStorage.getItem('t20_theme') || 'blood';
+    applyTheme(saved);
+}
+
+// 11. Global Window Hooks (Needed for HTML Event Listeners)
 window.showDetail = showDetail;
 window.addToEncounter = addToEncounter;
 window.removeFromEncounter = removeFromEncounter;

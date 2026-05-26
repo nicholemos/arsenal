@@ -20,7 +20,12 @@
     <p class="header-subtitle">Tormenta20 | Planeje e calcule combates arcanos</p>
     <div class="header-btns">
       <a href="../index.html" class="header-home-btn">🏠 Hub</a>
-      <button class="header-theme-btn" id="themeToggleBtn">🌓</button>
+      <!-- Theme Switcher -->
+      <div class="theme-switcher" id="theme-switcher">
+        <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
+        <button class="theme-btn" data-theme="dark" title="Tema Sombras (STR escuro)">🌑</button>
+        <button class="theme-btn" data-theme="classic" title="Tema Clássico (STR claro)">📜</button>
+      </div>
     </div>
 
     <!-- mini badge (atualizado via JS) -->
@@ -309,26 +314,40 @@
   </footer>
 </body>
 <script>
-(function() {
-  const btn = document.getElementById('themeToggleBtn');
-  const html = document.documentElement;
-  const key = 'calculadoraNDTheme';
-  const themes = ['dark', 'light', 'classic'];
+(function () {
+  var body = document.body;
+  var key = 't20_theme';
+  
   function applyTheme(theme) {
-    html.classList.remove('theme-light', 'theme-classic', 'theme-dark');
-    if (theme === 'light') html.classList.add('theme-light');
-    else if (theme === 'classic') html.classList.add('theme-classic');
-    else html.classList.add('theme-dark');
+    body.classList.remove('theme-dark', 'theme-classic');
+    document.documentElement.classList.remove('theme-dark', 'theme-classic');
+    if (theme === 'dark') {
+      body.classList.add('theme-dark');
+      document.documentElement.classList.add('theme-dark');
+    } else if (theme === 'classic') {
+      body.classList.add('theme-classic');
+      document.documentElement.classList.add('theme-classic');
+    }
+    
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+    });
     localStorage.setItem(key, theme);
-    if (btn) btn.textContent = theme === 'dark' || theme === 'classic' ? '🌓' : '🌙';
   }
-  const saved = localStorage.getItem(key) || 'dark';
+  
+  var saved = localStorage.getItem(key);
+  if (!saved) {
+    var oldTheme = localStorage.getItem('calculadoraNDTheme') || localStorage.getItem('hubTheme');
+    if (oldTheme === 'dark') saved = 'dark';
+    else if (oldTheme === 'classic' || oldTheme === 'light') saved = 'classic';
+    else saved = 'blood';
+  }
   applyTheme(saved);
-  if (btn) btn.addEventListener('click', function() {
-    const current = localStorage.getItem(key) || 'dark';
-    const idx = themes.indexOf(current);
-    const next = themes[(idx + 1) % themes.length];
-    applyTheme(next);
+  
+  document.querySelectorAll('.theme-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyTheme(btn.getAttribute('data-theme'));
+    });
   });
 })();
 </script>

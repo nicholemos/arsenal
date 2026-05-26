@@ -14,26 +14,40 @@ let combatState = null;
 let currentThreatData = null; // Armazena temporariamente os dados da criatura buscada no banco
 
 document.addEventListener("DOMContentLoaded", () => {
-  // ===== TEMA CLARO/ESCURO/CLÁSSICO =====
-  const themeToggle = document.getElementById("theme-toggle");
-  const themes = ['dark', 'light', 'classic'];
-  function applyTheme(theme) {
-    document.body.classList.remove('theme-light', 'theme-classic');
-    if (theme === 'light') document.body.classList.add('theme-light');
-    else if (theme === 'classic') document.body.classList.add('theme-classic');
-    if (themeToggle) themeToggle.textContent = theme === 'dark' || theme === 'classic' ? '☀️' : '🌙';
-    localStorage.setItem('diceTheme', theme);
-  }
-  const savedTheme = localStorage.getItem("diceTheme") || "dark";
-  applyTheme(savedTheme);
-  if (themeToggle) {
-    themeToggle.addEventListener("click", () => {
-      const current = localStorage.getItem("diceTheme") || "dark";
-      const idx = themes.indexOf(current);
-      const next = themes[(idx + 1) % themes.length];
-      applyTheme(next);
+  // ===== TEMA SANGUE/SOMBRAS/CLÁSSICO =====
+  (function initTheme() {
+    var body = document.body;
+    var key = 't20_theme';
+
+    function applyTheme(theme) {
+      body.classList.remove('theme-dark', 'theme-classic');
+      if (theme === 'dark') body.classList.add('theme-dark');
+      else if (theme === 'classic') body.classList.add('theme-classic');
+
+      document.querySelectorAll('.theme-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+      });
+      localStorage.setItem(key, theme);
+    }
+
+    var saved = localStorage.getItem(key);
+    if (!saved) {
+      var oldDice = localStorage.getItem('diceTheme');
+      var oldHub = localStorage.getItem('hubTheme');
+      var refTheme = oldDice || oldHub;
+      if (refTheme === 'dark') saved = 'dark';
+      else if (refTheme === 'classic' || refTheme === 'light') saved = 'classic';
+      else saved = 'blood';
+    }
+
+    applyTheme(saved);
+
+    document.querySelectorAll('.theme-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyTheme(btn.getAttribute('data-theme'));
+      });
     });
-  }
+  })();
 
   // Body transition suave
   document.body.style.transition = "background-color 0.3s ease, color 0.3s ease";

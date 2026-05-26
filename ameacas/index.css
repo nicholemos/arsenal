@@ -1813,3 +1813,552 @@ body {
         width: 100%;
     }
 }
+
+/* ============================================================
+   THEME SWITCHER BUTTON (header)
+   ============================================================ */
+.theme-switcher {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-crimson);
+    border-radius: 6px;
+    padding: 3px;
+}
+
+.theme-btn {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    transition: background var(--transition-speed), transform 0.1s;
+    opacity: 0.55;
+}
+
+.theme-btn:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.15);
+}
+
+.theme-btn.active {
+    opacity: 1;
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.25);
+}
+
+/* ============================================================
+   TEMA: SOMBRAS (STR Dark — azul/ouro)
+   ============================================================ */
+.theme-dark {
+    --bg-dark: #06070c;
+    --bg-panel: #0b0e1a;
+    --bg-input: #111827;
+    --bg-dark-metal: #090b14;
+    --border-crimson: rgba(201, 147, 58, 0.25);
+    --border-blood: rgba(201, 147, 58, 0.55);
+    --blood-red: #c9933a;
+    --blood-glow: #e8bc60;
+    --gold-accent: #c9933a;
+    --gold-glow: #e8bc60;
+    --text-main: #e2d8c3;
+    --text-muted: #8e7d65;
+    --shadow-blood: 0 0 10px rgba(201, 147, 58, 0.35);
+    --shadow-blood-intense: 0 0 22px rgba(201, 147, 58, 0.65);
+}
+
+/* Canvas background no tema dark */
+.theme-dark #particleCanvas {
+    background: radial-gradient(circle at center, #0d1024 0%, #03040a 100%);
+}
+
+/* Header: substituir gradiente vermelho por azul-ardósia */
+.theme-dark .app-header {
+    background: linear-gradient(180deg, #1a2232 0%, #0e1520 100%);
+    border-bottom-color: #c9933a;
+}
+
+/* Sidebar */
+.theme-dark .sidebar-panel {
+    background: linear-gradient(135deg, #0d1120 0%, #08090f 100%);
+    border-right-color: rgba(201, 147, 58, 0.3);
+}
+
+/* Botão encontro */
+.theme-dark .toggle-encounter-btn {
+    background: linear-gradient(90deg, #1a2840 0%, #243550 100%);
+    border-color: #c9933a;
+}
+.theme-dark .toggle-encounter-btn:hover {
+    background: linear-gradient(90deg, #243550 0%, #2e4268 100%);
+    box-shadow: var(--shadow-blood);
+}
+
+/* Cards de ameaça */
+.theme-dark .threat-card {
+    background: linear-gradient(145deg, #0f1525 0%, #08090f 100%);
+}
+.theme-dark .threat-card:hover {
+    box-shadow: 0 0 14px rgba(201, 147, 58, 0.45), inset 0 0 10px rgba(201, 147, 58, 0.04);
+}
+
+/* Badge ND */
+.theme-dark .nd-badge {
+    background: linear-gradient(135deg, #1a2840 0%, #0d1420 100%);
+    border-color: rgba(201, 147, 58, 0.55);
+    color: var(--blood-glow);
+}
+
+/* Detail sidebar */
+.theme-dark .detail-sidebar {
+    background: linear-gradient(180deg, #0f1627 0%, #08090f 100%);
+    border-left-color: #c9933a;
+}
+
+/* Encounter sidebar */
+.theme-dark .encounter-sidebar {
+    background: linear-gradient(180deg, #0f1627 0%, #08090f 100%);
+    border-left-color: #c9933a;
+}
+
+/* Vital boxes */
+.theme-dark .vital-box.pv-box {
+    background: linear-gradient(135deg, #1a2030 0%, #0c1018 100%);
+    border-color: #c9933a;
+}
+.theme-dark .vital-box.pm-box {
+    background: linear-gradient(135deg, #0d1a2e 0%, #060e1c 100%);
+}
+
+/* Botões de ação */
+.theme-dark .action-btn-blood {
+    background: linear-gradient(180deg, #7a5c1e 0%, #4d380e 100%);
+    border-color: #c9933a;
+}
+.theme-dark .action-btn-blood:hover {
+    background: linear-gradient(180deg, #c9933a 0%, #7a5c1e 100%);
+}
+
+/* Roll button */
+.theme-dark .roll-btn-small {
+    background: linear-gradient(135deg, #7a5c1e 0%, #4d380e 100%);
+    border-color: #e8bc60;
+}
+.theme-dark .roll-btn-small:hover {
+    background: linear-gradient(135deg, #c9933a 0%, #7a5c1e 100%);
+}
+
+/* Attack block */
+.theme-dark .attack-block {
+    background: linear-gradient(90deg, #121a2a 0%, #0a1018 100%);
+    border-left-color: #c9933a;
+}
+
+/* Encounter monster card */
+.theme-dark .encounter-monster-card {
+    background: linear-gradient(135deg, #0f1827 0%, #09101a 100%);
+}
+.theme-dark .encounter-monster-card.active-turn {
+    border-color: #c9933a;
+    box-shadow: 0 0 10px rgba(201,147,58,0.4);
+}
+
+/* Total damage display */
+.theme-dark .total-damage-display {
+    background: linear-gradient(135deg, #2a1d08 0%, #170f04 100%);
+    border-color: #c9933a;
+    color: var(--blood-glow);
+}
+
+/* HP bar */
+.theme-dark .emc-hp-bar-bg { background: #1a1500; }
+.theme-dark .emc-hp-bar-fill { background: linear-gradient(90deg, #5c4010 0%, #c9933a 100%); }
+
+/* Criar ameaça btn (igual nos dois temas) */
+.theme-dark .create-threat-btn {
+    background: linear-gradient(135deg, #5a4215 0%, #7a5c1e 100%);
+}
+
+/* Homebrew modal */
+.theme-dark .homebrew-modal-content,
+.theme-dark .modal-overlay .modal-card {
+    background: linear-gradient(180deg, #0f1627 0%, #06070c 100%);
+    border-color: rgba(201,147,58,0.4);
+}
+
+/* Scrollbar */
+.theme-dark ::-webkit-scrollbar-track { background: var(--bg-dark); border-left-color: rgba(201,147,58,0.2); }
+.theme-dark ::-webkit-scrollbar-thumb { background: rgba(201,147,58,0.45); }
+.theme-dark ::-webkit-scrollbar-thumb:hover { background: #c9933a; }
+
+/* Filter badge */
+.theme-dark .filter-badge {
+    background: rgba(201, 147, 58, 0.1);
+    border-color: rgba(201, 147, 58, 0.45);
+}
+
+/* Reset/Clear buttons hover */
+.theme-dark .reset-filters-btn:hover {
+    border-color: #c9933a;
+    background: rgba(201,147,58,0.1);
+}
+
+/* Checkbox checked */
+.theme-dark .checkbox-container input:checked ~ .checkmark {
+    background-color: #c9933a;
+    border-color: #e8bc60;
+    box-shadow: 0 0 5px rgba(201,147,58,0.6);
+}
+
+/* Theme switcher border in dark */
+.theme-dark .theme-switcher {
+    border-color: rgba(201,147,58,0.3);
+}
+
+/* ============================================================
+   TEMA: CLÁSSICO (STR Classic — pergaminho/vermelho)
+   ============================================================ */
+.theme-classic {
+    --bg-dark: #f0ece4;
+    --bg-panel: #faf8f4;
+    --bg-input: #e8e0d0;
+    --bg-dark-metal: #e0d8c8;
+    --border-crimson: #c8b89a;
+    --border-blood: #e74c3c;
+    --blood-red: #e74c3c;
+    --blood-glow: #c0392b;
+    --gold-accent: #c0392b;
+    --gold-glow: #e74c3c;
+    --text-main: #2c3e50;
+    --text-muted: #6b7c8d;
+    --shadow-blood: 0 0 10px rgba(231, 76, 60, 0.25);
+    --shadow-blood-intense: 0 0 20px rgba(231, 76, 60, 0.5);
+}
+
+/* Esconder o canvas de partículas no clássico */
+.theme-classic #particleCanvas { display: none; }
+
+/* Body background */
+.theme-classic body { background-color: #f0ece4; }
+
+/* Header */
+.theme-classic .app-header {
+    background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+    border-bottom-color: #e74c3c;
+}
+
+/* Title color in classic */
+.theme-classic .title-wrapper h1 {
+    color: #e8d5a3;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+}
+.theme-classic .title-wrapper .subtitle {
+    color: #f0c080;
+}
+
+/* Sidebar */
+.theme-classic .sidebar-panel {
+    background: linear-gradient(135deg, #faf8f2 0%, #f0ece2 100%);
+    border-right-color: #c8b89a;
+}
+
+/* Search bar */
+.theme-classic .search-bar-wrapper {
+    background: #ffffff;
+    border-color: #c8b89a;
+}
+.theme-classic .search-bar-wrapper input { color: #2c3e50; }
+.theme-classic .search-bar-wrapper input::placeholder { color: #9aacbc; }
+.theme-classic .search-bar-wrapper:focus-within {
+    border-color: #e74c3c;
+    box-shadow: 0 0 6px rgba(231,76,60,0.2);
+}
+
+/* Filter group */
+.theme-classic .filter-group {
+    background: #ffffff;
+    border-color: #c8b89a;
+}
+
+/* Encounter button */
+.theme-classic .toggle-encounter-btn {
+    background: linear-gradient(90deg, #7f0e0e 0%, #b01414 100%);
+    border-color: #e74c3c;
+    color: #fff;
+    text-shadow: none;
+}
+.theme-classic .toggle-encounter-btn:hover {
+    background: linear-gradient(90deg, #a01010 0%, #cc1818 100%);
+}
+
+/* Reset/Create buttons */
+.theme-classic .reset-filters-btn {
+    border-color: #c8b89a;
+    color: #6b7c8d;
+    background: transparent;
+}
+.theme-classic .reset-filters-btn:hover {
+    border-color: #e74c3c;
+    color: #2c3e50;
+    background: rgba(231,76,60,0.06);
+}
+
+.theme-classic .create-threat-btn {
+    background: linear-gradient(135deg, #7a5c1e 0%, #a67c2d 100%);
+    color: #fff;
+}
+
+/* Main content area */
+.theme-classic .threats-content-area {
+    background: rgba(240, 236, 228, 0.6);
+}
+
+/* Threat cards */
+.theme-classic .threat-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f4ec 100%);
+    border-color: #c8b89a;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+.theme-classic .threat-card:hover {
+    border-color: #e74c3c;
+    box-shadow: 0 6px 16px rgba(231,76,60,0.2), inset 0 0 8px rgba(231,76,60,0.04);
+    transform: translateY(-4px);
+}
+
+/* ND Badge */
+.theme-classic .nd-badge {
+    background: linear-gradient(135deg, #7f0e0e 0%, #440000 100%);
+    border-color: #e74c3c;
+    color: #ffcccc;
+}
+
+/* Card name */
+.theme-classic .card-name { color: #7f0e0e; text-shadow: none; }
+
+/* Card stats */
+.theme-classic .card-stat-item .val { color: #2c3e50; }
+
+/* Action buttons */
+.theme-classic .action-btn-blood {
+    background: linear-gradient(180deg, #b80f0f 0%, #7d0a0a 100%);
+    border-color: #e74c3c;
+    color: #fff;
+}
+.theme-classic .action-btn-blood:hover {
+    background: linear-gradient(180deg, #e61414 0%, #b80f0f 100%);
+}
+.theme-classic .action-btn-secondary {
+    background: #f0ece4;
+    border-color: #c8b89a;
+    color: #6b7c8d;
+}
+.theme-classic .action-btn-secondary:hover {
+    background: #e8e0d0;
+    border-color: #e74c3c;
+    color: #2c3e50;
+}
+
+/* Detail sidebar */
+.theme-classic .detail-sidebar {
+    background: linear-gradient(180deg, #faf8f2 0%, #f0ece2 100%);
+    border-left-color: #e74c3c;
+    box-shadow: -3px 0 16px rgba(0,0,0,0.12);
+}
+
+/* Detail title */
+.theme-classic .t20-title { color: #7f0e0e; text-shadow: none; }
+.theme-classic .t20-subtitle { color: #6b7c8d; }
+.theme-classic .t20-header { border-bottom-color: #e74c3c; }
+.theme-classic .t20-section-title { color: #7f0e0e; border-bottom-color: #c8b89a; }
+
+/* Vital boxes */
+.theme-classic .vital-box {
+    background: #ffffff;
+    border-color: #c8b89a;
+}
+.theme-classic .vital-box.pv-box {
+    background: linear-gradient(135deg, #fff0f0 0%, #ffe0e0 100%);
+    border-color: #e74c3c;
+}
+.theme-classic .vital-box.pm-box {
+    background: linear-gradient(135deg, #f0f4ff 0%, #dde8ff 100%);
+    border-color: #6899d0;
+}
+.theme-classic .vital-box.pv-box .val { color: #7f0e0e; }
+.theme-classic .vital-box .label { color: #6b7c8d; }
+
+/* Basic stats */
+.theme-classic .t20-basic-stats { background: #f8f4ec; border-color: #c8b89a; }
+.theme-classic .basic-stat-line .lbl { color: #6b7c8d; }
+.theme-classic .basic-stat-line .val { color: #2c3e50; }
+
+/* Attributes */
+.theme-classic .t20-attributes-grid { background: #f8f4ec; border-color: #c8b89a; }
+.theme-classic .t20-attribute-cell .abbr { color: #7f0e0e; }
+.theme-classic .t20-attribute-cell .val { color: #2c3e50; }
+
+/* Saves */
+.theme-classic .save-badge { background: #f8f4ec; border-color: #c8b89a; }
+.theme-classic .save-badge .abbr { color: #6b7c8d; }
+.theme-classic .save-badge .val { color: #2c3e50; }
+
+/* Attack blocks */
+.theme-classic .attack-block {
+    background: linear-gradient(90deg, #fff4f4 0%, #fff8f8 100%);
+    border-left-color: #e74c3c;
+}
+.theme-classic .attack-name { color: #2c3e50; }
+.theme-classic .attack-formula-row { color: #7f0e0e; }
+.theme-classic .rule-highlight { color: #b80f0f; }
+
+/* Ability blocks */
+.theme-classic .ability-block {
+    background: #f8f4ec;
+    border: 1px solid #c8b89a;
+}
+.theme-classic .ability-name { color: #7f0e0e; }
+.theme-classic .ability-desc { color: #4a5c6d; }
+
+/* Roll button */
+.theme-classic .roll-btn-small {
+    background: linear-gradient(135deg, #b80f0f 0%, #7d0a0a 100%);
+    border-color: #e74c3c;
+    color: #fff;
+}
+.theme-classic .roll-btn-small:hover {
+    background: linear-gradient(135deg, #e61414 0%, #b80f0f 100%);
+}
+
+/* Encounter sidebar */
+.theme-classic .encounter-sidebar {
+    background: linear-gradient(180deg, #faf8f2 0%, #f0ece2 100%);
+    border-left-color: #e74c3c;
+}
+.theme-classic .sidebar-header { background: rgba(0,0,0,0.05); border-bottom-color: #c8b89a; }
+.theme-classic .sidebar-header h2 { color: #7f0e0e; text-shadow: none; }
+
+/* Encounter summary card */
+.theme-classic .encounter-summary-card {
+    background: #fff;
+    border-color: #c8b89a;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.04);
+}
+.theme-classic .summary-item .label { color: #6b7c8d; }
+.theme-classic .summary-item .value { color: #7f0e0e; }
+
+/* Encounter monster card */
+.theme-classic .encounter-monster-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f4ec 100%);
+    border-color: #c8b89a;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+.theme-classic .encounter-monster-card.active-turn {
+    border-color: #e74c3c;
+    box-shadow: 0 0 10px rgba(231,76,60,0.3);
+}
+.theme-classic .emc-name { color: #7f0e0e; }
+.theme-classic .emc-nd { color: #6b7c8d; }
+.theme-classic .emc-init-wrapper { background: rgba(0,0,0,0.04); border-color: #c8b89a; }
+.theme-classic .emc-init-input { color: #7f0e0e; }
+.theme-classic .emc-hp-bar-bg { background: #e0d8c8; }
+.theme-classic .emc-hp-bar-fill { background: linear-gradient(90deg, #7d0a0a 0%, #e74c3c 100%); }
+
+/* Total damage display */
+.theme-classic .total-damage-display {
+    background: linear-gradient(135deg, #7d0a0a 0%, #3d0505 100%);
+    border-color: #e74c3c;
+    color: #ffcccc;
+}
+
+/* Roll modal */
+.theme-classic .modal-overlay .modal-card {
+    background: #faf8f2;
+    border-color: #e74c3c;
+}
+.theme-classic .modal-header h2 { color: #2c3e50; }
+.theme-classic .roll-math { background: #f0ece4; border-color: #c8b89a; }
+.theme-classic .roll-math .label { color: #6b7c8d; }
+.theme-classic .roll-math .value { color: #2c3e50; }
+.theme-classic .roll-damage-box { border-top-color: #c8b89a; }
+
+/* Homebrew modal */
+.theme-classic .homebrew-modal-content {
+    background: #faf8f2;
+    border-color: #c8b89a;
+}
+.theme-classic .form-group-input input,
+.theme-classic .form-group-input select,
+.theme-classic .form-group-input textarea {
+    background-color: #fff;
+    border-color: #c8b89a;
+    color: #2c3e50;
+}
+.theme-classic .form-group-input input:focus,
+.theme-classic .form-group-input select:focus,
+.theme-classic .form-group-input textarea:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 5px rgba(231,76,60,0.2);
+}
+.theme-classic .attack-form-row, .theme-classic .ability-form-row {
+    background: #f0ece4;
+    border-color: #c8b89a;
+}
+.theme-classic .form-section-title { color: #7f0e0e; border-bottom-color: #c8b89a; }
+.theme-classic .upgrades-section-header h3 { color: #2c3e50; }
+.theme-classic .btn-secondary-gold-small {
+    border-color: #7f0e0e;
+    color: #7f0e0e;
+}
+.theme-classic .form-actions-row { border-top-color: #c8b89a; }
+
+/* Scrollbar */
+.theme-classic ::-webkit-scrollbar-track { background: #e8e0d0; border-left-color: #c8b89a; }
+.theme-classic ::-webkit-scrollbar-thumb { background: #c8b89a; }
+.theme-classic ::-webkit-scrollbar-thumb:hover { background: #e74c3c; }
+
+/* Content header & sorting */
+.theme-classic .content-header { border-bottom-color: #c8b89a; }
+.theme-classic .sorting-controls label { color: #6b7c8d; }
+.theme-classic .sorting-controls select { background: #fff; color: #2c3e50; border-color: #c8b89a; }
+.theme-classic .filter-badge { background: rgba(231,76,60,0.08); border-color: rgba(231,76,60,0.4); color: #2c3e50; }
+
+/* Checkbox */
+.theme-classic .checkmark { background-color: #fff; border-color: #c8b89a; }
+.theme-classic .checkbox-container input:checked ~ .checkmark {
+    background-color: #e74c3c;
+    border-color: #b80f0f;
+    box-shadow: 0 0 5px rgba(231,76,60,0.4);
+}
+
+/* Filter collapse header */
+.theme-classic .filter-collapse-header { color: #7f0e0e; border-bottom-color: #c8b89a; }
+
+/* ND select */
+.theme-classic #filter-nd-select { background: #fff; color: #2c3e50; border-color: #c8b89a; }
+.theme-classic #filter-nd-select:focus { border-color: #e74c3c; box-shadow: var(--shadow-blood); }
+
+/* Theme switcher border */
+.theme-classic .theme-switcher { border-color: rgba(255,255,255,0.25); background: rgba(0,0,0,0.2); }
+
+/* Scroll to top */
+.theme-classic .scroll-top-btn {
+    background: linear-gradient(135deg, #b80f0f 0%, #7d0a0a 100%);
+    border-color: #e74c3c;
+}
+.theme-classic .scroll-top-btn:hover {
+    background: linear-gradient(135deg, #e61414 0%, #b80f0f 100%);
+}
+
+/* Stat box */
+.theme-classic .stat-box { background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.15); }
+.theme-classic .stat-value { color: #f0c080; }
+
+/* Detail close btn */
+.theme-classic #btn-close-detail:hover { color: #e74c3c; }
+.theme-classic .close-sidebar-btn:hover { color: #e74c3c; }
