@@ -939,7 +939,7 @@ cartExportBtn.addEventListener('click', () => {
     alert(`${poderesParaEnviar.length} poder(es) enviado(s) para a ficha com sucesso!\n\nA ficha será aberta em uma nova aba.`);
 
     // 5. Abre a ficha em uma nova aba
-    window.open('https://nicholemos.github.io/ficha/', '_blank');
+    window.open('https://nicholemos.github.io/arsenal/ficha/', '_blank');
 });
 
 
