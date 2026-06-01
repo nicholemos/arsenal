@@ -7691,7 +7691,7 @@ const powersData = [
         subType: "power",
         req: "Alquimista Iniciado",
         pathReq: "all",
-        desc: "Ao usar preparado alquímico/poção: CD aumenta +2. Se causar dano ou cura, efeito aumenta +1 por dado."
+        desc: "Ao usar preparado alquímico/poção: CD aumenta +2. Se causar dano, cura ou recuperação de PM, efeito aumenta +1 por dado."
     },
     {
         name: "Alterar Programação",
