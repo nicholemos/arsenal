@@ -1,7 +1,7 @@
 const DATABASE_HTML = `
     <div class="edition" id="db227">
         <button class="edition-title">
-            <span>DB 227</span>
+            <div class="edition" id="db227" data-label="DB 227 (Mai/26)">
             <span class="icon">▶</span>
         </button>
         <div class="edition-content">
@@ -52,7 +52,7 @@ const DATABASE_HTML = `
                                                 
                                                     <div class="edition" id="db226">
                                                         <button class="edition-title">
-                                                            <span>DB 226</span>
+                                                            <div class="edition" id="db226" data-label="DB 226 (Abr/26)">
                                                             <span class="icon">▶</span>
                                                         </button>
                                                         <div class="edition-content">
@@ -809,7 +809,7 @@ const DATABASE_HTML = `
                                                                                                                                                                                                                                                                                                                                                                 proíbe seus devotos de causarem dano, perda de PV e condições (com exceção de algumas não
                                                                                                                                                                                                                                                                                                                                                                 relacionadas a manobras de combate) ou de conceder bônus de dano. Mas não há proibição
                                                                                                                                                                                                                                                                                                                                                                 contra fazer testes de ataque! Então, devotos de Marah não podem usar as manobras agarrar e
-                                                                                                                                                                                                                                                                                                                                                                derrubar (que causam condições) <span style="color: red;"><s>nem quebrar (que causa dano)</s></span><br>, mas podem usar desarmar e
+                                                                                                                                                                                                                                                                                                                                                                derrubar (que causam condições) <span style="color: red;"><s>nem quebrar (que causa dano)</s></span>, mas podem usar desarmar e
                                                                                                                                                                                                                                                                                                                                                                 empurrar.</p>
                                                                                                                                                                                                                                                                                                                                                         </div>
 
