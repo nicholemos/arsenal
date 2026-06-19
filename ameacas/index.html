@@ -118,12 +118,38 @@
 
                 <!-- Type Filters -->
                 <div class="filter-group collapsible">
-                    <button class="filter-collapse-header" id="type-filters-header">
+                    <button class="filter-collapse-header" data-target="type-filters-content">
                         <span><i class="fa-solid fa-spaghetti-monster-flying"></i> Tipo de Criatura</span>
                         <i class="fa-solid fa-chevron-down arrow"></i>
                     </button>
                     <div class="collapsible-content active" id="type-filters-content">
-                        <div class="types-list" id="types-list-container">
+                        <div class="filter-checklist" id="types-list-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Size Filters -->
+                <div class="filter-group collapsible">
+                    <button class="filter-collapse-header collapsed" data-target="sizes-filters-content">
+                        <span><i class="fa-solid fa-ruler"></i> Tamanho</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </button>
+                    <div class="collapsible-content collapsed" id="sizes-filters-content">
+                        <div class="filter-checklist" id="sizes-list-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Source Filters -->
+                <div class="filter-group collapsible">
+                    <button class="filter-collapse-header collapsed" data-target="sources-filters-content">
+                        <span><i class="fa-solid fa-book-bookmark"></i> Fontes</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </button>
+                    <div class="collapsible-content collapsed" id="sources-filters-content">
+                        <div class="filter-checklist" id="sources-list-container">
                             <!-- Populated dynamically via JS -->
                         </div>
                     </div>
@@ -136,10 +162,21 @@
                 </button>
 
                 <!-- Create Homebrew Threat Button -->
-                <button id="btn-create-threat-trigger" class="create-threat-btn">
-                    <i class="fa-solid fa-skull"></i>
-                    <span>Criar Sua Ameaça</span>
-                </button>
+                <div class="homebrew-controls-group" style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+                    <button id="btn-create-threat-trigger" class="create-threat-btn" style="margin: 0; width: 100%;">
+                        <i class="fa-solid fa-skull"></i>
+                        <span>Criar Sua Ameaça</span>
+                    </button>
+                    <div class="homebrew-import-export-row" style="display: flex; gap: 0.5rem; width: 100%;">
+                        <button id="btn-export-homebrews" class="reset-filters-btn" style="flex: 1; margin: 0; padding: 0.6rem 0.4rem; font-size: 0.8rem;" title="Exportar Ameaças Homebrew (JSON)">
+                            <i class="fa-solid fa-file-export"></i> Exportar
+                        </button>
+                        <button id="btn-import-homebrews" class="reset-filters-btn" style="flex: 1; margin: 0; padding: 0.6rem 0.4rem; font-size: 0.8rem;" title="Importar Ameaças Homebrew (JSON)">
+                            <i class="fa-solid fa-file-import"></i> Importar
+                        </button>
+                    </div>
+                    <input type="file" id="import-homebrew-file-input" class="hidden" accept=".json">
+                </div>
             </aside>
 
             <!-- Main Content Area: Threats Grid -->
@@ -221,7 +258,7 @@
     <div class="modal-overlay hidden" id="homebrew-modal">
         <div class="modal-card homebrew-modal-card">
             <div class="modal-header">
-                <h2><i class="fa-solid fa-skull"></i> Forjar Ameaça Homebrew</h2>
+                <h2 id="hb-modal-title"><i class="fa-solid fa-skull"></i> Forjar Ameaça Homebrew</h2>
                 <button class="modal-close-btn" id="btn-close-homebrew-modal" title="Fechar"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>

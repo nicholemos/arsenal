@@ -8,7 +8,22 @@ let encounterList = [];
 let activeFilters = {
     search: '',
     nd: '',
-    types: []
+    types: [],
+    sizes: [],
+    sources: []
+};
+let editingThreatName = null;
+
+// Known sizes in Tormenta 20
+const ALL_SIZES = ['Minúsculo', 'Pequeno', 'Médio', 'Grande', 'Enorme', 'Colossal'];
+const SIZE_ORDER = { 'Minúsculo': 1, 'Pequeno': 2, 'Médio': 3, 'Grande': 4, 'Enorme': 5, 'Colossal': 6 };
+const SIZE_ICONS = {
+    'Minúsculo': 'fa-solid fa-bug',
+    'Pequeno': 'fa-solid fa-crow',
+    'Médio': 'fa-solid fa-person',
+    'Grande': 'fa-solid fa-hippo',
+    'Enorme': 'fa-solid fa-dragon',
+    'Colossal': 'fa-solid fa-whale'
 };
 
 // XP Values per ND in Tormenta 20
@@ -146,12 +161,32 @@ function loadThreats() {
     
     // Combine
     allThreats = [...homebrews, ...dbData];
+
+    // Apply custom threat images from local storage
+    try {
+        const customImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
+        allThreats.forEach(t => {
+            t.imgPosition = '50% 50%';
+            if (customImages[t.nome]) {
+                if (typeof customImages[t.nome] === 'object') {
+                    t.img = customImages[t.nome].url;
+                    t.imgPosition = customImages[t.nome].position || '50% 50%';
+                } else {
+                    t.img = customImages[t.nome];
+                }
+            }
+        });
+    } catch (e) {
+        console.warn("Failed to load custom threat images", e);
+    }
     
     // Populate stats in header
     document.getElementById("stat-total-threats").textContent = allThreats.length;
     
-    // Populate dynamic Type list
+    // Populate dynamic filter lists
     populateTypeFilters();
+    populateSizeFilters();
+    populateSourceFilters();
 }
 
 function getBaseType(tipoStr) {
@@ -165,6 +200,25 @@ function getBaseType(tipoStr) {
     // Fallback: take the first word before parentheses/spaces
     const match = tipoStr.match(/^([^\s\(]+)/);
     return match ? match[1] : tipoStr;
+}
+
+function getSizeFromTipo(tipoStr) {
+    if (!tipoStr) return "Médio";
+    for (let s of ALL_SIZES) {
+        if (tipoStr.toLowerCase().includes(s.toLowerCase())) {
+            return s;
+        }
+    }
+    // Check for parenthesized size like "(Grande)"
+    const parenMatch = tipoStr.match(/\(([^)]+)\)/);
+    if (parenMatch) {
+        for (let s of ALL_SIZES) {
+            if (parenMatch[1].toLowerCase().includes(s.toLowerCase())) {
+                return s;
+            }
+        }
+    }
+    return "Médio";
 }
 
 function populateTypeFilters() {
@@ -199,6 +253,74 @@ function populateTypeFilters() {
             renderActiveFilterBadges();
         });
         
+        container.appendChild(label);
+    });
+}
+
+function populateSizeFilters() {
+    const container = document.getElementById("sizes-list-container");
+    if (!container) return;
+
+    container.innerHTML = "";
+    ALL_SIZES.forEach(size => {
+        const label = document.createElement("label");
+        label.className = "checkbox-container";
+        label.innerHTML = `
+            <i class="${SIZE_ICONS[size] || 'fa-solid fa-person'}" style="width: 1.2rem; color: var(--gold-accent);"></i>
+            ${size}
+            <input type="checkbox" value="${size}" class="size-filter-checkbox">
+            <span class="checkmark"></span>
+        `;
+
+        const checkbox = label.querySelector("input");
+        checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+                activeFilters.sizes.push(size);
+            } else {
+                activeFilters.sizes = activeFilters.sizes.filter(s => s !== size);
+            }
+            updateThreatsGrid();
+            renderActiveFilterBadges();
+        });
+
+        container.appendChild(label);
+    });
+}
+
+function populateSourceFilters() {
+    const sourcesSet = new Set();
+    allThreats.forEach(t => {
+        if (t.fonte && t.fonte !== "Desconhecida" && t.fonte !== "Homebrew") {
+            sourcesSet.add(t.fonte);
+        }
+    });
+
+    const sortedSources = Array.from(sourcesSet).sort();
+    const container = document.getElementById("sources-list-container");
+    if (!container) return;
+
+    container.innerHTML = "";
+    sortedSources.forEach(source => {
+        const label = document.createElement("label");
+        label.className = "checkbox-container";
+        label.innerHTML = `
+            <i class="fa-solid fa-book-bookmark" style="width: 1.2rem; color: var(--gold-accent);"></i>
+            ${source}
+            <input type="checkbox" value="${source}" class="source-filter-checkbox">
+            <span class="checkmark"></span>
+        `;
+
+        const checkbox = label.querySelector("input");
+        checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+                activeFilters.sources.push(source);
+            } else {
+                activeFilters.sources = activeFilters.sources.filter(s => s !== source);
+            }
+            updateThreatsGrid();
+            renderActiveFilterBadges();
+        });
+
         container.appendChild(label);
     });
 }
@@ -256,6 +378,18 @@ function filterAndSortThreats() {
             if (!activeFilters.types.includes(baseType)) return false;
         }
         
+        // Size filter
+        if (activeFilters.sizes.length > 0) {
+            const size = getSizeFromTipo(threat.tipo);
+            if (!activeFilters.sizes.includes(size)) return false;
+        }
+        
+        // Source filter
+        if (activeFilters.sources.length > 0) {
+            const source = threat.fonte || 'Desconhecida';
+            if (!activeFilters.sources.includes(source)) return false;
+        }
+        
         return true;
     });
     
@@ -309,7 +443,11 @@ function updateThreatsGrid() {
                 </div>
                 <div class="card-type-row">
                     <span>${threat.tipo}</span>
-                    ${threat.isHomebrew ? '<span class="homebrew-tag">Homebrew</span>' : ''}
+                    <div style="display: flex; gap: 0.3rem; align-items: center;">
+                        <span class="size-tag" title="Tamanho: ${getSizeFromTipo(threat.tipo)}"><i class="${SIZE_ICONS[getSizeFromTipo(threat.tipo)] || 'fa-solid fa-person'}"></i></span>
+                        ${threat.isHomebrew ? '<span class="homebrew-tag">Homebrew</span>' : ''}
+                        ${threat.fonte && threat.fonte !== "Desconhecida" && !threat.isHomebrew ? `<span class="fonte-tag" title="${threat.fonte}">${threat.fonte}</span>` : ''}
+                    </div>
                 </div>
                 <div class="card-stats-grid">
                     <div class="card-stat-item">
@@ -371,6 +509,32 @@ function renderActiveFilterBadges() {
         });
     }
     
+    // Size badges
+    activeFilters.sizes.forEach(size => {
+        createBadge(`Tamanho: ${size}`, () => {
+            activeFilters.sizes = activeFilters.sizes.filter(s => s !== size);
+            const checkboxes = document.querySelectorAll(".size-filter-checkbox");
+            checkboxes.forEach(cb => {
+                if (cb.value === size) cb.checked = false;
+            });
+            updateThreatsGrid();
+            renderActiveFilterBadges();
+        });
+    });
+    
+    // Source badges
+    activeFilters.sources.forEach(source => {
+        createBadge(`Fonte: ${source}`, () => {
+            activeFilters.sources = activeFilters.sources.filter(s => s !== source);
+            const checkboxes = document.querySelectorAll(".source-filter-checkbox");
+            checkboxes.forEach(cb => {
+                if (cb.value === source) cb.checked = false;
+            });
+            updateThreatsGrid();
+            renderActiveFilterBadges();
+        });
+    });
+    
     // Types badges
     activeFilters.types.forEach(type => {
         createBadge(type, () => {
@@ -401,13 +565,16 @@ function resetFilters() {
     activeFilters.search = '';
     activeFilters.nd = '';
     activeFilters.types = [];
+    activeFilters.sizes = [];
+    activeFilters.sources = [];
     
     document.getElementById("search-input").value = '';
     document.getElementById("filter-nd-select").value = '';
     document.getElementById("clear-search").classList.add("hidden");
     
-    const checkboxes = document.querySelectorAll(".type-filter-checkbox");
-    checkboxes.forEach(cb => cb.checked = false);
+    document.querySelectorAll(".type-filter-checkbox").forEach(cb => cb.checked = false);
+    document.querySelectorAll(".size-filter-checkbox").forEach(cb => cb.checked = false);
+    document.querySelectorAll(".source-filter-checkbox").forEach(cb => cb.checked = false);
     
     updateThreatsGrid();
     renderActiveFilterBadges();
@@ -497,6 +664,38 @@ function showDetail(threatNome) {
             <div class="t20-header">
                 <h2 class="t20-title">${threat.nome}</h2>
                 <div class="t20-subtitle">ND ${threat.nd} &bull; ${threat.tipo}</div>
+                <div class="t20-subtitle" style="font-size: 0.75rem; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span><i class="fa-solid fa-book-bookmark"></i> ${threat.fonte || 'Desconhecida'}</span>
+                </div>
+                ${threat.isHomebrew ? `
+                <div class="t20-homebrew-actions" style="margin-top: 0.8rem; display: flex; gap: 0.5rem; justify-content: flex-start;">
+                    <button class="btn-secondary-gold-small" onclick="openHomebrewModal('${escapeStr(threat.nome)}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
+                        <i class="fa-solid fa-pen-to-square"></i> Editar
+                    </button>
+                    <button class="roll-btn-small" onclick="deleteHomebrewThreat('${escapeStr(threat.nome)}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; background: linear-gradient(135deg, #7d0a0a 0%, #4a0505 100%); border-color: #9c1010;">
+                        <i class="fa-solid fa-trash-can"></i> Excluir
+                    </button>
+                </div>
+                ` : ''}
+            </div>
+            
+            <!-- Imagem da Ameaça -->
+            <div class="t20-image-container">
+                ${threat.img ? `
+                    <div class="t20-portrait-wrapper">
+                        <img src="${threat.img}" alt="${threat.nome}" class="t20-portrait-img" draggable="false" style="object-position: ${threat.imgPosition || '50% 50%'}; cursor: grab; user-select: none;">
+                        <button class="t20-img-action-btn" onclick="toggleImageInput()"><i class="fa-solid fa-pen"></i> Alterar Imagem</button>
+                    </div>
+                ` : `
+                    <div class="t20-portrait-placeholder">
+                        <i class="fa-solid fa-image"></i>
+                        <button class="t20-img-action-btn" onclick="toggleImageInput()"><i class="fa-solid fa-plus"></i> Adicionar Imagem</button>
+                    </div>
+                `}
+                <div id="image-url-input-container" class="image-url-input-container hidden">
+                    <input type="text" id="threat-image-url-input" placeholder="Cole a URL da imagem de sites externos..." value="${threat.img || ''}">
+                    <button class="save-image-btn" onclick="saveThreatImage('${escapeStr(threat.nome)}')">✓ Salvar</button>
+                </div>
             </div>
             
             <div class="t20-vitals-row">
@@ -566,10 +765,15 @@ function showDetail(threatNome) {
             </div>
             
             <div class="t20-footer-meta">
-                <div><span>Fonte:</span> <span>${threat.fonte || 'Desconhecida'}</span></div>
+                <div><span><i class="fa-regular fa-copyright"></i> Fonte oficial</span> <span>${threat.fonte || 'Desconhecida'}</span></div>
             </div>
         </div>
     `;
+    
+    const imgEl = content.querySelector(".t20-portrait-img");
+    if (imgEl) {
+        setupDragToCenter(imgEl, threat.nome);
+    }
     
     // Add active class for mobile views
     sidebar.classList.add("active");
@@ -918,7 +1122,13 @@ function toggleEncounterSidebar(show) {
 let hbAttackCount = 0;
 let hbAbilityCount = 0;
 
-function openHomebrewModal() {
+// Helper to escape values for HTML inputs safely
+function escapeAttrVal(str) {
+    if (!str) return '';
+    return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function openHomebrewModal(threatNome = null) {
     // Reset forms & counters
     document.getElementById("homebrew-form").reset();
     document.getElementById("hb-attacks-container").innerHTML = "";
@@ -926,17 +1136,71 @@ function openHomebrewModal() {
     hbAttackCount = 0;
     hbAbilityCount = 0;
     
-    // Add 1 attack default
-    addHomebrewAttackRow();
+    const modalTitle = document.getElementById("hb-modal-title");
+    const saveButton = document.getElementById("btn-save-homebrew");
+    
+    if (threatNome && typeof threatNome === 'string') {
+        editingThreatName = threatNome;
+        const threat = allThreats.find(t => t.nome === threatNome);
+        if (threat) {
+            if (modalTitle) modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar Ameaça Homebrew`;
+            if (saveButton) saveButton.textContent = "Salvar Alterações";
+            
+            // Populate basic fields
+            document.getElementById("hb-nome").value = threat.nome || "";
+            document.getElementById("hb-nd").value = threat.nd || "1";
+            document.getElementById("hb-tipo").value = threat.tipo || "";
+            document.getElementById("hb-pv").value = threat.pv || "50";
+            document.getElementById("hb-pm").value = threat.pm || "0";
+            document.getElementById("hb-defesa").value = threat.defesa || "15";
+            document.getElementById("hb-defesa-obs").value = threat.defesaObs || "";
+            document.getElementById("hb-iniciativa").value = threat.iniciativa || "+0";
+            document.getElementById("hb-percepcao").value = threat.percepcao || "+0";
+            document.getElementById("hb-percepcao-obs").value = threat.percepcaoObs || "";
+            document.getElementById("hb-fort").value = threat.fort || "+0";
+            document.getElementById("hb-ref").value = threat.ref || "+0";
+            document.getElementById("hb-von").value = threat.von || "+0";
+            document.getElementById("hb-desl").value = threat.desl || "9m";
+            
+            // Attributes
+            const attrs = threat.atributos || { for: "0", des: "0", con: "0", int: "0", sab: "0", car: "0" };
+            document.getElementById("hb-attr-for").value = attrs.for || "0";
+            document.getElementById("hb-attr-des").value = attrs.des || "0";
+            document.getElementById("hb-attr-con").value = attrs.con || "0";
+            document.getElementById("hb-attr-int").value = attrs.int || "0";
+            document.getElementById("hb-attr-sab").value = attrs.sab || "0";
+            document.getElementById("hb-attr-car").value = attrs.car || "0";
+            
+            // Attacks
+            if (threat.ataques && threat.ataques.length > 0) {
+                threat.ataques.forEach(attack => addHomebrewAttackRow(attack));
+            } else {
+                addHomebrewAttackRow();
+            }
+            
+            // Abilities
+            if (threat.habilidades && threat.habilidades.length > 0) {
+                threat.habilidades.forEach(ability => addHomebrewAbilityRow(ability));
+            }
+        }
+    } else {
+        editingThreatName = null;
+        if (modalTitle) modalTitle.innerHTML = `<i class="fa-solid fa-skull"></i> Forjar Ameaça Homebrew`;
+        if (saveButton) saveButton.textContent = "Criar Ameaça";
+        
+        // Add 1 attack default
+        addHomebrewAttackRow();
+    }
     
     document.getElementById("homebrew-modal").classList.remove("hidden");
 }
 
 function closeHomebrewModal() {
     document.getElementById("homebrew-modal").classList.add("hidden");
+    editingThreatName = null;
 }
 
-function addHomebrewAttackRow() {
+function addHomebrewAttackRow(attackData = null) {
     const container = document.getElementById("hb-attacks-container");
     const rowId = `hb-att-${hbAttackCount++}`;
     
@@ -945,30 +1209,30 @@ function addHomebrewAttackRow() {
     row.id = rowId;
     row.innerHTML = `
         <button type="button" class="btn-remove-row" onclick="document.getElementById('${rowId}').remove()" title="Remover Ataque"><i class="fa-solid fa-xmark"></i></button>
-        <div class="form-row-3">
-            <div class="form-group-input">
+        <div class="attack-form-fields">
+            <div class="form-group-input" style="flex: 2;">
                 <label>Nome do Ataque</label>
-                <input type="text" class="hb-attack-nome" placeholder="ex: Garra" required autocomplete="off">
+                <input type="text" class="hb-attack-nome" placeholder="ex: Garra" required autocomplete="off" value="${attackData ? escapeAttrVal(attackData.nome) : ''}">
             </div>
-            <div class="form-group-input">
-                <label>Bônus de Ataque</label>
-                <input type="text" class="hb-attack-bonus" placeholder="ex: +12" required autocomplete="off">
+            <div class="form-group-input" style="flex: 0.5;">
+                <label>Bônus</label>
+                <input type="text" class="hb-attack-bonus" placeholder="ex: +12" style="max-width: 80px;" required autocomplete="off" value="${attackData ? escapeAttrVal(attackData.bonus) : ''}">
             </div>
-            <div class="form-group-input">
+            <div class="form-group-input" style="flex: 1.3;">
                 <label>Fórmula de Dano</label>
-                <input type="text" class="hb-attack-dano" placeholder="ex: 2d6+8 cortante" required autocomplete="off">
+                <input type="text" class="hb-attack-dano" placeholder="ex: 2d6+8 cortante" required autocomplete="off" value="${attackData ? escapeAttrVal(attackData.dano) : ''}">
             </div>
         </div>
         <div class="form-group-input" style="margin-top: 0.4rem;">
             <label>Efeitos Especiais / Descrição</label>
-            <input type="text" class="hb-attack-desc" placeholder="ex: Derruba o alvo (Ref CD 18 evita)" autocomplete="off">
+            <input type="text" class="hb-attack-desc" placeholder="ex: Derruba o alvo (Ref CD 18 evita)" autocomplete="off" value="${attackData ? escapeAttrVal(attackData.desc || '') : ''}">
         </div>
     `;
     
     container.appendChild(row);
 }
 
-function addHomebrewAbilityRow() {
+function addHomebrewAbilityRow(abilityData = null) {
     const container = document.getElementById("hb-abilities-container");
     const rowId = `hb-abl-${hbAbilityCount++}`;
     
@@ -979,11 +1243,11 @@ function addHomebrewAbilityRow() {
         <button type="button" class="btn-remove-row" onclick="document.getElementById('${rowId}').remove()" title="Remover Habilidade"><i class="fa-solid fa-xmark"></i></button>
         <div class="form-group-input">
             <label>Nome da Habilidade</label>
-            <input type="text" class="hb-ability-nome" placeholder="ex: Faro" required autocomplete="off">
+            <input type="text" class="hb-ability-nome" placeholder="ex: Faro" required autocomplete="off" value="${abilityData ? escapeAttrVal(abilityData.nome) : ''}">
         </div>
         <div class="form-group-input" style="margin-top: 0.4rem;">
             <label>Descrição</label>
-            <textarea class="hb-ability-desc" rows="2" placeholder="ex: A aranha gigante percebe criaturas..." required></textarea>
+            <textarea class="hb-ability-desc" rows="2" placeholder="ex: A aranha gigante percebe criaturas..." required>${abilityData ? escapeAttrVal(abilityData.desc) : ''}</textarea>
         </div>
     `;
     
@@ -1078,7 +1342,44 @@ function saveHomebrewThreat() {
     
     // Save to LocalStorage
     const homebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
-    homebrews.unshift(newThreat); // Put new homebrews first
+    
+    if (editingThreatName) {
+        if (editingThreatName !== nome) {
+            const exists = homebrews.some(t => t.nome.toLowerCase() === nome.toLowerCase());
+            if (exists) {
+                alert("Já existe uma ameaça com este nome. Por favor, escolha um nome diferente.");
+                return;
+            }
+            
+            // Rename custom image in local storage
+            try {
+                const customImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
+                if (customImages[editingThreatName]) {
+                    customImages[nome] = customImages[editingThreatName];
+                    delete customImages[editingThreatName];
+                    localStorage.setItem('t20_threat_images', JSON.stringify(customImages));
+                }
+            } catch (e) {
+                console.warn("Failed to rename threat image", e);
+            }
+        }
+        
+        const idx = homebrews.findIndex(t => t.nome === editingThreatName);
+        if (idx !== -1) {
+            homebrews[idx] = newThreat;
+        } else {
+            homebrews.unshift(newThreat);
+        }
+        editingThreatName = null;
+    } else {
+        const exists = homebrews.some(t => t.nome.toLowerCase() === nome.toLowerCase());
+        if (exists) {
+            alert("Já existe uma ameaça com este nome. Por favor, escolha um nome diferente.");
+            return;
+        }
+        homebrews.unshift(newThreat);
+    }
+    
     localStorage.setItem('t20_homebrew_threats', JSON.stringify(homebrews));
     
     // Reload
@@ -1090,6 +1391,138 @@ function saveHomebrewThreat() {
     setTimeout(() => {
         showDetail(nome);
     }, 200);
+}
+
+function deleteHomebrewThreat(threatNome) {
+    if (!confirm(`Deseja realmente excluir a ameaça homebrew "${threatNome}"? Esta ação não pode ser desfeita.`)) {
+        return;
+    }
+    
+    let homebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
+    homebrews = homebrews.filter(t => t.nome !== threatNome);
+    localStorage.setItem('t20_homebrew_threats', JSON.stringify(homebrews));
+    
+    // Also remove from encounter list if added
+    encounterList = encounterList.filter(item => item.nome !== threatNome);
+    saveEncounterLocalStorage();
+    updateEncounterSidebar();
+    
+    // Also remove custom image if any
+    try {
+        const customImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
+        if (customImages[threatNome]) {
+            delete customImages[threatNome];
+            localStorage.setItem('t20_threat_images', JSON.stringify(customImages));
+        }
+    } catch(e) {}
+    
+    closeDetail();
+    loadThreats();
+    updateThreatsGrid();
+}
+
+function exportHomebrewThreats() {
+    const homebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
+    if (homebrews.length === 0) {
+        alert("Você não possui ameaças homebrew cadastradas para exportar.");
+        return;
+    }
+    
+    const customImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
+    
+    const exportData = {
+        version: "1.0",
+        type: "t20_homebrew_export",
+        timestamp: new Date().toISOString(),
+        threats: homebrews,
+        images: customImages
+    };
+    
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ameacas_homebrew_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function importHomebrewThreats(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            let threatsToImport = [];
+            let imagesToImport = {};
+            
+            if (data && data.type === "t20_homebrew_export" && Array.isArray(data.threats)) {
+                threatsToImport = data.threats;
+                imagesToImport = data.images || {};
+            } else if (Array.isArray(data)) {
+                threatsToImport = data;
+            } else if (typeof data === 'object' && data !== null && data.nome) {
+                threatsToImport = [data];
+            } else {
+                throw new Error("Formato de arquivo JSON inválido.");
+            }
+            
+            const validThreats = threatsToImport.filter(t => t && t.nome && t.tipo && t.nd);
+            if (validThreats.length === 0) {
+                alert("Nenhuma ameaça válida encontrada no arquivo.");
+                return;
+            }
+            
+            let currentHomebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
+            let importedCount = 0;
+            let updatedCount = 0;
+            
+            validThreats.forEach(newT => {
+                newT.isHomebrew = true;
+                if (!newT.fonte || newT.fonte === "Desconhecida") {
+                    newT.fonte = "Homebrew";
+                }
+                
+                const existingIndex = currentHomebrews.findIndex(t => t.nome.toLowerCase() === newT.nome.toLowerCase());
+                if (existingIndex !== -1) {
+                    currentHomebrews[existingIndex] = newT;
+                    updatedCount++;
+                } else {
+                    currentHomebrews.unshift(newT);
+                    importedCount++;
+                }
+            });
+            
+            localStorage.setItem('t20_homebrew_threats', JSON.stringify(currentHomebrews));
+            
+            if (Object.keys(imagesToImport).length > 0) {
+                try {
+                    const currentImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
+                    Object.keys(imagesToImport).forEach(key => {
+                        currentImages[key] = imagesToImport[key];
+                    });
+                    localStorage.setItem('t20_threat_images', JSON.stringify(currentImages));
+                } catch(imgErr) {
+                    console.warn("Falha ao mesclar imagens importadas", imgErr);
+                }
+            }
+            
+            loadThreats();
+            updateThreatsGrid();
+            
+            alert(`Importação concluída!\n- ${importedCount} novas ameaças adicionadas\n- ${updatedCount} ameaças existentes atualizadas`);
+        } catch (err) {
+            alert("Erro ao ler o arquivo JSON: " + err.message);
+        }
+        event.target.value = "";
+    };
+    reader.readAsText(file);
 }
 
 // 9. Setup Event Listeners
@@ -1130,12 +1563,19 @@ function setupEventListeners() {
         updateThreatsGrid();
     });
     
-    // Collapsible Type Panel Toggle
-    const typeHeader = document.getElementById("type-filters-header");
-    const typeContent = document.getElementById("type-filters-content");
-    typeHeader.addEventListener("click", () => {
-        typeHeader.classList.toggle("collapsed");
-        typeContent.classList.toggle("collapsed");
+    // Collapsible Panel Toggles
+    const collapseHeaders = document.querySelectorAll('.filter-collapse-header');
+    collapseHeaders.forEach(header => {
+        header.addEventListener("click", () => {
+            const targetId = header.dataset.target;
+            if (targetId) {
+                const content = document.getElementById(targetId);
+                if (content) {
+                    header.classList.toggle("collapsed");
+                    content.classList.toggle("collapsed");
+                }
+            }
+        });
     });
     
     // Reset Filters Button
@@ -1163,11 +1603,26 @@ function setupEventListeners() {
     document.getElementById("btn-cancel-homebrew").addEventListener("click", closeHomebrewModal);
     
     // Homebrew trigger
-    document.getElementById("btn-create-threat-trigger").addEventListener("click", openHomebrewModal);
+    document.getElementById("btn-create-threat-trigger").addEventListener("click", () => openHomebrewModal());
     
     // Homebrew dynamic row triggers
-    document.getElementById("btn-add-hb-attack").addEventListener("click", addHomebrewAttackRow);
-    document.getElementById("btn-add-hb-ability").addEventListener("click", addHomebrewAbilityRow);
+    document.getElementById("btn-add-hb-attack").addEventListener("click", () => addHomebrewAttackRow());
+    document.getElementById("btn-add-hb-ability").addEventListener("click", () => addHomebrewAbilityRow());
+    
+    // Homebrew Export/Import
+    const btnExport = document.getElementById("btn-export-homebrews");
+    const btnImport = document.getElementById("btn-import-homebrews");
+    const fileInput = document.getElementById("import-homebrew-file-input");
+    
+    if (btnExport) {
+        btnExport.addEventListener("click", exportHomebrewThreats);
+    }
+    if (btnImport) {
+        btnImport.addEventListener("click", () => fileInput.click());
+    }
+    if (fileInput) {
+        fileInput.addEventListener("change", importHomebrewThreats);
+    }
     
     // Homebrew Form submit
     document.getElementById("homebrew-form").addEventListener("submit", (e) => {
@@ -1231,14 +1686,214 @@ function loadSavedTheme() {
     applyTheme(saved);
 }
 
+function toggleImageInput() {
+    const container = document.getElementById("image-url-input-container");
+    if (container) {
+        container.classList.toggle("hidden");
+    }
+}
+
+function saveThreatImage(threatNome) {
+    const input = document.getElementById("threat-image-url-input");
+    if (!input) return;
+    const url = input.value.trim();
+    
+    // Update in memory
+    const threat = allThreats.find(t => t.nome === threatNome);
+    if (threat) {
+        threat.img = url;
+    }
+    
+    // Save to local storage
+    try {
+        const customImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
+        if (url) {
+            const existing = customImages[threatNome] || {};
+            if (typeof existing === 'object') {
+                existing.url = url;
+                customImages[threatNome] = existing;
+            } else {
+                customImages[threatNome] = {
+                    url: url,
+                    position: '50% 50%'
+                };
+            }
+        } else {
+            delete customImages[threatNome];
+        }
+        localStorage.setItem('t20_threat_images', JSON.stringify(customImages));
+    } catch (e) {
+        console.error("Failed to save custom threat image", e);
+    }
+    
+    // Refresh detailed view
+    showDetail(threatNome);
+}
+
+function saveThreatImagePosition(threatNome, position) {
+    const threat = allThreats.find(t => t.nome === threatNome);
+    if (threat) {
+        threat.imgPosition = position;
+    }
+    
+    try {
+        const customImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
+        const entry = customImages[threatNome] || {};
+        
+        if (typeof entry === 'object') {
+            entry.url = threat ? threat.img : (entry.url || '');
+            entry.position = position;
+            customImages[threatNome] = entry;
+        } else {
+            customImages[threatNome] = {
+                url: entry,
+                position: position
+            };
+        }
+        localStorage.setItem('t20_threat_images', JSON.stringify(customImages));
+    } catch (e) {
+        console.error("Failed to save threat image position", e);
+    }
+}
+
+function setupDragToCenter(imgEl, threatNome) {
+    let isDragging = false;
+    let startX, startY;
+    let startPercentX = 50;
+    let startPercentY = 50;
+    
+    const currentPosition = imgEl.style.objectPosition || '50% 50%';
+    const match = currentPosition.match(/(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/);
+    if (match) {
+        startPercentX = parseFloat(match[1]);
+        startPercentY = parseFloat(match[2]);
+    }
+    
+    let overflowX = 0;
+    let overflowY = 0;
+    
+    function calculateOverflow() {
+        const rect = imgEl.getBoundingClientRect();
+        const W = rect.width;
+        const H = rect.height;
+        const naturalWidth = imgEl.naturalWidth;
+        const naturalHeight = imgEl.naturalHeight;
+        
+        if (!naturalWidth || !naturalHeight) return;
+        
+        const scale = Math.max(W / naturalWidth, H / naturalHeight);
+        const renderedW = naturalWidth * scale;
+        const renderedH = naturalHeight * scale;
+        
+        overflowX = renderedW - W;
+        overflowY = renderedH - H;
+    }
+    
+    imgEl.addEventListener('load', calculateOverflow);
+    if (imgEl.complete) {
+        calculateOverflow();
+    }
+    
+    imgEl.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        calculateOverflow();
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        imgEl.style.cursor = 'grabbing';
+        
+        const pos = imgEl.style.objectPosition || '50% 50%';
+        const m = pos.match(/(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/);
+        if (m) {
+            startPercentX = parseFloat(m[1]);
+            startPercentY = parseFloat(m[2]);
+        }
+    });
+    
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        let newPercentX = startPercentX;
+        let newPercentY = startPercentY;
+        
+        if (overflowX > 0) {
+            const dpX = -(dx / overflowX) * 100;
+            newPercentX = Math.max(0, Math.min(100, startPercentX + dpX));
+        }
+        if (overflowY > 0) {
+            const dpY = -(dy / overflowY) * 100;
+            newPercentY = Math.max(0, Math.min(100, startPercentY + dpY));
+        }
+        
+        imgEl.style.objectPosition = `${newPercentX.toFixed(1)}% ${newPercentY.toFixed(1)}%`;
+    });
+    
+    const handleMouseUp = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        imgEl.style.cursor = 'grab';
+        
+        const finalPosition = imgEl.style.objectPosition || '50% 50%';
+        saveThreatImagePosition(threatNome, finalPosition);
+    };
+    
+    window.addEventListener('mouseup', handleMouseUp);
+    
+    imgEl.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        calculateOverflow();
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        
+        const pos = imgEl.style.objectPosition || '50% 50%';
+        const m = pos.match(/(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/);
+        if (m) {
+            startPercentX = parseFloat(m[1]);
+            startPercentY = parseFloat(m[2]);
+        }
+    });
+    
+    window.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        
+        let newPercentX = startPercentX;
+        let newPercentY = startPercentY;
+        
+        if (overflowX > 0) {
+            const dpX = -(dx / overflowX) * 100;
+            newPercentX = Math.max(0, Math.min(100, startPercentX + dpX));
+        }
+        if (overflowY > 0) {
+            const dpY = -(dy / overflowY) * 100;
+            newPercentY = Math.max(0, Math.min(100, startPercentY + dpY));
+        }
+        
+        imgEl.style.objectPosition = `${newPercentX.toFixed(1)}% ${newPercentY.toFixed(1)}%`;
+    });
+    
+    window.addEventListener('touchend', handleMouseUp);
+}
+
 // 11. Global Window Hooks (Needed for HTML Event Listeners)
 window.showDetail = showDetail;
+window.toggleImageInput = toggleImageInput;
+window.saveThreatImage = saveThreatImage;
 window.addToEncounter = addToEncounter;
 window.removeFromEncounter = removeFromEncounter;
 window.adjustItemHP = adjustItemHP;
 window.rollItemInitiative = rollItemInitiative;
 window.updateItemInitiative = updateItemInitiative;
 window.rollAttack = rollAttack;
+window.openHomebrewModal = openHomebrewModal;
+window.deleteHomebrewThreat = deleteHomebrewThreat;
 
 // Helper to escape strings for HTML attributes safely
 function escapeStr(str) {
