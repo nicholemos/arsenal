@@ -440,6 +440,16 @@
               <input type="text" id="magiasSearch" placeholder="Buscar magia..." oninput="buscarMagia()" style="flex:1; background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.3rem 0.5rem; border-radius:3px; font-family:'Crimson Text',serif; font-size:0.8rem; outline:none;">
               <span id="magiasCount" style="align-self:center;font-size:0.65rem;color:var(--text-muted);white-space:nowrap;"></span>
             </div>
+            <!-- Filtro por Tipo (Arcana / Divina / Universal) -->
+            <div style="margin-bottom:0.3rem;">
+              <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:0.2rem;font-family:'Cinzel',serif;">TIPO</div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.2rem;" id="magiasTipoFiltros">
+                <button class="bau-cat-btn active" data-tipo="" onclick="setMagiaTipo(this,'')">Todas</button>
+                <button class="bau-cat-btn" data-tipo="Arcana" onclick="setMagiaTipo(this,'Arcana')">🔮 Arcana</button>
+                <button class="bau-cat-btn" data-tipo="Divina" onclick="setMagiaTipo(this,'Divina')">🙏 Divina</button>
+                <button class="bau-cat-btn" data-tipo="Universal" onclick="setMagiaTipo(this,'Universal')">⚖ Universal</button>
+              </div>
+            </div>
             <!-- Filtro por Círculo -->
             <div style="margin-bottom:0.3rem;">
               <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:0.2rem;font-family:'Cinzel',serif;">CÍRCULO</div>

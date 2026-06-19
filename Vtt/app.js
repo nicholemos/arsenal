@@ -3526,6 +3526,7 @@ let magiasCache = null;
 let magiasInitialized = false;
 let magiaCirculoFiltro = 0;
 let magiaEscolaFiltro = '';
+let magiaTipoFiltro = '';
 
 function initMagias() {
   if (magiasInitialized) return;
@@ -3547,6 +3548,7 @@ function carregarMagias() {
     magiasCache = SPELLS_DB.map(s => ({
       nome: s.n,
       circulo: s.c,
+      tipo: s.t || 'Universal',
       escola: s.e,
       execucao: s.ex,
       alcance: s.a,
@@ -3587,6 +3589,13 @@ function setMagiaEscola(btn, escola) {
   buscarMagia();
 }
 
+function setMagiaTipo(btn, tipo) {
+  magiaTipoFiltro = tipo;
+  document.querySelectorAll('#magiasTipoFiltros .bau-cat-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  buscarMagia();
+}
+
 function buscarMagia() {
   const resultsEl = document.getElementById('magiasResults');
   const countEl = document.getElementById('magiasCount');
@@ -3602,10 +3611,14 @@ function buscarMagia() {
   if (magiaEscolaFiltro) {
     filtradas = filtradas.filter(m => (m.escola || '').toLowerCase() === magiaEscolaFiltro.toLowerCase());
   }
+  if (magiaTipoFiltro) {
+    filtradas = filtradas.filter(m => (m.tipo || 'Universal') === magiaTipoFiltro);
+  }
   if (termo) {
     filtradas = filtradas.filter(m =>
       (m.nome || '').toLowerCase().includes(termo) ||
       (m.escola || '').toLowerCase().includes(termo) ||
+      (m.tipo || '').toLowerCase().includes(termo) ||
       (m.descricao || '').toLowerCase().includes(termo)
     );
   }
@@ -3680,12 +3693,17 @@ function renderMagias(magias) {
 
     html += lista.map(m => {
       const cor2 = escolaCores[m.escola] || '#666';
+      const tipoCor2 = m.tipo === 'Arcana' ? '#8a5ab5' : m.tipo === 'Divina' ? '#e8b96a' : '#5a8a8a';
+      const tipoLabel = m.tipo === 'Universal' ? 'U' : m.tipo === 'Arcana' ? 'A' : 'D';
       return `<div onclick="mostrarDetalhesMagia('${escHTML(m.nome)}')" style="display:flex;align-items:center;gap:0.45rem;padding:0.28rem 0.4rem;background:var(--parch3);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'"
         title="${escHTML((m.descricao || '').substring(0, 120))}">
         <span style="width:18px;height:18px;border-radius:50%;background:${cor2};display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:#fff;flex-shrink:0;">${escHTML((m.escola || '?').substring(0, 2).toUpperCase())}</span>
         <div style="flex:1;min-width:0;">
           <div style="font-size:0.72rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHTML(m.nome)}</div>
-          <div style="font-size:0.58rem;color:var(--text-muted);">${escHTML(m.escola)} · ${escHTML(m.execucao)}</div>
+          <div style="font-size:0.58rem;color:var(--text-muted);display:flex;align-items:center;gap:0.3rem;">
+            <span style="background:${tipoCor2};color:#fff;padding:0 0.3rem;border-radius:2px;font-size:0.5rem;font-weight:700;">${tipoLabel}</span>
+            ${escHTML(m.escola)} · ${escHTML(m.execucao)}
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -3718,6 +3736,8 @@ function mostrarDetalhesMagia(nome) {
   html += `<div style="margin-bottom:0.75rem;display:flex;gap:0.4rem;flex-wrap:wrap;">`;
   html += `<span style="background:${cirCor};color:#fff;padding:0.15rem 0.5rem;border-radius:3px;font-family:'Cinzel',serif;font-size:0.8rem;font-weight:bold;">✨ ${escHTML(String(m.circulo))}º Círculo</span>`;
   html += `<span style="background:${cor};color:#fff;padding:0.15rem 0.5rem;border-radius:3px;font-family:'Cinzel',serif;font-size:0.8rem;">${escHTML(m.escola)}</span>`;
+  const tipoCor = m.tipo === 'Arcana' ? '#8a5ab5' : m.tipo === 'Divina' ? '#e8b96a' : '#5a8a8a';
+  html += `<span style="background:${tipoCor};color:#fff;padding:0.15rem 0.5rem;border-radius:3px;font-family:'Cinzel',serif;font-size:0.72rem;">${escHTML(m.tipo || 'Universal')}</span>`;
   html += `</div>`;
 
   // Stats grid
