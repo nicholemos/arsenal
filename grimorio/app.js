@@ -19,6 +19,7 @@ const STATE = {
         favoritesOnly: false,
         circles: new Set(),
         schools: new Set(),
+        tipos: new Set(),
         range: "",
         execution: "",
         resistance: ""
@@ -228,12 +229,13 @@ function updateStatsDashboard() {
 
 function getFilteredSpells() {
     return SPELLS_DB.filter(spell => {
-        // 1. Text Search (Matches Name or Description)
+        // 1. Text Search (Matches Name, Tipo or Description)
         if (STATE.filters.search) {
             const query = STATE.filters.search.toLowerCase();
             const matchesName = spell.n.toLowerCase().includes(query);
+            const matchesTipo = (spell.t || 'Universal').toLowerCase().includes(query);
             const matchesDesc = spell.desc.toLowerCase().includes(query);
-            if (!matchesName && !matchesDesc) return false;
+            if (!matchesName && !matchesTipo && !matchesDesc) return false;
         }
         
         // 2. Favorites Mode
@@ -250,6 +252,12 @@ function getFilteredSpells() {
         // 4. School Filter
         if (STATE.filters.schools.size > 0) {
             if (!STATE.filters.schools.has(spell.e)) return false;
+        }
+        
+        // 4b. Tipo Filter
+        if (STATE.filters.tipos.size > 0) {
+            const tipo = spell.t || 'Universal';
+            if (!STATE.filters.tipos.has(tipo)) return false;
         }
         
         // 5. Technical Attribute - Range (Alcance)
@@ -345,6 +353,7 @@ function renderSpellsGrid() {
             <div class="spell-card-header">
                 <span class="spell-card-school">
                     ${spell.e}
+                    ${spell.t ? `<span class="badge-tipo badge-tipo-${spell.t.toLowerCase()}">${spell.t}</span>` : '<span class="badge-tipo badge-tipo-universal">Universal</span>'}
                     ${spell.isHomebrew ? '<span class="badge-homebrew">Homebrew</span>' : ''}
                 </span>
                 <h2 class="spell-card-title">${spell.n}</h2>
@@ -445,6 +454,7 @@ function openSpellDetails(spell) {
         <div class="spell-detail-header">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <span class="spell-detail-school-badge ${schoolClass}">${spell.e}</span>
+                ${spell.t ? `<span class="badge-tipo badge-tipo-${spell.t.toLowerCase()}">${spell.t}</span>` : '<span class="badge-tipo badge-tipo-universal">Universal</span>'}
                 ${spell.isHomebrew ? '<span class="badge-homebrew">Homebrew</span>' : ''}
             </div>
             <div class="spell-detail-title-row">
@@ -897,6 +907,7 @@ function saveHomebrewSpell(e) {
     
     const circle = parseInt(document.getElementById("hb-circle").value);
     const school = document.getElementById("hb-school").value;
+    const tipo = document.getElementById("hb-tipo")?.value || 'Universal';
     const execution = document.getElementById("hb-execution").value.trim();
     const range = document.getElementById("hb-range").value.trim();
     const target = document.getElementById("hb-target").value.trim();
@@ -922,6 +933,7 @@ function saveHomebrewSpell(e) {
     const newSpell = {
         n: name,
         c: circle,
+        t: tipo,
         e: school,
         ex: execution,
         a: range,
@@ -1016,6 +1028,18 @@ function handleSchoolFilterClick(btn, school) {
     updateActiveFilterBadges();
 }
 
+function handleTipoFilterClick(btn, tipo) {
+    btn.classList.toggle("active");
+    if (STATE.filters.tipos.has(tipo)) {
+        STATE.filters.tipos.delete(tipo);
+    } else {
+        STATE.filters.tipos.add(tipo);
+    }
+    renderSpellsGrid();
+    updateStatsDashboard();
+    updateActiveFilterBadges();
+}
+
 function updateActiveFilterBadges() {
     const container = document.getElementById("active-filters-badges");
     if (!container) return;
@@ -1039,6 +1063,18 @@ function updateActiveFilterBadges() {
         createBadge(container, school, () => {
             STATE.filters.schools.delete(school);
             const btn = document.querySelector(`.school-filter-btn[data-school="${school}"]`);
+            if (btn) btn.classList.remove("active");
+            updateActiveFilterBadges();
+            renderSpellsGrid();
+            updateStatsDashboard();
+        });
+    });
+    
+    // Tipos
+    STATE.filters.tipos.forEach(tipo => {
+        createBadge(container, tipo, () => {
+            STATE.filters.tipos.delete(tipo);
+            const btn = document.querySelector(`.tipo-filter-btn[data-tipo="${tipo}"]`);
             if (btn) btn.classList.remove("active");
             updateActiveFilterBadges();
             renderSpellsGrid();
@@ -1098,6 +1134,7 @@ function resetAllFilters() {
     STATE.filters.favoritesOnly = false;
     STATE.filters.circles.clear();
     STATE.filters.schools.clear();
+    STATE.filters.tipos.clear();
     STATE.filters.range = "";
     STATE.filters.execution = "";
     STATE.filters.resistance = "";
@@ -1109,6 +1146,7 @@ function resetAllFilters() {
     
     document.querySelectorAll(".circle-badge-btn").forEach(btn => btn.classList.remove("active"));
     document.querySelectorAll(".school-filter-btn").forEach(btn => btn.classList.remove("active"));
+    document.querySelectorAll(".tipo-filter-btn").forEach(btn => btn.classList.remove("active"));
     
     document.getElementById("filter-range").value = "";
     document.getElementById("filter-execution").value = "";
@@ -1181,6 +1219,12 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => handleSchoolFilterClick(btn, school));
     });
     
+    // F2. Bind Tipo buttons
+    document.querySelectorAll(".tipo-filter-btn").forEach(btn => {
+        const tipo = btn.getAttribute("data-tipo");
+        btn.addEventListener("click", () => handleTipoFilterClick(btn, tipo));
+    });
+    
     // G. Collapsible filter toggle
     const collHeader = document.getElementById("tech-filters-header");
     const collContent = document.getElementById("tech-filters-content");
@@ -1198,6 +1242,16 @@ document.addEventListener("DOMContentLoaded", () => {
         schoolHeader.addEventListener("click", () => {
             schoolHeader.classList.toggle("collapsed");
             schoolContent.classList.toggle("collapsed");
+        });
+    }
+
+    // G2b. Collapsible Tipo filters toggle
+    const tipoHeader = document.getElementById("tipo-filters-header");
+    const tipoContent = document.getElementById("tipo-filters-content");
+    if (tipoHeader && tipoContent) {
+        tipoHeader.addEventListener("click", () => {
+            tipoHeader.classList.toggle("collapsed");
+            tipoContent.classList.toggle("collapsed");
         });
     }
 

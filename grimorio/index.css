@@ -2007,6 +2007,30 @@ body {
     vertical-align: middle;
 }
 
+.badge-tipo {
+    font-size: 0.55rem;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 0.05rem 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    vertical-align: middle;
+    color: #fff;
+}
+.badge-tipo-arcana {
+    background: #8a5ab5;
+    border: 1px solid #a070d0;
+}
+.badge-tipo-divina {
+    background: #b8862a;
+    border: 1px solid #d4a44a;
+}
+.badge-tipo-universal {
+    background: #4a7a7a;
+    border: 1px solid #5a9a9a;
+}
+
 .btn-delete-homebrew-action {
     display: flex;
     align-items: center;

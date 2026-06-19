@@ -2,6 +2,7 @@ const SPELLS_DB = [
     {
         "n": "Abençoar Alimentos",
         "c": 1,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "curto",
@@ -23,6 +24,7 @@ const SPELLS_DB = [
     {
         "n": "Acalmar Animal",
         "c": 1,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "ação padrão",
         "a": "curto",
@@ -52,6 +54,7 @@ const SPELLS_DB = [
     {
         "n": "Açoite Flamejante",
         "c": 1,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -77,6 +80,7 @@ const SPELLS_DB = [
     {
         "n": "Adaga Mental",
         "c": 1,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -102,6 +106,7 @@ const SPELLS_DB = [
     {
         "n": "Alarme",
         "c": 1,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "curto",
@@ -127,6 +132,7 @@ const SPELLS_DB = [
     {
         "n": "Amedrontar",
         "c": 1,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto",
@@ -152,6 +158,7 @@ const SPELLS_DB = [
     {
         "n": "Área Escorregadia",
         "c": 1,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -177,6 +184,7 @@ const SPELLS_DB = [
     {
         "n": "Arma de Jade",
         "c": 1,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -202,6 +210,7 @@ const SPELLS_DB = [
     {
         "n": "Arma Espiritual",
         "c": 1,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -239,6 +248,7 @@ const SPELLS_DB = [
     {
         "n": "Arma Mágica",
         "c": 1,
+        "t": "Universal",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -264,6 +274,7 @@ const SPELLS_DB = [
     {
         "n": "Armadura Arcana",
         "c": 1,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -289,6 +300,7 @@ const SPELLS_DB = [
     {
         "n": "Armadura Elemental",
         "c": 1,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -314,6 +326,7 @@ const SPELLS_DB = [
     {
         "n": "Armamento da Natureza",
         "c": 1,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -343,6 +356,7 @@ const SPELLS_DB = [
     {
         "n": "Arsenal de Allihanna",
         "c": 1,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -368,6 +382,7 @@ const SPELLS_DB = [
     {
         "n": "Assobio Perigoso",
         "c": 1,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -380,6 +395,7 @@ const SPELLS_DB = [
     {
         "n": "Aviso",
         "c": 1,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "movimento",
         "a": "longo",
@@ -409,6 +425,7 @@ const SPELLS_DB = [
     {
         "n": "Bênção",
         "c": 1,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto; '''Alvos''': criaturas escolhidas",
@@ -430,6 +447,7 @@ const SPELLS_DB = [
     {
         "n": "Bofetada de Nimb",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -463,6 +481,7 @@ const SPELLS_DB = [
     {
         "n": "Caminhos da Natureza",
         "c": 1,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -484,6 +503,7 @@ const SPELLS_DB = [
     {
         "n": "Comando",
         "c": 1,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -505,6 +525,7 @@ const SPELLS_DB = [
     {
         "n": "Compreensão",
         "c": 1,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "toque",
@@ -534,6 +555,7 @@ const SPELLS_DB = [
     {
         "n": "Concentração de Combate",
         "c": 1,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "livre",
         "a": "pessoal",
@@ -563,6 +585,7 @@ const SPELLS_DB = [
     {
         "n": "Conjurar Monstro",
         "c": 1,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "completa",
         "a": "curto; '''Efeito''': 1 criatura conjurada",
@@ -624,6 +647,7 @@ const SPELLS_DB = [
     {
         "n": "Consagrar",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "longo",
@@ -649,6 +673,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar Plantas",
         "c": 1,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "curto",
@@ -674,6 +699,7 @@ const SPELLS_DB = [
     {
         "n": "Criar Elementos",
         "c": 1,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto; '''Efeito''': elemento escolhido",
@@ -699,6 +725,7 @@ const SPELLS_DB = [
     {
         "n": "Criar Ilusão",
         "c": 1,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "médio; '''Efeito''': ilusão que se estende a até 4 cubos de 1,5m",
@@ -748,6 +775,7 @@ const SPELLS_DB = [
     {
         "n": "Curar Ferimentos",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "toque",
@@ -777,6 +805,7 @@ const SPELLS_DB = [
     {
         "n": "Dardo Gélido",
         "c": 1,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -798,6 +827,7 @@ const SPELLS_DB = [
     {
         "n": "Descobrir Fraqueza",
         "c": 1,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "movimento",
         "a": "curto",
@@ -823,6 +853,7 @@ const SPELLS_DB = [
     {
         "n": "Despedaçar",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -860,6 +891,7 @@ const SPELLS_DB = [
     {
         "n": "Detectar Ameaças",
         "c": 1,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -881,6 +913,7 @@ const SPELLS_DB = [
     {
         "n": "Discrição",
         "c": 1,
+        "t": "Universal",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "pessoal ou toque",
@@ -906,6 +939,7 @@ const SPELLS_DB = [
     {
         "n": "Disfarce Ilusório",
         "c": 1,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "pessoal",
@@ -935,6 +969,7 @@ const SPELLS_DB = [
     {
         "n": "Distração Fugaz",
         "c": 1,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "curto",
@@ -964,6 +999,7 @@ const SPELLS_DB = [
     {
         "n": "Enfeitiçar",
         "c": 1,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "ação padrão",
         "a": "curto",
@@ -989,6 +1025,7 @@ const SPELLS_DB = [
     {
         "n": "Escapatória de Hyninn",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "reação",
         "a": "pessoal",
@@ -1018,6 +1055,7 @@ const SPELLS_DB = [
     {
         "n": "Escudo da Fé",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "reação",
         "a": "curto",
@@ -1051,6 +1089,7 @@ const SPELLS_DB = [
     {
         "n": "Escuridão",
         "c": 1,
+        "t": "Universal",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto",
@@ -1084,6 +1123,7 @@ const SPELLS_DB = [
     {
         "n": "Espírito Balístico",
         "c": 1,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -1109,6 +1149,7 @@ const SPELLS_DB = [
     {
         "n": "Euforia de Valkaria",
         "c": 1,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "pessoal",
@@ -1138,6 +1179,7 @@ const SPELLS_DB = [
     {
         "n": "Execução de Thwor",
         "c": 1,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "movimento",
         "a": "curto",
@@ -1163,6 +1205,7 @@ const SPELLS_DB = [
     {
         "n": "Explosão de Chamas",
         "c": 1,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "6m",
@@ -1184,6 +1227,7 @@ const SPELLS_DB = [
     {
         "n": "Farejar Fortuna",
         "c": 1,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -1209,6 +1253,7 @@ const SPELLS_DB = [
     {
         "n": "Flecha de Luz",
         "c": 1,
+        "t": "Universal",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -1242,6 +1287,7 @@ const SPELLS_DB = [
     {
         "n": "Frescor de Lena",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -1271,6 +1317,7 @@ const SPELLS_DB = [
     {
         "n": "Fúria dos Antepassados",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -1296,6 +1343,7 @@ const SPELLS_DB = [
     {
         "n": "Futuro Melhor",
         "c": 1,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "reação",
         "a": "pessoal",
@@ -1317,6 +1365,7 @@ const SPELLS_DB = [
     {
         "n": "Hipnotismo",
         "c": 1,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto; '''Alvos''': 1 animal ou humanóide",
@@ -1350,6 +1399,7 @@ const SPELLS_DB = [
     {
         "n": "Imagem Espelhada",
         "c": 1,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "pessoal",
@@ -1371,6 +1421,7 @@ const SPELLS_DB = [
     {
         "n": "Infligir Ferimentos",
         "c": 1,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "toque",
@@ -1400,6 +1451,7 @@ const SPELLS_DB = [
     {
         "n": "Infortúnio de Sszzaas",
         "c": 1,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto",
@@ -1425,6 +1477,7 @@ const SPELLS_DB = [
     {
         "n": "Instante Estoico",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "reação",
         "a": "pessoal",
@@ -1454,6 +1507,7 @@ const SPELLS_DB = [
     {
         "n": "Jato Corrosivo",
         "c": 1,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -1479,6 +1533,7 @@ const SPELLS_DB = [
     {
         "n": "Leque Cromático",
         "c": 1,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "4,5m",
@@ -1504,6 +1559,7 @@ const SPELLS_DB = [
     {
         "n": "Luz",
         "c": 1,
+        "t": "Universal",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -1529,6 +1585,7 @@ const SPELLS_DB = [
     {
         "n": "Maaais Klunc",
         "c": 1,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -1550,6 +1607,7 @@ const SPELLS_DB = [
     {
         "n": "Magia Dadivosa",
         "c": 1,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "movimento",
         "a": "pessoal",
@@ -1571,6 +1629,7 @@ const SPELLS_DB = [
     {
         "n": "Névoa",
         "c": 1,
+        "t": "Universal",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto; '''Efeito''': nuvem com 6m de raio e 6m de altura",
@@ -1608,6 +1667,7 @@ const SPELLS_DB = [
     {
         "n": "Orbe do Oceano",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -1629,6 +1689,7 @@ const SPELLS_DB = [
     {
         "n": "Orientação",
         "c": 1,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "curto",
@@ -1654,6 +1715,7 @@ const SPELLS_DB = [
     {
         "n": "Ossos de Adamante",
         "c": 1,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -1675,6 +1737,7 @@ const SPELLS_DB = [
     {
         "n": "Paixão de Marah",
         "c": 1,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "pessoal",
@@ -1700,6 +1763,7 @@ const SPELLS_DB = [
     {
         "n": "Percepção Rubra",
         "c": 1,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -1721,6 +1785,7 @@ const SPELLS_DB = [
     {
         "n": "Perdição",
         "c": 1,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto; '''Alvos''': criaturas escolhidas",
@@ -1738,6 +1803,7 @@ const SPELLS_DB = [
     {
         "n": "Perturbação Sombria",
         "c": 1,
+        "t": "Divina",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "pessoal",
@@ -1771,6 +1837,7 @@ const SPELLS_DB = [
     {
         "n": "Poder de Kallyadranoch",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "movimento",
         "a": "pessoal",
@@ -1792,6 +1859,7 @@ const SPELLS_DB = [
     {
         "n": "Posse de Arsenal",
         "c": 1,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -1809,6 +1877,7 @@ const SPELLS_DB = [
     {
         "n": "Primor Atlético",
         "c": 1,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -1838,6 +1907,7 @@ const SPELLS_DB = [
     {
         "n": "Profanar",
         "c": 1,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "longo",
@@ -1863,6 +1933,7 @@ const SPELLS_DB = [
     {
         "n": "Proteção de Tauron",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "movimento",
         "a": "curto",
@@ -1888,6 +1959,7 @@ const SPELLS_DB = [
     {
         "n": "Proteção Divina",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -1917,6 +1989,7 @@ const SPELLS_DB = [
     {
         "n": "Punho de Mitral",
         "c": 1,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -1942,6 +2015,7 @@ const SPELLS_DB = [
     {
         "n": "Queda Suave",
         "c": 1,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "reação",
         "a": "curto; '''Alvos''': 1 criatura ou objeto Grande ou menor",
@@ -1963,6 +2037,7 @@ const SPELLS_DB = [
     {
         "n": "Raio do Enfraquecimento",
         "c": 1,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto",
@@ -1984,6 +2059,7 @@ const SPELLS_DB = [
     {
         "n": "Resistência a Energia",
         "c": 1,
+        "t": "Universal",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -2017,6 +2093,7 @@ const SPELLS_DB = [
     {
         "n": "Santuário",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -2054,6 +2131,7 @@ const SPELLS_DB = [
     {
         "n": "Seta Infalível de Talude",
         "c": 1,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "Padrão",
         "a": "Médio",
@@ -2083,6 +2161,7 @@ const SPELLS_DB = [
     {
         "n": "Sigilo de Sszzaas",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -2108,6 +2187,7 @@ const SPELLS_DB = [
     {
         "n": "Siroco de Azgher",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -2137,6 +2217,7 @@ const SPELLS_DB = [
     {
         "n": "Sono",
         "c": 1,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -2162,6 +2243,7 @@ const SPELLS_DB = [
     {
         "n": "Sorriso da Fortuna",
         "c": 1,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -2191,6 +2273,7 @@ const SPELLS_DB = [
     {
         "n": "Suporte Ambiental",
         "c": 1,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -2208,6 +2291,7 @@ const SPELLS_DB = [
     {
         "n": "Teia",
         "c": 1,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -2233,6 +2317,7 @@ const SPELLS_DB = [
     {
         "n": "Toque Chocante",
         "c": 1,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "toque",
@@ -2258,6 +2343,7 @@ const SPELLS_DB = [
     {
         "n": "Toque de Megalokk",
         "c": 1,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -2283,6 +2369,7 @@ const SPELLS_DB = [
     {
         "n": "Toque do Horizonte",
         "c": 1,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -2316,6 +2403,7 @@ const SPELLS_DB = [
     {
         "n": "Tranca Arcana",
         "c": 1,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -2341,6 +2429,7 @@ const SPELLS_DB = [
     {
         "n": "Tranquilidade",
         "c": 1,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "ação padrão",
         "a": "curto",
@@ -2370,6 +2459,7 @@ const SPELLS_DB = [
     {
         "n": "Transmutar Objetos",
         "c": 1,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -2403,6 +2493,7 @@ const SPELLS_DB = [
     {
         "n": "Visão Mística",
         "c": 1,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -2428,6 +2519,7 @@ const SPELLS_DB = [
     {
         "n": "Vitalidade Fantasma",
         "c": 1,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "pessoal",
@@ -2461,6 +2553,7 @@ const SPELLS_DB = [
     {
         "n": "Voz da Razão",
         "c": 1,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "pessoal",
@@ -2482,6 +2575,7 @@ const SPELLS_DB = [
     {
         "n": "Aliado Animal",
         "c": 2,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -2507,6 +2601,7 @@ const SPELLS_DB = [
     {
         "n": "Alterar Tamanho",
         "c": 2,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "curto",
@@ -2536,6 +2631,7 @@ const SPELLS_DB = [
     {
         "n": "Amarras Etéreas",
         "c": 2,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "médio",
@@ -2561,6 +2657,7 @@ const SPELLS_DB = [
     {
         "n": "Aparência Perfeita",
         "c": 2,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "pessoal",
@@ -2578,6 +2675,7 @@ const SPELLS_DB = [
     {
         "n": "Augúrio",
         "c": 2,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "completa",
         "a": "pessoal",
@@ -2607,6 +2705,7 @@ const SPELLS_DB = [
     {
         "n": "Aura de Morte",
         "c": 2,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "pessoal",
@@ -2628,6 +2727,7 @@ const SPELLS_DB = [
     {
         "n": "Bola de Fogo",
         "c": 2,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -2653,6 +2753,7 @@ const SPELLS_DB = [
     {
         "n": "Campo de Força",
         "c": 2,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -2686,6 +2787,7 @@ const SPELLS_DB = [
     {
         "n": "Camuflagem Ilusória",
         "c": 2,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "toque",
@@ -2707,6 +2809,7 @@ const SPELLS_DB = [
     {
         "n": "Círculo da Justiça",
         "c": 2,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "completa",
         "a": "curto",
@@ -2732,6 +2835,7 @@ const SPELLS_DB = [
     {
         "n": "Condição",
         "c": 2,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "curto",
@@ -2753,6 +2857,7 @@ const SPELLS_DB = [
     {
         "n": "Conjurar Armadilha",
         "c": 2,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "completa",
         "a": "curto",
@@ -2778,6 +2883,7 @@ const SPELLS_DB = [
     {
         "n": "Conjurar Mortos-Vivos",
         "c": 2,
+        "t": "Universal",
         "e": "Necromancia",
         "ex": "completa",
         "a": "curto",
@@ -2803,6 +2909,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar Fogo",
         "c": 2,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -2828,6 +2935,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar Madeira",
         "c": 2,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "médio",
@@ -2857,6 +2965,7 @@ const SPELLS_DB = [
     {
         "n": "Couraça de Allihanna",
         "c": 2,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -2890,6 +2999,7 @@ const SPELLS_DB = [
     {
         "n": "Crânio Voador de Vladislav",
         "c": 2,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "médio",
@@ -2911,6 +3021,7 @@ const SPELLS_DB = [
     {
         "n": "Desafio Corajoso",
         "c": 2,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -2923,6 +3034,7 @@ const SPELLS_DB = [
     {
         "n": "Desespero Esmagador",
         "c": 2,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "pessoal",
@@ -2948,6 +3060,7 @@ const SPELLS_DB = [
     {
         "n": "Desfazer Engenhoca",
         "c": 2,
+        "t": "Universal",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "médio",
@@ -2973,6 +3086,7 @@ const SPELLS_DB = [
     {
         "n": "Dissipar Magia",
         "c": 2,
+        "t": "Universal",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "médio",
@@ -2990,6 +3104,7 @@ const SPELLS_DB = [
     {
         "n": "Emular Magia",
         "c": 2,
+        "t": "Universal",
         "e": "Evocação",
         "ex": "movimento",
         "a": "pessoal",
@@ -3002,6 +3117,7 @@ const SPELLS_DB = [
     {
         "n": "Enxame de Pestes",
         "c": 2,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "completa",
         "a": "médio",
@@ -3031,6 +3147,7 @@ const SPELLS_DB = [
     {
         "n": "Esculpir Sons",
         "c": 2,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "médio",
@@ -3048,6 +3165,7 @@ const SPELLS_DB = [
     {
         "n": "Físico Divino",
         "c": 2,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -3077,6 +3195,7 @@ const SPELLS_DB = [
     {
         "n": "Flecha Ácida",
         "c": 2,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -3102,6 +3221,7 @@ const SPELLS_DB = [
     {
         "n": "Globo da Verdade de Gwen",
         "c": 2,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "curto",
@@ -3131,6 +3251,7 @@ const SPELLS_DB = [
     {
         "n": "Invisibilidade",
         "c": 2,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "livre",
         "a": "pessoal",
@@ -3160,6 +3281,7 @@ const SPELLS_DB = [
     {
         "n": "Invocar Fagulha Elemental",
         "c": 2,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "completa",
         "a": "curto",
@@ -3181,6 +3303,7 @@ const SPELLS_DB = [
     {
         "n": "Ligação Telepática",
         "c": 2,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "toque",
@@ -3202,6 +3325,7 @@ const SPELLS_DB = [
     {
         "n": "Localização",
         "c": 2,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -3219,6 +3343,7 @@ const SPELLS_DB = [
     {
         "n": "Mapear",
         "c": 2,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "toque",
@@ -3236,6 +3361,7 @@ const SPELLS_DB = [
     {
         "n": "Máquina de Combate",
         "c": 2,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "toque",
@@ -3261,6 +3387,7 @@ const SPELLS_DB = [
     {
         "n": "Marca da Obediência",
         "c": 2,
+        "t": "Universal",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "toque",
@@ -3282,6 +3409,7 @@ const SPELLS_DB = [
     {
         "n": "Mente Divina",
         "c": 2,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "toque",
@@ -3311,6 +3439,7 @@ const SPELLS_DB = [
     {
         "n": "Metamorfose",
         "c": 2,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -3352,6 +3481,7 @@ const SPELLS_DB = [
     {
         "n": "Miasma Mefítico",
         "c": 2,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "médio",
@@ -3373,6 +3503,7 @@ const SPELLS_DB = [
     {
         "n": "Momento de Tormenta",
         "c": 2,
+        "t": "Universal",
         "e": "Convocação",
         "ex": "completa",
         "a": "pessoal",
@@ -3398,6 +3529,7 @@ const SPELLS_DB = [
     {
         "n": "Montaria Arcana",
         "c": 2,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -3427,6 +3559,7 @@ const SPELLS_DB = [
     {
         "n": "Oração",
         "c": 2,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -3456,6 +3589,7 @@ const SPELLS_DB = [
     {
         "n": "Piscar",
         "c": 2,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -3473,6 +3607,7 @@ const SPELLS_DB = [
     {
         "n": "Poção Explosiva",
         "c": 2,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "curto",
@@ -3494,6 +3629,7 @@ const SPELLS_DB = [
     {
         "n": "Preparação de Batalha",
         "c": 2,
+        "t": "Universal",
         "e": "Convocação",
         "ex": "padrão",
         "a": "toque",
@@ -3511,6 +3647,7 @@ const SPELLS_DB = [
     {
         "n": "Punição do Profano",
         "c": 2,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -3540,6 +3677,7 @@ const SPELLS_DB = [
     {
         "n": "Purificação",
         "c": 2,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "toque",
@@ -3569,6 +3707,7 @@ const SPELLS_DB = [
     {
         "n": "Raio Solar",
         "c": 2,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -3594,6 +3733,7 @@ const SPELLS_DB = [
     {
         "n": "Refúgio",
         "c": 2,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "completa",
         "a": "curto",
@@ -3623,6 +3763,7 @@ const SPELLS_DB = [
     {
         "n": "Relâmpago",
         "c": 2,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -3644,6 +3785,7 @@ const SPELLS_DB = [
     {
         "n": "Rogar Maldição",
         "c": 2,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto",
@@ -3665,6 +3807,7 @@ const SPELLS_DB = [
     {
         "n": "Runa de Proteção",
         "c": 2,
+        "t": "Universal",
         "e": "Abjuração",
         "ex": "1 hora",
         "a": "toque",
@@ -3690,6 +3833,7 @@ const SPELLS_DB = [
     {
         "n": "Salto Dimensional",
         "c": 2,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -3719,6 +3863,7 @@ const SPELLS_DB = [
     {
         "n": "Servos Invisíveis",
         "c": 2,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "longo",
@@ -3740,6 +3885,7 @@ const SPELLS_DB = [
     {
         "n": "Silêncio",
         "c": 2,
+        "t": "Divina",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "médio",
@@ -3761,6 +3907,7 @@ const SPELLS_DB = [
     {
         "n": "Soco de Arsenal",
         "c": 2,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "padrão",
         "a": "médio",
@@ -3790,6 +3937,7 @@ const SPELLS_DB = [
     {
         "n": "Sopro das Uivantes",
         "c": 2,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -3811,6 +3959,7 @@ const SPELLS_DB = [
     {
         "n": "Sussurros Insanos",
         "c": 2,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -3836,6 +3985,7 @@ const SPELLS_DB = [
     {
         "n": "Tempestade Divina",
         "c": 2,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "completa",
         "a": "longo",
@@ -3873,6 +4023,7 @@ const SPELLS_DB = [
     {
         "n": "Toque Vampírico",
         "c": 2,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "toque",
@@ -3898,6 +4049,7 @@ const SPELLS_DB = [
     {
         "n": "Traição da Lâmina",
         "c": 2,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "curto",
@@ -3927,6 +4079,7 @@ const SPELLS_DB = [
     {
         "n": "Traição Mágica",
         "c": 2,
+        "t": "Universal",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "curto",
@@ -3948,6 +4101,7 @@ const SPELLS_DB = [
     {
         "n": "Transposição",
         "c": 2,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -3973,6 +4127,7 @@ const SPELLS_DB = [
     {
         "n": "Velocidade",
         "c": 2,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "curto",
@@ -3998,6 +4153,7 @@ const SPELLS_DB = [
     {
         "n": "Vestimenta da Fé",
         "c": 2,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -4023,6 +4179,7 @@ const SPELLS_DB = [
     {
         "n": "Viagem Onírica",
         "c": 2,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -4044,6 +4201,7 @@ const SPELLS_DB = [
     {
         "n": "Voz Divina",
         "c": 2,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -4065,6 +4223,7 @@ const SPELLS_DB = [
     {
         "n": "Âncora Dimensional",
         "c": 3,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "curto",
@@ -4098,6 +4257,7 @@ const SPELLS_DB = [
     {
         "n": "Anular a Luz",
         "c": 3,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "pessoal",
@@ -4123,6 +4283,7 @@ const SPELLS_DB = [
     {
         "n": "Banimento",
         "c": 3,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "1d3+1 rodadas",
         "a": "curto",
@@ -4140,6 +4301,7 @@ const SPELLS_DB = [
     {
         "n": "Coluna de Chamas",
         "c": 3,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "longo",
@@ -4161,6 +4323,7 @@ const SPELLS_DB = [
     {
         "n": "Comunhão com a Natureza",
         "c": 3,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "completa",
         "a": "pessoal",
@@ -4190,6 +4353,7 @@ const SPELLS_DB = [
     {
         "n": "Contato Extraplanar",
         "c": 3,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "completa",
         "a": "pessoal",
@@ -4211,6 +4375,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar Água",
         "c": 3,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "longo",
@@ -4228,6 +4393,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar Terra",
         "c": 3,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "longo",
@@ -4249,6 +4415,7 @@ const SPELLS_DB = [
     {
         "n": "Convocação Instantânea",
         "c": 3,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "ilimitado",
@@ -4278,6 +4445,7 @@ const SPELLS_DB = [
     {
         "n": "Coração Imortal",
         "c": 3,
+        "t": "Universal",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "pessoal",
@@ -4303,6 +4471,7 @@ const SPELLS_DB = [
     {
         "n": "Despertar Consciência",
         "c": 3,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "completa",
         "a": "toque",
@@ -4324,6 +4493,7 @@ const SPELLS_DB = [
     {
         "n": "Dificultar Detecção",
         "c": 3,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -4345,6 +4515,7 @@ const SPELLS_DB = [
     {
         "n": "Dispersar as Trevas",
         "c": 3,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -4374,6 +4545,7 @@ const SPELLS_DB = [
     {
         "n": "Enxame Rubro de Ichabod",
         "c": 3,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "médio",
@@ -4411,6 +4583,7 @@ const SPELLS_DB = [
     {
         "n": "Erupção Glacial",
         "c": 3,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -4432,6 +4605,7 @@ const SPELLS_DB = [
     {
         "n": "Ferver Sangue",
         "c": 3,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto",
@@ -4453,6 +4627,7 @@ const SPELLS_DB = [
     {
         "n": "Globo de Invulnerabilidade",
         "c": 3,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -4474,6 +4649,7 @@ const SPELLS_DB = [
     {
         "n": "Heroísmo",
         "c": 3,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "toque",
@@ -4491,6 +4667,7 @@ const SPELLS_DB = [
     {
         "n": "Ilusão Lacerante",
         "c": 3,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "médio",
@@ -4512,6 +4689,7 @@ const SPELLS_DB = [
     {
         "n": "Imobilizar",
         "c": 3,
+        "t": "Universal",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -4533,6 +4711,7 @@ const SPELLS_DB = [
     {
         "n": "Lança Ígnea de Aleph",
         "c": 3,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -4554,6 +4733,7 @@ const SPELLS_DB = [
     {
         "n": "Lendas e Histórias",
         "c": 3,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "toque",
@@ -4571,6 +4751,7 @@ const SPELLS_DB = [
     {
         "n": "Manto de Sombras",
         "c": 3,
+        "t": "Universal",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "pessoal",
@@ -4588,6 +4769,7 @@ const SPELLS_DB = [
     {
         "n": "Miragem",
         "c": 3,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "longo",
@@ -4609,6 +4791,7 @@ const SPELLS_DB = [
     {
         "n": "Missão Divina",
         "c": 3,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -4630,6 +4813,7 @@ const SPELLS_DB = [
     {
         "n": "Muralha Elemental",
         "c": 3,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -4655,6 +4839,7 @@ const SPELLS_DB = [
     {
         "n": "Pele de Pedra",
         "c": 3,
+        "t": "Universal",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -4688,6 +4873,7 @@ const SPELLS_DB = [
     {
         "n": "Poeira da Podridão",
         "c": 3,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "médio",
@@ -4705,6 +4891,7 @@ const SPELLS_DB = [
     {
         "n": "Potência Divina",
         "c": 3,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -4730,6 +4917,7 @@ const SPELLS_DB = [
     {
         "n": "Proteção contra Magia",
         "c": 3,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "toque",
@@ -4755,6 +4943,7 @@ const SPELLS_DB = [
     {
         "n": "Selo de Mana",
         "c": 3,
+        "t": "Universal",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "toque",
@@ -4772,6 +4961,7 @@ const SPELLS_DB = [
     {
         "n": "Servo Divino",
         "c": 3,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -4793,6 +4983,7 @@ const SPELLS_DB = [
     {
         "n": "Servo Morto-Vivo",
         "c": 3,
+        "t": "Universal",
         "e": "Necromancia",
         "ex": "completa",
         "a": "toque",
@@ -4818,6 +5009,7 @@ const SPELLS_DB = [
     {
         "n": "Sopro da Salvação",
         "c": 3,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -4843,6 +5035,7 @@ const SPELLS_DB = [
     {
         "n": "Telecinesia",
         "c": 3,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "médio",
@@ -4860,6 +5053,7 @@ const SPELLS_DB = [
     {
         "n": "Teletransporte",
         "c": 3,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "toque",
@@ -4885,6 +5079,7 @@ const SPELLS_DB = [
     {
         "n": "Tentáculos de Trevas",
         "c": 3,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "médio",
@@ -4906,6 +5101,7 @@ const SPELLS_DB = [
     {
         "n": "Toque Álgido",
         "c": 3,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "toque",
@@ -4927,6 +5123,7 @@ const SPELLS_DB = [
     {
         "n": "Transformação de Guerra",
         "c": 3,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -4948,6 +5145,7 @@ const SPELLS_DB = [
     {
         "n": "Viagem Arbórea",
         "c": 3,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "completa",
         "a": "pessoal",
@@ -4965,6 +5163,7 @@ const SPELLS_DB = [
     {
         "n": "Vidência",
         "c": 3,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "completa",
         "a": "ilimitado",
@@ -4977,6 +5176,7 @@ const SPELLS_DB = [
     {
         "n": "Voo",
         "c": 3,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "pessoal",
@@ -5002,6 +5202,7 @@ const SPELLS_DB = [
     {
         "n": "Alterar Memória",
         "c": 4,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "toque",
@@ -5023,6 +5224,7 @@ const SPELLS_DB = [
     {
         "n": "Animar Objetos",
         "c": 4,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "médio",
@@ -5040,6 +5242,7 @@ const SPELLS_DB = [
     {
         "n": "Assassino Fantasmagórico",
         "c": 4,
+        "t": "Arcana",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "longo",
@@ -5052,6 +5255,7 @@ const SPELLS_DB = [
     {
         "n": "Campo Antimagia",
         "c": 4,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -5064,6 +5268,7 @@ const SPELLS_DB = [
     {
         "n": "Círculo da Restauração",
         "c": 4,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "curto",
@@ -5081,6 +5286,7 @@ const SPELLS_DB = [
     {
         "n": "Cólera de Azgher",
         "c": 4,
+        "t": "Divina",
         "e": "evocação",
         "ex": "padrão",
         "a": "médio",
@@ -5106,6 +5312,7 @@ const SPELLS_DB = [
     {
         "n": "Conceder Milagre",
         "c": 4,
+        "t": "Divina",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "toque",
@@ -5123,6 +5330,7 @@ const SPELLS_DB = [
     {
         "n": "Conjurar Elemental",
         "c": 4,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "completa",
         "a": "médio",
@@ -5144,6 +5352,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar a Gravidade",
         "c": 4,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "médio",
@@ -5156,6 +5365,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar o Clima",
         "c": 4,
+        "t": "Divina",
         "e": "Transmutação",
         "ex": "completa",
         "a": "2km",
@@ -5168,6 +5378,7 @@ const SPELLS_DB = [
     {
         "n": "Cúpula de Repulsão",
         "c": 4,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -5189,6 +5400,7 @@ const SPELLS_DB = [
     {
         "n": "Desintegrar",
         "c": 4,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "médio",
@@ -5206,6 +5418,7 @@ const SPELLS_DB = [
     {
         "n": "Duplicata Ilusória",
         "c": 4,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "médio",
@@ -5223,6 +5436,7 @@ const SPELLS_DB = [
     {
         "n": "Explosão Caleidoscópica",
         "c": 4,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "curto",
@@ -5235,6 +5449,7 @@ const SPELLS_DB = [
     {
         "n": "Forma Etérea",
         "c": 4,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "completa",
         "a": "pessoal",
@@ -5252,6 +5467,7 @@ const SPELLS_DB = [
     {
         "n": "Guardião Divino",
         "c": 4,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "padrão",
         "a": "curto",
@@ -5264,6 +5480,7 @@ const SPELLS_DB = [
     {
         "n": "Libertação",
         "c": 4,
+        "t": "Universal",
         "e": "abjuração",
         "ex": "padrão",
         "a": "curto",
@@ -5297,6 +5514,7 @@ const SPELLS_DB = [
     {
         "n": "Ligação Sombria",
         "c": 4,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "longo",
@@ -5314,6 +5532,7 @@ const SPELLS_DB = [
     {
         "n": "Manto do Cruzado",
         "c": 4,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -5326,6 +5545,7 @@ const SPELLS_DB = [
     {
         "n": "Mão Poderosa de Talude",
         "c": 4,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "padrão",
         "a": "médio",
@@ -5347,6 +5567,7 @@ const SPELLS_DB = [
     {
         "n": "Marionete",
         "c": 4,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "médio",
@@ -5359,6 +5580,7 @@ const SPELLS_DB = [
     {
         "n": "Muralha de Ossos",
         "c": 4,
+        "t": "Universal",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "médio",
@@ -5380,6 +5602,7 @@ const SPELLS_DB = [
     {
         "n": "Pântano Vitriólico",
         "c": 4,
+        "t": "Arcana",
         "e": "transmutação",
         "ex": "padrão",
         "a": "médio",
@@ -5401,6 +5624,7 @@ const SPELLS_DB = [
     {
         "n": "Premonição",
         "c": 4,
+        "t": "Divina",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "pessoal",
@@ -5422,6 +5646,7 @@ const SPELLS_DB = [
     {
         "n": "Raio Polar",
         "c": 4,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "médio",
@@ -5443,6 +5668,7 @@ const SPELLS_DB = [
     {
         "n": "Relâmpago Flamejante de Reynard",
         "c": 4,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "duas rodadas",
         "a": "médio",
@@ -5460,6 +5686,7 @@ const SPELLS_DB = [
     {
         "n": "Sonho",
         "c": 4,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "10 minutos",
         "a": "ilimitado",
@@ -5481,6 +5708,7 @@ const SPELLS_DB = [
     {
         "n": "Talho Invisível de Edauros",
         "c": 4,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "pessoal",
@@ -5502,6 +5730,7 @@ const SPELLS_DB = [
     {
         "n": "Terremoto",
         "c": 4,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "longo",
@@ -5514,6 +5743,7 @@ const SPELLS_DB = [
     {
         "n": "Transformação em Dragão",
         "c": 4,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "completa",
         "a": "pessoal",
@@ -5543,6 +5773,7 @@ const SPELLS_DB = [
     {
         "n": "Viagem Planar",
         "c": 4,
+        "t": "Universal",
         "e": "Convocação",
         "ex": "completa",
         "a": "toque",
@@ -5560,6 +5791,7 @@ const SPELLS_DB = [
     {
         "n": "Visão da Verdade",
         "c": 4,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "movimento",
         "a": "pessoal",
@@ -5589,6 +5821,7 @@ const SPELLS_DB = [
     {
         "n": "Alterar Destino",
         "c": 5,
+        "t": "Arcana",
         "e": "Adivinhação",
         "ex": "reação",
         "a": "pessoal",
@@ -5601,6 +5834,7 @@ const SPELLS_DB = [
     {
         "n": "Aprisionamento",
         "c": 5,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "completa",
         "a": "curto",
@@ -5613,6 +5847,7 @@ const SPELLS_DB = [
     {
         "n": "Aura Divina",
         "c": 5,
+        "t": "Divina",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -5630,6 +5865,7 @@ const SPELLS_DB = [
     {
         "n": "Barragem Elemental de Vectorius",
         "c": 5,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "padrão",
         "a": "longo",
@@ -5651,6 +5887,7 @@ const SPELLS_DB = [
     {
         "n": "Buraco Negro",
         "c": 5,
+        "t": "Universal",
         "e": "Convocação",
         "ex": "completa",
         "a": "longo",
@@ -5668,6 +5905,7 @@ const SPELLS_DB = [
     {
         "n": "Chuva de Meteoros",
         "c": 5,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "completa",
         "a": "longo",
@@ -5685,6 +5923,7 @@ const SPELLS_DB = [
     {
         "n": "Controlar o Tempo",
         "c": 5,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "padrão",
         "a": "curto",
@@ -5697,6 +5936,7 @@ const SPELLS_DB = [
     {
         "n": "Deflagração de Mana",
         "c": 5,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "completa",
         "a": "pessoal",
@@ -5718,6 +5958,7 @@ const SPELLS_DB = [
     {
         "n": "Desejo",
         "c": 5,
+        "t": "Arcana",
         "e": "Transmutação",
         "ex": "completa",
         "a": "veja texto",
@@ -5730,6 +5971,7 @@ const SPELLS_DB = [
     {
         "n": "Engenho de Mana",
         "c": 5,
+        "t": "Arcana",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "médio",
@@ -5751,6 +5993,7 @@ const SPELLS_DB = [
     {
         "n": "Fúria do Panteão",
         "c": 5,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "completa",
         "a": "longo",
@@ -5763,6 +6006,7 @@ const SPELLS_DB = [
     {
         "n": "Intervenção Divina",
         "c": 5,
+        "t": "Divina",
         "e": "Convocação",
         "ex": "completa",
         "a": "veja texto",
@@ -5775,6 +6019,7 @@ const SPELLS_DB = [
     {
         "n": "Invulnerabilidade",
         "c": 5,
+        "t": "Universal",
         "e": "Abjuração",
         "ex": "padrão",
         "a": "pessoal",
@@ -5792,6 +6037,7 @@ const SPELLS_DB = [
     {
         "n": "Katana Celestial",
         "c": 5,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "Padrão",
         "a": "Médio",
@@ -5813,6 +6059,7 @@ const SPELLS_DB = [
     {
         "n": "Lágrimas de Wynna",
         "c": 5,
+        "t": "Divina",
         "e": "abjuração",
         "ex": "padrão",
         "a": "curto",
@@ -5834,6 +6081,7 @@ const SPELLS_DB = [
     {
         "n": "Legião",
         "c": 5,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "médio",
@@ -5846,6 +6094,7 @@ const SPELLS_DB = [
     {
         "n": "Mata-Dragão",
         "c": 5,
+        "t": "Arcana",
         "e": "Evocação",
         "ex": "duas rodadas",
         "a": "pessoal",
@@ -5858,6 +6107,7 @@ const SPELLS_DB = [
     {
         "n": "Palavra Primordial",
         "c": 5,
+        "t": "Universal",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "curto",
@@ -5870,6 +6120,7 @@ const SPELLS_DB = [
     {
         "n": "Possessão",
         "c": 5,
+        "t": "Arcana",
         "e": "Encantamento",
         "ex": "padrão",
         "a": "longo",
@@ -5895,6 +6146,7 @@ const SPELLS_DB = [
     {
         "n": "Projetar Consciência",
         "c": 5,
+        "t": "Universal",
         "e": "Adivinhação",
         "ex": "padrão",
         "a": "ilimitado (veja texto)",
@@ -5912,6 +6164,7 @@ const SPELLS_DB = [
     {
         "n": "Reanimação Impura",
         "c": 5,
+        "t": "Divina",
         "e": "Necromancia",
         "ex": "completa",
         "a": "toque",
@@ -5924,6 +6177,7 @@ const SPELLS_DB = [
     {
         "n": "Réquiem",
         "c": 5,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "completa",
         "a": "curto",
@@ -5936,6 +6190,7 @@ const SPELLS_DB = [
     {
         "n": "Roubar a Alma",
         "c": 5,
+        "t": "Universal",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "curto",
@@ -5953,6 +6208,7 @@ const SPELLS_DB = [
     {
         "n": "Segunda Chance",
         "c": 5,
+        "t": "Divina",
         "e": "Evocação",
         "ex": "padrão",
         "a": "toque",
@@ -5978,6 +6234,7 @@ const SPELLS_DB = [
     {
         "n": "Semiplano",
         "c": 5,
+        "t": "Arcana",
         "e": "Convocação",
         "ex": "completa",
         "a": "curto",
@@ -5999,6 +6256,7 @@ const SPELLS_DB = [
     {
         "n": "Sombra Assassina",
         "c": 5,
+        "t": "Arcana",
         "e": "Ilusão",
         "ex": "padrão",
         "a": "curto",
@@ -6016,6 +6274,7 @@ const SPELLS_DB = [
     {
         "n": "Toque da Morte",
         "c": 5,
+        "t": "Universal",
         "e": "Necromancia",
         "ex": "padrão",
         "a": "toque",
@@ -6034,4 +6293,4 @@ const SPELLS_DB = [
             }
         ]
     }
-];
+]

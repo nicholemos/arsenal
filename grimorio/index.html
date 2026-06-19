@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grimório de Arton - Spells Database T20</title>
-    <meta name="description" content="Um grimório interativo de magias para Tormenta 20. Organize seus feitiços, calcule pontos de mana (PM) e monte seu livro de magias personalizado.">
+    <meta name="description"
+        content="Um grimório interativo de magias para Tormenta 20. Organize seus feitiços, calcule pontos de mana (PM) e monte seu livro de magias personalizado.">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Stylesheets -->
     <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
     <!-- Background Canvas for Magic Particles -->
     <canvas id="particleCanvas"></canvas>
@@ -24,7 +27,7 @@
                     <p class="subtitle">Banco de Magias - Tormenta 20</p>
                 </div>
             </div>
-            
+
             <!-- Quick Stats -->
             <div class="header-stats">
                 <div class="stat-box accent-box">
@@ -48,7 +51,8 @@
                 </div>
             </div>
             <div class="header-btns">
-                <a href="../index.html" class="header-home-btn" title="Hub Central"><i class="fa-solid fa-dungeon"></i></a>
+                <a href="../index.html" class="header-home-btn" title="Hub Central"><i
+                        class="fa-solid fa-dungeon"></i></a>
                 <!-- Theme Switcher -->
                 <div class="theme-switcher" id="theme-switcher">
                     <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
@@ -66,8 +70,10 @@
                 <div class="search-section">
                     <div class="search-bar-wrapper">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="search-input" placeholder="Buscar magia pelo nome ou descrição..." autocomplete="off">
-                        <button id="clear-search" class="clear-btn" title="Limpar busca"><i class="fa-solid fa-xmark"></i></button>
+                        <input type="text" id="search-input" placeholder="Buscar magia pelo nome ou descrição..."
+                            autocomplete="off">
+                        <button id="clear-search" class="clear-btn" title="Limpar busca"><i
+                                class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
 
@@ -77,6 +83,36 @@
                         <i class="fa-solid fa-star star-filled-gold"></i>
                         <span>Ver Grimório Pessoal</span>
                     </button>
+                </div>
+
+                <!-- Tipo Filter (Arcana / Divina / Universal) -->
+                <div class="filter-group collapsible">
+                    <button class="filter-collapse-header" id="tipo-filters-header">
+                        <span><i class="fa-solid fa-wand-sparkles"></i> Tipo</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </button>
+                    <div class="collapsible-content active" id="tipo-filters-content">
+                        <div class="schools-list" style="gap: 0.3rem;">
+                            <button class="tipo-filter-btn" data-tipo="Arcana"
+                                style="display:flex;align-items:center;gap:0.4rem;padding:0.35rem 0.6rem;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-card);color:var(--text-primary);cursor:pointer;transition:var(--transition-fast);font-family:var(--font-body);font-size:0.8rem;width:100%;">
+                                <span
+                                    style="width:10px;height:10px;border-radius:50%;background:#8a5ab5;display:inline-block;"></span>
+                                <span>Arcana</span>
+                            </button>
+                            <button class="tipo-filter-btn" data-tipo="Divina"
+                                style="display:flex;align-items:center;gap:0.4rem;padding:0.35rem 0.6rem;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-card);color:var(--text-primary);cursor:pointer;transition:var(--transition-fast);font-family:var(--font-body);font-size:0.8rem;width:100%;">
+                                <span
+                                    style="width:10px;height:10px;border-radius:50%;background:#b8862a;display:inline-block;"></span>
+                                <span>Divina</span>
+                            </button>
+                            <button class="tipo-filter-btn" data-tipo="Universal"
+                                style="display:flex;align-items:center;gap:0.4rem;padding:0.35rem 0.6rem;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-card);color:var(--text-primary);cursor:pointer;transition:var(--transition-fast);font-family:var(--font-body);font-size:0.8rem;width:100%;">
+                                <span
+                                    style="width:10px;height:10px;border-radius:50%;background:#4a7a7a;display:inline-block;"></span>
+                                <span>Universal</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Circles Filters (1 to 5) -->
@@ -155,7 +191,7 @@
                                 <option value="ilimitado">Ilimitado</option>
                             </select>
                         </div>
-                        
+
                         <!-- Execution -->
                         <div class="sub-filter">
                             <label for="filter-execution">Execução:</label>
@@ -230,7 +266,7 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                
+
                 <div class="detail-scrollable-content" id="detail-content">
                     <!-- Content populated by JavaScript -->
                     <div class="detail-placeholder">
@@ -269,14 +305,16 @@
         <div class="modal-card homebrew-modal-card">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Criar Magia Homebrew</h2>
-                <button class="modal-close-btn" id="btn-close-homebrew-modal" title="Fechar"><i class="fa-solid fa-xmark"></i></button>
+                <button class="modal-close-btn" id="btn-close-homebrew-modal" title="Fechar"><i
+                        class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body modal-scrollable-body">
                 <form id="homebrew-form" onsubmit="return false;">
                     <div class="form-row-2">
                         <div class="form-group-input">
                             <label for="hb-name">Nome da Magia *</label>
-                            <input type="text" id="hb-name" placeholder="ex: Relâmpago Arcano" required autocomplete="off">
+                            <input type="text" id="hb-name" placeholder="ex: Relâmpago Arcano" required
+                                autocomplete="off">
                         </div>
                         <div class="form-group-input">
                             <label for="hb-circle">Círculo *</label>
@@ -306,35 +344,50 @@
                         </div>
                         <div class="form-group-input">
                             <label for="hb-execution">Execução *</label>
-                            <input type="text" id="hb-execution" placeholder="ex: padrão, movimento, reator" required autocomplete="off">
+                            <input type="text" id="hb-execution" placeholder="ex: padrão, movimento, reator" required
+                                autocomplete="off">
                         </div>
                     </div>
 
                     <div class="form-row-2">
                         <div class="form-group-input">
+                            <label for="hb-tipo">Tipo</label>
+                            <select id="hb-tipo">
+                                <option value="Universal">Universal</option>
+                                <option value="Arcana">Arcana</option>
+                                <option value="Divina">Divina</option>
+                            </select>
+                        </div>
+                        <div class="form-group-input">
                             <label for="hb-range">Alcance *</label>
-                            <input type="text" id="hb-range" placeholder="ex: curto, pessoal, toque" required autocomplete="off">
+                            <input type="text" id="hb-range" placeholder="ex: curto, pessoal, toque" required
+                                autocomplete="off">
                         </div>
                         <div class="form-group-input">
                             <label for="hb-target">Alvo / Área</label>
-                            <input type="text" id="hb-target" placeholder="ex: 1 criatura, esfera de 6m" autocomplete="off">
+                            <input type="text" id="hb-target" placeholder="ex: 1 criatura, esfera de 6m"
+                                autocomplete="off">
                         </div>
                     </div>
 
                     <div class="form-row-2">
                         <div class="form-group-input">
                             <label for="hb-duration">Duração *</label>
-                            <input type="text" id="hb-duration" placeholder="ex: instantânea, cena, 1 dia" required autocomplete="off">
+                            <input type="text" id="hb-duration" placeholder="ex: instantânea, cena, 1 dia" required
+                                autocomplete="off">
                         </div>
                         <div class="form-group-input">
                             <label for="hb-resistance">Resistência</label>
-                            <input type="text" id="hb-resistance" placeholder="ex: Nenhuma, Reflexos reduz à metade" autocomplete="off">
+                            <input type="text" id="hb-resistance" placeholder="ex: Nenhuma, Reflexos reduz à metade"
+                                autocomplete="off">
                         </div>
                     </div>
 
                     <div class="form-group-input">
                         <label for="hb-description">Descrição *</label>
-                        <textarea id="hb-description" rows="4" placeholder="Descreva os efeitos mágicos. Use dados como 2d6 ou termos como PV e PM que serão destacados automaticamente." required></textarea>
+                        <textarea id="hb-description" rows="4"
+                            placeholder="Descreva os efeitos mágicos. Use dados como 2d6 ou termos como PV e PM que serão destacados automaticamente."
+                            required></textarea>
                     </div>
 
                     <!-- Dynamic Upgrades (Aprimoramentos) Section -->
@@ -368,4 +421,5 @@
     <script src="spells_db.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>
