@@ -2430,6 +2430,7 @@ window.addEventListener('message', (e) => {
     }
     // Enviar resumo ao Mestre via P2P
     if (myRole === 'jogador') {
+      fichasJogadores[myPeerId] = { playerName: myName, resumo: resumo, ts: Date.now() };
       if (amIHost) {
         receberResumoFicha({ peerId: myPeerId, playerName: myName, resumo: resumo });
       } else if (masterConn) {
@@ -6663,6 +6664,8 @@ function onBoardContextMenu(e) {
       const hasControl = temControleToken(token);
       document.getElementById('ctxEditToken').style.display = !isObject ? '' : 'none';
       document.getElementById('ctxEditObject').style.display = (isMestre && isObject) ? '' : 'none';
+      document.getElementById('ctxVincularFicha').style.display = (isMestre && !isObject) ? '' : 'none';
+      if (isMestre && !isObject) popularCtxVincularFicha(token);
       document.getElementById('ctxCfgCamada').style.display = isMestre ? '' : 'none';
       const camadaAtual = token.layer || 'map';
       document.getElementById('ctxLayerMap').querySelector('i').style.visibility = camadaAtual === 'map' ? 'visible' : 'hidden';
@@ -6898,6 +6901,147 @@ function contextChangeLayer(layer) {
   fecharContextMenu();
 }
 
+function fecharSeletorAtaquesToken() {
+  const modal = document.getElementById('seletorAtaquesModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function atualizarBotoesTokenSelected() {
+  const container = document.getElementById('token-actions-container');
+  const delBtn = document.getElementById('token-delete-btn');
+  if (!container) return;
+
+  const hasSelection = BOARD.selectedTokens.size > 0;
+  if (delBtn) delBtn.style.display = (myRole === 'mestre' && hasSelection) ? 'flex' : 'none';
+
+  if (BOARD.selectedTokens.size === 1) {
+    const selId = BOARD.selectedTokens.values().next().value;
+    const token = BOARD.tokens.find(t => t.id === selId);
+    if (token) {
+      const mestreVe = myRole === 'mestre' && (token.masterFichaId || (token.controlledBy && fichasJogadores[token.controlledBy]));
+      const jogadorVe = myRole === 'jogador' && token.controlledBy === myPeerId && localFichaUpdateData;
+      if (mestreVe || jogadorVe) {
+        container.style.display = 'flex';
+        return;
+      }
+    }
+  }
+  container.style.display = 'none';
+}
+
+function deletarTokenSelecionado() {
+  if (BOARD.selectedTokens.size === 0) { toast('Nenhum token selecionado.'); return; }
+  if (myRole !== 'mestre') { toast('Apenas o mestre pode deletar tokens.'); return; }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) return;
+  if (!confirm(`Remover "${token.name}"?`)) return;
+  snapshotBoard();
+  BOARD.tokens = BOARD.tokens.filter(t => t.id !== token.id);
+  BOARD.selectedTokens.delete(token.id);
+  if (BOARD.followTokenId === token.id) BOARD.followTokenId = null;
+  if (BOARD.playerViewTokenId === token.id) exitPlayerView();
+  atualizarVisaoJogadorPorSelecao();
+  boardSave();
+  boardRender();
+  syncBoardTokensToPlayers();
+}
+
+function abrirSeletorAtaquesToken() {
+  if (BOARD.selectedTokens.size !== 1) {
+    toast('Selecione exatamente 1 token.');
+    return;
+  }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) return;
+
+  let fullData = null;
+  let charName = "Personagem";
+
+  if (token.masterFichaId) {
+    const f = getMasterFichas().find(f => f.id === token.masterFichaId);
+    if (f) { fullData = f.fullData; charName = f.name; }
+  } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
+    fullData = fichasJogadores[token.controlledBy].resumo.fullData;
+    charName = fichasJogadores[token.controlledBy].playerName;
+  }
+
+  if (!fullData || !fullData.attacks || fullData.attacks.length === 0) {
+    toast('Ficha sem dados de ataques.');
+    return;
+  }
+
+  const listEl = document.getElementById('seletorAtaquesList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  const titleEl = document.getElementById('seletorAtaquesTitle');
+  if (titleEl) titleEl.textContent = `Ataques (${charName})`;
+
+  fullData.attacks.forEach(atk => {
+    const btn = document.createElement('div');
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid #8b0000';
+    btn.style.borderRadius = '4px';
+    btn.style.color = 'var(--text-color)';
+    btn.style.gap = '0.5rem';
+
+    const infoDiv = document.createElement('div');
+    infoDiv.style.display = 'flex';
+    infoDiv.style.flexDirection = 'column';
+    infoDiv.style.flex = '1';
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.style.fontFamily = "'Cinzel', serif";
+    nameSpan.style.fontWeight = 'bold';
+    nameSpan.textContent = atk.name || 'Ataque';
+    
+    const subSpan = document.createElement('span');
+    subSpan.style.fontSize = '0.75rem';
+    subSpan.style.color = '#777';
+    subSpan.textContent = `Crit: ${atk.critRange || 20}/${atk.crit || 'x2'} | Tipo: ${atk.type || '-'}`;
+
+    infoDiv.appendChild(nameSpan);
+    infoDiv.appendChild(subSpan);
+
+    const actionDiv = document.createElement('div');
+    actionDiv.style.display = 'flex';
+    actionDiv.style.gap = '0.3rem';
+
+    const bonus = parseInt(atk.bonus) || 0;
+    const bonusStr = bonus >= 0 ? `+${bonus}` : `${bonus}`;
+
+    let dmgStr = atk.dmg || '';
+    if (atk.dmgExtra) dmgStr += dmgStr ? `+${atk.dmgExtra}` : `${atk.dmgExtra}`;
+    if (atk.diceExtra) dmgStr += dmgStr ? `+${atk.diceExtra}` : atk.diceExtra;
+
+    const fullBtn = document.createElement('button');
+    fullBtn.className = 'btn btn-sm btn-danger';
+    fullBtn.style.padding = '0.2rem 0.5rem';
+    fullBtn.textContent = bonusStr + (dmgStr ? ` | ${dmgStr}` : '');
+    fullBtn.title = 'Rolar Ataque + Dano';
+    fullBtn.onclick = () => {
+      executarMacro(`/r Ataque (${atk.name || 'Arma'}): 1d20${bonusStr}`);
+      if (dmgStr) executarMacro(`/r Dano (${atk.name || 'Arma'}): ${dmgStr}`);
+      fecharSeletorAtaquesToken();
+    };
+
+    actionDiv.appendChild(fullBtn);
+
+    btn.appendChild(infoDiv);
+    btn.appendChild(actionDiv);
+    listEl.appendChild(btn);
+  });
+
+  const modal = document.getElementById('seletorAtaquesModal');
+  if (modal) modal.style.display = 'flex';
+}
+
 function contextDeleteToken() {
   if (!contextTokenId) return;
   const token = BOARD.tokens.find(t => t.id === contextTokenId);
@@ -6973,7 +7117,364 @@ function contextViewFicha() {
     }
   }
 }
+
+function popularCtxVincularFicha(token) {
+  const submenu = document.getElementById('ctxVincularFichaSubmenu');
+  if (!submenu) return;
+  submenu.innerHTML = '';
+
+  // Nenhum Vínculo
+  const itemNenhum = document.createElement('div');
+  itemNenhum.className = 'context-menu-item';
+  const checkNenhum = (!token.masterFichaId && !token.controlledBy) ? '<i class="bi bi-check"></i> ' : '<i class="bi bi-check" style="visibility:hidden"></i> ';
+  itemNenhum.innerHTML = `${checkNenhum}Nenhum Vínculo`;
+  itemNenhum.onclick = () => { vincularFichaAToken(null, null); };
+  submenu.appendChild(itemNenhum);
+
+  // Fichas dos Jogadores
+  if (Object.keys(fichasJogadores).length > 0) {
+    const divJogadores = document.createElement('div');
+    divJogadores.style.fontSize = '0.6rem';
+    divJogadores.style.color = 'var(--gold)';
+    divJogadores.style.padding = '0.3rem 0.5rem 0.1rem';
+    divJogadores.style.fontFamily = "'Cinzel', serif";
+    divJogadores.textContent = 'JOGADORES';
+    submenu.appendChild(divJogadores);
+
+    for (const pid in fichasJogadores) {
+      const f = fichasJogadores[pid];
+      const item = document.createElement('div');
+      item.className = 'context-menu-item';
+      const check = (token.controlledBy === pid) ? '<i class="bi bi-check"></i> ' : '<i class="bi bi-check" style="visibility:hidden"></i> ';
+      item.innerHTML = `${check}${escHTML(f.playerName || 'Jogador')}`;
+      item.onclick = () => { vincularFichaAToken('jogador', pid); };
+      submenu.appendChild(item);
+    }
+  }
+
+  // Fichas do Mestre
+  const fichasMestre = getMasterFichas();
+  if (fichasMestre.length > 0) {
+    const divMestre = document.createElement('div');
+    divMestre.style.fontSize = '0.6rem';
+    divMestre.style.color = 'var(--gold)';
+    divMestre.style.padding = '0.3rem 0.5rem 0.1rem';
+    divMestre.style.fontFamily = "'Cinzel', serif";
+    divMestre.textContent = 'MESTRE';
+    submenu.appendChild(divMestre);
+
+    fichasMestre.forEach(f => {
+      const item = document.createElement('div');
+      item.className = 'context-menu-item';
+      const check = (token.masterFichaId === f.id) ? '<i class="bi bi-check"></i> ' : '<i class="bi bi-check" style="visibility:hidden"></i> ';
+      item.innerHTML = `${check}${escHTML(f.name || 'NPC')}`;
+      item.onclick = () => { vincularFichaAToken('mestre', f.id); };
+      submenu.appendChild(item);
+    });
+  }
+}
+
+function fecharSeletorPericiasToken() {
+  const modal = document.getElementById('seletorPericiasModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function fecharSeletorMagiasToken() {
+  const modal = document.getElementById('seletorMagiasModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function abrirSeletorMagiasToken() {
+  if (BOARD.selectedTokens.size !== 1) {
+    toast('Selecione exatamente 1 token.');
+    return;
+  }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) return;
+
+  let fullData = null;
+  let charName = "Personagem";
+
+  if (token.masterFichaId) {
+    const f = getMasterFichas().find(f => f.id === token.masterFichaId);
+    if (f) { fullData = f.fullData; charName = f.name; }
+  } else if (token.controlledBy === myPeerId && localFichaUpdateData) {
+    fullData = localFichaUpdateData.fullData || localFichaUpdateData;
+    charName = localFichaUpdateData.charName || charName;
+  } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
+    fullData = fichasJogadores[token.controlledBy].resumo?.fullData;
+    charName = fichasJogadores[token.controlledBy].playerName;
+  } else {
+    toast('Este token não está vinculado a nenhuma ficha.');
+    return;
+  }
+
+  if (!fullData) { toast('Ficha não contém dados completos.'); return; }
+
+  const spellsList = fullData.spells?.list;
+  if (!spellsList || spellsList.length === 0) {
+    toast('Ficha sem magias.');
+    return;
+  }
+
+  const listEl = document.getElementById('seletorMagiasList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  const titleEl = document.getElementById('seletorMagiasTitle');
+  if (titleEl) titleEl.textContent = `Magias (${charName})`;
+
+  const level = parseInt(fullData.charLevel || 1) || 1;
+  const halfLevel = Math.floor(level / 2);
+  const attrKey = fullData.spells?.config?.attr || 'INT';
+  const attrVal = parseInt((fullData.attrs && fullData.attrs[attrKey]) || 0) || 0;
+  if (fullData.tempMods && fullData.tempMods.globais) {
+    const mod = parseInt(fullData.tempMods.globais[`attr${attrKey}`]);
+    if (!isNaN(mod)) attrVal += mod;
+  }
+  const spellPowers = parseInt(fullData.spells?.config?.powers) || 0;
+  const spellItems = parseInt(fullData.spells?.config?.items) || 0;
+  const spellOther = parseInt(fullData.spells?.config?.other) || 0;
+  const cd = 10 + halfLevel + attrVal + spellPowers + spellItems + spellOther;
+
+  const circleNames = { 1: '1º', 2: '2º', 3: '3º', 4: '4º', 5: '5º' };
+  const sorted = [...spellsList].sort((a, b) => (a.circle || 1) - (b.circle || 1));
+
+  sorted.forEach(sp => {
+    const circle = sp.circle || 1;
+    const circleLabel = circleNames[circle] || `${circle}º`;
+
+    const btn = document.createElement('button');
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid #8a2be2';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.color = 'var(--text-color)';
+
+    const leftDiv = document.createElement('div');
+    leftDiv.style.display = 'flex';
+    leftDiv.style.flexDirection = 'column';
+    leftDiv.style.alignItems = 'flex-start';
+    leftDiv.style.flex = '1';
+    leftDiv.style.minWidth = '0';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.style.fontWeight = 'bold';
+    nameSpan.style.fontSize = '0.85rem';
+    nameSpan.textContent = sp.name || 'Magia';
+
+    const subSpan = document.createElement('span');
+    subSpan.style.fontSize = '0.7rem';
+    subSpan.style.color = '#999';
+    subSpan.textContent = `${circleLabel} círculo | ${sp.school || '-'} | ${sp.pm || '?'} PM`;
+
+    leftDiv.appendChild(nameSpan);
+    leftDiv.appendChild(subSpan);
+
+    const cdSpan = document.createElement('span');
+    cdSpan.style.fontWeight = 'bold';
+    cdSpan.style.fontSize = '0.85rem';
+    cdSpan.style.color = '#b388ff';
+    cdSpan.style.flexShrink = '0';
+    cdSpan.textContent = `CD ${cd}`;
+
+    btn.appendChild(leftDiv);
+    btn.appendChild(cdSpan);
+
+    btn.onclick = () => {
+      let msg = `**✦ ${sp.name || 'Magia'}** (${circleLabel} círculo)\n`;
+      msg += `**PM:** ${sp.pm || '?'}`;
+      if (sp.exec) msg += ` | **Execução:** ${sp.exec}`;
+      if (sp.range) msg += ` | **Alcance:** ${sp.range}`;
+      if (sp.target) msg += `\n**Alvo/Área:** ${sp.target}`;
+      if (sp.dur) msg += ` | **Duração:** ${sp.dur}`;
+      if (sp.res) msg += ` | **Resistência:** ${sp.res}`;
+      msg += `\n**CD:** ${cd} (${attrKey} ${attrVal >= 0 ? '+' : ''}${attrVal} + ${halfLevel} + poderes ${spellPowers > 0 ? '+' + spellPowers : '0'} + itens ${spellItems > 0 ? '+' + spellItems : '0'})`;
+      if (sp.desc) msg += `\n\n${sp.desc}`;
+
+      const msgData = { type: 'chat', name: charName, role: myRole, text: msg, time: formatTime(), visibility: chatVisibility };
+      rotearMensagem(msgData);
+      fecharSeletorMagiasToken();
+    };
+
+    btn.onmouseover = () => btn.style.background = 'var(--parch1)';
+    btn.onmouseout = () => btn.style.background = 'var(--parch3)';
+
+    listEl.appendChild(btn);
+  });
+
+  const modal = document.getElementById('seletorMagiasModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function abrirSeletorPericiasToken() {
+  if (BOARD.selectedTokens.size !== 1) {
+    toast('Selecione exatamente 1 token.');
+    return;
+  }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) {
+    toast('Token não encontrado na board.');
+    return;
+  }
+
+  let fullData = null;
+  let charName = "Personagem";
+
+  if (token.masterFichaId) {
+    const f = getMasterFichas().find(f => f.id === token.masterFichaId);
+    if (f) { 
+      fullData = f.fullData; 
+      charName = f.name; 
+    } else {
+      toast('Ficha do Mestre vinculada não encontrada.');
+      return;
+    }
+  } else if (token.controlledBy === myPeerId && localFichaUpdateData) {
+    // Jogador consultando as próprias perícias
+    fullData = localFichaUpdateData.fullData || localFichaUpdateData;
+    charName = localFichaUpdateData.charName || charName;
+  } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
+    fullData = fichasJogadores[token.controlledBy].resumo?.fullData;
+    charName = fichasJogadores[token.controlledBy].playerName;
+  } else {
+    toast('Este token não está vinculado a nenhuma ficha.');
+    return;
+  }
+
+  if (!fullData) {
+    toast('Ficha não contém dados completos.');
+    return;
+  }
+  if (!fullData.skills) {
+    toast('Ficha sem dados de perícias.');
+    return;
+  }
+
+  const listEl = document.getElementById('seletorPericiasList');
+  if (!listEl) {
+    toast('Erro de UI: seletorPericiasList não encontrado.');
+    return;
+  }
+  listEl.innerHTML = '';
+
+  const titleEl = document.getElementById('seletorPericiasTitle');
+  if (titleEl) titleEl.textContent = `Perícias (${charName})`;
+
+  const level = parseInt(fullData.charLevel || 1) || 1;
+  const halfLevel = Math.floor(level / 2);
+  const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+
+  const TRAINED_ONLY_SKILLS = ["Adestramento", "Atuação", "Conhecimento", "Guerra", "Iniciativa", "Ladinagem", "Misticismo", "Nobreza", "Ofício", "Pilotagem", "Religião"];
+
+  fullData.skills.forEach(s => {
+    let attrVal = parseInt((fullData.attrs && fullData.attrs[s.a]) || 0) || 0;
+    if (fullData.tempMods && fullData.tempMods.globais) {
+       const mod = parseInt(fullData.tempMods.globais[`attr${s.a}`]);
+       if (!isNaN(mod)) attrVal += mod;
+    }
+    const other = parseInt(s.other) || 0;
+    
+    const isTrainedOnly = TRAINED_ONLY_SKILLS.includes(s.n);
+    let total = halfLevel + attrVal + (s.trained ? trainBonus : 0) + other;
+    
+    const penaltySkills = ["Acrobacia", "Furtividade", "Ladinagem"];
+    if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.armor) {
+        const pen = parseInt(fullData.defense.armor.penalty);
+        if (!isNaN(pen)) total -= pen;
+    }
+    if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.shield) {
+        const pen = parseInt(fullData.defense.shield.penalty);
+        if (!isNaN(pen)) total -= pen;
+    }
+    if (s.n === "Furtividade" && fullData.extras && fullData.extras.size) {
+        const sz = parseInt(fullData.extras.size);
+        if (!isNaN(sz)) total += sz;
+    }
+
+    const canRoll = !(isTrainedOnly && !s.trained);
+    const displayTotal = canRoll ? (total >= 0 ? `+${total}` : total) : 'N/A';
+
+    const btn = document.createElement('button');
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid var(--border)';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = canRoll ? 'pointer' : 'not-allowed';
+    btn.style.opacity = canRoll ? '1' : '0.6';
+    btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.fontWeight = 'bold';
+    btn.style.color = 'var(--text-color)';
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = s.n;
+    
+    const valSpan = document.createElement('span');
+    valSpan.textContent = displayTotal;
+    if (canRoll) {
+       valSpan.style.color = (total >= 0 ? '#198754' : '#dc3545');
+    } else {
+       valSpan.style.color = '#777';
+    }
+    
+    btn.appendChild(nameSpan);
+    btn.appendChild(valSpan);
+
+    if (canRoll) {
+      btn.onclick = () => {
+        executarMacro(`/r ${s.n}: 1d20${total >= 0 ? '+' : ''}${total}`);
+        fecharSeletorPericiasToken();
+      };
+      btn.onmouseover = () => btn.style.background = 'var(--parch1)';
+      btn.onmouseout = () => btn.style.background = 'var(--parch3)';
+    }
+
+    listEl.appendChild(btn);
+  });
+
+  const modal = document.getElementById('seletorPericiasModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    toast('Modal seletorPericiasModal não encontrado no DOM!');
+  }
+}
+
+function vincularFichaAToken(type, id) {
+  if (!contextTokenId) return;
+  snapshotBoard();
+  const token = BOARD.tokens.find(t => t.id === contextTokenId);
+  if (token) {
+    if (type === 'mestre') {
+      token.masterFichaId = id;
+      token.controlledBy = '';
+    } else if (type === 'jogador') {
+      token.controlledBy = id;
+      token.masterFichaId = null;
+    } else {
+      token.controlledBy = '';
+      token.masterFichaId = null;
+    }
+    boardSave();
+    boardRender();
+    syncBoardTokensToPlayers();
+    toast('Vínculo atualizado.');
+  }
+  fecharContextMenu();
+}
+
 function atualizarVisaoJogadorPorSelecao() {
+  atualizarBotoesTokenSelected();
   if (myRole !== 'mestre') return;
   if (BOARD.selectedTokens.size === 1) {
     const selId = BOARD.selectedTokens.values().next().value;
@@ -11103,18 +11604,21 @@ function entrarSala() {
 
 
 // ──── Estado das Macros ────
-let vttMacros = [];
+let vttMacros = Array(10).fill(null);
 
 function carregarMacros() {
   const raw = localStorage.getItem('t20_vtt_macros');
   if (raw) {
     try {
-      vttMacros = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      for (let i = 0; i < 10; i++) {
+        vttMacros[i] = parsed[i] || null;
+      }
     } catch (e) {
-      vttMacros = [];
+      vttMacros = Array(10).fill(null);
     }
   } else {
-    vttMacros = [];
+    vttMacros = Array(10).fill(null);
   }
   renderizarMacros();
 }
@@ -11126,35 +11630,63 @@ function salvarMacros() {
 
 function renderizarMacros() {
   const btnList = document.getElementById('macro-buttons-list');
-  const modalList = document.getElementById('macro-list-container');
   if (!btnList) return;
 
-  // 1. Barra Flutuante
   btnList.innerHTML = '';
-  vttMacros.forEach(m => {
+  for (let i = 0; i < 10; i++) {
+    const m = vttMacros[i];
     const btn = document.createElement('button');
     btn.className = 'macro-btn';
-    btn.innerHTML = `<i class="bi bi-play-fill"></i> ${escHTML(m.name)}`;
-    btn.title = `Executar: ${m.command}`;
-    btn.onclick = () => executarMacro(m.command);
-    btnList.appendChild(btn);
-  });
+    
+    // Style adjustments to look like a fixed hotbar
+    btn.style.width = '42px';
+    btn.style.height = '42px';
+    btn.style.display = 'flex';
+    btn.style.flexDirection = 'column';
+    btn.style.alignItems = 'center';
+    btn.style.justifyContent = 'center';
+    btn.style.padding = '0';
+    btn.style.position = 'relative';
+    btn.style.overflow = 'hidden';
 
-  // 2. Lista no Modal
-  if (modalList) {
-    if (vttMacros.length === 0) {
-      modalList.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;padding:0.5rem;text-align:center;">Nenhuma macro configurada.</div>';
+    // The display number for the slot (1,2,3,4,5,6,7,8,9,0)
+    const slotNum = i === 9 ? '0' : (i + 1).toString();
+    const numEl = document.createElement('span');
+    numEl.textContent = slotNum;
+    numEl.style.position = 'absolute';
+    numEl.style.top = '2px';
+    numEl.style.left = '4px';
+    numEl.style.fontSize = '0.65rem';
+    numEl.style.opacity = '0.6';
+    numEl.style.fontWeight = 'bold';
+    btn.appendChild(numEl);
+
+    if (m && m.name && m.command) {
+      btn.title = `${m.name}\n${m.command}\n(Botão direito para editar)`;
+      btn.onclick = () => executarMacro(m.command);
+      btn.oncontextmenu = (e) => {
+        e.preventDefault();
+        abrirConfigMacros(i);
+      };
+      
+      const icon = document.createElement('i');
+      icon.className = 'bi bi-play-fill';
+      icon.style.fontSize = '1.2rem';
+      
+      const label = document.createElement('span');
+      label.textContent = m.name.substring(0, 5); // truncated
+      label.style.fontSize = '0.55rem';
+      label.style.marginTop = '-2px';
+      
+      btn.appendChild(icon);
+      btn.appendChild(label);
     } else {
-      modalList.innerHTML = vttMacros.map((m, i) => `
-        <div class="macro-item-row">
-          <div class="macro-item-info">
-            <span class="macro-item-name">${escHTML(m.name)}</span>
-            <span class="macro-item-cmd" title="${escHTML(m.command)}">${escHTML(m.command)}</span>
-          </div>
-          <button class="btn btn-sm btn-outline-danger" onclick="removerMacro(${i})" style="padding:0.1rem 0.4rem;font-size:0.7rem;"><i class="bi bi-trash"></i></button>
-        </div>
-      `).join('');
+      btn.title = 'Slot Vazio (Clique para adicionar macro)';
+      btn.style.background = 'rgba(0,0,0,0.1)';
+      btn.style.borderStyle = 'dashed';
+      btn.onclick = () => abrirConfigMacros(i);
     }
+    btnList.appendChild(btn);
   }
 }
 
@@ -11162,25 +11694,55 @@ function executarMacro(cmd) {
   if (myRole === 'expectador') { toast('Expectadores não podem executar macros.'); return; }
   if (myRole === 'cego') return;
   const text = cmd.trim(); if (!text) return;
+  
+  let rollerName = myName;
+  if (typeof BOARD !== 'undefined' && BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+    const tokenId = BOARD.selectedTokens.values().next().value;
+    const token = BOARD.tokens.find(t => t.id === tokenId);
+    if (token && token.name) {
+      rollerName = token.name;
+    }
+  }
+
   let msgData;
   if (text.toLowerCase().startsWith('/r ')) {
     const res = processarRolagem(text, chatVisibility !== 'global');
-    if (res) msgData = { type: 'roll', name: myName, role: myRole, text: res, time: formatTime(), visibility: chatVisibility };
+    if (res) msgData = { type: 'roll', name: rollerName, role: myRole, text: res, time: formatTime(), visibility: chatVisibility };
     else {
       if (chatVisibility !== 'blind') addMsg({ type: 'system', text: 'Sintaxe: /r 2d6 ou /r d20+3' });
       return;
     }
   } else {
-    msgData = { type: 'chat', name: myName, role: myRole, text, time: formatTime(), visibility: chatVisibility };
+    msgData = { type: 'chat', name: rollerName, role: myRole, text, time: formatTime(), visibility: chatVisibility };
   }
   rotearMensagem(msgData);
 }
 
-function abrirConfigMacros() {
+function abrirConfigMacros(index) {
   const modal = document.getElementById('macroConfigModal');
+  const nameInp = document.getElementById('macro-new-name');
+  const cmdInp = document.getElementById('macro-new-command');
+  const idxInp = document.getElementById('macro-edit-index');
+  const title = document.getElementById('macro-modal-title');
+  const delBtn = document.getElementById('macro-delete-btn');
+
   if (modal) {
+    const slotNum = index === 9 ? '0' : (index + 1).toString();
+    title.textContent = `Configurar Macro (Slot ${slotNum})`;
+    idxInp.value = index;
+    
+    const m = vttMacros[index];
+    if (m && m.name && m.command) {
+      nameInp.value = m.name;
+      cmdInp.value = m.command;
+      if (delBtn) delBtn.style.display = 'block';
+    } else {
+      nameInp.value = '';
+      cmdInp.value = '';
+      if (delBtn) delBtn.style.display = 'none';
+    }
+    
     modal.classList.add('open');
-    renderizarMacros();
   }
 }
 
@@ -11189,30 +11751,35 @@ function fecharConfigMacros() {
   if (modal) modal.classList.remove('open');
 }
 
-function adicionarMacro() {
+function salvarEdicaoMacro() {
   const nameInp = document.getElementById('macro-new-name');
   const cmdInp = document.getElementById('macro-new-command');
-  if (!nameInp || !cmdInp) return;
+  const idxInp = document.getElementById('macro-edit-index');
+  
+  if (!nameInp || !cmdInp || !idxInp) return;
 
   const name = nameInp.value.trim();
   const command = cmdInp.value.trim();
+  const index = parseInt(idxInp.value);
 
   if (!name) { alert('Digite um nome para a macro.'); return; }
   if (!command) { alert('Digite um comando ou mensagem para a macro.'); return; }
 
-  vttMacros.push({ name, command });
+  vttMacros[index] = { name, command };
   salvarMacros();
-
-  // Limpa inputs
-  nameInp.value = '';
-  cmdInp.value = '';
-  mostrarToast('Macro adicionada!', 'sucesso');
+  fecharConfigMacros();
+  mostrarToast('Macro salva com sucesso!', 'sucesso');
 }
 
-function removerMacro(index) {
-  if (confirm('Deseja excluir esta macro?')) {
-    vttMacros.splice(index, 1);
+function limparMacroSlot() {
+  const idxInp = document.getElementById('macro-edit-index');
+  if (!idxInp) return;
+  const index = parseInt(idxInp.value);
+  if (confirm('Deseja remover esta macro do slot?')) {
+    vttMacros[index] = null;
     salvarMacros();
+    fecharConfigMacros();
+    mostrarToast('Macro removida!', 'sucesso');
   }
 }
 

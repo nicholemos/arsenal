@@ -293,12 +293,39 @@
       font-size: 2rem;
       line-height: 1;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+      transition: opacity 0.3s ease;
+    }
+
+    .hide-images .card-icon {
+      opacity: 0;
+      pointer-events: none;
+      height: 0;
+      margin: 0;
+    }
+
+    .hide-images .card-btn {
+      gap: 0;
+      padding: 24px 10px;
+      justify-content: center;
+    }
+
+    .hide-images .card-btn span {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-family: var(--font-heading);
+      background: linear-gradient(135deg, var(--gold-primary), #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 12px var(--gold-glow);
     }
 
     .card-btn span {
       font-size: 0.85rem;
       font-weight: 600;
       line-height: 1.25;
+      transition: all 0.3s ease;
     }
 
     /* ===== ASSINATURA ===== */
@@ -620,6 +647,10 @@
         <button class="theme-btn" data-theme="dark" title="Tema Sombras (STR escuro)">🌑</button>
         <button class="theme-btn" data-theme="classic" title="Tema Clássico (STR claro)">📜</button>
       </div>
+      <button class="header-home-btn" id="toggleImagesBtn" title="Ocultar/Mostrar imagens" onclick="toggleImages()">
+        <span id="toggleImagesIcon">👁️</span>
+        <span id="toggleImagesText">Imagens</span>
+      </button>
     </div>
   </header>
 
@@ -629,21 +660,27 @@
     <div class="grid">
       <a href="ficha/index.html" class="card-btn">
         <img src="images/fichas.png" alt="Ícone de fichas" class="card-icon">
+        <span>Ficha T20</span>
       </a>
       <a href="Vtt/index.html" class="card-btn">
         <img src="images/vtt.png" alt="Ícone VTT" class="card-icon">
+        <span>VTT</span>
       </a>
       <a href="combate/index.html" class="card-btn">
         <img src="images/combate.png" alt="Ícone de combate" class="card-icon">
+        <span>Combate</span>
       </a>
       <a href="dados/index.html" class="card-btn">
         <img src="images/dados.png" alt="Ícone de dados" class="card-icon">
+        <span>Dados</span>
       </a>
       <a href="campanha/index.html" class="card-btn">
         <img src="images/missoes.png" alt="Ícone de missoes" class="card-icon">
+        <span>Missões</span>
       </a>
       <a href="perigos/index.html" class="card-btn">
         <img src="images/perigos.png" alt="Ícone de perigos" class="card-icon">
+        <span>Perigos Complexos</span>
       </a>
     </div>
 
@@ -651,15 +688,19 @@
     <div class="grid">
       <a href="itens/index.html" class="card-btn">
         <img src="images/inventario.png" alt="Ícone de Inventário" class="card-icon">
+        <span>Inventário</span>
       </a>
       <a href="poderes/index.html" class="card-btn">
         <img src="images/poderes.png" alt="Ícone de Poderes" class="card-icon">        
+        <span>Poderes</span>
       </a>
       <a href="grimorio/index.html" class="card-btn">
         <img src="images/grimorio.png" alt="Ícone de grimorio" class="card-icon">
+        <span>Grimório</span>
       </a>
       <a href="ameacas/index.html" class="card-btn">
         <img src="images/ameacas.png" alt="Ícone de ameacas" class="card-icon">
+        <span>Ameaças</span>
       </a>
     </div>
 
@@ -667,13 +708,15 @@
     <div class="grid">
       <a href="calculadoraND_Tormenta/index.html" class="card-btn">
         <img src="images/nd.png" alt="Ícone de Calculadora de ND" class="card-icon">
+        <span>Calc. de ND</span>
       </a>
       <a href="calculadora/index.html" class="card-btn">
         <img src="images/calculadora.png" alt="Ícone de calculadora" class="card-icon">
+        <span>Calc. Atributos</span>
       </a>
       <a href="EncontrosAleatorios/index.html" class="card-btn">
         <img src="images/encontros.png" alt="Ícone de Encontros Aleatórios" class="card-icon">
-
+        <span>Encontros Aleatórios</span>
       </a>
     </div>
 
@@ -681,12 +724,15 @@
     <div class="grid">
       <a href="STR/index.html" class="card-btn">
         <img src="images/STR.png" alt="Ícone de STR" class="card-icon">
+        <span>Regras Adicionais</span>
       </a>
       <a href="libertacao/index.html" class="card-btn">
-        <img src="images/npc.png" alt="Ícone de NPCs" class="card-icon">      
+        <img src="images/npc.png" alt="Ícone de NPCs" class="card-icon">
+        <span>NPCs</span>
       </a>
       <a href="macrosroll20/index.html" class="card-btn">
         <img src="images/roll20.png" alt="Ícone de roll20" class="card-icon">
+        <span>Macros Roll20</span>
       </a>
     </div>
 
@@ -835,6 +881,20 @@
           applyTheme(btn.getAttribute('data-theme'));
         });
       });
+    })();
+
+    function toggleImages() {
+      document.body.classList.toggle('hide-images');
+      const hidden = document.body.classList.contains('hide-images');
+      document.getElementById('toggleImagesIcon').textContent = hidden ? '🚫' : '👁️';
+      document.getElementById('toggleImagesText').textContent = hidden ? 'Imagens' : 'Imagens';
+      localStorage.setItem('t20_hideImages', hidden ? '1' : '');
+    }
+    (function () {
+      if (localStorage.getItem('t20_hideImages') === '1') {
+        document.body.classList.add('hide-images');
+        document.getElementById('toggleImagesIcon').textContent = '🚫';
+      }
     })();
   </script>
 

@@ -445,10 +445,16 @@
                                 <div id="abilitiesRaceList" class="list-group mb-3"
                                     style="min-height: 100px; border: 1px dashed #ccc; border-radius: 5px; padding: 5px;">
                                 </div>
-                                <button class="btn btn-outline-secondary btn-sm w-100"
-                                    onclick="addAbility('abilitiesRaceList')">
-                                    <i class="bi bi-plus-circle"></i> Add Raça/Origem
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm w-100"
+                                        onclick="addAbility('abilitiesRaceList')">
+                                        <i class="bi bi-plus-circle"></i> Personalizado
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm w-100"
+                                        onclick="abrirBuscadorPoderes('abilitiesRaceList')">
+                                        <i class="bi bi-search"></i> Buscar no BD
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
@@ -457,10 +463,16 @@
                                 <div id="abilitiesClassList" class="list-group mb-3"
                                     style="min-height: 100px; border: 1px dashed #ccc; border-radius: 5px; padding: 5px;">
                                 </div>
-                                <button class="btn btn-outline-danger btn-sm w-100"
-                                    onclick="addAbility('abilitiesClassList')">
-                                    <i class="bi bi-plus-circle"></i> Add Classe/Poder
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-danger btn-sm w-100"
+                                        onclick="addAbility('abilitiesClassList')">
+                                        <i class="bi bi-plus-circle"></i> Personalizado
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm w-100"
+                                        onclick="abrirBuscadorPoderes('abilitiesClassList')">
+                                        <i class="bi bi-search"></i> Buscar no BD
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1444,6 +1456,29 @@
         </div>
     </div>
 
+    <!-- Modal: Buscador de Poderes -->
+    <div id="modalBuscadorPoderes"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:10001; align-items:center; justify-content:center; padding:16px;"
+        onclick="if(event.target===this)fecharBuscadorPoderes()">
+        <div
+            style="background:var(--bg-card-solid); border-radius:12px; width:100%; max-width:500px; max-height:85vh; display:flex; flex-direction:column; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <div
+                style="background:#dc3545; color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; border-radius:12px 12px 0 0;">
+                <strong id="buscadorPoderesTitulo">⚔️ Buscador de Poderes</strong>
+                <button onclick="fecharBuscadorPoderes()"
+                    style="background:none; border:none; color:#fff; font-size:1.2rem;">✕</button>
+            </div>
+
+            <div style="padding:15px; border-bottom:1px solid #eee;">
+                <input type="text" id="inputBuscaPoder" class="form-control" placeholder="Digite o nome do poder ou habilidade..."
+                    oninput="filtrarPoderes()">
+            </div>
+
+            <div id="listaPoderesBusca" style="overflow-y:auto; padding:10px; flex:1; min-height: 200px;">
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -1465,6 +1500,7 @@
     </div>
 
     <script src="ameacas_db.js"></script>
+    <script src="../poderes/js/data.js"></script>
     <script src="pdf_base64.js"></script>
     <script src="script.js"></script>
 </body>

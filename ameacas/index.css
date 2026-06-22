@@ -165,15 +165,45 @@ body {
     box-shadow: var(--shadow-blood);
 }
 
-.hub-btn {
-    text-decoration: none !important;
-    cursor: pointer;
-    transition: all var(--transition-speed);
+.header-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 100;
 }
-.hub-btn:hover {
-    background: rgba(204, 13, 13, 0.15) !important;
-    border-color: var(--blood-red) !important;
-    box-shadow: var(--shadow-blood) !important;
+
+.header-home-btn {
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-crimson);
+    color: var(--blood-red);
+    font-family: var(--font-title);
+    font-size: 0.9rem;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.header-home-btn:hover {
+    border-color: var(--blood-red);
+    box-shadow: 0 0 10px var(--shadow-blood);
+    background: rgba(204, 13, 13, 0.15);
+}
+
+.theme-classic .header-home-btn {
+    background: rgba(212, 61, 53, 0.06);
+    border-color: var(--blood-red);
+    color: var(--blood-red);
+}
+
+.theme-classic .header-home-btn:hover {
+    background: rgba(212, 61, 53, 0.12);
+    box-shadow: 0 0 12px rgba(231, 76, 60, 0.2);
 }
 
 /* App Body and Panels */

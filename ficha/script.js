@@ -331,7 +331,42 @@ function updateSkillSpecialty(index, value) { if (currentSkills[index]) currentS
 
 // --- ROLAGEM ---
 function roll20() { return Math.floor(Math.random() * 20) + 1; }
-function showToast(title, result, total, isCrit = false, type = 'normal') {
+function rollDiceFormula(formula) {
+    if (!formula || !formula.trim()) return null;
+    const partes = formula.match(/([+-]?\s*\d*d\d+|[+-]?\s*\d+)/g);
+    if (!partes) return null;
+    let total = 0;
+    let detalhes = [];
+    partes.forEach(p => {
+        const limpo = p.replace(/\s/g, '');
+        const dm = limpo.match(/^([+-]?)(\d*)d(\d+)$/);
+        if (dm) {
+            const sinal = dm[1] === '-' ? -1 : 1;
+            const qtd = parseInt(dm[2] || '1');
+            const faces = parseInt(dm[3]);
+            let soma = 0;
+            const rl = [];
+            for (let i = 0; i < qtd; i++) {
+                const r = Math.floor(Math.random() * faces) + 1;
+                rl.push(r); soma += r;
+            }
+            total += soma * sinal;
+            detalhes.push(`${soma * sinal}[${rl.join(',')}]`);
+        } else {
+            const v = parseInt(limpo) || 0;
+            total += v;
+            detalhes.push(`${v > 0 ? '+' : ''}${v}`);
+        }
+    });
+    return { total, detalhes: detalhes.join(' ') };
+}
+function escalarFormulaDados(formula, mult) {
+    return formula.replace(/(\d*)(d\d+)/g, (m, qtd, d) => {
+        const n = parseInt(qtd || '1') * mult;
+        return n + d;
+    });
+}
+function showToast(title, result, total, isCrit = false, type = 'normal', extraHtml = '') {
     const toastEl = document.getElementById('rollToast');
     const toastTitle = document.getElementById('toastTitle');
     const toastBody = document.getElementById('toastBody');
@@ -341,7 +376,7 @@ function showToast(title, result, total, isCrit = false, type = 'normal') {
     else if (type === 'skill') toastHeader.classList.add('bg-skill');
     else toastHeader.classList.add('bg-attack');
     toastTitle.innerText = title;
-    toastBody.innerHTML = `<div class="display-4 fw-bold">${total}</div><div class="small opacity-75">Dado: <strong>${result}</strong> ${result === 20 ? '★' : ''}</div>${isCrit ? '<div class="fw-bold text-warning mt-1">CRÍTICO!</div>' : ''}`;
+    toastBody.innerHTML = `<div class="display-4 fw-bold">${total}</div><div class="small opacity-75">Dado: <strong>${result}</strong> ${result === 20 ? '★' : ''}</div>${isCrit ? '<div class="fw-bold text-warning mt-1">CRÍTICO!</div>' : ''}${extraHtml}`;
     const toast = new bootstrap.Toast(toastEl); toast.show();
 }
 function rollAttack(btn) {
@@ -349,10 +384,34 @@ function rollAttack(btn) {
     const name = row.querySelector('.inp-name').value || "Ataque";
     const bonus = parseInt(row.querySelector('.inp-bonus').value) || 0;
     const critRange = parseInt(row.querySelector('.inp-crit-range').value) || 20;
+    const critMult = parseInt((row.querySelector('.inp-crit').value || 'x2').replace('x', '')) || 2;
     const roll = roll20();
     const total = roll + bonus;
     const isCrit = roll >= critRange;
-    showToast(`⚔️ ${name}`, roll, total, isCrit, 'attack');
+    let extraHtml = '';
+    const dmgFormula = (row.querySelector('.inp-dmg').value || '').trim();
+    const dmgExtra = parseInt(row.querySelector('.inp-dmg-extra').value) || 0;
+    const diceExtra = (row.querySelector('.inp-dice-extra').value || '').trim();
+    let danoParts = [];
+    let danoTotal = 0;
+    if (dmgFormula) {
+        const formula = isCrit ? escalarFormulaDados(dmgFormula, critMult) : dmgFormula;
+        const r = rollDiceFormula(formula);
+        if (r) { danoTotal += r.total; danoParts.push(r.detalhes); }
+    }
+    if (dmgExtra) {
+        danoTotal += dmgExtra;
+        danoParts.push(`+${dmgExtra}`);
+    }
+    if (diceExtra) {
+        const r = rollDiceFormula(diceExtra);
+        if (r) { danoTotal += r.total; danoParts.push(r.detalhes); }
+    }
+    if (danoParts.length > 0) {
+        extraHtml = `<hr class="my-1"><div class="small">Dano: <strong class="text-danger">${danoTotal}</strong> <span class="opacity-50">${danoParts.join(' ')}</span></div>`;
+        if (isCrit) extraHtml += `<div class="fw-bold text-warning small">CRÍTICO! Dano dobrado!</div>`;
+    }
+    showToast(`⚔️ ${name}`, roll, total, isCrit, 'attack', extraHtml);
 }
 function rollSkill(index) {
     const skill = currentSkills[index];
@@ -4148,3 +4207,79 @@ function initTheme() {
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
 });
+
+// ============================================================
+// BUSCADOR DE PODERES
+// ============================================================
+let targetListIdForPower = '';
+
+function abrirBuscadorPoderes(targetListId) {
+    targetListIdForPower = targetListId;
+    document.getElementById('modalBuscadorPoderes').style.display = 'flex';
+    document.getElementById('inputBuscaPoder').value = '';
+    filtrarPoderes();
+}
+
+function fecharBuscadorPoderes() {
+    document.getElementById('modalBuscadorPoderes').style.display = 'none';
+}
+
+function filtrarPoderes() {
+    const termo = document.getElementById('inputBuscaPoder').value.toLowerCase();
+    const lista = document.getElementById('listaPoderesBusca');
+
+    if (typeof powersData === 'undefined') {
+        lista.innerHTML = '<div class="text-center p-3">Banco de dados de poderes não carregado.</div>';
+        return;
+    }
+
+    let poderesFiltrados = powersData;
+    if (termo) {
+        poderesFiltrados = powersData.filter(p => 
+            p.name.toLowerCase().includes(termo) || 
+            (p.desc && p.desc.toLowerCase().includes(termo)) ||
+            (p.class && p.class.toLowerCase().includes(termo))
+        );
+    }
+    
+    // Limita resultados para evitar travamento se a busca for muito genérica
+    const limitedResults = poderesFiltrados.slice(0, 50);
+
+    if (limitedResults.length === 0) {
+        lista.innerHTML = '<div class="text-center p-3 text-muted">Nenhum poder encontrado.</div>';
+        return;
+    }
+
+    lista.innerHTML = limitedResults.map(p => {
+        // Encontra o index original para usar na função de seleção
+        const originalIndex = powersData.indexOf(p);
+        const tipoLabel = p.type === 'class' ? 'Classe' : (p.type || 'Poder');
+        const classeCapitalizada = p.class ? (p.class.charAt(0).toUpperCase() + p.class.slice(1)) : '';
+        const subtipoLabel = p.subType === 'ability' ? 'Habilidade' : 'Poder';
+        
+        return `
+        <div class="d-flex justify-content-between align-items-center p-2 border-bottom hover-bg-light" style="cursor:pointer;" onclick="selecionarPoderNoBuscador(${originalIndex})">
+            <div>
+                <div class="fw-bold text-danger">${p.name}</div>
+                <small class="text-muted">${classeCapitalizada} | ${tipoLabel} | ${subtipoLabel}</small>
+            </div>
+            <i class="bi bi-plus-circle-fill text-danger"></i>
+        </div>
+        `;
+    }).join('');
+}
+
+function selecionarPoderNoBuscador(index) {
+    const p = powersData[index];
+    if (p) {
+        let cleanDesc = p.desc;
+        // Limpar eventuais tags HTML como <br> e <strong> se houver, ou manter para o textarea
+        // O addAbility apenas joga o texto no textarea. O ideal é remover tags HTML caso tenham vindo do banco.
+        if (cleanDesc) {
+            cleanDesc = cleanDesc.replace(/<br\s*[\/]?>/gi, '\n');
+            cleanDesc = cleanDesc.replace(/<[^>]+>/g, '');
+        }
+        addAbility(targetListIdForPower, p.name, cleanDesc);
+        fecharBuscadorPoderes();
+    }
+}

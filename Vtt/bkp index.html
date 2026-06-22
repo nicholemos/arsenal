@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arsenal VTT</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="../EncontrosAleatorios/data.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════ LOBBY ═══════════════════════ -->
+<div id="lobby">
+  <div class="hub-top-bar">
+    <a href="../index.html" class="hub-btn" title="Hub Central">🏰 Hub</a>
+  </div>
+
+  <div class="logo">
+    <div class="logo-rune">⚔ Arsenal VTT</div>
+    <div class="logo-sub">Mesa Virtual do Mestre</div>
+    <div class="logo-divider"></div>
+  </div>
+
+  <div class="lobby-handle" id="lobbyHandle"><span></span></div>
+
+  <div class="lobby-sheet" id="lobbySheet">
+    <div class="panel" id="panel-create">
+      <div class="panel-title">Abrir uma nova mesa</div>
+      <div class="form-group">
+        <label>Seu nome</label>
+        <input type="text" id="master-name" placeholder="Como os aventureiros te chamam?" maxlength="32">
+      </div>
+      <div class="form-group">
+        <label>Nome da mesa (opcional)</label>
+        <input type="text" id="room-name" placeholder="Ex: Dungeon de Ferro Negro" maxlength="40">
+      </div>
+      <button class="btn btn-primary" onclick="criarSala()">Abrir a mesa</button>
+      <div class="status-msg" id="create-status"></div>
+    </div>
+
+    <div style="width:400px; max-width:92vw;"><div class="divider">ou</div></div>
+
+    <div class="panel" id="panel-join">
+      <div class="panel-title">Entrar em uma mesa</div>
+      <div class="form-group">
+        <label>Seu nome</label>
+        <input type="text" id="player-name" placeholder="Seu personagem ou jogador" maxlength="32">
+      </div>
+      <div class="form-group">
+        <label>Código da mesa</label>
+        <input type="text" id="room-code" placeholder="Cole o código aqui..." maxlength="80">
+      </div>
+      <button class="btn btn-gold" onclick="entrarSala()">Entrar na mesa</button>
+      <div class="status-msg" id="join-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SALA ═══════════════════════ -->
+<div id="room">
+  <div class="room-header">
+    <div>
+      <div class="room-title" id="room-title-text">Mesa Virtual</div>
+      <div class="room-id-badge">Código: <span id="display-room-id" onclick="copiarCodigo()" title="Clique para copiar">—</span></div>
+    </div>
+    <div class="header-actions">
+      <span class="role-badge" id="role-badge" onclick="toggleLocalRole()" style="cursor: pointer;" title="Clique para alternar entre Mestre e Jogador">—</span>
+      <button class="btn btn-sm" onclick="convidarJogador()" id="btn-convidar">Convidar</button>
+      <button class="btn btn-sm btn-gold" onclick="toggleFichaPanel()" id="btn-ficha" style="display:none;">📋 Ficha</button>
+      <button class="btn btn-sm" style="color:var(--text-muted);" onclick="sairSala()">Sair</button>
+    </div>
+  </div>
+
+  <!-- Painel de Aventureiros colapsável no topo -->
+  <div class="players-top-panel" id="playersTopPanel">
+    <div class="players-top-bar" onclick="togglePlayersPanel()">
+      <span class="players-top-title">Aventureiros</span>
+      <span class="players-top-count" id="playersTopCount">0</span>
+      <span class="players-top-arrow" id="playersTopArrow">▼</span>
+    </div>
+    <div class="players-top-list" id="playersTopList"></div>
+  </div>
+
+  <!-- Floating Panel Expand Buttons -->
+  <button class="floating-toggle-btn" id="btn-sidebar-expand-floating" onclick="toggleSidebar()" style="display:none; top: 120px;" title="Expandir Ferramentas">
+    <i class="bi bi-chevron-right"></i>
+  </button>
+  <button class="floating-toggle-btn" id="btn-master-expand-floating" onclick="toggleMasterPanel()" style="display:none; top: 120px;" title="Expandir Painel do Mestre">
+    <i class="bi bi-chevron-left"></i>
+  </button>
+  <button class="floating-toggle-btn" id="btn-chat-expand-floating" onclick="toggleChatPanel()" style="display:none; top: 170px;" title="Expandir Diário da Mesa">
+    <i class="bi bi-chat-left-dots-fill"></i>
+  </button>
+
+  <div class="room-body">
+    <!-- Sidebar de Ferramentas -->
+    <div class="sidebar" id="sidebar">
+      <!-- Seção de Ferramentas -->
+      <div class="board-toolbar-section" id="board-toolbar-section" style="flex:1; display:flex; flex-direction:column; overflow:hidden; border-top:1px solid rgba(107,77,42,0.4);">
+        <div class="sidebar-title">Ferramentas</div>
+        <div class="board-toolbar" id="boardToolbar">
+          <!-- Ferramenta ativa -->
+          <div class="tool-group">
+            <div class="tool-row-2">
+              <button class="tool-btn active" id="toolMove" onclick="setTool('move')" title="Mover tokens">✥ Mover</button>
+              <button class="tool-btn" id="toolPan" onclick="setTool('pan')" title="Navegar pelo mapa">✜ Nav</button>
+            </div>
+            <div class="tool-row-2">
+              <button class="tool-btn" id="toolWall" onclick="setTool('wall')" title="Desenhar parede">🧱 Parede</button>
+              <button class="tool-btn danger" id="btnLimparParedes" onclick="limparParedes()" title="Apagar todas as paredes">✕ Par</button>
+            </div>
+            <select id="wallTypeSelect" onchange="setWallType(this.value)" style="display:none; background:var(--parch3); border:1px solid var(--border); color:var(--text); font-size:0.75rem; padding:0.2rem 0.4rem; border-radius:3px; outline:none; font-family:'Cinzel', serif; width: 100%; margin-top: 0.2rem;">
+              <option value="normal">🧱 Parede</option>
+              <option value="invisible">👻 Invisível</option>
+              <option value="door">🚪 Porta</option>
+              <option value="window">🪟 Janela</option>
+            </select>
+            <div class="tool-row-2">
+              <button class="tool-btn" id="toolFog" onclick="setTool('fog')" title="Pintar névoa (esconder área)">🌫 Névoa</button>
+              <button class="tool-btn" id="toolReveal" onclick="setTool('reveal')" title="Revelar área (limpar névoa)">🔦 Revelar</button>
+              <button class="tool-btn" id="btnFogShape" onclick="toggleFogShape()" title="Alternar forma do pincel de névoa (pincel / retângulo)">🖌 Pincel</button>
+            </div>
+            <div class="tool-row-3">
+              <button class="tool-btn" id="toolShapeRect" onclick="setTool('shape-rect')" title="Desenhar retângulo (Shift = quadrado perfeito)">▭ Ret</button>
+              <button class="tool-btn" id="toolShapeCircle" onclick="setTool('shape-circle')" title="Desenhar círculo (Shift = círculo perfeito)">⬤ Circ</button>
+              <button class="tool-btn" id="toolShapeFreehand" onclick="setTool('shape-freehand')" title="Desenhar forma livre">✏ Livre</button>
+            </div>
+            <div class="tool-row-2">
+              <button class="tool-btn" id="toolRuler" onclick="setTool('ruler')" title="Medir distâncias">📏 Régua</button>
+              <button class="tool-btn" id="toolCircleRuler" onclick="setTool('circle-ruler')" title="Medir raio de círculo">⭕ Círculo</button>
+            </div>
+            <input type="color" id="shapeColorPicker" value="#c9903a" onchange="setShapeColor(this.value)" title="Cor da forma" style="display:none; width:100%; height:1.8rem; margin-top:0.2rem; padding:1px; border:1px solid var(--border); border-radius:3px; background:var(--parch3); cursor:pointer;">
+          </div>
+
+          <!-- Camadas (Mestre) -->
+          <div class="tool-group" id="layerGroup">
+            <div class="tool-section-label" id="layerLabel" style="display:none;">Camada</div>
+            <div id="layerSep" style="display:none;"></div>
+            <div class="tool-row-3">
+              <button class="tool-btn active" id="layerPlayers" onclick="setBoardLayer('players')" title="Camada dos Jogadores" style="display:none;">Jog</button>
+              <button class="tool-btn" id="layerMap" onclick="setBoardLayer('map')" title="Camada do Mapa" style="display:none;">Map</button>
+              <button class="tool-btn" id="layerGm" onclick="setBoardLayer('gm')" title="Camada Oculta do GM" style="display:none;">GM</button>
+            </div>
+          </div>
+
+          <!-- Zoom -->
+          <div class="tool-group">
+            <div class="tool-section-label">Zoom</div>
+            <div class="tool-zoom-row">
+              <button class="tool-btn" onclick="zoomBoard(-0.1)" title="Afastar">−</button>
+              <span class="zoom-display" id="zoomDisplay">100%</span>
+              <button class="tool-btn" onclick="zoomBoard(+0.1)" title="Aproximar">+</button>
+              <button class="tool-btn" onclick="zoomReset()" title="Original">⊙</button>
+            </div>
+          </div>
+
+          <!-- Ações mestre -->
+          <div class="tool-group" id="actionsGroup">
+            <div class="tool-section-label">Ações</div>
+            <div class="tool-row-2">
+              <button class="tool-btn" id="btnCarregarMapa" onclick="carregarMapa()" title="Carregar imagem de mapa">🗺 Mapa</button>
+              <button class="tool-btn" id="btnImportarUVTT" onclick="importarUVTT()" title="Importar mapa DD/UVTT">📦 UVTT</button>
+            </div>
+            <div class="tool-row-3">
+              <button class="tool-btn" id="btnBuscarImagens" onclick="abrirBuscaUnsplash()" title="Buscar imagens">🔍 Img</button>
+              <button class="tool-btn" id="btnEditarImagem" onclick="abrirEditorImagemGeral()" title="Editor de Imagem">🎨 Edit</button>
+              <button class="tool-btn" id="btnAddToken" onclick="abrirFormToken()" title="Adicionar token">+ Tok</button>
+            </div>
+            <div class="tool-row-2">
+              <button class="tool-btn" id="btnSyncBoard" onclick="syncBoardToPlayers()" title="Sincronizar tabuleiro com jogadores">📡 Sync</button>
+              <button class="tool-btn danger" id="btnLimparBoard" onclick="limparBoard()" title="Limpar tabuleiro">✕ Limp</button>
+            </div>
+            <div class="tool-row-2">
+              <button class="tool-btn" id="btnRecalcularFog" onclick="recalcularFog()" title="Recalcular visão dos tokens selecionados">👁 Calc</button>
+              <button class="tool-btn danger" id="btnLimparFog" onclick="limparFog()" title="Remover toda névoa">✕ Fog</button>
+            </div>
+            <input type="file" id="mapaFileInput" accept="image/*" style="display:none;" onchange="onMapaFileChange(this)">
+            <input type="file" id="uvttFileInput" accept=".dd2vtt,.uvtt,.zip" style="display:none;" onchange="onUVTTFile(this)">
+          </div>
+
+          <!-- Andares -->
+          <div class="tool-group" id="floorGroup">
+            <div class="tool-section-label">Andar</div>
+            <div class="tool-zoom-row">
+              <button class="tool-btn" onclick="mudarAndar(-1)" title="Descer Andar">▼</button>
+              <span class="zoom-display" id="floorDisplay" style="font-family:'Cinzel', serif; font-weight:bold;">Andar 0</span>
+              <button class="tool-btn" onclick="mudarAndar(1)" title="Subir Andar">▲</button>
+            </div>
+          </div>
+
+          <!-- Grade -->
+          <div class="tool-group" id="toolGroupGrid">
+            <div class="tool-section-label">Grade</div>
+            <div class="tool-grid-row">
+              <label style="font-family:'Cinzel',serif;font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;gap:0.3rem;cursor:pointer;user-select:none;">
+                <input type="checkbox" id="gridToggle" checked onchange="toggleGrid(this.checked)"> Grade
+              </label>
+              <select id="gridSize" onchange="setGridSize(parseInt(this.value))" style="width: 70px; padding: 0.15rem 0.3rem; font-size: 0.7rem; background:var(--parch3); border:1px solid var(--border); color:var(--text-dim); border-radius:2px; outline:none;">
+                <option value="40">40px</option>
+                <option value="50" selected>50px</option>
+                <option value="60">60px</option>
+                <option value="70">70px</option>
+                <option value="80">80px</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-area">
+      <!-- Container oculto para animação de GIFs no canvas -->
+      <div id="gifHost" style="position:fixed;left:-9999px;top:-9999px;pointer-events:none;" aria-hidden="true"></div>
+      <!-- Tabuleiro -->
+      <div class="board" id="boardWrap">
+        <div id="playerViewBar" style="display:none; background:#1a1a2e; padding:6px 16px; border-bottom:2px solid #00bfff; color:#fff; align-items:center; justify-content:space-between; font-family:'Cinzel',serif; font-size:0.8rem; user-select:none;">
+          <span>👁 Visão: <strong id="playerViewName"></strong></span>
+          <button onclick="exitPlayerView()" style="background:rgba(255,255,255,0.1); border:1px solid #ff6b6b; color:#ff6b6b; border-radius:4px; padding:2px 12px; cursor:pointer; font-family:'Cinzel',serif; font-size:0.7rem;">✕ Sair</button>
+        </div>
+        <div class="board-canvas-wrap tool-move" id="canvasWrap">
+          <canvas id="boardCanvas"></canvas>
+          <div id="selectionBox" class="selection-box"></div>
+        </div>
+      </div>
+
+      <!-- Painel Ficha (para jogadores) -->
+      <div class="ficha-panel" id="ficha-panel">
+        <div class="ficha-panel-header">
+          <span class="ficha-panel-title">📋 Ficha do Personagem</span>
+          <div style="display:flex;gap:0.4rem;align-items:center;">
+            <span id="ficha-sync-status" style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--text-muted);">—</span>
+            <button class="btn btn-sm btn-gold" id="btn-criar-token-ficha" style="font-size:0.65rem;padding:0.2rem 0.5rem;" onclick="criarTokenDaFicha()">Criar Token</button>
+            <button class="btn btn-sm" style="font-size:0.65rem;padding:0.2rem 0.5rem;" onclick="toggleFichaPanel()">Fechar</button>
+          </div>
+        </div>
+        <iframe id="ficha-iframe" class="ficha-iframe" src="" title="Ficha do Personagem" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+      </div>
+
+      <!-- Painel Mestre: Encontros + Combate (apenas para o mestre) -->
+      <div class="master-panel" id="master-panel">
+        <div class="panel-tabs">
+          <button class="panel-tab-toggle-btn" onclick="toggleMasterPanel()" title="Recolher Painel">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="panel-tab active" onclick="switchTab('encontros')" id="tab-encontros">Encontros</button>
+          <button class="panel-tab" onclick="switchTab('combate')" id="tab-combate">⚔ Combate</button>
+          <button class="panel-tab" onclick="switchTab('fichas')" id="tab-fichas">📋 Fichas</button>
+          <button class="panel-tab" onclick="switchTab('bau')" id="tab-bau">📚 Compêndio</button>
+          <button class="panel-tab" onclick="switchTab('notas')" id="tab-notas">📜 Notas</button>
+        </div>
+
+        <!-- TAB: ENCONTROS -->
+        <div class="panel-content active" id="content-encontros">
+
+          <!-- Diário de viagem -->
+          <div class="enc-section">
+            <div class="viagem-row">
+              <div class="viagem-stat">Dia de viagem: <span id="viagem-dia">0</span></div>
+              <div class="viagem-stat">Chance: <span id="viagem-chance">5%</span></div>
+            </div>
+            <div style="display:flex; gap:0.35rem; margin-bottom:0.5rem;">
+              <button class="btn btn-sm" style="flex:1;" onclick="avancarDia()">+ Dia</button>
+              <button class="btn btn-sm" style="flex:1;" onclick="resetarViagem()">Reset</button>
+              <button class="btn btn-sm btn-primary" style="flex:1;" onclick="testarSorte()">🎲 Testar</button>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid rgba(107,77,42,0.3); margin-bottom: 0.75rem;"></div>
+
+          <!-- Terreno e patamar -->
+          <div class="enc-section">
+            <span class="enc-label">Terreno</span>
+            <select class="enc-select" id="enc-terreno"></select>
+          </div>
+
+          <div class="enc-section">
+            <span class="enc-label">Patamar</span>
+            <div class="patamar-row">
+              <div class="patamar-btn active" onclick="selecionarPatamar(this, 0)">Iniciante</div>
+              <div class="patamar-btn" onclick="selecionarPatamar(this, 30)">Veterano</div>
+              <div class="patamar-btn" onclick="selecionarPatamar(this, 70)">Campeão</div>
+              <div class="patamar-btn" onclick="selecionarPatamar(this, 110)">Lenda</div>
+            </div>
+          </div>
+
+          <button class="btn btn-gold" style="width:100%; margin-bottom:0.75rem;" onclick="gerarEncontro()">Gerar Encontro</button>
+
+          <!-- Resultado -->
+          <div class="enc-result-box" id="enc-result-box">
+            <div style="font-size:0.82rem; color:var(--text-muted); font-style:italic; text-align:center;">Clique em "Gerar Encontro" para sortear</div>
+          </div>
+
+          <!-- Fichas das criaturas encontradas -->
+          <div id="enc-threats" class="threat-mini-cards"></div>
+
+        </div><!-- /content-encontros -->
+
+        <!-- TAB: COMBATE -->
+        <div class="panel-content" id="content-combate">
+
+          <!-- Barra de rodada / turno -->
+          <div class="combat-round-bar">
+            <div>
+              <div class="combat-round-txt">Rodada <span id="c-round">1</span></div>
+              <div class="combat-turn-txt">Vez: <span id="c-active-name">—</span></div>
+            </div>
+            <div class="combat-nav">
+              <button class="btn btn-sm" onclick="combatPrevTurn()" title="Turno anterior">◀</button>
+              <button class="btn btn-sm btn-gold" onclick="combatNextTurn()" title="Próximo turno">▶</button>
+              <button class="btn btn-sm btn-primary" onclick="combatNew()" title="Novo combate">✕</button>
+            </div>
+          </div>
+
+          <!-- Ordenar + Sync -->
+          <div style="display:flex; gap:0.35rem; margin-bottom:0.6rem; align-items:center;">
+            <button class="btn btn-sm" style="flex:1;" onclick="combatSort()">⇅ Ordenar</button>
+            <button class="btn btn-sm" style="flex:1;" onclick="syncCombatToPlayers()" title="Enviar estado do combate aos jogadores">📡 Sync</button>
+            <span class="combat-sync-badge" id="sync-badge">—</span>
+          </div>
+
+          <!-- Formulário adicionar combatente -->
+          <div class="combat-add-form">
+            <div class="form-row">
+              <div class="f-name">
+                <label>Busca no bestiário</label>
+                <input type="text" id="combatDbSearch" list="combatDbDatalist" placeholder="Nome da criatura..." autocomplete="off" oninput="onDbSearchInput()">
+                <datalist id="combatDbDatalist"></datalist>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="f-name">
+                <label>Busca nas fichas</label>
+                <input type="text" id="combatFichaSearch" list="combatFichaDatalist" placeholder="Personagem dos jogadores..." autocomplete="off" oninput="onFichaSearchInput()">
+                <datalist id="combatFichaDatalist"></datalist>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="f-name"><label>Nome</label><input type="text" id="combatNewName" placeholder="Nome..." maxlength="40"></div>
+              <div class="f-sm"><label>INI</label><input type="number" id="combatNewInit" placeholder="10"></div>
+              <div class="f-sm"><label>PV</label><input type="number" id="combatNewHP" placeholder="30"></div>
+              <div class="f-sm"><label>PM</label><input type="number" id="combatNewMP" placeholder="0"></div>
+            </div>
+            <button id="combatAddBtn" class="btn btn-gold" style="width:100%;" onclick="combatAddFromForm()">+ Adicionar</button>
+            <div id="combatAddHint" style="font-size:0.65rem;color:var(--text-muted);text-align:center;margin-top:0.2rem;display:none;"></div>
+          </div>
+
+          <!-- Lista de combatentes -->
+          <div class="combat-list" id="combatList"></div>
+
+        </div><!-- /content-combate -->
+
+        <!-- TAB: FICHAS DOS JOGADORES (Mestre vê resumos) -->
+        <div class="panel-content" id="content-fichas">
+          <div style="margin-bottom:0.6rem;">
+            <span class="enc-label">Fichas dos Personagens</span>
+          </div>
+
+          <!-- Upload de fichas do mestre -->
+          <div style="margin-bottom:0.8rem;">
+            <button class="btn btn-sm btn-gold" onclick="document.getElementById('fichaUploadInput').click()" style="width:100%;">
+              📂 Importar Ficha (JSON)
+            </button>
+            <input type="file" id="fichaUploadInput" accept=".json" style="display:none;" onchange="uploadFichaMestre(this)">
+          </div>
+
+          <!-- Fichas do Mestre -->
+          <div class="fichas-section">
+            <div class="fichas-section-title">📋 Fichas do Mestre</div>
+            <div class="fichas-mestre" id="fichas-mestre-list">
+              <div class="ficha-sem-dados">Nenhuma ficha importada ainda.<br>Use o botão acima para importar fichas do Mestre.</div>
+            </div>
+          </div>
+
+          <!-- Fichas dos Jogadores -->
+          <div class="fichas-section" style="margin-top:1rem;">
+            <div class="fichas-section-title">👥 Fichas dos Jogadores</div>
+            <div class="fichas-jogadores" id="fichas-jogadores-list">
+              <div class="ficha-sem-dados">Nenhuma ficha recebida ainda.<br>Peça aos jogadores clicarem em "📋 Ficha".</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: COMPÊNDIO -->
+        <div class="panel-content" id="content-bau">
+          <!-- Header compêndio -->
+          <div style="margin-bottom:0.5rem;display:flex;align-items:center;justify-content:space-between;">
+            <span class="enc-label">📚 Compêndio</span>
+            <button class="btn btn-sm" onclick="recarregarCompendio()" title="Recarregar tudo">⟳</button>
+          </div>
+
+          <!-- Sub-abas internas -->
+          <div style="display:flex;gap:0;margin-bottom:0.5rem;border-bottom:1px solid var(--border);">
+            <button id="bau-subtab-equip" class="bau-subtab active" onclick="switchBauSubtab('equip')" style="flex:1;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);padding:0.3rem 0;font-family:'Cinzel',serif;font-size:0.65rem;cursor:pointer;transition:all 0.2s;">⚔ Equip.</button>
+            <button id="bau-subtab-magias" class="bau-subtab" onclick="switchBauSubtab('magias')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);padding:0.3rem 0;font-family:'Cinzel',serif;font-size:0.65rem;cursor:pointer;transition:all 0.2s;">🔮 Magias</button>
+            <button id="bau-subtab-poderes" class="bau-subtab" onclick="switchBauSubtab('poderes')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);padding:0.3rem 0;font-family:'Cinzel',serif;font-size:0.65rem;cursor:pointer;transition:all 0.2s;">⭐ Poderes</button>
+            <button id="bau-subtab-bestiary" class="bau-subtab" onclick="switchBauSubtab('bestiario')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);padding:0.3rem 0;font-family:'Cinzel',serif;font-size:0.65rem;cursor:pointer;transition:all 0.2s;">🐾 Best.</button>
+          </div>
+
+          <!-- ═══ PAINEL EQUIPAMENTOS ═══ -->
+          <div id="bau-panel-equip" style="display:flex;flex-direction:column;gap:0.3rem;">
+            <div style="margin-bottom:0.4rem; display:flex; gap:0.35rem;">
+              <input type="text" id="bauSearch" placeholder="Buscar equipamentos..." oninput="buscarItemBau()" style="flex:1; background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.3rem 0.5rem; border-radius:3px; font-family:'Crimson Text',serif; font-size:0.8rem; outline:none;">
+            </div>
+            <div class="bau-categorias" style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-bottom:0.4rem;">
+              <button class="bau-cat-btn active" data-cat="" onclick="setBauCategoria(this,'')">Todos</button>
+              <button class="bau-cat-btn" data-cat="Arma" onclick="setBauCategoria(this,'Arma')">⚔ Armas</button>
+              <button class="bau-cat-btn" data-cat="Armadura" onclick="setBauCategoria(this,'Armadura')">🛡 Armaduras</button>
+              <button class="bau-cat-btn" data-cat="Escudo" onclick="setBauCategoria(this,'Escudo')">🛡 Escudos</button>
+              <button class="bau-cat-btn" data-cat="Item Geral" onclick="setBauCategoria(this,'Item Geral')">📦 Gerais</button>
+              <button class="bau-cat-btn" data-cat="Item Superior" onclick="setBauCategoria(this,'Item Superior')">⭐ Superior</button>
+              <button class="bau-cat-btn" data-cat="Item Mágico" onclick="setBauCategoria(this,'Item Mágico')">🔮 Mágicos</button>
+              <button class="bau-cat-btn" data-cat="encantamento" onclick="setBauCategoria(this,'encantamento')">✨ Encantos</button>
+              <button class="bau-cat-btn" data-cat="Maldição" onclick="setBauCategoria(this,'Maldição')">☠ Maldições</button>
+            </div>
+            <div id="bauLoading" style="display:none; text-align:center; padding:1rem; color:var(--text-muted); font-style:italic;">Carregando itens...</div>
+            <div id="bauError" style="display:none; text-align:center; padding:0.5rem; color:var(--red-bright); font-size:0.75rem;"></div>
+            <div id="bauResults" style="display:flex; flex-direction:column; gap:0.3rem;"></div>
+          </div>
+
+          <!-- ═══ PAINEL MAGIAS ═══ -->
+          <div id="bau-panel-magias" style="display:none;flex-direction:column;gap:0.3rem;">
+            <!-- Busca + contador -->
+            <div style="display:flex;gap:0.35rem;margin-bottom:0.4rem;">
+              <input type="text" id="magiasSearch" placeholder="Buscar magia..." oninput="buscarMagia()" style="flex:1; background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.3rem 0.5rem; border-radius:3px; font-family:'Crimson Text',serif; font-size:0.8rem; outline:none;">
+              <span id="magiasCount" style="align-self:center;font-size:0.65rem;color:var(--text-muted);white-space:nowrap;"></span>
+            </div>
+            <!-- Filtro por Círculo -->
+            <div style="margin-bottom:0.3rem;">
+              <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:0.2rem;font-family:'Cinzel',serif;">CÍRCULO</div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.2rem;" id="magiasCirculoFiltros">
+                <button class="bau-cat-btn active" data-circ="0" onclick="setMagiaCirculo(this,0)">Todos</button>
+                <button class="bau-cat-btn" data-circ="1" onclick="setMagiaCirculo(this,1)">1°</button>
+                <button class="bau-cat-btn" data-circ="2" onclick="setMagiaCirculo(this,2)">2°</button>
+                <button class="bau-cat-btn" data-circ="3" onclick="setMagiaCirculo(this,3)">3°</button>
+                <button class="bau-cat-btn" data-circ="4" onclick="setMagiaCirculo(this,4)">4°</button>
+                <button class="bau-cat-btn" data-circ="5" onclick="setMagiaCirculo(this,5)">5°</button>
+              </div>
+            </div>
+            <!-- Filtro por Escola -->
+            <div style="margin-bottom:0.4rem;">
+              <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:0.2rem;font-family:'Cinzel',serif;">ESCOLA</div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.2rem;" id="magiasEscolaFiltros">
+                <button class="bau-cat-btn active" data-escola="" onclick="setMagiaEscola(this,'')">Todas</button>
+                <button class="bau-cat-btn" data-escola="Abjuração" onclick="setMagiaEscola(this,'Abjuração')">Abjuração</button>
+                <button class="bau-cat-btn" data-escola="Adivinhação" onclick="setMagiaEscola(this,'Adivinhação')">Adivinhação</button>
+                <button class="bau-cat-btn" data-escola="Convocação" onclick="setMagiaEscola(this,'Convocação')">Convocação</button>
+                <button class="bau-cat-btn" data-escola="Encantamento" onclick="setMagiaEscola(this,'Encantamento')">Encantamento</button>
+                <button class="bau-cat-btn" data-escola="Evocação" onclick="setMagiaEscola(this,'Evocação')">Evocação</button>
+                <button class="bau-cat-btn" data-escola="Ilusão" onclick="setMagiaEscola(this,'Ilusão')">Ilusão</button>
+                <button class="bau-cat-btn" data-escola="Necromancia" onclick="setMagiaEscola(this,'Necromancia')">Necromancia</button>
+                <button class="bau-cat-btn" data-escola="Transmutação" onclick="setMagiaEscola(this,'Transmutação')">Transmutação</button>
+              </div>
+            </div>
+            <!-- Lista de magias -->
+            <div id="magiasLoading" style="display:none;text-align:center;padding:1rem;color:var(--text-muted);font-style:italic;">Carregando grimório...</div>
+            <div id="magiasResults" style="display:flex;flex-direction:column;gap:0.25rem;"></div>
+          </div>
+
+          <!-- ═══ PAINEL PODERES / ORIGENS / DISTINÇÕES ═══ -->
+          <div id="bau-panel-poderes" style="display:none;flex-direction:column;gap:0.3rem;">
+            <!-- Busca + contador -->
+            <div style="display:flex;gap:0.35rem;margin-bottom:0.35rem;">
+              <input type="text" id="poderesSearch" placeholder="Buscar..." oninput="buscarPoderes()" style="flex:1;background:var(--parch3);border:1px solid var(--border);color:var(--text);padding:0.3rem 0.5rem;border-radius:3px;font-family:'Crimson Text',serif;font-size:0.8rem;outline:none;">
+              <span id="poderesCount" style="align-self:center;font-size:0.65rem;color:var(--text-muted);white-space:nowrap;"></span>
+            </div>
+            <!-- Seção: Origens / Poderes / Distinções -->
+            <div style="margin-bottom:0.35rem;">
+              <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:0.2rem;font-family:'Cinzel',serif;">SEÇÃO</div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.2rem;" id="poderesSecaoFiltros">
+                <button class="bau-cat-btn active" data-sec="origens" onclick="setPoderesSecao(this,'origens')">🏠 Origens</button>
+                <button class="bau-cat-btn" data-sec="poderes" onclick="setPoderesSecao(this,'poderes')">✨ Poderes de Classe</button>
+                <button class="bau-cat-btn" data-sec="distincoes" onclick="setPoderesSecao(this,'distincoes')">🏆 Distinções</button>
+              </div>
+            </div>
+            <!-- Filtro dinâmico (classe ou fonte) -->
+            <div id="poderesSubfiltroWrap" style="margin-bottom:0.35rem;display:none;">
+              <div id="poderesSubfiltroLabel" style="font-size:0.62rem;color:var(--text-muted);margin-bottom:0.2rem;font-family:'Cinzel',serif;">CLASSE</div>
+              <div id="poderesSubfiltros" style="display:flex;flex-wrap:wrap;gap:0.2rem;"></div>
+            </div>
+            <!-- Resultados -->
+            <div id="poderesLoading" style="display:none;text-align:center;padding:1rem;color:var(--text-muted);font-style:italic;">Carregando...</div>
+            <div id="poderesResults" style="display:flex;flex-direction:column;gap:0.25rem;"></div>
+          </div>
+
+          <!-- ═══ PAINEL BESTIÁRIO ═══ -->
+          <div id="bau-panel-bestiary" style="display:none;flex-direction:column;gap:0.3rem;">
+            <div style="display:flex;gap:0.35rem;margin-bottom:0.35rem;">
+              <input type="text" id="bestiarySearch" placeholder="Buscar criatura..." oninput="buscarBestiario()" style="flex:1;background:var(--parch3);border:1px solid var(--border);color:var(--text);padding:0.3rem 0.5rem;border-radius:3px;font-family:'Crimson Text',serif;font-size:0.8rem;outline:none;">
+              <span id="bestiaryCount" style="align-self:center;font-size:0.65rem;color:var(--text-muted);white-space:nowrap;"></span>
+            </div>
+            <div style="margin-bottom:0.3rem;">
+              <div style="font-size:0.62rem;color:var(--text-muted);margin-bottom:0.2rem;font-family:'Cinzel',serif;">ND</div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.2rem;" id="bestiaryNdFiltros">
+                <button class="bau-cat-btn active" data-nd="" onclick="setBestiarioNdFiltro(this,'')">Todos</button>
+                <button class="bau-cat-btn" data-nd="1/4" onclick="setBestiarioNdFiltro(this,'1/4')">1/4</button>
+                <button class="bau-cat-btn" data-nd="1/2" onclick="setBestiarioNdFiltro(this,'1/2')">1/2</button>
+                <button class="bau-cat-btn" data-nd="1" onclick="setBestiarioNdFiltro(this,'1')">1</button>
+                <button class="bau-cat-btn" data-nd="2" onclick="setBestiarioNdFiltro(this,'2')">2</button>
+                <button class="bau-cat-btn" data-nd="3" onclick="setBestiarioNdFiltro(this,'3')">3</button>
+                <button class="bau-cat-btn" data-nd="4" onclick="setBestiarioNdFiltro(this,'4')">4</button>
+                <button class="bau-cat-btn" data-nd="5" onclick="setBestiarioNdFiltro(this,'5')">5</button>
+                <button class="bau-cat-btn" data-nd="6" onclick="setBestiarioNdFiltro(this,'6')">6</button>
+                <button class="bau-cat-btn" data-nd="7" onclick="setBestiarioNdFiltro(this,'7')">7</button>
+                <button class="bau-cat-btn" data-nd="8" onclick="setBestiarioNdFiltro(this,'8')">8</button>
+                <button class="bau-cat-btn" data-nd="9" onclick="setBestiarioNdFiltro(this,'9')">9</button>
+                <button class="bau-cat-btn" data-nd="10" onclick="setBestiarioNdFiltro(this,'10')">10</button>
+                <button class="bau-cat-btn" data-nd="11" onclick="setBestiarioNdFiltro(this,'11')">11</button>
+                <button class="bau-cat-btn" data-nd="12" onclick="setBestiarioNdFiltro(this,'12')">12</button>
+                <button class="bau-cat-btn" data-nd="13" onclick="setBestiarioNdFiltro(this,'13')">13</button>
+                <button class="bau-cat-btn" data-nd="14" onclick="setBestiarioNdFiltro(this,'14')">14</button>
+                <button class="bau-cat-btn" data-nd="15" onclick="setBestiarioNdFiltro(this,'15')">15</button>
+                <button class="bau-cat-btn" data-nd="16" onclick="setBestiarioNdFiltro(this,'16')">16</button>
+                <button class="bau-cat-btn" data-nd="17" onclick="setBestiarioNdFiltro(this,'17')">17</button>
+                <button class="bau-cat-btn" data-nd="18" onclick="setBestiarioNdFiltro(this,'18')">18</button>
+                <button class="bau-cat-btn" data-nd="19" onclick="setBestiarioNdFiltro(this,'19')">19</button>
+                <button class="bau-cat-btn" data-nd="20" onclick="setBestiarioNdFiltro(this,'20')">20</button>
+                <button class="bau-cat-btn" data-nd="S" onclick="setBestiarioNdFiltro(this,'S')">S</button>
+                <button class="bau-cat-btn" data-nd="S+" onclick="setBestiarioNdFiltro(this,'S+')">S+</button>
+              </div>
+            </div>
+            <div id="bestiaryLoading" style="display:none;text-align:center;padding:1rem;color:var(--text-muted);font-style:italic;">Carregando bestiário...</div>
+            <div id="bestiaryResults" style="display:flex;flex-direction:column;gap:0.25rem;"></div>
+          </div>
+        </div>
+
+        <!-- TAB: NOTAS (pergaminhos do mestre) -->
+        <div class="panel-content" id="content-notas">
+          <div style="margin-bottom:0.6rem;display:flex;align-items:center;justify-content:space-between;">
+            <span class="enc-label">📜 Pergaminhos</span>
+            <button class="btn btn-sm btn-gold" onclick="criarPergaminho()" style="font-size:0.65rem;">+ Novo</button>
+          </div>
+          <div id="notasEmpty" style="text-align:center;padding:1rem;color:var(--text-muted);font-style:italic;">Nenhum pergaminho ainda.</div>
+          <div id="notasList" style="display:flex;flex-direction:column;gap:0.35rem;"></div>
+        </div>
+
+      </div><!-- /master-panel -->
+
+      <!-- Chat -->
+      <div class="chat-panel">
+        <div class="chat-header" style="display:flex; align-items:center; justify-content:space-between; padding-right: 0.4rem;">
+          <span>Diário da Mesa</span>
+          <button class="panel-collapse-btn" onclick="toggleChatPanel()" title="Recolher Chat">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-visibility-row" id="chatVisibilityRow">
+          <button class="vis-btn active" data-vis="global" onclick="setChatVisibility('global')" title="Global — todos veem">🌍</button>
+          <button class="vis-btn" data-vis="togm" onclick="setChatVisibility('togm')" title="Só o Mestre — jogador + mestre veem">🕵️</button>
+          <button class="vis-btn" data-vis="blind" onclick="setChatVisibility('blind')" title="Apenas Mestre — só o mestre vê">🙈</button>
+          <button class="vis-btn" data-vis="personal" onclick="setChatVisibility('personal')" title="Pessoal — só você vê">👤</button>
+        </div>
+        <div class="chat-footer">
+          <div id="invite-area" style="display:none; margin-bottom:0.4rem;">
+            <div class="invite-box" id="invite-link-box" onclick="copiarConvite()">—</div>
+            <div style="font-size:0.65rem; color:var(--text-muted); text-align:center; font-style:italic;">clique para copiar</div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chat-input" placeholder="Fale à mesa..." maxlength="4000" onkeydown="handleChatKey(event)">
+            <div class="chat-buttons-row">
+              <button class="gif-btn" onclick="abrirGifPicker()" title="Enviar GIF">GIF</button>
+              <div class="spacer" style="flex: 1;"></div>
+              <button class="history-btn" onclick="navegarHistorico(-1)" title="Mensagem Anterior"><i class="bi bi-chevron-up"></i></button>
+              <button class="history-btn" onclick="navegarHistorico(1)" title="Próxima Mensagem"><i class="bi bi-chevron-down"></i></button>
+              <button class="send-btn" onclick="enviarMsg()">➤ Enviar</button>
+            </div>
+          </div>
+          <div class="chat-hint">Use /r 2d6 para rolar dados</div>
+          <div class="dice-shortcuts">
+            <button class="ds-btn" data-faces="4" onclick="abrirDialogDados(4)">d4</button>
+            <button class="ds-btn" data-faces="6" onclick="abrirDialogDados(6)">d6</button>
+            <button class="ds-btn" data-faces="8" onclick="abrirDialogDados(8)">d8</button>
+            <button class="ds-btn" data-faces="10" onclick="abrirDialogDados(10)">d10</button>
+            <button class="ds-btn" data-faces="12" onclick="abrirDialogDados(12)">d12</button>
+            <button class="ds-btn" data-faces="20" onclick="abrirDialogDados(20)">d20</button>
+            <button class="ds-btn" data-faces="100" onclick="abrirDialogDados(100)">d100</button>
+          </div>
+
+          <!-- Diálogo de rolagem rápida -->
+          <div id="diceDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4999;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogDados()">
+            <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #8b6b3e;border-radius:12px;padding:24px;min-width:280px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+              <div id="ddTitle" style="font-size:1.2rem;margin-bottom:16px;text-align:center;font-weight:700;">Rolar d20</div>
+              <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+                <label style="min-width:90px;">Quantidade:</label>
+                <input type="number" id="ddQtd" value="1" min="1" max="20" style="flex:1;background:#1a120c;border:1px solid #8b6b3e;color:#e8d5a3;padding:4px 8px;border-radius:4px;font-family:'Cinzel',serif;">
+              </div>
+              <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+                <label style="min-width:90px;">Bônus:</label>
+                <input type="number" id="ddBonus" value="0" style="flex:1;background:#1a120c;border:1px solid #8b6b3e;color:#e8d5a3;padding:4px 8px;border-radius:4px;font-family:'Cinzel',serif;">
+              </div>
+              <div style="margin-bottom:16px;display:flex;gap:20px;justify-content:center;">
+                <label style="cursor:pointer;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="ddVantagem" onchange="if(this.checked)document.getElementById('ddDesvantagem').checked=false"> Vantagem</label>
+                <label style="cursor:pointer;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="ddDesvantagem" onchange="if(this.checked)document.getElementById('ddVantagem').checked=false"> Desvantagem</label>
+              </div>
+              <div style="display:flex;gap:10px;justify-content:center;">
+                <button onclick="rolarDoDialog()" style="background:#8b6b3e;border:none;color:#fff;padding:8px 24px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;font-weight:700;">🎲 Rolar</button>
+                <button onclick="fecharDialogDados()" style="background:#555;border:none;color:#ccc;padding:8px 24px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Cancelar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GIF Picker Popover (dentro do chat-footer para position:absolute funcionar) -->
+          <div id="gifPicker" class="gif-picker">
+            <div class="gif-picker-header">
+              <span class="gif-picker-title">Buscar GIF</span>
+              <button class="gif-picker-close" onclick="fecharGifPicker()">✕</button>
+            </div>
+            <div class="gif-picker-search-row">
+              <input type="text" id="gifSearchInput" class="gif-search-input" placeholder="ex: dragon, fire, celebrate..." onkeydown="gifSearchKey(event)" autocomplete="off">
+              <button class="gif-search-btn" onclick="buscarGifs()">🔍</button>
+            </div>
+            <div id="gifApiKeyRow" class="gif-apikey-row">
+              <input type="text" id="gifApiKey" class="gif-apikey-input" placeholder="Cole sua Giphy API key aqui..." autocomplete="off" onchange="salvarGiphyKey(this.value)">
+              <span class="gif-apikey-hint">Guarda no navegador</span>
+            </div>
+            <div id="gifGrid" class="gif-grid">
+              <div class="gif-empty">Digite algo e pressione Enter</div>
+            </div>
+            <div id="gifLoading" class="gif-loading" style="display:none;">Buscando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Macros Flutuante -->
+      <div id="macro-bar-container" class="macro-bar-floating">
+        <div id="macro-buttons-list" style="display: flex; gap: 0.5rem; align-items: center;"></div>
+        <button class="macro-config-btn" onclick="abrirConfigMacros()" title="Configurar Macros">
+          <i class="bi bi-gear-fill"></i>
+        </button>
+      </div>
+
+      <!-- Pergaminhos (jogadores) -->
+      <div id="notasPlayerBtn" style="display:none; position:fixed; bottom:1rem; right:1rem; z-index:500;">
+        <button onclick="toggleNotasPlayer()" style="background:var(--parch3); border:2px solid var(--gold); color:var(--gold); width:44px; height:44px; border-radius:50%; font-size:1.2rem; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.5);">📜</button>
+      </div>
+      <div id="notasPlayerPanel" style="display:none; position:fixed; bottom:4.5rem; right:1rem; width:300px; max-height:400px; background:var(--parch2); border:1px solid var(--gold); border-radius:6px; z-index:500; box-shadow:0 4px 20px rgba(0,0,0,0.6); overflow-y:auto; padding:0.75rem;">
+        <div style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--gold);margin-bottom:0.5rem;text-align:center;">📜 Pergaminhos</div>
+        <div id="notasPlayerContent" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+      </div>
+
+    </div><!-- /main-area -->
+  </div><!-- /room-body -->
+</div><!-- /room -->
+
+
+<!-- Token Tooltip -->
+<div id="tokenTooltip"></div>
+
+<!-- Token Form -->
+<div id="tokenForm">
+  <div class="tf-title" id="tfTitle">Novo Token</div>
+  <input type="text" id="tfName" placeholder="Nome do token..." maxlength="30">
+  <div class="tf-row">
+    <label>PV</label>
+    <input type="number" id="tfHP" placeholder="—" min="0">
+    <label id="tfSizeLabel" style="margin-left:0.3rem;">Tam</label>
+    <select id="tfSize" style="background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;flex:1;">
+      <option value="1">1×1</option>
+      <option value="2">2×2</option>
+      <option value="3">3×3</option>
+    </select>
+  </div>
+  <div class="tf-row" id="tfSizeObjectRow" style="display:none;">
+    <label>Larg (X)</label>
+    <input type="number" id="tfSizeX" placeholder="Ex: 1" step="0.25" min="0.25" style="width: 55px; padding: 0.28rem 0.4rem; font-size: 0.82rem; text-align: center; background:var(--parch3); border:1px solid var(--border); color:var(--text); border-radius:3px; outline:none; flex:1;">
+    <label style="margin-left:0.3rem;">Alt (Y)</label>
+    <input type="number" id="tfSizeY" placeholder="Ex: 1" step="0.25" min="0.25" style="width: 55px; padding: 0.28rem 0.4rem; font-size: 0.82rem; text-align: center; background:var(--parch3); border:1px solid var(--border); color:var(--text); border-radius:3px; outline:none; flex:1;">
+  </div>
+
+  <!-- Imagem do token -->
+  <div class="tf-img-section">
+    <!-- Canvas circular interativo: arrastar reposiciona a imagem -->
+    <div style="position:relative; display:inline-block;">
+      <canvas id="tfImgCanvas" width="110" height="110"
+        style="border-radius:50%; cursor:grab; display:block; background:var(--parch3); border:2px solid var(--border);"
+        title="Arraste para reposicionar a imagem"></canvas>
+      <span id="tfImgPlaceholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--text-muted);pointer-events:none;">sem imagem</span>
+      <button class="tf-img-clear" id="tfImgClear" onclick="limparImagemToken()" title="Remover imagem" style="display:none;">✕</button>
+    </div>
+    <div class="tf-img-inputs">
+      <input type="text" id="tfImgUrl" placeholder="URL da imagem..." style="font-size:0.75rem; padding:0.28rem 0.4rem;" oninput="previewImagemToken(this.value)">
+      <div style="display: flex; gap: 0.35rem;">
+        <label class="tf-img-upload-btn" title="Enviar do dispositivo" style="margin: 0;">
+          📁
+          <input type="file" id="tfImgFile" accept="image/*" style="display:none;" onchange="carregarImagemArquivo(this)">
+        </label>
+        <button class="tf-img-upload-btn" onclick="abrirBuscaUnsplash()" title="Buscar imagem no Unsplash" style="border:none;background:var(--parch3);border-radius:3px;cursor:pointer;padding:0.2rem 0.35rem;font-size:0.8rem;margin: 0;">🔍</button>
+        <button class="tf-img-upload-btn" onclick="abrirEditorImagemToken()" title="Editar imagem selecionada" style="border:none;background:var(--parch3);border-radius:3px;cursor:pointer;padding:0.2rem 0.35rem;font-size:0.8rem;margin: 0;">🎨</button>
+      </div>
+      <div style="margin-top:0.3rem; font-size:0.65rem; color:var(--text-muted); font-family:'Cinzel',serif; text-align:center;">↕↔ arraste para ajustar</div>
+    </div>
+    <!-- campos ocultos mantidos para compatibilidade com confirmarToken() -->
+    <input type="hidden" id="tfImgPosX" value="50">
+    <input type="hidden" id="tfImgPosY" value="50">
+  </div>
+
+  <div class="tf-row">
+    <label>Cor</label>
+    <div class="token-color-row" id="tfColors">
+      <div class="token-color-swatch selected" style="background:#c94040;" data-color="#c94040" onclick="selectTokenColor(this)"></div>
+      <div class="token-color-swatch" style="background:#4080c9;" data-color="#4080c9" onclick="selectTokenColor(this)"></div>
+      <div class="token-color-swatch" style="background:#40a050;" data-color="#40a050" onclick="selectTokenColor(this)"></div>
+      <div class="token-color-swatch" style="background:#c9903a;" data-color="#c9903a" onclick="selectTokenColor(this)"></div>
+      <div class="token-color-swatch" style="background:#9040c9;" data-color="#9040c9" onclick="selectTokenColor(this)"></div>
+      <div class="token-color-swatch" style="background:#c0c0c0;" data-color="#c0c0c0" onclick="selectTokenColor(this)"></div>
+    </div>
+  </div>
+
+  <!-- Border customization -->
+  <div class="tf-row" style="align-items:flex-start;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:0.3rem;">
+      <div class="tf-row" style="margin:0;">
+        <label>Borda</label>
+        <select id="tfBorderType" style="flex:1;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.7rem;padding:0.2rem 0.3rem;border-radius:3px;outline:none;">
+          <option value="solid">Sólida</option>
+          <option value="dashed">Tracejada</option>
+          <option value="dotted">Pontilhada</option>
+          <option value="double">Dupla</option>
+          <option value="neon">Neon (Brilho)</option>
+          <option value="runic">Rúnica</option>
+          <option value="none">Nenhuma</option>
+        </select>
+      </div>
+      <div class="tf-row" style="margin:0;">
+        <label style="font-size:0.55rem;">Espessura</label>
+        <input type="range" id="tfBorderWidth" min="0.5" max="4" step="0.5" value="1.5" style="flex:1;accent-color:var(--gold);height:14px;cursor:pointer;">
+        <span id="tfBorderWidthVal" style="font-size:0.6rem;color:var(--text-dim);min-width:20px;text-align:center;">1.5</span>
+      </div>
+      <div class="tf-row" style="margin:0;">
+        <label style="font-size:0.55rem;">Cor da borda</label>
+        <input type="color" id="tfBorderColor" value="#000000" style="width:100%;height:22px;padding:1px;border:1px solid var(--border);border-radius:3px;background:var(--parch3);cursor:pointer;">
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.2rem;margin-left:0.5rem;">
+      <canvas id="tfBorderPreview" width="64" height="64" style="display:block;"></canvas>
+      <span style="font-size:0.55rem;color:var(--text-muted);font-family:'Cinzel',serif;">prévia</span>
+    </div>
+  </div>
+  <div class="tf-row">
+    <label style="font-size:0.55rem;">Aura (alcance)</label>
+    <input type="number" id="tfAuraRadius" placeholder="0" min="0" max="99" step="0.5" style="width:50px;padding:0.2rem 0.3rem;font-size:0.7rem;text-align:center;background:var(--parch3);border:1px solid var(--border);color:var(--text);border-radius:3px;outline:none;">
+    <input type="color" id="tfAuraColor" value="#42a5f5" style="width:24px;height:20px;padding:0;border:1px solid var(--border);border-radius:2px;cursor:pointer;">
+  </div>
+  <div class="tf-row">
+    <label>Forma</label>
+    <select id="tfShapeType" style="flex:1;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.7rem;padding:0.2rem 0.3rem;border-radius:3px;outline:none;">
+      <option value="circle">Círculo</option>
+      <option value="square">Quadrado</option>
+      <option value="rounded-square">Quadrado Arredondado</option>
+      <option value="hexagon">Hexágono</option>
+    </select>
+  </div>
+  <div class="tf-row" id="tfRowControle">
+    <label>Controle</label>
+    <select id="tfControlledBy" style="background:var(--parch3);border:1px solid var(--border);color:var(--text-dim);font-size:0.75rem;padding:0.2rem 0.4rem;border-radius:2px;outline:none;flex:1;">
+      <option value="">Apenas Mestre</option>
+    </select>
+  </div>
+  <div class="tf-row" id="tfRowLayer">
+    <label>Camada</label>
+    <select id="tfLayer" style="background:var(--parch3);border:1px solid var(--border);color:var(--text-dim);font-size:0.75rem;padding:0.2rem 0.4rem;border-radius:2px;outline:none;flex:1;">
+      <option value="map">Mapa</option>
+      <option value="players">Jogadores</option>
+      <option value="gm" selected>GM (Oculto)</option>
+    </select>
+  </div>
+  <div class="tf-row">
+    <label style="display:flex;align-items:center;gap:0.35rem;cursor:pointer;">
+      <input type="checkbox" id="tfHideName" style="cursor:pointer;">
+      Ocultar nome
+    </label>
+  </div>
+  <div class="tf-row" id="tfRowVisao">
+    <label style="font-size:0.7rem;">Visão</label>
+    <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+      <label style="font-size:0.65rem;cursor:pointer;display:flex;align-items:center;gap:0.15rem;"><input type="radio" name="tfVision" value="normal" checked> Normal</label>
+      <label style="font-size:0.65rem;cursor:pointer;display:flex;align-items:center;gap:0.15rem;"><input type="radio" name="tfVision" value="penumbra"> Penumbra</label>
+      <label style="font-size:0.65rem;cursor:pointer;display:flex;align-items:center;gap:0.15rem;"><input type="radio" name="tfVision" value="escuro"> Escuro</label>
+    </div>
+  </div>
+  <div class="tf-row" id="tfRowAuras" style="flex-direction:column;align-items:stretch;gap:0.3rem;">
+    <label style="font-size:0.7rem;">Auras</label>
+    <div id="tfAuraList" style="display:flex;flex-direction:column;gap:0.25rem;">
+      <div class="aura-group" data-idx="0" style="background:var(--parch3);border-radius:3px;padding:0.3rem;display:flex;flex-wrap:wrap;gap:0.2rem;align-items:center;">
+        <input type="text" class="aura-name" placeholder="Nome" style="width:80px;font-size:0.6rem;background:transparent;border:1px solid var(--border);border-radius:2px;padding:0.1rem 0.2rem;">
+        <input type="number" class="aura-radius" placeholder="Raio" min="0" max="99" style="width:35px;font-size:0.6rem;background:transparent;border:1px solid var(--border);border-radius:2px;padding:0.1rem 0.2rem;">
+        <input type="color" class="aura-color" value="#ff8800" style="width:22px;height:20px;padding:0;border:1px solid var(--border);border-radius:2px;cursor:pointer;">
+        <input type="number" class="aura-opacity" placeholder="Op" min="0" max="100" value="25" style="width:30px;font-size:0.6rem;background:transparent;border:1px solid var(--border);border-radius:2px;padding:0.1rem 0.2rem;">
+        <label style="font-size:0.55rem;display:flex;align-items:center;gap:0.1rem;cursor:pointer;"><input type="checkbox" class="aura-active" checked> Ativa</label>
+        <label style="font-size:0.55rem;display:flex;align-items:center;gap:0.1rem;cursor:pointer;"><input type="checkbox" class="aura-light"> Luz</label>
+        <button class="aura-remove" style="font-size:0.55rem;background:none;border:none;color:#c94040;cursor:pointer;padding:0;">✕</button>
+      </div>
+      <div class="aura-group" data-idx="1" style="background:var(--parch3);border-radius:3px;padding:0.3rem;display:flex;flex-wrap:wrap;gap:0.2rem;align-items:center;">
+        <input type="text" class="aura-name" placeholder="Nome" style="width:80px;font-size:0.6rem;background:transparent;border:1px solid var(--border);border-radius:2px;padding:0.1rem 0.2rem;">
+        <input type="number" class="aura-radius" placeholder="Raio" min="0" max="99" style="width:35px;font-size:0.6rem;background:transparent;border:1px solid var(--border);border-radius:2px;padding:0.1rem 0.2rem;">
+        <input type="color" class="aura-color" value="#4488ff" style="width:22px;height:20px;padding:0;border:1px solid var(--border);border-radius:2px;cursor:pointer;">
+        <input type="number" class="aura-opacity" placeholder="Op" min="0" max="100" value="25" style="width:30px;font-size:0.6rem;background:transparent;border:1px solid var(--border);border-radius:2px;padding:0.1rem 0.2rem;">
+        <label style="font-size:0.55rem;display:flex;align-items:center;gap:0.1rem;cursor:pointer;"><input type="checkbox" class="aura-active" checked> Ativa</label>
+        <label style="font-size:0.55rem;display:flex;align-items:center;gap:0.1rem;cursor:pointer;"><input type="checkbox" class="aura-light"> Luz</label>
+        <button class="aura-remove" style="font-size:0.55rem;background:none;border:none;color:#c94040;cursor:pointer;padding:0;">✕</button>
+      </div>
+    </div>
+  </div>
+  <div class="tf-row" id="tfRowZ">
+    <label>Z (altura)</label>
+    <input type="number" id="tfZ" value="0" min="-99" max="999" step="1" style="flex:1;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;">
+  </div>
+  <div class="tf-actions">
+    <button class="btn btn-gold btn-sm" style="flex:1;" onclick="confirmarToken()">✓ Colocar</button>
+    <button class="btn btn-sm" style="flex:1;" onclick="fecharFormToken()">Cancelar</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Modal de busca Unsplash -->
+<div id="unsplashModal" class="unsplash-overlay" style="display:none;">
+  <div class="unsplash-panel">
+    <div class="unsplash-header">
+      <span class="unsplash-title">🔍 Buscar Imagem</span>
+      <button class="btn btn-sm" onclick="fecharBuscaUnsplash()" style="padding:0.1rem 0.4rem;">✕</button>
+    </div>
+    <div class="panel-tabs" style="margin-bottom:0.6rem; border-bottom:1px solid var(--border); width: 100%;">
+      <button id="search-tab-unsplash" class="panel-tab active" onclick="setSearchSource('unsplash')" style="border-top:none; border-left:none; border-right:none;">Unsplash</button>
+      <button id="search-tab-pexels" class="panel-tab" onclick="setSearchSource('pexels')" style="border-top:none; border-left:none; border-right:none;">Pexels</button>
+      <button id="search-tab-pixabay" class="panel-tab" onclick="setSearchSource('pixabay')" style="border-top:none; border-left:none; border-right:none;">Pixabay</button>
+    </div>
+    <div class="unsplash-search-row">
+      <input type="text" id="unsplashQuery" placeholder="Ex: dragon, warrior, castle..." onkeydown="if(event.key==='Enter')executarBuscaImagens()">
+      <button class="btn btn-gold btn-sm" onclick="executarBuscaImagens()">Buscar</button>
+    </div>
+    <div class="unsplash-grid" id="unsplashGrid"></div>
+    <div class="unsplash-actions" id="unsplashActions" style="display:none;">
+      <div class="unsplash-preview" id="unsplashPreview"></div>
+      <div class="unsplash-act-btns" style="display:flex; gap:0.4rem; flex-wrap:wrap; width:100%; justify-content:flex-end;">
+        <button class="btn btn-sm" onclick="usarImgComo('mapa')">🗺 Mapa</button>
+        <button class="btn btn-sm" onclick="usarImgComo('objeto')">◻ Objeto</button>
+        <button class="btn btn-sm btn-gold" onclick="usarImgComo('token')">🎯 Token</button>
+      </div>
+    </div>
+    <div class="unsplash-footer">
+      <span>Fotos por <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Configuração de Macros -->
+<div id="macroConfigModal">
+  <div class="macro-modal-content">
+    <div class="macro-modal-header">
+      <h3>Configurar Macros</h3>
+      <button class="btn btn-sm" onclick="fecharConfigMacros()" style="padding: 0.1rem 0.4rem;">✕</button>
+    </div>
+    <div class="macro-modal-body">
+      <div class="macro-list-container" id="macro-list-container">
+        <!-- Lista de macros inserida dinamicamente -->
+      </div>
+      <div class="macro-form">
+        <div class="macro-form-title">Criar Nova Macro</div>
+        <div class="form-group">
+          <label>Nome do Botão</label>
+          <input type="text" id="macro-new-name" placeholder="Ex: Iniciativa, Bola de Fogo" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>Comando / Mensagem</label>
+          <textarea id="macro-new-command" rows="3" placeholder="Ex: /r d20+5 ou descrição longa da magia" maxlength="4000" style="resize: vertical; min-height: 60px; font-family: inherit;"></textarea>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="adicionarMacro()">+ Adicionar à Barra</button>
+      </div>
+    </div>
+    <div class="macro-modal-footer">
+      <button class="btn btn-sm btn-primary" onclick="fecharConfigMacros()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Initiative Tracker (hidden until master syncs combat) -->
+<div id="initTracker" class="init-tracker collapsed hidden">
+  <div class="init-tracker-header" onclick="toggleInitTracker()">
+    <span class="init-tracker-title">⚔ Iniciativa</span>
+    <span class="init-tracker-round" id="initTrackerRound"></span>
+    <span class="init-tracker-toggle" id="initTrackerToggle">▸</span>
+    <span class="init-tracker-close" onclick="event.stopPropagation(); hideInitTracker()" title="Fechar">×</span>
+  </div>
+  <div class="init-tracker-body" id="initTrackerBody">
+    <div class="init-tracker-empty" id="initTrackerEmpty">Nenhum combate ativo</div>
+    <ul class="init-tracker-list" id="initTrackerList"></ul>
+  </div>
+</div>
+
+<!-- Modal de Detalhes do Item (Baú) -->
+<div id="itemDetailModal" class="unsplash-overlay" style="display:none; z-index:1100;">
+  <div class="unsplash-panel" style="width:400px; max-height:85vh;">
+    <div class="unsplash-header">
+      <span class="unsplash-title" id="itemDetailTitle">Detalhes do Item</span>
+      <button class="btn btn-sm" onclick="fecharDetalhesItem()" style="padding:0.1rem 0.4rem;">✕</button>
+    </div>
+    <div id="itemDetailContent" style="overflow-y:auto; padding:0.5rem 0.2rem; font-family:'Crimson Text', serif; font-size:1.05rem; color:var(--text); line-height:1.45;">
+      <!-- Conteúdo inserido dinamicamente -->
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.75rem; border-top:1px solid var(--border); padding-top:0.6rem;">
+      <button class="btn btn-sm" id="btnCriarTokenBestiario" onclick="criarTokenDoBestiario()" style="display:none;">🎯 Criar Token</button>
+      <button class="btn btn-sm btn-gold" onclick="fecharDetalhesItem()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Context Menu for Tokens -->
+<div id="tokenContextMenu" class="context-menu" style="display:none; position:fixed; z-index:1000;">
+  <div class="context-menu-item" id="ctxEditToken" onclick="contextEditToken()">
+    <i class="bi bi-pencil-fill"></i> Editar Token
+  </div>
+  <div class="context-menu-item" id="ctxEditObject" onclick="contextEditObject()">
+    <i class="bi bi-palette-fill"></i> Editar Objeto
+  </div>
+  <div class="context-menu-item has-submenu" id="ctxCfgCamada">
+    <i class="bi bi-layers-fill"></i> Alterar Camada
+    <div class="context-submenu">
+      <div class="context-menu-item" onclick="contextChangeLayer('map')">Mapa</div>
+      <div class="context-menu-item" onclick="contextChangeLayer('players')">Jogadores</div>
+      <div class="context-menu-item" onclick="contextChangeLayer('gm')">GM (Oculto)</div>
+    </div>
+  </div>
+  <div class="context-menu-item has-submenu" id="ctxCondMenu">
+    <i class="bi bi-heart-pulse-fill"></i> Condições
+    <div class="context-submenu" id="ctxCondSubmenu"></div>
+  </div>
+  <div class="context-menu-divider" id="ctxDiv1"></div>
+  <div class="context-menu-item" id="ctxCfgZ" onclick="contextSubirToken()">
+    <i class="bi bi-arrow-up-short"></i> Subir (Z+)
+  </div>
+  <div class="context-menu-item" id="ctxCfgZDes" onclick="contextDescerToken()">
+    <i class="bi bi-arrow-down-short"></i> Descer (Z−)
+  </div>
+  <div class="context-menu-item" id="ctxCfgZSubA" onclick="contextSubirAndar()">
+    <i class="bi bi-chevron-double-up"></i> Subir Andar (+10 Z)
+  </div>
+  <div class="context-menu-item" id="ctxCfgZDesA" onclick="contextDescerAndar()">
+    <i class="bi bi-chevron-double-down"></i> Descer Andar (-10 Z)
+  </div>
+  <div class="context-menu-divider" id="ctxDiv2"></div>
+  <div class="context-menu-item" id="ctxViewPlayer" onclick="contextViewAsPlayer()">
+    <i class="bi bi-eye-fill"></i> Visão do Jogador
+  </div>
+  <div class="context-menu-divider" id="ctxDiv3"></div>
+  <div class="context-menu-item text-danger" id="ctxCfgApagar" onclick="contextDeleteToken()">
+    <i class="bi bi-trash-fill"></i> Apagar Token
+  </div>
+</div>
+
+<!-- Board Context Menu (grid vazio) -->
+<div id="boardContextMenu" class="context-menu" style="display:none; position:fixed; z-index:1000;">
+  <div class="context-menu-item" id="ctxBoardCenter" onclick="centralizarMapa()">
+    <i class="bi bi-crosshair"></i> Centralizar
+  </div>
+  <div class="context-menu-item" id="ctxBoardPaste" onclick="abrirPasteImagem()">
+    <i class="bi bi-clipboard-plus"></i> Colar URL da Imagem
+  </div>
+  <div class="context-menu-item" id="ctxBoardSearch" onclick="abrirBuscaUnsplash()">
+    <i class="bi bi-search"></i> Buscar Imagem
+  </div>
+  <div class="context-menu-item" id="ctxBoardGrid" onclick="abrirConfigGrid()">
+    <i class="bi bi-grid-3x3"></i> Configurar Grid/Mapa
+  </div>
+</div>
+
+<!-- Player Context Menu (função do jogador) -->
+<div id="playerContextMenu" class="context-menu" style="display:none; position:fixed; z-index:1000;">
+  <div class="context-menu-item" onclick="changePlayerRole(this.dataset.pid,'mestre')">
+    <i class="bi bi-crown-fill"></i> Mestre
+  </div>
+  <div class="context-menu-item" onclick="changePlayerRole(this.dataset.pid,'jogador')">
+    <i class="bi bi-person-fill"></i> Jogador
+  </div>
+  <div class="context-menu-item" onclick="changePlayerRole(this.dataset.pid,'expectador')">
+    <i class="bi bi-eye-fill"></i> Expectador
+  </div>
+  <div class="context-menu-item" onclick="changePlayerRole(this.dataset.pid,'cego')">
+    <i class="bi bi-eye-slash-fill"></i> Cego
+  </div>
+</div>
+
+<!-- Modal de colar imagem -->
+<div id="pasteImgModal" class="unsplash-overlay" style="display:none;">
+  <div class="unsplash-panel" style="width:400px;">
+    <div class="unsplash-header">
+      <span class="unsplash-title">📋 Colar URL da Imagem</span>
+      <button class="btn btn-sm" onclick="fecharPasteImagem()" style="padding:0.1rem 0.4rem;">✕</button>
+    </div>
+    <input type="text" id="pasteImgUrl" placeholder="https://exemplo.com/imagem.jpg" style="margin-bottom:0.4rem;font-size:0.85rem;padding:0.35rem 0.5rem;">
+    <div class="tf-row" style="margin-bottom:0.5rem;">
+      <label>Tamanho</label>
+      <select id="pasteImgSize" style="background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;flex:1;">
+        <option value="0.5">½×½</option>
+        <option value="1" selected>1×1</option>
+        <option value="2">2×2</option>
+        <option value="3">3×3</option>
+        <option value="4">4×4</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+      <button class="btn btn-sm" onclick="usarPasteImg('fundo')" style="flex:1;min-width:100px;">🗺 Fundo</button>
+      <button class="btn btn-sm" onclick="usarPasteImg('objeto')" style="flex:1;min-width:100px;">◻ Objeto</button>
+      <button class="btn btn-sm btn-gold" onclick="usarPasteImg('token')" style="flex:1;min-width:100px;">🎯 Token</button>
+    </div>
+  </div>
+</div>
+
+<!-- Elementos ocultos para compatibilidade com funções do Arsenal -->
+<div id="combatRoundMini" style="display:none;"></div>
+<div id="combatActiveMini" style="display:none;"></div>
+<div id="combatLogWrap" class="d-none" style="display:none;"><pre id="combatLog"></pre></div>
+<div id="toastContainer" style="display:none;"></div>
+
+<input type="checkbox" id="combatAutoSort" style="display:none;">
+
+<!-- Modal do Editor de Imagens -->
+<div id="imageEditorModal" class="editor-modal" style="display: none;">
+  <div class="editor-container">
+    <div class="editor-header">
+      <h3>🎨 Editor de Imagem</h3>
+      <button class="btn btn-sm" onclick="fecharEditorImagem()" style="padding: 0.1rem 0.4rem;">✕</button>
+    </div>
+    <div class="editor-body">
+      <!-- Workspace (Canvas area) -->
+      <div class="editor-workspace" id="editorWorkspace" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="event.preventDefault(); this.classList.remove('dragover'); handleEditorFileDrop(event);">
+        <div class="canvas-container" id="editorCanvasContainer">
+          <canvas id="editorCanvas"></canvas>
+          <canvas id="editorOverlayCanvas"></canvas>
+        </div>
+        <div class="editor-welcome" id="editorWelcome">
+          <div class="welcome-text">Arraste uma imagem aqui ou escolha uma opção ao lado</div>
+          <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
+            <label class="btn btn-gold btn-sm" style="display: inline-block; margin: 0;">
+              📂 Escolher Arquivo
+              <input type="file" id="editorLoadFile" accept="image/*" style="display: none;" onchange="handleEditorFileLoad(this)">
+            </label>
+            <button class="btn btn-sm" onclick="promptEditorUrl()">🔗 Inserir URL</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sidebar / Controls -->
+      <div class="editor-sidebar">
+        <!-- Tabs for tools: Crop, Colors, Brush -->
+        <div class="editor-tabs">
+          <button class="editor-tab active" id="tabEditorCrop" onclick="setEditorTab('crop')">Recortar</button>
+          <button class="editor-tab" id="tabEditorColor" onclick="setEditorTab('color')">Cores</button>
+          <button class="editor-tab" id="tabEditorBrush" onclick="setEditorTab('brush')">Pincel</button>
+        </div>
+        
+        <!-- Tab Content: CROP -->
+        <div class="editor-tab-content active" id="editorContentCrop">
+          <div class="control-group">
+            <label>Proporção</label>
+            <div class="patamar-row">
+              <div class="patamar-btn active" id="btnCropFree" onclick="setEditorCropRatio('free')">Livre</div>
+              <div class="patamar-btn" id="btnCrop11" onclick="setEditorCropRatio('1:1')">1:1</div>
+              <div class="patamar-btn" id="btnCropCircle" onclick="setEditorCropRatio('circle')">Círculo</div>
+            </div>
+          </div>
+          <button class="btn btn-gold btn-sm" style="width: 100%; margin-top: 1rem;" onclick="applyCrop()">Recortar Área</button>
+        </div>
+        
+        <!-- Tab Content: COLOR -->
+        <div class="editor-tab-content" id="editorContentColor">
+          <div class="control-group">
+            <div style="display:flex; justify-content:space-between;"><label>Brilho</label><span id="valBrightness">100%</span></div>
+            <input type="range" id="slideBrightness" min="0" max="200" value="100" oninput="updateEditorFilters()">
+          </div>
+          <div class="control-group">
+            <div style="display:flex; justify-content:space-between;"><label>Contraste</label><span id="valContrast">100%</span></div>
+            <input type="range" id="slideContrast" min="0" max="200" value="100" oninput="updateEditorFilters()">
+          </div>
+          <div class="control-group">
+            <div style="display:flex; justify-content:space-between;"><label>Saturação</label><span id="valSaturation">100%</span></div>
+            <input type="range" id="slideSaturation" min="0" max="200" value="100" oninput="updateEditorFilters()">
+          </div>
+          <div class="control-group">
+            <div style="display:flex; justify-content:space-between;"><label>Matiz</label><span id="valHue">0°</span></div>
+            <input type="range" id="slideHue" min="0" max="360" value="0" oninput="updateEditorFilters()">
+          </div>
+          <div class="control-group">
+            <div style="display:flex; justify-content:space-between;"><label>Escala Cinza</label><span id="valGrayscale">0%</span></div>
+            <input type="range" id="slideGrayscale" min="0" max="100" value="0" oninput="updateEditorFilters()">
+          </div>
+          <div class="control-group">
+            <div style="display:flex; justify-content:space-between;"><label>Inverter</label><span id="valInvert">0%</span></div>
+            <input type="range" id="slideInvert" min="0" max="100" value="0" oninput="updateEditorFilters()">
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <button class="btn btn-gold btn-sm" style="flex: 1;" onclick="applyFilters()">Aplicar</button>
+            <button class="btn btn-sm" style="flex: 1;" onclick="resetFilters()">Resetar</button>
+          </div>
+        </div>
+        
+        <!-- Tab Content: BRUSH -->
+        <div class="editor-tab-content" id="editorContentBrush">
+          <div class="control-group">
+            <label>Modo</label>
+            <div class="patamar-row">
+              <div class="patamar-btn active" id="btnBrushModeDraw" onclick="setBrushMode('draw')">Pincel</div>
+              <div class="patamar-btn" id="btnBrushModeErase" onclick="setBrushMode('erase')">Borracha</div>
+            </div>
+          </div>
+          <div class="control-group">
+            <div style="display:flex; justify-content:space-between;"><label>Tamanho</label><span id="valBrushSize">10px</span></div>
+            <input type="range" id="slideBrushSize" min="1" max="100" value="10" oninput="updateBrushSize(this.value)">
+          </div>
+          <div class="control-group">
+            <label>Cor</label>
+            <input type="color" id="editorBrushColor" value="#ff0000" style="height: 2.2rem; cursor: pointer; padding: 2px;">
+            <button class="btn btn-sm" id="btnEyedropper" onclick="activateEyedropper()" style="margin-top: 0.4rem; width: 100%;">🔍 Pipeta (Conta-gotas)</button>
+          </div>
+        </div>
+        
+        <div style="margin-top: auto; border-top: 1px solid var(--border); padding-top: 1rem;">
+          <!-- Undo / Redo controls -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <button class="btn btn-sm" id="btnEditorUndo" onclick="editorUndo()" disabled style="flex: 1;">↩ Desfazer</button>
+            <button class="btn btn-sm" id="btnEditorRedo" onclick="editorRedo()" disabled style="flex: 1;">↪ Refazer</button>
+          </div>
+          
+          <!-- Secondary loading button if inside editor -->
+          <div style="margin-bottom: 0.5rem; display: flex;">
+            <label class="btn btn-sm btn-gold" style="flex:1; text-align:center; font-size:0.75rem; margin: 0;">
+              📂 Nova Imagem
+              <input type="file" id="editorLoadFileSecondary" accept="image/*" style="display: none;" onchange="handleEditorFileLoad(this)">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="editor-footer">
+      <button class="btn" onclick="fecharEditorImagem()">Cancelar</button>
+      <div style="flex: 1;"></div>
+      <button class="btn btn-gold" onclick="editorExportDownload()">Download</button>
+      <button class="btn btn-gold" id="btnEditorApplyToken" onclick="editorExportToken()" style="display: none;">Usar no Token</button>
+      <button class="btn btn-gold" id="btnEditorApplyObject" onclick="editorExportObject()">Usar como Objeto</button>
+      <button class="btn btn-gold" id="btnEditorApplyMap" onclick="editorExportMap()">Usar como Mapa</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Dados 3D ═══ -->
+<div id="diceOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:5000;background:rgba(0,0,0,0.65);justify-content:center;align-items:center;flex-direction:column;">
+  <div id="diceTray" style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #8b6b3e;border-radius:16px;padding:30px 40px;box-shadow:0 0 60px rgba(0,0,0,0.7),inset 0 0 40px rgba(139,107,62,0.1);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:20px;min-width:200px;min-height:140px;position:relative;"></div>
+  <div id="diceResult" style="display:none;margin-top:20px;font-family:'Cinzel',serif;color:#e8d5a3;font-size:1.5rem;text-shadow:0 0 20px rgba(232,213,163,0.3);text-align:center;"></div>
+  <button onclick="fecharDados3d()" style="margin-top:20px;background:rgba(139,107,62,0.3);border:1px solid #8b6b3e;color:#e8d5a3;padding:8px 24px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;font-size:0.9rem;">✕ Fechar</button>
+</div>
+
+<!-- Custom Context Menu for Shapes (Triggers) -->
+<div id="shapeContextMenu" class="context-menu" style="display:none; position:fixed; z-index:1000;">
+  <div class="context-menu-item" onclick="setShapeTrigger('stairs')">
+    <i class="bi bi-ladder"></i> Escada Normal (Sobe/Desce)
+  </div>
+  <div class="context-menu-item" onclick="setShapeTrigger('stairs-up')">
+    <i class="bi bi-box-arrow-in-up"></i> Escada Apenas Sobe
+  </div>
+  <div class="context-menu-item" onclick="setShapeTrigger('stairs-down')">
+    <i class="bi bi-box-arrow-in-down"></i> Escada Apenas Desce (Buraco)
+  </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item" onclick="setShapeTrigger('elevator-auto')">
+    <i class="bi bi-lightning-fill"></i> Elevador Automático
+  </div>
+  <div class="context-menu-item" onclick="setShapeTrigger('elevator-manual')">
+    <i class="bi bi-pc-display"></i> Elevador Manual
+  </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item" onclick="setShapeTrigger(null)">
+    <i class="bi bi-slash-circle"></i> Remover Gatilho
+  </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item" onclick="converterFormaEmParedes()">
+    <i class="bi bi-bricks"></i> Converter em Paredes
+  </div>
+  <div class="context-menu-item" onclick="aplicarNevoaForma(true)">
+    <i class="bi bi-eye"></i> Revelar Névoa na Área
+  </div>
+  <div class="context-menu-item" onclick="aplicarNevoaForma(false)">
+    <i class="bi bi-eye-slash"></i> Ocultar Névoa na Área
+  </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item text-danger" onclick="contextDeleteShape()">
+    <i class="bi bi-trash-fill"></i> Apagar Desenho
+  </div>
+</div>
+
+<!-- Custom Context Menu for Walls -->
+<div id="wallContextMenu" class="context-menu" style="display:none; position:fixed; z-index:1000;">
+  <div class="context-menu-item" onclick="setWallTypeAction('normal')">
+    <i class="bi bi-bricks"></i> Parede Normal
+  </div>
+  <div class="context-menu-item" onclick="setWallTypeAction('invisible')">
+    <i class="bi bi-ghost"></i> Parede Invisível
+  </div>
+  <div class="context-menu-item" onclick="setWallTypeAction('door')">
+    <i class="bi bi-door-closed"></i> Porta
+  </div>
+  <div class="context-menu-item" onclick="setWallTypeAction('window')">
+    <i class="bi bi-window"></i> Janela
+  </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item" id="ctxWallToggleState" onclick="toggleSelectedWallState()">
+    <i class="bi bi-unlock"></i> Alternar Aberta/Fechada
+  </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item text-danger" onclick="contextDeleteWall()">
+    <i class="bi bi-trash-fill"></i> Apagar Parede
+  </div>
+</div>
+
+<!-- Modal de Escolha de Andar (Escada/Elevador) -->
+<div id="stairModal" class="modal-overlay" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div class="parchment-modal" style="width:320px; padding:1.8rem; text-align:center; background:var(--parch2); border:2px solid var(--border-bright); border-radius:6px; box-shadow:0 10px 30px rgba(0,0,0,0.7); color:var(--text); font-family:'Cinzel', serif;">
+    <h3 id="stairModalTitle" style="margin-bottom:1rem; font-size:1.4rem; border-bottom:1px solid rgba(139,107,62,0.3); padding-bottom:0.5rem; color:var(--gold-bright);">Escada / Elevador</h3>
+    <p id="stairModalText" style="font-size:0.85rem; margin-bottom:1.8rem; font-family:'Outfit', sans-serif; color:var(--text-dim);">Escolha o que deseja fazer:</p>
+    <div id="stairModalButtons" style="display:flex; flex-direction:column; gap:0.6rem;">
+      <!-- botões dinâmicos -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Configuração do Grid e Mapa -->
+<div id="gridConfigModal" class="modal-overlay" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div class="parchment-modal" style="width:360px; padding:1.8rem; background:var(--parch2); border:2px solid var(--border-bright); border-radius:6px; box-shadow:0 10px 30px rgba(0,0,0,0.7); color:var(--text); font-family:'Cinzel', serif;">
+    <h3 style="margin-bottom:1.8rem; font-size:1.3rem; border-bottom:1px solid rgba(139,107,62,0.3); padding-bottom:0.5rem; color:var(--gold-bright); text-align:center;">Configurar Grid e Mapa</h3>
+    
+    <div style="display:flex; flex-direction:column; gap:0.9rem; text-align:left; font-family:'Crimson Text', serif; font-size:0.95rem;">
+      
+      <!-- Tamanho do Grid -->
+      <div style="display:flex; gap:0.6rem;">
+        <div style="flex:1;">
+          <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Largura (X)</label>
+          <input type="number" id="gcGridCols" min="5" max="200" value="30" style="padding:0.4rem; font-size:0.85rem;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Altura (Y)</label>
+          <input type="number" id="gcGridRows" min="5" max="200" value="30" style="padding:0.4rem; font-size:0.85rem;">
+        </div>
+      </div>
+      
+      <!-- Escala -->
+      <div style="display:flex; gap:0.6rem;">
+        <div style="flex:1;">
+          <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Medida/Célula</label>
+          <input type="number" id="gcScaleVal" min="0.1" max="999" step="0.1" value="1.5" style="padding:0.4rem; font-size:0.85rem;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Unidade</label>
+          <input type="text" id="gcScaleUnit" value="m" placeholder="m, ft..." style="padding:0.4rem; font-size:0.85rem;">
+        </div>
+      </div>
+      
+      <!-- Tipo de Grid -->
+      <div>
+        <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Tipo de Grade</label>
+        <select id="gcGridType" style="background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.4rem; font-size:0.85rem;">
+          <option value="square">Quadrada</option>
+          <option value="hex">Hexagonal</option>
+        </select>
+      </div>
+      
+      <!-- Iluminação -->
+      <div>
+        <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Iluminação Ambiente</label>
+        <select id="gcLightingType" style="background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.4rem; font-size:0.85rem;">
+          <option value="sunny">Ensolarado (Dia)</option>
+          <option value="cloudy">Nublado</option>
+          <option value="twilight">Crepúsculo</option>
+          <option value="night">Noite</option>
+          <option value="cave">Caverna (Escuro)</option>
+        </select>
+      </div>
+      
+    </div>
+    
+    <div style="display:flex; gap:0.5rem; justify-content:center; margin-top:1.8rem;">
+      <button class="btn btn-gold" onclick="salvarConfigGrid()">Salvar</button>
+      <button class="btn" onclick="fecharConfigGrid()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ DADOS DO ARSENAL ═══════════════════════ -->
+<script src="../ameacas/ameacas_db.js"></script>
+<script src="../itens/data/armas.js"></script>
+<script src="../itens/data/armaduras.js"></script>
+<script src="../itens/data/modificacoes.js"></script>
+<script src="../itens/data/encantamentos.js"></script>
+<script src="../itens/data/itens.js"></script>
+<script src="../itens/data/itensmagicos.js"></script>
+<script src="../itens/data/maldicao.js"></script>
+<script src="../grimorio/spells_db.js"></script>
+<script src="../poderes/js/data.js"></script>
+<script src="../poderes/js/origens.js"></script>
+<script src="../poderes/js/distincoes-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

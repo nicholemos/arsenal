@@ -17,7 +17,7 @@
 <!-- ═══════════════════════ LOBBY ═══════════════════════ -->
 <div id="lobby">
   <div class="hub-top-bar">
-    <a href="../index.html" class="hub-btn" title="Voltar ao Hub">🏰 Hub</a>
+    <a href="../index.html" class="hub-btn" title="Arsenal do Mestre">🏠 Hub</a>
 </div>
 <div class="logo">
     <div class="logo-rune">⚔ Arsenal VTT</div>
@@ -144,7 +144,9 @@
             <input type="color" id="shapeColorPicker" value="#c9903a" onchange="setShapeColor(this.value)" title="Cor da forma" style="display:none; width:100%; height:1.8rem; margin-top:0.2rem; padding:1px; border:1px solid var(--border); border-radius:3px; background:var(--parch3); cursor:pointer;">
           </div>
 
-          <!-- Camadas (Mestre) -->
+
+
+  <!-- Chat Blind Toggle (Mestre) -->
           <div class="tool-group" id="layerGroup">
             <div class="tool-section-label" id="layerLabel" style="display:none;">Camada</div>
             <div id="layerSep" style="display:none;"></div>
@@ -648,10 +650,25 @@
       </div>
 
       <!-- Barra de Macros Flutuante -->
-      <div id="macro-bar-container" class="macro-bar-floating">
-        <div id="macro-buttons-list" style="display: flex; gap: 0.5rem; align-items: center;"></div>
-        <button class="macro-config-btn" onclick="abrirConfigMacros()" title="Configurar Macros">
-          <i class="bi bi-gear-fill"></i>
+      <div id="macro-bar-container" class="macro-bar-floating" style="display:flex; gap:0.5rem; align-items:flex-end;">
+        <div id="token-actions-container" style="display:none; gap:0.5rem;">
+          <button id="token-attacks-btn" class="macro-btn" style="width:42px; height:42px; background:var(--danger); color:#fff; border:2px solid #8b0000; flex-direction:column; justify-content:center; align-items:center;" title="Rolar Ataque do Token" onclick="abrirSeletorAtaquesToken()">
+            <i class="bi bi-crosshair" style="font-size:1.2rem; margin-top:-2px;"></i>
+            <span style="font-size:0.45rem; font-weight:bold;">ATAQUE</span>
+          </button>
+          <button id="token-skills-btn" class="macro-btn" style="width:42px; height:42px; background:var(--gold); color:#000; border:2px solid #b8860b; flex-direction:column; justify-content:center; align-items:center;" title="Rolar Perícia do Token" onclick="abrirSeletorPericiasToken()">
+            <i class="bi bi-dice-d20" style="font-size:1.2rem; margin-top:-2px;"></i>
+            <span style="font-size:0.45rem; font-weight:bold;">PERÍCIAS</span>
+          </button>
+          <button id="token-spells-btn" class="macro-btn" style="width:42px; height:42px; background:#6a0dad; color:#fff; border:2px solid #8a2be2; flex-direction:column; justify-content:center; align-items:center;" title="Ver Magias do Token" onclick="abrirSeletorMagiasToken()">
+            <i class="bi bi-stars" style="font-size:1.2rem; margin-top:-2px;"></i>
+            <span style="font-size:0.45rem; font-weight:bold;">MAGIAS</span>
+          </button>
+        </div>
+        <div id="macro-buttons-list" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; max-width: 260px; justify-content: center;"></div>
+        <button id="token-delete-btn" class="macro-btn" style="width:42px; height:42px; background:#500; color:#ff6b6b; border:2px solid #8b0000; flex-direction:column; justify-content:center; align-items:center; display:none;" title="Deletar Token/Objeto Selecionado" onclick="deletarTokenSelecionado()">
+          <i class="bi bi-trash-fill" style="font-size:1.2rem; margin-top:-2px;"></i>
+          <span style="font-size:0.45rem; font-weight:bold;">DEL</span>
         </button>
       </div>
 
@@ -1005,17 +1022,14 @@
 
 <!-- Modal de Configuração de Macros -->
 <div id="macroConfigModal">
-  <div class="macro-modal-content">
+  <div class="macro-modal-content" style="max-width: 400px;">
     <div class="macro-modal-header">
-      <h3>Configurar Macros</h3>
+      <h3 id="macro-modal-title">Configurar Macro</h3>
       <button class="btn btn-sm" onclick="fecharConfigMacros()" style="padding: 0.1rem 0.4rem;">✕</button>
     </div>
     <div class="macro-modal-body">
-      <div class="macro-list-container" id="macro-list-container">
-        <!-- Lista de macros inserida dinamicamente -->
-      </div>
       <div class="macro-form">
-        <div class="macro-form-title">Criar Nova Macro</div>
+        <input type="hidden" id="macro-edit-index">
         <div class="form-group">
           <label>Nome do Botão</label>
           <input type="text" id="macro-new-name" placeholder="Ex: Iniciativa, Bola de Fogo" maxlength="20">
@@ -1024,11 +1038,11 @@
           <label>Comando / Mensagem</label>
           <textarea id="macro-new-command" rows="3" placeholder="Ex: /r d20+5 ou descrição longa da magia" maxlength="4000" style="resize: vertical; min-height: 60px; font-family: inherit;"></textarea>
         </div>
-        <button class="btn btn-gold btn-sm" onclick="adicionarMacro()">+ Adicionar à Barra</button>
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+          <button class="btn btn-gold btn-sm" style="flex: 1;" onclick="salvarEdicaoMacro()">💾 Salvar</button>
+          <button class="btn btn-outline-danger btn-sm" id="macro-delete-btn" style="flex: 1; display: none;" onclick="limparMacroSlot()">🗑 Limpar Slot</button>
+        </div>
       </div>
-    </div>
-    <div class="macro-modal-footer">
-      <button class="btn btn-sm btn-primary" onclick="fecharConfigMacros()">Fechar</button>
     </div>
   </div>
 </div>
@@ -1096,6 +1110,10 @@
   </div>
   <div class="context-menu-item" id="ctxCfgZDesA" onclick="contextDescerAndar()">
     <i class="bi bi-chevron-double-down"></i> Descer Andar (-10 Z)
+  </div>
+  <div class="context-menu-item has-submenu" id="ctxVincularFicha" style="display:none;">
+    <i class="bi bi-link-45deg"></i> Vincular Ficha
+    <div class="context-submenu" id="ctxVincularFichaSubmenu" style="max-height: 250px; overflow-y: auto;"></div>
   </div>
   <div class="context-menu-item" id="ctxViewFicha" onclick="contextViewFicha()" style="display:none;">
     <i class="bi bi-person-lines-fill"></i> Ver Ficha
@@ -1565,5 +1583,40 @@
 <script src="../poderes/js/origens.js"></script>
 <script src="../poderes/js/distincoes-data.js"></script>
 <script src="app.js"></script>
+  <!-- Modal: Seletor de Perícias do Token -->
+  <div id="seletorPericiasModal" class="modal" style="display:none;" onclick="if(event.target===this) fecharSeletorPericiasToken()">
+    <div class="modal-content" style="max-width:350px; padding:0; border:2px solid var(--gold); border-radius:8px; background:var(--parch2); overflow:hidden;">
+      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid var(--gold); position:relative;">
+        <h3 style="margin:0; font-family:'Cinzel', serif; color:var(--gold); font-size:1.1rem;" id="seletorPericiasTitle">Perícias</h3>
+        <button onclick="fecharSeletorPericiasToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
+      </div>
+      <div id="seletorPericiasList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Seletor de Ataques do Token -->
+  <div id="seletorAtaquesModal" class="modal" onclick="if(event.target===this) fecharSeletorAtaquesToken()">
+    <div class="modal-content" style="max-width:400px; padding:0; border:2px solid #8b0000; border-radius:8px; background:var(--parch2); overflow:hidden;">
+      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #8b0000;">
+        <h3 style="margin:0; font-family:'Cinzel', serif; color:#ff4d4d; font-size:1.1rem;" id="seletorAtaquesTitle">Ataques</h3>
+      </div>
+      <div id="seletorAtaquesList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Seletor de Magias do Token -->
+  <div id="seletorMagiasModal" class="modal" onclick="if(event.target===this) fecharSeletorMagiasToken()">
+    <div class="modal-content" style="max-width:420px; padding:0; border:2px solid #8a2be2; border-radius:8px; background:var(--parch2); overflow:hidden;">
+      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #8a2be2; position:relative;">
+        <h3 style="margin:0; font-family:'Cinzel', serif; color:#b388ff; font-size:1.1rem;" id="seletorMagiasTitle">Magias</h3>
+        <button onclick="fecharSeletorMagiasToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
+      </div>
+      <div id="seletorMagiasList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

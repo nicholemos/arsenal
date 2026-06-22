@@ -278,6 +278,27 @@
         }
         .icon-btn:hover { background: rgba(200,150,50,0.16); color: var(--gold); border-color: rgba(200,150,50,0.45); box-shadow: 0 0 10px rgba(200,150,50,0.25); }
 
+        .header-home-btn {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--card-border);
+            color: var(--gold);
+            font-size: 0.9rem;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-family: 'EB Garamond', Georgia, serif;
+        }
+        .header-home-btn:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px var(--glow);
+        }
+
         /* Ornament divider */
         .ornament {
             position: relative; z-index: 10; width: 100%; max-width: 440px;
@@ -719,7 +740,7 @@
 <header>
     <div class="app-title">Dice Roller</div>
     <div class="header-buttons">
-        <a href="../index.html" class="icon-btn" title="Arsenal do Mestre" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-size:1.1rem;">🏠</a>
+        <a href="../index.html" class="header-home-btn" title="Arsenal do Mestre">🏠 Hub</a>
         <!-- Theme Switcher -->
         <div class="theme-switcher" id="theme-switcher">
             <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
