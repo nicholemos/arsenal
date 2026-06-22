@@ -118,28 +118,28 @@ select:focus {
     gap: 6px;
 }
 
-.header-btn {
-    background: rgba(255, 255, 255, 0.06);
+.header-home-btn {
+    background: rgba(0, 0, 0, 0.15);
     border: 1px solid var(--border-color);
-    color: var(--primary-text);
-    width: 38px;
-    height: 38px;
-    padding: 0;
+    color: var(--accent-color);
+    padding: 7px 12px;
     border-radius: 8px;
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    gap: 5px;
+    font-size: 0.9rem;
     font-weight: 600;
     transition: all 0.25s ease;
-    font-family: var(--font-main);
+    font-family: var(--font-title);
 }
-.header-btn:hover {
+.header-home-btn:hover {
     border-color: var(--accent-color);
     color: var(--accent-color);
-    transform: scale(1.08);
+    box-shadow: 0 0 10px rgba(204, 13, 13, 0.35);
+    transform: translateY(-2px);
 }
 
 .btn-save {
