@@ -2562,7 +2562,8 @@ function criarTokenDaFicha() {
           pmMax: ficha.pmM,
           defense: ficha.defenseTotal,
           imageUrl: ficha.imageUrl || ficha.fullData?.charImage || '',
-          controlledBy: null
+          controlledBy: null,
+          masterFichaId: ficha.id
         });
       } else {
         toast('Ficha do mestre não encontrada.');
@@ -2645,6 +2646,7 @@ function adicionarTokenAutomatico(opts) {
     color: '#c9903a',
     imageUrl: opts.imageUrl || '',
     controlledBy: opts.controlledBy || null,
+    masterFichaId: opts.masterFichaId || null,
     layer: opts.controlledBy ? 'players' : (BOARD.activeLayer || 'gm'),
     z: (BOARD.activeFloor || 0) * 10,
     visionType: opts.visionType || 'normal',
@@ -6584,6 +6586,12 @@ function onBoardDblClick(e) {
     return;
   }
 
+  // Se token tem ficha do mestre vinculada, abre (somente mestre)
+  if (token.masterFichaId && myRole === 'mestre') {
+    abrirFichaMestre(token.masterFichaId);
+    return;
+  }
+
   // Se token tem ficha de jogador vinculada, abre
   if (token.controlledBy) {
     if (myRole === 'mestre') {
@@ -6956,7 +6964,9 @@ function contextViewFicha() {
   } else {
     // Mestre: tenta abrir a ficha do jogador dono do token
     const token = BOARD.tokens.find(t => t.id === contextTokenId);
-    if (token && token.controlledBy && fichasJogadores[token.controlledBy]) {
+    if (token && token.masterFichaId) {
+      abrirFichaMestre(token.masterFichaId);
+    } else if (token && token.controlledBy && fichasJogadores[token.controlledBy]) {
       abrirFichaJogador(token.controlledBy);
     } else {
       toast('Nenhuma ficha vinculada a este token.');
