@@ -319,69 +319,13 @@ function clearInventory() {
 const FILTERS_KEY = 't20_item_filters_v1';
 
 function saveFilters() {
-    try {
-        localStorage.setItem(FILTERS_KEY, JSON.stringify({
-            category: currentCategory,
-            search: searchTerm,
-            sort: currentSort,
-            source: currentSource,
-            empunhadura: currentEmpunhadura,
-            view: currentView
-        }));
-    } catch(e) { /* silent */ }
+    // Desativado por solicitação do usuário - não salva mais os filtros
 }
 
 function restoreFilters() {
+    // Desativado por solicitação do usuário - não restaura mais os filtros
     try {
-        const saved = localStorage.getItem(FILTERS_KEY);
-        if (!saved) return;
-        const f = JSON.parse(saved);
-
-        // Categoria
-        if (f.category) {
-            currentCategory = f.category;
-            const catBtn = document.querySelector(`[data-category="${f.category}"]`);
-            if (catBtn) {
-                document.querySelectorAll('.filter-btn[data-category]').forEach(b => b.classList.remove('active'));
-                catBtn.classList.add('active');
-            }
-            // Exibe/oculta filtro de empunhadura
-            const empContainer = document.getElementById('empunhaduraFilters');
-            if (empContainer) empContainer.style.display = f.category === 'Arma' ? 'flex' : 'none';
-        }
-
-        // Busca
-        if (f.search) {
-            searchTerm = f.search;
-            if (searchInput) searchInput.value = f.search;
-        }
-
-        // Ordenação
-        if (f.sort) {
-            currentSort = f.sort;
-            if (sortSelect) sortSelect.value = f.sort;
-        }
-
-        // Fonte
-        if (f.source) {
-            currentSource = f.source;
-            if (sourceFilterSelect) sourceFilterSelect.value = f.source;
-        }
-
-        // Empunhadura
-        if (f.empunhadura && f.empunhadura !== 'todas') {
-            currentEmpunhadura = f.empunhadura;
-            const empBtn = document.querySelector(`[data-empunhadura="${f.empunhadura}"]`);
-            if (empBtn) {
-                document.querySelectorAll('[data-empunhadura]').forEach(b => b.classList.remove('active'));
-                empBtn.classList.add('active');
-            }
-        }
-
-        // View
-        if (f.view) {
-            currentView = f.view;
-        }
+        localStorage.removeItem(FILTERS_KEY);
     } catch(e) { /* silent */ }
 }
 
@@ -715,7 +659,8 @@ function isVestido(item) {
             "Olho Desintegrador",
             "Olho Petrificante",
             "Patas de Aranha",
-            "Tentáculo com Garras"
+            "Tentáculo com Garras",
+            "Chave Mestra"
             // Adicione aqui outros itens (Ex: "Bolsa de Carga", "Manual do Bom Exercício")
         ];
 
