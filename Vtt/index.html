@@ -71,6 +71,7 @@
       <!-- Botões de Salvar/Carregar Mesa (Mestre) -->
       <button class="btn btn-sm" id="btn-exportar-mesa" onclick="exportarMesa()" title="Salvar Mesa (Exportar JSON)" style="display:none; padding: 0.18rem 0.55rem; font-size: 0.75rem;">💾 Salvar</button>
       <button class="btn btn-sm" id="btn-importar-mesa" onclick="document.getElementById('importar-mesa-file').click()" title="Resgatar Mesa (Importar JSON)" style="display:none; padding: 0.18rem 0.55rem; font-size: 0.75rem;">📂 Resgatar</button>
+      <button class="btn btn-sm btn-gold" onclick="abrirJukebox()" title="Jukebox — soundboard e música ambiente" style="padding: 0.18rem 0.55rem; font-size: 0.75rem;">🎵 Jukebox</button>
       <input type="file" id="importar-mesa-file" accept=".json" style="display:none;" onchange="importarMesa(event)">
       <span class="role-badge" id="role-badge" onclick="toggleLocalRole()" style="cursor: pointer;" title="Clique para alternar entre Mestre e Jogador">—</span>
       <button class="btn btn-sm" onclick="convidarJogador()" id="btn-convidar">Convidar</button>
@@ -132,15 +133,30 @@
               <button class="tool-btn" id="btnFogShape" onclick="toggleFogShape()" title="Alternar forma do pincel de névoa (pincel / seleção)">🖌 Pincel</button>
               <button class="tool-btn" id="btnSeguirToken" onclick="toggleSeguirTokenUI()" title="Seguir token selecionado ao mover">🎯 Seguir</button>
             </div>
+            <div class="tool-row-weather" style="margin-top:0.2rem;display:flex;gap:0.3rem;flex-wrap:wrap;align-items:center;">
+              <span style="font-size:0.6rem;color:var(--text-dim);white-space:nowrap;">🌤 Clima</span>
+              <select id="weatherSelect" onchange="setWeather(this.value)" style="flex:1;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.72rem;padding:0.2rem 0.3rem;border-radius:3px;outline:none;font-family:'Cinzel',serif;min-width:90px;">
+                <option value="sun">☀️ Sol</option>
+                <option value="rain">🌧 Chuva</option>
+                <option value="snow">❄️ Neve</option>
+                <option value="night">🌙 Noite</option>
+              </select>
+            </div>
             <div class="tool-row-3">
               <button class="tool-btn" id="toolShapeRect" onclick="setTool('shape-rect')" title="Desenhar retângulo (Shift = quadrado perfeito)">▭ Ret</button>
               <button class="tool-btn" id="toolShapeCircle" onclick="setTool('shape-circle')" title="Desenhar círculo (Shift = círculo perfeito)">⬤ Circ</button>
               <button class="tool-btn" id="toolShapeFreehand" onclick="setTool('shape-freehand')" title="Desenhar forma livre">✏ Livre</button>
             </div>
-            <div class="tool-row-2">
+            <div class="tool-row-3">
               <button class="tool-btn" id="toolRuler" onclick="setTool('ruler')" title="Medir distâncias">📏 Régua</button>
               <button class="tool-btn" id="toolCircleRuler" onclick="setTool('circle-ruler')" title="Medir raio">⭕ Raio</button>
+              <button class="tool-btn" id="toolWayRuler" onclick="setTool('way-ruler')" title="Régua com caminhos (múltiplos pontos, Enter=finalizar)">🗺 Caminho</button>
             </div>
+            <select id="distanceModeSelect" onchange="setDistanceMode(this.value)" style="display:none; background:var(--parch3); border:1px solid var(--border); color:var(--text); font-size:0.75rem; padding:0.2rem 0.4rem; border-radius:3px; outline:none; font-family:'Cinzel', serif; width: 100%; margin-top: 0.2rem;">
+              <option value="euclidean">📏 Distância Livre</option>
+              <option value="square" selected>🔲 Dist. por Quadrados</option>
+              <option value="double_diagonal">✖ Diagonais x2</option>
+            </select>
             <input type="color" id="shapeColorPicker" value="#c9903a" onchange="setShapeColor(this.value)" title="Cor da forma" style="display:none; width:100%; height:1.8rem; margin-top:0.2rem; padding:1px; border:1px solid var(--border); border-radius:3px; background:var(--parch3); cursor:pointer;">
           </div>
 
@@ -177,7 +193,6 @@
             </div>
             <div class="tool-row-4">
               <button class="tool-btn" id="btnBuscarImagens" onclick="abrirBuscaUnsplash()" title="Buscar imagens">🔍 Img</button>
-              <button class="tool-btn" id="btnBuscarAudios" onclick="abrirBuscaAudios()" title="Buscar sons">🔊 Som</button>
               <button class="tool-btn" id="btnEditarImagem" onclick="abrirEditorImagemGeral()" title="Editor de Imagem">🎨 Edit</button>
               <button class="tool-btn" id="btnAddToken" onclick="abrirFormToken()" title="Adicionar token">+ Tok</button>
             </div>
@@ -251,7 +266,7 @@
             <button class="btn btn-sm" style="font-size:0.65rem;padding:0.2rem 0.5rem;" onclick="toggleFichaPanel()">Fechar</button>
           </div>
         </div>
-        <iframe id="ficha-iframe" class="ficha-iframe" src="" title="Ficha do Personagem" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+        <iframe id="ficha-iframe" class="ficha-iframe" src="" title="Ficha do Personagem"></iframe>
       </div>
 
       <!-- Painel Mestre: Encontros + Combate (apenas para o mestre) -->
@@ -650,26 +665,33 @@
       </div>
 
       <!-- Barra de Macros Flutuante -->
-      <div id="macro-bar-container" class="macro-bar-floating" style="display:flex; gap:0.5rem; align-items:flex-end;">
-        <div id="token-actions-container" style="display:none; gap:0.5rem;">
-          <button id="token-attacks-btn" class="macro-btn" style="width:42px; height:42px; background:var(--danger); color:#fff; border:2px solid #8b0000; flex-direction:column; justify-content:center; align-items:center;" title="Rolar Ataque do Token" onclick="abrirSeletorAtaquesToken()">
+      <div id="macro-bar-container" class="macro-bar-floating" style="display:flex; flex-direction:row; gap:0.2rem; align-items:flex-start;">
+        <button id="macro-collapse-toggle" onclick="toggleMacroBar()" title="Recolher/Expandir barra de macros" style="pointer-events:auto;background:rgba(34,28,22,0.85);border:1px solid var(--border);color:var(--text-dim);border-radius:3px;width:18px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.6rem;flex-shrink:0;transition:all 0.15s;padding:0;line-height:1;" onmouseover="this.style.color='var(--gold-light)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border)'">❮</button>
+        <div id="macro-collapsible-content" style="display:flex; flex-direction:column; gap:0.3rem; align-items:flex-start;">
+        <div id="macro-token-row" style="display:flex; gap:0.5rem; align-items:center; pointer-events:auto;">
+          <button id="token-attacks-btn" class="macro-btn" style="display:none; width:42px; height:42px; background:var(--danger); color:#fff; border:2px solid #8b0000; flex-direction:column; justify-content:center; align-items:center;" title="Rolar Ataque do Token" onclick="abrirSeletorAtaquesToken()">
             <i class="bi bi-crosshair" style="font-size:1.2rem; margin-top:-2px;"></i>
-            <span style="font-size:0.45rem; font-weight:bold;">ATAQUE</span>
+            <span style="font-size:0.5rem; font-weight:bold;">ATAQUES</span>
           </button>
-          <button id="token-skills-btn" class="macro-btn" style="width:42px; height:42px; background:var(--gold); color:#000; border:2px solid #b8860b; flex-direction:column; justify-content:center; align-items:center;" title="Rolar Perícia do Token" onclick="abrirSeletorPericiasToken()">
+          <button id="token-skills-btn" class="macro-btn" style="display:none; width:42px; height:42px; background:var(--gold); color:#000; border:2px solid #b8860b; flex-direction:column; justify-content:center; align-items:center;" title="Rolar Perícia do Token" onclick="abrirSeletorPericiasToken()">
             <i class="bi bi-dice-d20" style="font-size:1.2rem; margin-top:-2px;"></i>
-            <span style="font-size:0.45rem; font-weight:bold;">PERÍCIAS</span>
+            <span style="font-size:0.5rem; font-weight:bold;">PERÍCIAS</span>
           </button>
-          <button id="token-spells-btn" class="macro-btn" style="width:42px; height:42px; background:#6a0dad; color:#fff; border:2px solid #8a2be2; flex-direction:column; justify-content:center; align-items:center;" title="Ver Magias do Token" onclick="abrirSeletorMagiasToken()">
+          <button id="token-magias-btn" class="macro-btn" style="display:none; width:42px; height:42px; background:#6f42c1; color:#fff; border:2px solid #5a32a3; flex-direction:column; justify-content:center; align-items:center;" title="Exibir Magia do Token" onclick="abrirSeletorMagiasToken()">
             <i class="bi bi-stars" style="font-size:1.2rem; margin-top:-2px;"></i>
-            <span style="font-size:0.45rem; font-weight:bold;">MAGIAS</span>
+            <span style="font-size:0.5rem; font-weight:bold;">MAGIAS</span>
           </button>
         </div>
-        <div id="macro-buttons-list" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; max-width: 260px; justify-content: center;"></div>
-        <button id="token-delete-btn" class="macro-btn" style="width:42px; height:42px; background:#500; color:#ff6b6b; border:2px solid #8b0000; flex-direction:column; justify-content:center; align-items:center; display:none;" title="Deletar Token/Objeto Selecionado" onclick="deletarTokenSelecionado()">
-          <i class="bi bi-trash-fill" style="font-size:1.2rem; margin-top:-2px;"></i>
-          <span style="font-size:0.45rem; font-weight:bold;">DEL</span>
-        </button>
+        <div style="display:flex; gap:0.5rem; align-items:center; pointer-events:auto;">
+          <div id="macro-nav" style="display:flex; gap:0.15rem; align-items:center; pointer-events:auto;">
+            <button id="macro-prev" class="macro-nav-btn" onclick="macroPagePrev()" title="Página anterior">◀</button>
+            <span id="macro-page-indicator" style="font-size:0.6rem;color:var(--text-dim);white-space:nowrap;min-width:28px;text-align:center;">1/1</span>
+            <button id="macro-next" class="macro-nav-btn" onclick="macroPageNext()" title="Próxima página">▶</button>
+            <button id="macro-add-btn" class="macro-nav-btn" onclick="macroAddSlot()" title="Adicionar novo slot de macro" style="color:var(--gold);font-weight:bold;">+</button>
+          </div>
+          <div id="macro-buttons-list" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; max-width: 280px; justify-content: center;"></div>
+        </div>
+        </div>
       </div>
 
       <!-- Pergaminhos (jogadores) -->
@@ -693,6 +715,7 @@
     <button class="tool-btn" id="mobToolRect" onclick="setTool('shape-rect')" title="Retângulo">▭</button>
     <button class="tool-btn" id="mobToolCircle" onclick="setTool('shape-circle')" title="Círculo">⬤</button>
     <button class="tool-btn" id="mobToolRuler" onclick="setTool('ruler')" title="Régua">📏</button>
+    <button class="tool-btn" id="mobToolWayRuler" onclick="setTool('way-ruler')" title="Caminho">🗺</button>
     <button class="tool-btn mob-ficha-btn" onclick="toggleFichaPanel()" title="Ficha">📋</button>
     <button class="tool-btn" id="mobMenuBtn" onclick="toggleMobileMenu()" title="Mais">⋯</button>
   </div>
@@ -712,7 +735,6 @@
         <button class="tool-btn" onclick="fecharMobileMenu();abrirFormToken()">+ Token</button>
         <button class="tool-btn" onclick="fecharMobileMenu();toggleFichaPanel()">📋 Ficha</button>
         <button class="tool-btn" onclick="fecharMobileMenu();abrirBuscaImagens()">🔍 Img</button>
-        <button class="tool-btn" onclick="fecharMobileMenu();abrirBuscaAudios()">🔊 Som</button>
         <button class="tool-btn" onclick="fecharMobileMenu();abrirDiarioMobile()">📜 Diário</button>
         <button class="tool-btn" onclick="fecharMobileMenu();toggleChatMobile()">💬 Chat</button>
         <button class="tool-btn" id="mobNotasBtn" onclick="fecharMobileMenu();toggleNotasPlayer()" style="display:none;">📜 Notas</button>
@@ -1099,24 +1121,18 @@
     <div class="context-submenu" id="ctxCondSubmenu"></div>
   </div>
   <div class="context-menu-divider" id="ctxDiv1"></div>
-  <div class="context-menu-item" id="ctxCfgZ" onclick="contextSubirToken()">
-    <i class="bi bi-arrow-up-short"></i> Subir (Z+)
-  </div>
-  <div class="context-menu-item" id="ctxCfgZDes" onclick="contextDescerToken()">
-    <i class="bi bi-arrow-down-short"></i> Descer (Z−)
-  </div>
-  <div class="context-menu-item" id="ctxCfgZSubA" onclick="contextSubirAndar()">
-    <i class="bi bi-chevron-double-up"></i> Subir Andar (+10 Z)
-  </div>
-  <div class="context-menu-item" id="ctxCfgZDesA" onclick="contextDescerAndar()">
-    <i class="bi bi-chevron-double-down"></i> Descer Andar (-10 Z)
+  <div class="context-menu-item has-submenu" id="ctxAlturaMenu">
+    <i class="bi bi-bar-chart-steps"></i> Altura
+    <div class="context-submenu" id="ctxAlturaSubmenu">
+      <div class="context-menu-item" onclick="contextSubirToken()"><i class="bi bi-arrow-up-short"></i> Subir (Z+1)</div>
+      <div class="context-menu-item" onclick="contextDescerToken()"><i class="bi bi-arrow-down-short"></i> Descer (Z−1)</div>
+      <div class="context-menu-item" onclick="contextSubirAndar()"><i class="bi bi-chevron-double-up"></i> Subir Andar (+10 Z)</div>
+      <div class="context-menu-item" onclick="contextDescerAndar()"><i class="bi bi-chevron-double-down"></i> Descer Andar (-10 Z)</div>
+    </div>
   </div>
   <div class="context-menu-item has-submenu" id="ctxVincularFicha" style="display:none;">
     <i class="bi bi-link-45deg"></i> Vincular Ficha
     <div class="context-submenu" id="ctxVincularFichaSubmenu" style="max-height: 250px; overflow-y: auto;"></div>
-  </div>
-  <div class="context-menu-item" id="ctxViewFicha" onclick="contextViewFicha()" style="display:none;">
-    <i class="bi bi-person-lines-fill"></i> Ver Ficha
   </div>
   <div class="context-menu-item" id="ctxToggleLock" onclick="contextToggleLock()">
     <i class="bi bi-lock"></i> <span id="ctxToggleLockText">Travar</span>
@@ -1538,13 +1554,23 @@
         </div>
       </div>
       
-      <!-- Tipo de Grid -->
-      <div>
-        <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Tipo de Grade</label>
-        <select id="gcGridType" style="background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.4rem; font-size:0.85rem;">
-          <option value="square">Quadrada</option>
-          <option value="hex">Hexagonal</option>
-        </select>
+      <!-- Tipo de Grid e Distância -->
+      <div style="display:flex; gap:0.6rem;">
+        <div style="flex:1;">
+          <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Tipo de Grade</label>
+          <select id="gcGridType" style="background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.4rem; font-size:0.85rem; width:100%;">
+            <option value="square">Quadrada</option>
+            <option value="hex">Hexagonal</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-dim); display:block; margin-bottom:0.2rem;">Distância (Movimento)</label>
+          <select id="gcDistanceMode" style="background:var(--parch3); border:1px solid var(--border); color:var(--text); padding:0.4rem; font-size:0.85rem; width:100%;">
+            <option value="euclidean">Livre (Reta)</option>
+            <option value="square">Quadrados</option>
+            <option value="double_diagonal">Diagonal x2</option>
+          </select>
+        </div>
       </div>
       
       <!-- Iluminação -->
@@ -1596,21 +1622,23 @@
   </div>
 
   <!-- Modal: Seletor de Ataques do Token -->
-  <div id="seletorAtaquesModal" class="modal" onclick="if(event.target===this) fecharSeletorAtaquesToken()">
-    <div class="modal-content" style="max-width:400px; padding:0; border:2px solid #8b0000; border-radius:8px; background:var(--parch2); overflow:hidden;">
-      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #8b0000;">
+  <div id="seletorAtaquesModal" class="modal" style="display:none;" onclick="if(event.target===this) fecharSeletorAtaquesToken()">
+    <div class="modal-content" style="max-width:420px; padding:0; border:2px solid #8b0000; border-radius:8px; background:var(--parch2); overflow:hidden;">
+      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #8b0000; position:relative;">
         <h3 style="margin:0; font-family:'Cinzel', serif; color:#ff4d4d; font-size:1.1rem;" id="seletorAtaquesTitle">Ataques</h3>
+        <button onclick="fecharSeletorAtaquesToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
       </div>
       <div id="seletorAtaquesList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Modal: Seletor de Magias do Token -->
-  <div id="seletorMagiasModal" class="modal" onclick="if(event.target===this) fecharSeletorMagiasToken()">
-    <div class="modal-content" style="max-width:420px; padding:0; border:2px solid #8a2be2; border-radius:8px; background:var(--parch2); overflow:hidden;">
-      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #8a2be2; position:relative;">
-        <h3 style="margin:0; font-family:'Cinzel', serif; color:#b388ff; font-size:1.1rem;" id="seletorMagiasTitle">Magias</h3>
+  <div id="seletorMagiasModal" class="modal" style="display:none;" onclick="if(event.target===this) fecharSeletorMagiasToken()">
+    <div class="modal-content" style="max-width:480px; padding:0; border:2px solid #7b2d8e; border-radius:8px; background:var(--parch2); overflow:hidden;">
+      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #7b2d8e; position:relative;">
+        <h3 style="margin:0; font-family:'Cinzel', serif; color:#c77dff; font-size:1.1rem;" id="seletorMagiasTitle">Magias</h3>
         <button onclick="fecharSeletorMagiasToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
       </div>
       <div id="seletorMagiasList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">

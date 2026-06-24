@@ -888,10 +888,14 @@
       const hidden = document.body.classList.contains('hide-images');
       document.getElementById('toggleImagesIcon').textContent = hidden ? '🚫' : '👁️';
       document.getElementById('toggleImagesText').textContent = hidden ? 'Imagens' : 'Imagens';
-      localStorage.setItem('t20_hideImages', hidden ? '1' : '');
+      localStorage.setItem('t20_hideImages', hidden ? '1' : '0');
     }
     (function () {
-      if (localStorage.getItem('t20_hideImages') === '1') {
+      const saved = localStorage.getItem('t20_hideImages');
+      if (saved === '0') {
+        document.body.classList.remove('hide-images');
+        document.getElementById('toggleImagesIcon').textContent = '👁️';
+      } else {
         document.body.classList.add('hide-images');
         document.getElementById('toggleImagesIcon').textContent = '🚫';
       }

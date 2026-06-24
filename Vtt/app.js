@@ -265,10 +265,15 @@ function parseRoll(cmd) {
 
 // ─────────── Dados 3D ───────────
 function processarRolagem(text, skip3d) {
-  const m = text.toLowerCase().match(/^\/r\s+(?:(.*?)(?::|-)\s*)?(\d*)d(\d+)([+-]\d+)?$/i);
+  const m = text.toLowerCase().match(/^\/r\s+(?:(.*?)(?::|-)\s*)?(\d*)d(\d+)((?:[+-]\s*\d+)*)$/i);
   if (!m) return null;
   const label = m[1] ? m[1].trim() : '';
-  const qtd = parseInt(m[2] || '1'), faces = parseInt(m[3]), mod = parseInt(m[4] || '0');
+  const qtd = parseInt(m[2] || '1'), faces = parseInt(m[3]);
+  let mod = 0;
+  if (m[4]) {
+    const mods = m[4].replace(/\s+/g, '').match(/[+-]\d+/g) || [];
+    mod = mods.reduce((sum, val) => sum + parseInt(val), 0);
+  }
   if (qtd < 1 || qtd > 20 || faces < 2 || faces > 100) return null;
   return efetuarRolagem(faces, qtd, mod, label, 0, skip3d);
 }
@@ -2403,93 +2408,139 @@ function toggleFichaPanel() {
   }
 }
 
-// Receber mensagens da ficha (iframe postMessage)
-window.addEventListener('message', (e) => {
-  if (e.data?.type === 'ficha-update') {
-    const resumo = e.data;
+// ── Mensagens da ficha (iframe via postMessage E polling) ──
+var _fichaMsgProcessed = new Set();
+
+function _handleFichaMsg(data) {
+  if (!data || !data.type) return;
+  var id = data.__seq ? ('seq_' + data.__seq) : (data.type + '_' + Date.now());
+  if (_fichaMsgProcessed.has(id)) return;
+  _fichaMsgProcessed.add(id);
+  if (_fichaMsgProcessed.size > 1000) {
+    var arr = Array.from(_fichaMsgProcessed);
+    _fichaMsgProcessed = new Set(arr.slice(arr.length - 500));
+  }
+
+  if (data.type === 'ficha-update') {
+    var resumo = data;
     localFichaUpdateData = resumo;
-    // Atualizar status de sync se for jogador
-    const statusEl = document.getElementById('ficha-sync-status');
-    if (statusEl && myRole === 'jogador') {
-      statusEl.textContent = '✓ ' + (resumo.charName || '—');
-      statusEl.style.color = '#80c080';
+    var statusEl = document.getElementById('ficha-sync-status');
+    
+    if (statusEl) {
+      if (myRole === 'jogador') {
+        statusEl.textContent = '✓ ' + (resumo.charName || '—');
+        statusEl.style.color = '#80c080';
+      } else if (myRole === 'mestre' && currentMasterFichaId) {
+        statusEl.textContent = '✓ Salvo (' + (resumo.charName || '—') + ')';
+        statusEl.style.color = '#80c080';
+      }
     }
-    // Atualizar token local do jogador para feedback imediato
+    
+    if (myRole === 'mestre' && currentMasterFichaId) {
+      // Atualiza a ficha do mestre no localStorage
+      var fichas = getMasterFichas();
+      var f = fichas.find(function(item) { return item.id === currentMasterFichaId; });
+      if (f) {
+        f.name = resumo.charName || f.name;
+        f.fullData = resumo.fullData;
+        f.pvC = resumo.pvC;
+        f.pvM = resumo.pvM;
+        f.pmC = resumo.pmC;
+        f.pmM = resumo.pmM;
+        saveMasterFichas(fichas);
+        
+        // Atualiza os tokens dessa ficha no board
+        var tokenChanged = false;
+        BOARD.tokens.forEach(function(t) {
+          if (t.masterFichaId === currentMasterFichaId) {
+            t.hp = resumo.pvC;
+            t.hpMax = resumo.pvM;
+            tokenChanged = true;
+          }
+        });
+        if (tokenChanged) boardRender();
+      }
+    }
+
     if (myRole === 'jogador') {
-      let tokenChanged = false;
-      BOARD.tokens.forEach(t => {
+      var tokenChanged = false;
+      BOARD.tokens.forEach(function(t) {
         if (t.controlledBy === myPeerId) {
           t.hp = resumo.pvC;
           t.hpMax = resumo.pvM;
           tokenChanged = true;
         }
       });
-      if (tokenChanged) {
-        boardRender();
-      }
+      if (tokenChanged) boardRender();
     }
-    // Enviar resumo ao Mestre via P2P
     if (myRole === 'jogador') {
       fichasJogadores[myPeerId] = { playerName: myName, resumo: resumo, ts: Date.now() };
       if (amIHost) {
         receberResumoFicha({ peerId: myPeerId, playerName: myName, resumo: resumo });
       } else if (masterConn) {
-        try {
-          masterConn.send({
-            type: 'ficha-resumo',
-            peerId: myPeerId,
-            playerName: myName,
-            resumo: resumo
-          });
-        } catch (err) { }
+        try { masterConn.send({ type: 'ficha-resumo', peerId: myPeerId, playerName: myName, resumo: resumo }); } catch (err) { }
       }
     }
+    return;
   }
-  if (e.data?.type === 'ficha-ready') {
-    const statusEl = document.getElementById('ficha-sync-status');
-    if (statusEl && myRole === 'jogador') {
-      statusEl.textContent = '✓ pronta';
-      statusEl.style.color = '#80c080';
-    }
 
-    // Se for o mestre visualizando a ficha de um jogador, envia os dados assim que estiver pronta
-    if (myRole === 'mestre' && currentViewingPeerId) {
-      const entry = fichasJogadores[currentViewingPeerId];
-      if (entry && entry.resumo && entry.resumo.fullData) {
-        const iframe = document.getElementById('ficha-iframe');
-        iframe.contentWindow?.postMessage({
-          type: 'vtt-load-sheet-data',
-          data: entry.resumo.fullData,
-          readOnly: true
-        }, '*');
+  if (data.type === 'ficha-ready') {
+    var statusEl = document.getElementById('ficha-sync-status');
+    if (statusEl) {
+      if (myRole === 'jogador') {
+        statusEl.textContent = '✓ pronta';
+        statusEl.style.color = '#80c080';
       }
     }
+    if (myRole === 'mestre' && currentViewingPeerId) {
+      var entry = fichasJogadores[currentViewingPeerId];
+      if (entry && entry.resumo && entry.resumo.fullData) {
+        var iframe = document.getElementById('ficha-iframe');
+        iframe.contentWindow?.postMessage({ type: 'vtt-load-sheet-data', data: entry.resumo.fullData, readOnly: true }, '*');
+      }
+    }
+    return;
   }
-  if (e.data?.type === 'vtt-send-chat-message') {
+
+  if (data.type === 'vtt-send-chat-message') {
     if (myRole === 'expectador') { toast('Expectadores não podem enviar mensagens da ficha.'); return; }
     if (myRole === 'cego') return;
-    const msgData = {
-      type: e.data.msgType || 'chat',
+    var msgData = {
+      type: data.msgType || 'chat',
       name: myName,
       role: myRole,
-      text: e.data.text,
+      text: data.text,
       time: formatTime(),
       visibility: chatVisibility
     };
     rotearMensagem(msgData);
-
-    // Adiciona rolagens/comandos que vieram da ficha ao histórico
-    if (e.data.command) {
-      adicionarAoHistorico(e.data.command);
-    }
-    if (e.data.dmgCommand) {
-      adicionarAoHistorico(e.data.dmgCommand);
-    }
-
-    // ── Detect initiative rolls from ficha and send to combat tracker ──
-    detectarERolarIniciativa(e.data.text);
+    if (data.command) adicionarAoHistorico(data.command);
+    if (data.dmgCommand) adicionarAoHistorico(data.dmgCommand);
+    detectarERolarIniciativa(data.text);
+    return;
   }
-});
+}
+
+window.addEventListener('message', function(e) { _handleFichaMsg(e.data); });
+
+function _pollFichaMessages() {
+  var iframe = document.getElementById('ficha-iframe');
+  if (!iframe || !iframe.contentWindow) return;
+  try {
+    var raw = iframe.contentWindow.name;
+    if (!raw || raw === 'undefined' || raw === '' || raw.indexOf('[') !== 0) return;
+    var queue = JSON.parse(raw);
+    if (!Array.isArray(queue)) return;
+    for (var i = 0; i < queue.length; i++) {
+      var entry = queue[i];
+      if (entry && entry.msg) {
+        entry.msg.__seq = entry.msg.__seq || (entry.ts || 0);
+        _handleFichaMsg(entry.msg);
+      }
+    }
+  } catch(e) {}
+}
+setInterval(_pollFichaMessages, 600);
 
 // Mestre abre a ficha de outro jogador para ler
 function abrirFichaJogador(peerId) {
@@ -4563,6 +4614,7 @@ const BOARD = {
   offsetX: 0, offsetY: 0, zoom: 1,
   // Grade
   gridOn: true, gridSize: 50,
+  distanceMode: 'square', // euclidean, square, double_diagonal
   // Mapa
   mapImg: null, mapDataUrl: null,
   mapX: 0, mapY: 0, mapWidth: null, mapHeight: null,
@@ -4629,6 +4681,10 @@ const BOARD = {
   rulerMode: 'line', // 'line' | 'circle'
   rulerStartX: 0, rulerStartY: 0,
   rulerEndX: 0, rulerEndY: 0,
+  // Régua com waypoints (caminho)
+  wayRulerActive: false,
+  wayRulerPoints: [], // [{x, y}, ...]
+  wayRulerTempX: 0, wayRulerTempY: 0,
   // Pings (múltiplos simultâneos)
   pings: [],
   pingTimer: null,
@@ -4818,8 +4874,9 @@ function verificarGatilhosToken(token) {
   const tokenFloor = getFloorFromZ(token.z);
 
   const sz = token.size || 1;
-  const wx = token.gx * gridSize + sz * gridSize / 2;
-  const wy = token.gy * gridSize + sz * gridSize / 2;
+  const pos = tokenWorldPos(token.gx, token.gy);
+  const wx = pos.x;
+  const wy = pos.y;
 
   function posicaoDentroForma(s) {
     if (s.kind === 'circle') {
@@ -5182,6 +5239,7 @@ function contextDeleteWall() {
   snapshotBoard();
   BOARD.walls = BOARD.walls.filter(w => w.id !== BOARD.selectedWallId);
   BOARD.selectedWallId = null;
+  _invalidateOutdoorCache();
   boardSave();
   boardRender();
   syncWallsToPlayers();
@@ -5386,8 +5444,8 @@ function getEffectiveVisionRadius(token) {
     return baseRange;
   }
 
-  if (lightingType === 'twilight' || lightingType === 'cloudy') {
-    // Escuridão leve / nublado
+  if (lightingType === 'twilight' || lightingType === 'cloudy' || lightingType === 'rainy' || lightingType === 'snowy') {
+    // Escuridão leve / nublado / chuva / neve
     switch (visionType) {
       case 'penumbra': return shortRange; // Visão na Penumbra: enxerga 9m em escuridão leve
       case 'escuro':   return shortRange; // Visão no Escuro: também enxerga 9m em escuridão leve
@@ -5590,19 +5648,69 @@ function tokenShapePath(ctx, px, py, r, shapeType) {
   }
 }
 
+function hexCenter(gx, gy) {
+  const R = BOARD.gridSize / 2;
+  const hexH = Math.sqrt(3) * R;
+  return {
+    x: gx * R * 1.5,
+    y: gy * hexH + ((Math.abs(Math.round(gx)) % 2) ? hexH / 2 : 0)
+  };
+}
+
+function hexGridFromPoint(wx, wy) {
+  const R = BOARD.gridSize / 2;
+  const hexH = Math.sqrt(3) * R;
+  const gxApprox = wx / (R * 1.5);
+  const candidates = [Math.floor(gxApprox), Math.ceil(gxApprox)];
+  let bestGx = 0, bestGy = 0, bestDist = Infinity;
+  for (const cgx of candidates) {
+    const gyApprox = (wy - ((Math.abs(Math.round(cgx)) % 2) ? hexH / 2 : 0)) / hexH;
+    for (const cgy of [Math.floor(gyApprox), Math.ceil(gyApprox)]) {
+      const c = hexCenter(cgx, cgy);
+      const d = Math.hypot(wx - c.x, wy - c.y);
+      if (d < bestDist) {
+        bestDist = d;
+        bestGx = cgx;
+        bestGy = cgy;
+      }
+    }
+  }
+  return { gx: Math.max(0, bestGx), gy: Math.max(0, bestGy) };
+}
+
+function tokenWorldPos(gx, gy) {
+  const gs = BOARD.gridSize;
+  if (BOARD.gridType === 'hex') {
+    return hexCenter(gx, gy);
+  }
+  return { x: gx * gs + gs / 2, y: gy * gs + gs / 2 };
+}
+
 // ── Coordenadas canvas → grade ──
 function canvasToGrid(cx, cy) {
-  const { offsetX, offsetY, zoom, gridSize } = BOARD;
+  const { offsetX, offsetY, zoom, gridSize, gridType } = BOARD;
   const wx = (cx - offsetX) / zoom;
   const wy = (cy - offsetY) / zoom;
+  if (gridType === 'hex') {
+    return hexGridFromPoint(wx, wy);
+  }
   return { gx: Math.floor(wx / gridSize), gy: Math.floor(wy / gridSize) };
 }
 
 function gridToCanvas(gx, gy) {
-  const { offsetX, offsetY, zoom, gridSize } = BOARD;
+  const { offsetX, offsetY, zoom, gridSize, gridType } = BOARD;
+  let wx, wy;
+  if (gridType === 'hex') {
+    const c = hexCenter(gx, gy);
+    wx = c.x;
+    wy = c.y;
+  } else {
+    wx = gx * gridSize;
+    wy = gy * gridSize;
+  }
   return {
-    cx: gx * gridSize * zoom + offsetX,
-    cy: gy * gridSize * zoom + offsetY
+    cx: wx * zoom + offsetX,
+    cy: wy * zoom + offsetY
   };
 }
 
@@ -5623,8 +5731,9 @@ function getTokenAt(cx, cy) {
 
     const sizeW = (t.sizeX || t.size || 1) * gridSize;
     const sizeH = (t.sizeY || t.size || 1) * gridSize;
-    const px = t.gx * gridSize + sizeW / 2;
-    const py = t.gy * gridSize + sizeH / 2;
+    const pos = tokenWorldPos(t.gx, t.gy);
+    const px = pos.x;
+    const py = pos.y;
     if (t.type === 'object') {
       if (wx >= px - sizeW / 2 && wx <= px + sizeW / 2 && wy >= py - sizeH / 2 && wy <= py + sizeH / 2) return t;
       continue;
@@ -5650,8 +5759,9 @@ function getHandleAt(cx, cy) {
     const rotation = t.rotation || 0;
     const sizeW = (t.sizeX || t.size || 1) * gridSize;
     const sizeH = (t.sizeY || t.size || 1) * gridSize;
-    const px = t.gx * gridSize + sizeW / 2;
-    const py = t.gy * gridSize + sizeH / 2;
+    const pos = tokenWorldPos(t.gx, t.gy);
+    const px = pos.x;
+    const py = pos.y;
     const halfW = sizeW / 2;
     const halfH = sizeH / 2;
 
@@ -5880,6 +5990,22 @@ function onBoardMouseDown(e) {
     return;
   }
 
+  if (BOARD.tool === 'way-ruler') {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    if (!BOARD.wayRulerActive) {
+      BOARD.wayRulerActive = true;
+      BOARD.wayRulerPoints = [{ x: wx, y: wy }];
+    } else {
+      BOARD.wayRulerPoints.push({ x: wx, y: wy });
+    }
+    BOARD.wayRulerTempX = wx;
+    BOARD.wayRulerTempY = wy;
+    e.preventDefault();
+    boardRender();
+    return;
+  }
+
   if ((myRole === 'mestre' || emVisaoJogador()) && BOARD.tool === 'move' && BOARD.selectedTokens.size > 0) {
     const handle = getHandleAt(x, y);
     if (handle) {
@@ -5941,9 +6067,9 @@ function onBoardMouseDown(e) {
     BOARD.dragStartGx = token.gx;
     BOARD.dragStartGy = token.gy;
     const { offsetX, offsetY, zoom, gridSize } = BOARD;
-    const sz = (token.size || 1) * gridSize;
-    const px = token.gx * gridSize * zoom + offsetX;
-    const py = token.gy * gridSize * zoom + offsetY;
+    const pos2 = tokenWorldPos(token.gx, token.gy);
+    const px = pos2.x * zoom + offsetX;
+    const py = pos2.y * zoom + offsetY;
     BOARD.dragOffX = x - px;
     BOARD.dragOffY = y - py;
     e.preventDefault();
@@ -6046,6 +6172,15 @@ function onBoardMouseMove(e) {
     const wy = (y - BOARD.offsetY) / BOARD.zoom;
     BOARD.rulerEndX = wx;
     BOARD.rulerEndY = wy;
+    boardRender();
+    return;
+  }
+
+  if (BOARD.wayRulerActive) {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    BOARD.wayRulerTempX = wx;
+    BOARD.wayRulerTempY = wy;
     boardRender();
     return;
   }
@@ -6549,8 +6684,9 @@ function finalizeMarqueeSelection(additive) {
 
     const sizeW = (t.sizeX || t.size || 1) * gridSize;
     const sizeH = (t.sizeY || t.size || 1) * gridSize;
-    const cx = (t.gx * gridSize + sizeW / 2) * zoom + offsetX;
-    const cy = (t.gy * gridSize + sizeH / 2) * zoom + offsetY;
+    const pos3 = tokenWorldPos(t.gx, t.gy);
+    const cx = pos3.x * zoom + offsetX;
+    const cy = pos3.y * zoom + offsetY;
     const rX = sizeW * 0.42 * zoom;
     const rY = sizeH * 0.42 * zoom;
 
@@ -6566,6 +6702,13 @@ function finalizeMarqueeSelection(additive) {
 }
 
 function onBoardDblClick(e) {
+  // Way-ruler: duplo clique finaliza o caminho
+  if (BOARD.tool === 'way-ruler' && BOARD.wayRulerActive && BOARD.wayRulerPoints.length >= 1) {
+    BOARD.wayRulerActive = false;
+    boardRender();
+    return;
+  }
+
   const { x, y } = getBoardXY(e);
   const token = getTokenAt(x, y);
   if (!token) {
@@ -6607,6 +6750,14 @@ function onBoardDblClick(e) {
 
 function onBoardContextMenu(e) {
   e.preventDefault();
+
+  // Way-ruler: right-click finaliza o caminho
+  if (BOARD.tool === 'way-ruler' && BOARD.wayRulerActive && BOARD.wayRulerPoints.length >= 1) {
+    BOARD.wayRulerActive = false;
+    boardRender();
+    return;
+  }
+
   const { x, y } = getBoardXY(e);
   const wx = (x - BOARD.offsetX) / BOARD.zoom;
   const wy = (y - BOARD.offsetY) / BOARD.zoom;
@@ -6655,13 +6806,11 @@ function onBoardContextMenu(e) {
     centralizarEmToken(token);
     const isObject = token.type === 'object';
     document.getElementById('ctxCondMenu').style.display = isObject ? 'none' : '';
-    const ctxViewFicha = document.getElementById('ctxViewFicha');
     if (!isObject) {
       popularCtxCondicoes(token);
     }
     const menu = document.getElementById('tokenContextMenu');
     if (menu) {
-      const hasControl = temControleToken(token);
       document.getElementById('ctxEditToken').style.display = !isObject ? '' : 'none';
       document.getElementById('ctxEditObject').style.display = (isMestre && isObject) ? '' : 'none';
       document.getElementById('ctxVincularFicha').style.display = (isMestre && !isObject) ? '' : 'none';
@@ -6671,12 +6820,8 @@ function onBoardContextMenu(e) {
       document.getElementById('ctxLayerMap').querySelector('i').style.visibility = camadaAtual === 'map' ? 'visible' : 'hidden';
       document.getElementById('ctxLayerPlayers').querySelector('i').style.visibility = camadaAtual === 'players' ? 'visible' : 'hidden';
       document.getElementById('ctxLayerGm').querySelector('i').style.visibility = camadaAtual === 'gm' ? 'visible' : 'hidden';
-      document.getElementById('ctxCfgZ').style.display = isMestre ? '' : 'none';
-      document.getElementById('ctxCfgZDes').style.display = isMestre ? '' : 'none';
-      document.getElementById('ctxCfgZSubA').style.display = isMestre ? '' : 'none';
-      document.getElementById('ctxCfgZDesA').style.display = isMestre ? '' : 'none';
+      document.getElementById('ctxAlturaMenu').style.display = isMestre ? '' : 'none';
       document.getElementById('ctxCfgApagar').style.display = isMestre ? '' : 'none';
-      if (ctxViewFicha) ctxViewFicha.style.display = (hasControl || isMestre) && !isObject ? '' : 'none';
       if (isMestre) {
         const lockIcon = document.querySelector('#ctxToggleLock i');
         const lockText = document.getElementById('ctxToggleLockText');
@@ -6832,6 +6977,7 @@ function abrirConfigGrid() {
   document.getElementById('gcScaleVal').value = BOARD.gridScaleVal ?? 1.5;
   document.getElementById('gcScaleUnit').value = BOARD.gridScaleUnit || 'm';
   document.getElementById('gcGridType').value = BOARD.gridType || 'square';
+  document.getElementById('gcDistanceMode').value = BOARD.distanceMode || 'square';
   document.getElementById('gcLightingType').value = BOARD.lightingType || 'sunny';
   document.getElementById('gridConfigModal').style.display = 'flex';
 }
@@ -6847,11 +6993,663 @@ function salvarConfigGrid() {
   BOARD.gridScaleVal = parseFloat(document.getElementById('gcScaleVal').value) || 1.5;
   BOARD.gridScaleUnit = document.getElementById('gcScaleUnit').value.trim() || 'm';
   BOARD.gridType = document.getElementById('gcGridType').value || 'square';
+  BOARD.distanceMode = document.getElementById('gcDistanceMode').value || 'square';
   BOARD.lightingType = document.getElementById('gcLightingType').value || 'sunny';
   boardSave(); boardRender();
   if (myRole === 'mestre') syncBoardToPlayers();
   fecharConfigGrid();
   toast('Grid e mapa configurados!');
+}
+
+// ── Partículas de Clima ──
+var _weatherParticles = [];
+var _weatherAnimId = null;
+var _weatherLastTime = 0;
+var _weatherActive = '';
+// Cache de células já verificadas para evitar recalcular por partícula
+var _outdoorCache = null;
+var _outdoorCacheWalls = null;
+var _outdoorCacheGridSize = 0;
+var _outdoorCacheCount = -1;
+
+function _isOutdoor(wx, wy, walls) {
+  if (!walls || !walls.length) return true;
+
+  // Arredonda para célula do grid para cache
+  var gs = BOARD.gridSize || 50;
+  var cellX = Math.floor(wx / gs);
+  var cellY = Math.floor(wy / gs);
+
+  // Invalida cache se paredes mudaram, foram trocadas ou contagem mudou
+  var wallsSig = walls.length;
+  if (_outdoorCacheWalls !== walls || _outdoorCacheGridSize !== gs || _outdoorCacheCount !== wallsSig) {
+    _outdoorCache = {};
+    _outdoorCacheWalls = walls;
+    _outdoorCacheGridSize = gs;
+    _outdoorCacheCount = wallsSig;
+  }
+
+  var key = cellX + ',' + cellY;
+  if (key in _outdoorCache) return _outdoorCache[key];
+
+  // Ponto central da célula para o teste
+  var cx = (cellX + 0.5) * gs;
+  var cy = (cellY + 0.5) * gs;
+
+  // Dispara 3 raios em direções diferentes — usa votação majoritária para robustez
+  var dirs = [
+    [cx, cy, cx, cy - 99999],   // para cima
+    [cx, cy, cx - 99999, cy],   // para esquerda
+    [cx, cy, cx + 99999, cy + 33333] // diagonal
+  ];
+  var votes = 0;
+  for (var d = 0; d < dirs.length; d++) {
+    var ax = dirs[d][0], ay = dirs[d][1], bx = dirs[d][2], by = dirs[d][3];
+    var crossings = 0;
+    for (var i = 0; i < walls.length; i++) {
+      var w = walls[i];
+      if (_raySegIntersect(ax, ay, bx, by, w.x1, w.y1, w.x2, w.y2)) crossings++;
+    }
+    if (crossings % 2 === 0) votes++; // par = exterior
+  }
+  // Maioria: 2 ou 3 votos = exterior; 0 ou 1 = interior
+  var outdoor = votes >= 2;
+  _outdoorCache[key] = outdoor;
+  return outdoor;
+}
+
+// Ray casting mais preciso — raio semi-infinito de A→B contra segmento C→D
+function _raySegIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+  var rdx = bx - ax, rdy = by - ay;
+  var sdx = dx - cx, sdy = dy - cy;
+  var denom = rdx * sdy - rdy * sdx;
+  if (Math.abs(denom) < 1e-9) return false;
+  var t = ((cx - ax) * sdy - (cy - ay) * sdx) / denom;
+  var u = ((cx - ax) * rdy - (cy - ay) * rdx) / denom;
+  return t > 1e-9 && u > 1e-9 && u < 1 - 1e-9;
+}
+
+// Limpa cache quando paredes mudam
+function _invalidateOutdoorCache() { _outdoorCache = null; _outdoorCacheWalls = null; }
+
+function _initWeatherParticles(type) {
+  _weatherParticles = [];
+  var count = type === 'rainy' ? 150 : 100;
+  var canvas = BOARD.canvas;
+  var W = canvas ? canvas.width : (window.innerWidth || 800);
+  var H = canvas ? canvas.height : (window.innerHeight || 600);
+  for (var i = 0; i < count; i++) {
+    _weatherParticles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      speed: type === 'rainy' ? (4 + Math.random() * 4) : (1 + Math.random() * 2),
+      size: type === 'rainy' ? (1 + Math.random() * 1.5) : (2 + Math.random() * 3),
+      opacity: type === 'rainy' ? (0.3 + Math.random() * 0.4) : (0.5 + Math.random() * 0.4),
+      sway: type === 'snowy' ? (Math.random() * 2) : 0,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function _weatherTick(time) {
+  if (!_weatherActive) return;
+  if (!_lastWeatherTime) _lastWeatherTime = time;
+  var dt = Math.min((time - _lastWeatherTime) / 16.67, 3);
+  _lastWeatherTime = time;
+  var W = BOARD.canvas ? BOARD.canvas.width : window.innerWidth;
+  var H = BOARD.canvas ? BOARD.canvas.height : window.innerHeight;
+  var type = _weatherActive;
+  for (var i = 0; i < _weatherParticles.length; i++) {
+    var p = _weatherParticles[i];
+    p.y += p.speed * dt;
+    if (type === 'snowy') p.x += Math.sin(p.phase + time * 0.001) * p.sway * 0.3 * dt;
+    if (p.y > H + 10) { p.y = -10; p.x = Math.random() * W; }
+    if (p.x > W + 10) p.x = -10;
+    if (p.x < -10) p.x = W + 10;
+  }
+  if (typeof boardRender === 'function') boardRender();
+  _weatherAnimId = requestAnimationFrame(_weatherTick);
+}
+
+function _renderWeather(ctx) {
+  if (!_weatherActive || !_weatherParticles.length) return;
+  var type = _weatherActive;
+  var offsetX = BOARD.offsetX || 0;
+  var offsetY = BOARD.offsetY || 0;
+  var zoom = BOARD.zoom || 1;
+  var walls = BOARD.walls || [];
+  ctx.save();
+  for (var i = 0; i < _weatherParticles.length; i++) {
+    var p = _weatherParticles[i];
+    var wx = (p.x - offsetX) / zoom;
+    var wy = (p.y - offsetY) / zoom;
+    if (!_isOutdoor(wx, wy, walls)) continue;
+    if (type === 'rainy') {
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + 4, p.y + 8);
+      ctx.strokeStyle = 'rgba(150,180,220,' + p.opacity + ')';
+      ctx.lineWidth = p.size;
+      ctx.stroke();
+    } else if (type === 'snowy') {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + p.opacity + ')';
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function setWeather(type) {
+  snapshotBoard();
+  if (_weatherAnimId) { cancelAnimationFrame(_weatherAnimId); _weatherAnimId = null; }
+  _weatherActive = '';
+  _weatherParticles = [];
+
+  if (type === 'sun') {
+    BOARD.lightingType = 'sunny';
+    toast('☀️ Claro (Sol).');
+  } else if (type === 'rain') {
+    BOARD.lightingType = 'rainy';
+    _weatherActive = 'rainy';
+    _initWeatherParticles('rainy');
+    _lastWeatherTime = 0;
+    _weatherAnimId = requestAnimationFrame(_weatherTick);
+    toast('🌧 Chuva.');
+  } else if (type === 'snow') {
+    BOARD.lightingType = 'snowy';
+    _weatherActive = 'snowy';
+    _initWeatherParticles('snowy');
+    _lastWeatherTime = 0;
+    _weatherAnimId = requestAnimationFrame(_weatherTick);
+    toast('❄️ Neve.');
+  } else if (type === 'night') {
+    BOARD.lightingType = 'starnight';
+    toast('🌙 Noite (estrelada).');
+  }
+
+  // Sincroniza o select com o valor atual
+  const sel = document.getElementById('weatherSelect');
+  if (sel) sel.value = type;
+
+  boardSave();
+  boardRender();
+  if (myRole === 'mestre') syncBoardToPlayers();
+}
+
+function _syncWeatherSelect() {
+  const sel = document.getElementById('weatherSelect');
+  if (!sel) return;
+  const lt = BOARD.lightingType || 'sunny';
+  if (lt === 'sunny') sel.value = 'sun';
+  else if (lt === 'rainy') sel.value = 'rain';
+  else if (lt === 'snowy') sel.value = 'snow';
+  else if (lt === 'starnight') sel.value = 'night';
+  else sel.value = 'sun';
+}
+
+// ──── Animação de Condições ────
+let _condAnimState = {};
+let _condAnimId = null;
+let _condAnimLastTime = 0;
+
+function _initCondDrips(tokenId) {
+  if (!_condAnimState[tokenId]) _condAnimState[tokenId] = {};
+  const st = _condAnimState[tokenId];
+  if (!st.drips) {
+    st.drips = [];
+    for (let i = 0; i < 3; i++) {
+      st.drips.push({
+        x: (Math.random() - 0.5) * 12,
+        y: -Math.random() * 20,
+        speed: 1.5 + Math.random() * 2,
+        size: 2 + Math.random() * 2,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+}
+
+function _initCondNausea(tokenId) {
+  if (!_condAnimState[tokenId]) _condAnimState[tokenId] = {};
+  const st = _condAnimState[tokenId];
+  if (!st.nausea) {
+    st.nausea = [];
+    for (let i = 0; i < 4; i++) {
+      st.nausea.push({
+        x: (Math.random() - 0.5) * 16,
+        y: -Math.random() * 20,
+        speed: 0.8 + Math.random() * 1.2,
+        size: 1.5 + Math.random() * 1.5,
+        wobble: Math.random() * Math.PI * 2
+      });
+    }
+  }
+}
+
+function _initCondZzz(tokenId) {
+  if (!_condAnimState[tokenId]) _condAnimState[tokenId] = {};
+  const st = _condAnimState[tokenId];
+  if (!st.zzz) {
+    st.zzz = [];
+    const labels = ['Z', 'Z', 'z'];
+    for (let i = 0; i < 3; i++) {
+      st.zzz.push({
+        x: (Math.random() - 0.3) * 14,
+        y: -(i * 14) - Math.random() * 6,
+        speed: 0.4 + Math.random() * 0.3,
+        alpha: 0.5 + Math.random() * 0.5,
+        label: labels[i],
+        size: 6 + i * 2
+      });
+    }
+  }
+}
+
+function _tickCondAnims(time) {
+  if (!_condAnimLastTime) _condAnimLastTime = time;
+  const dt = Math.min((time - _condAnimLastTime) / 16.67, 5);
+  _condAnimLastTime = time;
+
+  let hasAnimatedConds = false;
+  const tokens = BOARD.tokens || [];
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (!t.conditions || !t.conditions.length) continue;
+    const conds = t.conditions;
+    const needsAnim = [
+      'Sangrando','Atordoado','Confuso','Inconsciente',
+      'Paralisado','Enjoado','Fascinado','Enredado','Desprevenido',
+      'Em Chamas','Envenenado'
+    ].some(c => conds.indexOf(c) !== -1);
+    if (!needsAnim) continue;
+    hasAnimatedConds = true;
+
+    // ── Sangrando: gotas de sangue caindo
+    if (conds.indexOf('Sangrando') !== -1) {
+      _initCondDrips(t.id);
+      const st = _condAnimState[t.id];
+      if (st.drips) {
+        for (let j = 0; j < st.drips.length; j++) {
+          const d = st.drips[j];
+          d.y += d.speed * dt;
+          if (d.y > 32) {
+            d.y = -5 - Math.random() * 15;
+            d.x = (Math.random() - 0.5) * 12;
+            d.speed = 1.5 + Math.random() * 2;
+          }
+        }
+      }
+    }
+
+    // ── Enjoado: gotas verdes caindo
+    if (conds.indexOf('Enjoado') !== -1) {
+      _initCondNausea(t.id);
+      const st = _condAnimState[t.id];
+      if (st.nausea) {
+        for (let j = 0; j < st.nausea.length; j++) {
+          const d = st.nausea[j];
+          d.y += d.speed * dt;
+          d.wobble += 0.05 * dt;
+          if (d.y > 28) {
+            d.y = -5 - Math.random() * 12;
+            d.x = (Math.random() - 0.5) * 16;
+            d.speed = 0.8 + Math.random() * 1.2;
+          }
+        }
+      }
+    }
+
+    // ── Inconsciente: ZZZ's flutuando
+    if (conds.indexOf('Inconsciente') !== -1) {
+      _initCondZzz(t.id);
+      const st = _condAnimState[t.id];
+      if (st.zzz) {
+        for (let j = 0; j < st.zzz.length; j++) {
+          const z = st.zzz[j];
+          z.y -= z.speed * dt;
+          z.alpha -= 0.003 * dt;
+          if (z.alpha <= 0 || z.y < -50) {
+            z.y = -5 - Math.random() * 5;
+            z.x = (Math.random() - 0.3) * 14;
+            z.alpha = 0.7 + Math.random() * 0.3;
+          }
+        }
+      }
+    }
+  }
+
+  if (hasAnimatedConds) {
+    boardRender();
+    _condAnimId = requestAnimationFrame(_tickCondAnims);
+  } else {
+    _condAnimState = {};
+    _condAnimId = null;
+  }
+}
+
+function _startCondAnims() {
+  if (_condAnimId) return;
+  _condAnimLastTime = 0;
+  _condAnimId = requestAnimationFrame(_tickCondAnims);
+}
+
+function _stopCondAnims() {
+  if (_condAnimId) {
+    cancelAnimationFrame(_condAnimId);
+    _condAnimId = null;
+  }
+  _condAnimState = {};
+}
+
+function _renderCondEffects(ctx, t) {
+  if (!t.conditions || !t.conditions.length) return;
+  const gs = BOARD.gridSize;
+  const sz = (t.size || 1) * gs;
+  const rX = sz / 2;
+  const rY = sz / 2;
+  const pos4 = tokenWorldPos(t.gx, t.gy);
+  const px = pos4.x;
+  const py = pos4.y;
+  const zoom = BOARD.zoom;
+  const now = Date.now();
+
+  // ── Petrificado → overlay cinza granito
+  if (t.conditions.indexOf('Petrificado') !== -1) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.92, rY * 0.92, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(120,120,120,0.45)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(160,160,160,0.5)';
+    ctx.lineWidth = 2 / zoom;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Paralisado → cristais de gelo + brilho azul frio
+  if (t.conditions.indexOf('Paralisado') !== -1) {
+    const icePulse = 0.5 + Math.sin(now * 0.003) * 0.2;
+    ctx.save();
+    // overlay azul gelado
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.88, rY * 0.88, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(100,200,255,' + icePulse * 0.18 + ')';
+    ctx.fill();
+    // anel brilhante
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.92, rY * 0.92, 0, 0, Math.PI * 2);
+    ctx.shadowColor = 'rgba(100,200,255,0.8)';
+    ctx.shadowBlur = 18 / zoom;
+    ctx.strokeStyle = 'rgba(140,220,255,' + icePulse * 0.75 + ')';
+    ctx.lineWidth = 2.5 / zoom;
+    ctx.stroke();
+    // cristais hexagonais
+    const crystalAngles = [0, Math.PI/3, 2*Math.PI/3, Math.PI, 4*Math.PI/3, 5*Math.PI/3];
+    const cr = rX * 0.95;
+    ctx.fillStyle = 'rgba(180,240,255,0.75)';
+    ctx.shadowBlur = 6 / zoom;
+    for (let a = 0; a < crystalAngles.length; a++) {
+      const ang = crystalAngles[a] + now * 0.0005;
+      const cx2 = px + Math.cos(ang) * cr;
+      const cy2 = py + Math.sin(ang) * cr;
+      ctx.save();
+      ctx.translate(cx2, cy2);
+      ctx.rotate(ang + Math.PI / 6);
+      ctx.beginPath();
+      for (let s = 0; s < 6; s++) {
+        const sa = (s / 6) * Math.PI * 2;
+        const sr = 2.5 / zoom;
+        s === 0 ? ctx.moveTo(Math.cos(sa)*sr, Math.sin(sa)*sr)
+                : ctx.lineTo(Math.cos(sa)*sr, Math.sin(sa)*sr);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  // ── Sangrando → gotas de sangue caindo
+  if (t.conditions.indexOf('Sangrando') !== -1) {
+    _startCondAnims();
+    const st = _condAnimState[t.id];
+    if (st && st.drips) {
+      ctx.save();
+      for (let i = 0; i < st.drips.length; i++) {
+        const d = st.drips[i];
+        const dx = px + d.x;
+        const dy = py + rY + d.y;
+        ctx.beginPath();
+        ctx.arc(dx, dy, d.size / zoom, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(180,30,30,0.85)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(dx, dy);
+        ctx.lineTo(dx, dy + d.size * 1.5 / zoom);
+        ctx.strokeStyle = 'rgba(180,30,30,0.5)';
+        ctx.lineWidth = d.size * 0.6 / zoom;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  // ── Enjoado → gotículas verdes caindo
+  if (t.conditions.indexOf('Enjoado') !== -1) {
+    _startCondAnims();
+    const st = _condAnimState[t.id];
+    if (st && st.nausea) {
+      ctx.save();
+      for (let i = 0; i < st.nausea.length; i++) {
+        const d = st.nausea[i];
+        const dx = px + d.x + Math.sin(d.wobble) * 3;
+        const dy = py + rY * 0.5 + d.y;
+        ctx.beginPath();
+        ctx.arc(dx, dy, d.size / zoom, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(100,210,80,0.8)';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  // ── Em Chamas → brilho laranja pulsante
+  if (t.conditions.indexOf('Em Chamas') !== -1) {
+    const pulse = 0.6 + Math.sin(now * 0.005) * 0.2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.8, rY * 0.8, 0, 0, Math.PI * 2);
+    ctx.shadowColor = 'rgba(255,120,0,0.65)';
+    ctx.shadowBlur = 22 / zoom;
+    ctx.fillStyle = 'rgba(255,120,0,' + pulse * 0.15 + ')';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,180,50,' + pulse * 0.55 + ')';
+    ctx.lineWidth = 2.5 / zoom;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Envenenado → brilho verde pulsante
+  if (t.conditions.indexOf('Envenenado') !== -1) {
+    const pulse = 0.5 + Math.sin(now * 0.004) * 0.15;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.85, rY * 0.85, 0, 0, Math.PI * 2);
+    ctx.shadowColor = 'rgba(0,200,80,0.55)';
+    ctx.shadowBlur = 16 / zoom;
+    ctx.strokeStyle = 'rgba(0,200,80,' + pulse * 0.65 + ')';
+    ctx.lineWidth = 2.5 / zoom;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Atordoado → estrelinhas orbitando
+  if (t.conditions.indexOf('Atordoado') !== -1) {
+    _startCondAnims();
+    const orbit = rX * 1.05;
+    const starCount = 5;
+    const angleOffset = (now * 0.002) % (Math.PI * 2);
+    ctx.save();
+    for (let s = 0; s < starCount; s++) {
+      const ang = angleOffset + (s / starCount) * Math.PI * 2;
+      const sx = px + Math.cos(ang) * orbit;
+      const sy = py - rY * 0.3 + Math.sin(ang) * orbit * 0.4;
+      const starR = 3 / zoom;
+      ctx.beginPath();
+      for (let p = 0; p < 5; p++) {
+        const pa = (p * 4 / 5) * Math.PI - Math.PI / 2;
+        const r = (p % 2 === 0) ? starR : starR * 0.45;
+        p === 0 ? ctx.moveTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r)
+                : ctx.lineTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,235,80,0.9)';
+      ctx.shadowColor = 'rgba(255,230,0,0.8)';
+      ctx.shadowBlur = 8 / zoom;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ── Fascinado → estrelas douradas orbitando (mais suaves, maiores)
+  if (t.conditions.indexOf('Fascinado') !== -1) {
+    _startCondAnims();
+    const orbit = rX * 1.1;
+    const starCount = 6;
+    const angleOffset = (now * 0.0015) % (Math.PI * 2);
+    ctx.save();
+    for (let s = 0; s < starCount; s++) {
+      const ang = angleOffset + (s / starCount) * Math.PI * 2;
+      const sx = px + Math.cos(ang) * orbit;
+      const sy = py + Math.sin(ang) * orbit * 0.35;
+      const sparkle = 0.6 + Math.sin(now * 0.006 + s) * 0.4;
+      const starR = (3.5 + sparkle) / zoom;
+      ctx.beginPath();
+      for (let p = 0; p < 10; p++) {
+        const pa = (p / 10) * Math.PI * 2 - Math.PI / 2;
+        const r = (p % 2 === 0) ? starR : starR * 0.4;
+        p === 0 ? ctx.moveTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r)
+                : ctx.lineTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = `rgba(255,215,0,${sparkle * 0.9})`;
+      ctx.shadowColor = 'rgba(255,200,0,0.9)';
+      ctx.shadowBlur = 10 / zoom;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ── Confuso → espiral colorida girando
+  if (t.conditions.indexOf('Confuso') !== -1) {
+    _startCondAnims();
+    const spiralAngle = (now * 0.003) % (Math.PI * 2);
+    ctx.save();
+    const spiralColors = ['rgba(255,80,80,0.7)','rgba(80,80,255,0.7)','rgba(80,255,80,0.7)','rgba(255,255,0,0.7)'];
+    for (let arm = 0; arm < 4; arm++) {
+      const baseAng = spiralAngle + (arm / 4) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.strokeStyle = spiralColors[arm];
+      ctx.lineWidth = 2 / zoom;
+      ctx.shadowColor = spiralColors[arm];
+      ctx.shadowBlur = 6 / zoom;
+      for (let step = 0; step <= 20; step++) {
+        const frac = step / 20;
+        const r = rX * 0.2 + frac * rX * 0.7;
+        const a = baseAng + frac * Math.PI * 1.5;
+        const sx = px + Math.cos(a) * r;
+        const sy = py + Math.sin(a) * r;
+        step === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ── Enredado → linhas de teia ao redor do token
+  if (t.conditions.indexOf('Enredado') !== -1) {
+    ctx.save();
+    const webColor = 'rgba(200,200,200,0.55)';
+    ctx.strokeStyle = webColor;
+    ctx.lineWidth = 1 / zoom;
+    // raios
+    const rays = 8;
+    for (let r = 0; r < rays; r++) {
+      const ang = (r / rays) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + Math.cos(ang) * rX * 1.05, py + Math.sin(ang) * rY * 1.05);
+      ctx.stroke();
+    }
+    // anéis concêntricos
+    const rings = 3;
+    for (let ri = 1; ri <= rings; ri++) {
+      const frac = ri / rings;
+      ctx.beginPath();
+      ctx.ellipse(px, py, rX * frac * 0.95, rY * frac * 0.95, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    // curvas transversais da teia
+    for (let r = 0; r < rays; r++) {
+      const a1 = (r / rays) * Math.PI * 2;
+      const a2 = ((r + 1) / rays) * Math.PI * 2;
+      for (let ri = 1; ri <= rings; ri++) {
+        const frac = ri / rings * 0.95;
+        ctx.beginPath();
+        ctx.moveTo(px + Math.cos(a1) * rX * frac, py + Math.sin(a1) * rY * frac);
+        ctx.lineTo(px + Math.cos(a2) * rX * frac, py + Math.sin(a2) * rY * frac);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  // ── Desprevenido → flash branco periódico
+  if (t.conditions.indexOf('Desprevenido') !== -1) {
+    _startCondAnims();
+    const flashCycle = (now * 0.002) % (Math.PI * 2);
+    const flashAlpha = Math.max(0, Math.sin(flashCycle)) * 0.35;
+    if (flashAlpha > 0.01) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(px, py, rX * 0.9, rY * 0.9, 0, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+      ctx.shadowColor = 'rgba(255,255,200,0.9)';
+      ctx.shadowBlur = 20 / zoom;
+      ctx.fill();
+      // borda elétrica
+      ctx.beginPath();
+      ctx.ellipse(px, py, rX * 0.95, rY * 0.95, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,255,100,${flashAlpha * 1.8})`;
+      ctx.lineWidth = 2 / zoom;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // ── Inconsciente → ZZZ's flutuando
+  if (t.conditions.indexOf('Inconsciente') !== -1) {
+    _startCondAnims();
+    const st = _condAnimState[t.id];
+    if (st && st.zzz) {
+      ctx.save();
+      ctx.font = `bold ${Math.max(7, st.zzz[0].size) / zoom}px sans-serif`;
+      for (let z = 0; z < st.zzz.length; z++) {
+        const zz = st.zzz[z];
+        const zx = px + rX * 0.5 + zz.x;
+        const zy = py - rY * 0.6 + zz.y;
+        ctx.globalAlpha = Math.max(0, Math.min(1, zz.alpha));
+        ctx.fillStyle = 'rgba(160,200,255,1)';
+        ctx.shadowColor = 'rgba(100,160,255,0.8)';
+        ctx.shadowBlur = 6 / zoom;
+        ctx.fillText(zz.label, zx, zy);
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+  }
 }
 
 function contextToggleLock() {
@@ -6899,147 +7697,6 @@ function contextChangeLayer(layer) {
     toast(`Camada do token "${token.name}" alterada para ${layer === 'players' ? 'Jogadores' : (layer === 'map' ? 'Mapa' : 'GM (Oculto)')}`);
   }
   fecharContextMenu();
-}
-
-function fecharSeletorAtaquesToken() {
-  const modal = document.getElementById('seletorAtaquesModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function atualizarBotoesTokenSelected() {
-  const container = document.getElementById('token-actions-container');
-  const delBtn = document.getElementById('token-delete-btn');
-  if (!container) return;
-
-  const hasSelection = BOARD.selectedTokens.size > 0;
-  if (delBtn) delBtn.style.display = (myRole === 'mestre' && hasSelection) ? 'flex' : 'none';
-
-  if (BOARD.selectedTokens.size === 1) {
-    const selId = BOARD.selectedTokens.values().next().value;
-    const token = BOARD.tokens.find(t => t.id === selId);
-    if (token) {
-      const mestreVe = myRole === 'mestre' && (token.masterFichaId || (token.controlledBy && fichasJogadores[token.controlledBy]));
-      const jogadorVe = myRole === 'jogador' && token.controlledBy === myPeerId && localFichaUpdateData;
-      if (mestreVe || jogadorVe) {
-        container.style.display = 'flex';
-        return;
-      }
-    }
-  }
-  container.style.display = 'none';
-}
-
-function deletarTokenSelecionado() {
-  if (BOARD.selectedTokens.size === 0) { toast('Nenhum token selecionado.'); return; }
-  if (myRole !== 'mestre') { toast('Apenas o mestre pode deletar tokens.'); return; }
-  const selId = BOARD.selectedTokens.values().next().value;
-  const token = BOARD.tokens.find(t => t.id === selId);
-  if (!token) return;
-  if (!confirm(`Remover "${token.name}"?`)) return;
-  snapshotBoard();
-  BOARD.tokens = BOARD.tokens.filter(t => t.id !== token.id);
-  BOARD.selectedTokens.delete(token.id);
-  if (BOARD.followTokenId === token.id) BOARD.followTokenId = null;
-  if (BOARD.playerViewTokenId === token.id) exitPlayerView();
-  atualizarVisaoJogadorPorSelecao();
-  boardSave();
-  boardRender();
-  syncBoardTokensToPlayers();
-}
-
-function abrirSeletorAtaquesToken() {
-  if (BOARD.selectedTokens.size !== 1) {
-    toast('Selecione exatamente 1 token.');
-    return;
-  }
-  const selId = BOARD.selectedTokens.values().next().value;
-  const token = BOARD.tokens.find(t => t.id === selId);
-  if (!token) return;
-
-  let fullData = null;
-  let charName = "Personagem";
-
-  if (token.masterFichaId) {
-    const f = getMasterFichas().find(f => f.id === token.masterFichaId);
-    if (f) { fullData = f.fullData; charName = f.name; }
-  } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
-    fullData = fichasJogadores[token.controlledBy].resumo.fullData;
-    charName = fichasJogadores[token.controlledBy].playerName;
-  }
-
-  if (!fullData || !fullData.attacks || fullData.attacks.length === 0) {
-    toast('Ficha sem dados de ataques.');
-    return;
-  }
-
-  const listEl = document.getElementById('seletorAtaquesList');
-  if (!listEl) return;
-  listEl.innerHTML = '';
-
-  const titleEl = document.getElementById('seletorAtaquesTitle');
-  if (titleEl) titleEl.textContent = `Ataques (${charName})`;
-
-  fullData.attacks.forEach(atk => {
-    const btn = document.createElement('div');
-    btn.style.display = 'flex';
-    btn.style.justifyContent = 'space-between';
-    btn.style.alignItems = 'center';
-    btn.style.padding = '0.5rem 0.8rem';
-    btn.style.background = 'var(--parch3)';
-    btn.style.border = '1px solid #8b0000';
-    btn.style.borderRadius = '4px';
-    btn.style.color = 'var(--text-color)';
-    btn.style.gap = '0.5rem';
-
-    const infoDiv = document.createElement('div');
-    infoDiv.style.display = 'flex';
-    infoDiv.style.flexDirection = 'column';
-    infoDiv.style.flex = '1';
-    
-    const nameSpan = document.createElement('span');
-    nameSpan.style.fontFamily = "'Cinzel', serif";
-    nameSpan.style.fontWeight = 'bold';
-    nameSpan.textContent = atk.name || 'Ataque';
-    
-    const subSpan = document.createElement('span');
-    subSpan.style.fontSize = '0.75rem';
-    subSpan.style.color = '#777';
-    subSpan.textContent = `Crit: ${atk.critRange || 20}/${atk.crit || 'x2'} | Tipo: ${atk.type || '-'}`;
-
-    infoDiv.appendChild(nameSpan);
-    infoDiv.appendChild(subSpan);
-
-    const actionDiv = document.createElement('div');
-    actionDiv.style.display = 'flex';
-    actionDiv.style.gap = '0.3rem';
-
-    const bonus = parseInt(atk.bonus) || 0;
-    const bonusStr = bonus >= 0 ? `+${bonus}` : `${bonus}`;
-
-    let dmgStr = atk.dmg || '';
-    if (atk.dmgExtra) dmgStr += dmgStr ? `+${atk.dmgExtra}` : `${atk.dmgExtra}`;
-    if (atk.diceExtra) dmgStr += dmgStr ? `+${atk.diceExtra}` : atk.diceExtra;
-
-    const fullBtn = document.createElement('button');
-    fullBtn.className = 'btn btn-sm btn-danger';
-    fullBtn.style.padding = '0.2rem 0.5rem';
-    fullBtn.textContent = bonusStr + (dmgStr ? ` | ${dmgStr}` : '');
-    fullBtn.title = 'Rolar Ataque + Dano';
-    fullBtn.onclick = () => {
-      executarMacro(`/r Ataque (${atk.name || 'Arma'}): 1d20${bonusStr}`);
-      if (dmgStr) executarMacro(`/r Dano (${atk.name || 'Arma'}): ${dmgStr}`);
-      fecharSeletorAtaquesToken();
-    };
-
-    actionDiv.appendChild(fullBtn);
-
-    btn.appendChild(infoDiv);
-    btn.appendChild(actionDiv);
-    listEl.appendChild(btn);
-  });
-
-  const modal = document.getElementById('seletorAtaquesModal');
-  if (modal) modal.style.display = 'flex';
 }
 
 function contextDeleteToken() {
@@ -7179,23 +7836,37 @@ function fecharSeletorPericiasToken() {
   if (modal) modal.style.display = 'none';
 }
 
-function fecharSeletorMagiasToken() {
-  const modal = document.getElementById('seletorMagiasModal');
+function fecharSeletorAtaquesToken() {
+  const modal = document.getElementById('seletorAtaquesModal');
   if (modal) modal.style.display = 'none';
 }
 
-function abrirSeletorMagiasToken() {
-  if (BOARD.selectedTokens.size !== 1) {
-    toast('Selecione exatamente 1 token.');
-    return;
+function atualizarBotoesTokenSelected() {
+  const btnSkills = document.getElementById('token-skills-btn');
+  const btnAttacks = document.getElementById('token-attacks-btn');
+  const btnMagias = document.getElementById('token-magias-btn');
+  if (!btnSkills && !btnAttacks && !btnMagias) return;
+  if (BOARD.selectedTokens.size === 1) {
+    const selId = BOARD.selectedTokens.values().next().value;
+    const token = BOARD.tokens.find(t => t.id === selId);
+    if (token) {
+      const mestreVe = myRole === 'mestre' && (token.masterFichaId || (token.controlledBy && fichasJogadores[token.controlledBy]));
+      const jogadorVe = myRole === 'jogador' && token.controlledBy === myPeerId && localFichaUpdateData;
+      const show = mestreVe || jogadorVe;
+      if (btnSkills) btnSkills.style.display = show ? 'flex' : 'none';
+      if (btnAttacks) btnAttacks.style.display = show ? 'flex' : 'none';
+      if (btnMagias) btnMagias.style.display = show ? 'flex' : 'none';
+      return;
+    }
   }
-  const selId = BOARD.selectedTokens.values().next().value;
-  const token = BOARD.tokens.find(t => t.id === selId);
-  if (!token) return;
+  if (btnSkills) btnSkills.style.display = 'none';
+  if (btnAttacks) btnAttacks.style.display = 'none';
+  if (btnMagias) btnMagias.style.display = 'none';
+}
 
+function resolveFichaToken(token) {
   let fullData = null;
-  let charName = "Personagem";
-
+  let charName = 'Personagem';
   if (token.masterFichaId) {
     const f = getMasterFichas().find(f => f.id === token.masterFichaId);
     if (f) { fullData = f.fullData; charName = f.name; }
@@ -7205,111 +7876,82 @@ function abrirSeletorMagiasToken() {
   } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
     fullData = fichasJogadores[token.controlledBy].resumo?.fullData;
     charName = fichasJogadores[token.controlledBy].playerName;
-  } else {
-    toast('Este token não está vinculado a nenhuma ficha.');
-    return;
   }
+  return { fullData, charName };
+}
 
-  if (!fullData) { toast('Ficha não contém dados completos.'); return; }
-
-  const spellsList = fullData.spells?.list;
-  if (!spellsList || spellsList.length === 0) {
-    toast('Ficha sem magias.');
-    return;
-  }
-
-  const listEl = document.getElementById('seletorMagiasList');
-  if (!listEl) return;
+function abrirSeletorAtaquesToken() {
+  if (BOARD.selectedTokens.size !== 1) { toast('Selecione exatamente 1 token.'); return; }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) { toast('Token não encontrado.'); return; }
+  const { fullData, charName } = resolveFichaToken(token);
+  if (!fullData) { toast('Este token não está vinculado a nenhuma ficha.'); return; }
+  if (!fullData.attacks || !fullData.attacks.length) { toast('Ficha sem ataques.'); return; }
+  const listEl = document.getElementById('seletorAtaquesList');
+  if (!listEl) { toast('Erro de UI.'); return; }
   listEl.innerHTML = '';
-
-  const titleEl = document.getElementById('seletorMagiasTitle');
-  if (titleEl) titleEl.textContent = `Magias (${charName})`;
-
+  const titleEl = document.getElementById('seletorAtaquesTitle');
+  if (titleEl) titleEl.textContent = 'Ataques (' + charName + ')';
   const level = parseInt(fullData.charLevel || 1) || 1;
   const halfLevel = Math.floor(level / 2);
-  const attrKey = fullData.spells?.config?.attr || 'INT';
-  const attrVal = parseInt((fullData.attrs && fullData.attrs[attrKey]) || 0) || 0;
-  if (fullData.tempMods && fullData.tempMods.globais) {
-    const mod = parseInt(fullData.tempMods.globais[`attr${attrKey}`]);
-    if (!isNaN(mod)) attrVal += mod;
-  }
-  const spellPowers = parseInt(fullData.spells?.config?.powers) || 0;
-  const spellItems = parseInt(fullData.spells?.config?.items) || 0;
-  const spellOther = parseInt(fullData.spells?.config?.other) || 0;
-  const cd = 10 + halfLevel + attrVal + spellPowers + spellItems + spellOther;
-
-  const circleNames = { 1: '1º', 2: '2º', 3: '3º', 4: '4º', 5: '5º' };
-  const sorted = [...spellsList].sort((a, b) => (a.circle || 1) - (b.circle || 1));
-
-  sorted.forEach(sp => {
-    const circle = sp.circle || 1;
-    const circleLabel = circleNames[circle] || `${circle}º`;
-
+  const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+  fullData.attacks.forEach(a => {
+    const bonusStr = a.bonus || '0';
+    let attackBonus = parseInt(bonusStr) || 0;
+    if (a.skill && fullData.skills) {
+      const sk = fullData.skills.find(s => s.n === a.skill);
+      if (sk) {
+        let attrVal = parseInt((fullData.attrs && fullData.attrs[sk.a]) || 0) || 0;
+        const trainedBonus = sk.trained ? trainBonus : 0;
+        const skillTotal = halfLevel + attrVal + trainedBonus + (parseInt(sk.other) || 0);
+        attackBonus = Math.max(attackBonus, skillTotal);
+      }
+    }
+    const dmgBase = a.dmg || '1d4';
+    const dmgExtra = a.dmgExtra ? '+' + a.dmgExtra : '';
+    const diceExtra = a.diceExtra || '';
+    let dmgAttrStr = '';
+    if (a.dmgAttr && fullData.attrs) {
+      const attrVal = parseInt(fullData.attrs[a.dmgAttr]) || 0;
+      if (attrVal !== 0) {
+        dmgAttrStr = (attrVal > 0 ? '+' : '') + attrVal;
+      }
+    }
+    const dmgFormula = dmgBase + dmgExtra + diceExtra + dmgAttrStr;
+    const critRange = a.critRange || '20';
     const btn = document.createElement('button');
     btn.style.display = 'flex';
     btn.style.justifyContent = 'space-between';
     btn.style.alignItems = 'center';
     btn.style.padding = '0.5rem 0.8rem';
     btn.style.background = 'var(--parch3)';
-    btn.style.border = '1px solid #8a2be2';
+    btn.style.border = '1px solid var(--border)';
     btn.style.borderRadius = '4px';
     btn.style.cursor = 'pointer';
     btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.fontWeight = 'bold';
     btn.style.color = 'var(--text-color)';
-
-    const leftDiv = document.createElement('div');
-    leftDiv.style.display = 'flex';
-    leftDiv.style.flexDirection = 'column';
-    leftDiv.style.alignItems = 'flex-start';
-    leftDiv.style.flex = '1';
-    leftDiv.style.minWidth = '0';
-
-    const nameSpan = document.createElement('span');
-    nameSpan.style.fontWeight = 'bold';
-    nameSpan.style.fontSize = '0.85rem';
-    nameSpan.textContent = sp.name || 'Magia';
-
-    const subSpan = document.createElement('span');
-    subSpan.style.fontSize = '0.7rem';
-    subSpan.style.color = '#999';
-    subSpan.textContent = `${circleLabel} círculo | ${sp.school || '-'} | ${sp.pm || '?'} PM`;
-
-    leftDiv.appendChild(nameSpan);
-    leftDiv.appendChild(subSpan);
-
-    const cdSpan = document.createElement('span');
-    cdSpan.style.fontWeight = 'bold';
-    cdSpan.style.fontSize = '0.85rem';
-    cdSpan.style.color = '#b388ff';
-    cdSpan.style.flexShrink = '0';
-    cdSpan.textContent = `CD ${cd}`;
-
-    btn.appendChild(leftDiv);
-    btn.appendChild(cdSpan);
-
+    btn.style.marginBottom = '0.2rem';
+    const leftSpan = document.createElement('span');
+    leftSpan.textContent = a.name;
+    const rightSpan = document.createElement('span');
+    rightSpan.style.fontSize = '0.75rem';
+    rightSpan.style.color = '#ff4d4d';
+    const atkTotal = attackBonus >= 0 ? '+' + attackBonus : attackBonus;
+    rightSpan.textContent = atkTotal + ' | ' + dmgFormula;
+    btn.appendChild(leftSpan);
+    btn.appendChild(rightSpan);
     btn.onclick = () => {
-      let msg = `**✦ ${sp.name || 'Magia'}** (${circleLabel} círculo)\n`;
-      msg += `**PM:** ${sp.pm || '?'}`;
-      if (sp.exec) msg += ` | **Execução:** ${sp.exec}`;
-      if (sp.range) msg += ` | **Alcance:** ${sp.range}`;
-      if (sp.target) msg += `\n**Alvo/Área:** ${sp.target}`;
-      if (sp.dur) msg += ` | **Duração:** ${sp.dur}`;
-      if (sp.res) msg += ` | **Resistência:** ${sp.res}`;
-      msg += `\n**CD:** ${cd} (${attrKey} ${attrVal >= 0 ? '+' : ''}${attrVal} + ${halfLevel} + poderes ${spellPowers > 0 ? '+' + spellPowers : '0'} + itens ${spellItems > 0 ? '+' + spellItems : '0'})`;
-      if (sp.desc) msg += `\n\n${sp.desc}`;
-
-      const msgData = { type: 'chat', name: charName, role: myRole, text: msg, time: formatTime(), visibility: chatVisibility };
-      rotearMensagem(msgData);
-      fecharSeletorMagiasToken();
+      executarMacro('/r ' + a.name + ' (ataque):1d20' + (attackBonus >= 0 ? '+' : '') + attackBonus);
+      if (dmgFormula) executarMacro('/r ' + a.name + ' (dano):' + dmgFormula);
+      fecharSeletorAtaquesToken();
     };
-
     btn.onmouseover = () => btn.style.background = 'var(--parch1)';
     btn.onmouseout = () => btn.style.background = 'var(--parch3)';
-
     listEl.appendChild(btn);
   });
-
-  const modal = document.getElementById('seletorMagiasModal');
+  const modal = document.getElementById('seletorAtaquesModal');
   if (modal) modal.style.display = 'flex';
 }
 
@@ -7432,7 +8074,7 @@ function abrirSeletorPericiasToken() {
 
     if (canRoll) {
       btn.onclick = () => {
-        executarMacro(`/r ${s.n}: 1d20${total >= 0 ? '+' : ''}${total}`);
+        executarMacro(`/r ${s.n}:1d20${total >= 0 ? '+' : ''}${total}`);
         fecharSeletorPericiasToken();
       };
       btn.onmouseover = () => btn.style.background = 'var(--parch1)';
@@ -7448,6 +8090,66 @@ function abrirSeletorPericiasToken() {
   } else {
     toast('Modal seletorPericiasModal não encontrado no DOM!');
   }
+}
+
+// ── Seletor de Magias do Token ──
+function abrirSeletorMagiasToken() {
+  if (BOARD.selectedTokens.size !== 1) { toast('Selecione exatamente 1 token.'); return; }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) { toast('Token não encontrado.'); return; }
+  const { fullData, charName } = resolveFichaToken(token);
+  if (!fullData) { toast('Este token não está vinculado a nenhuma ficha.'); return; }
+  const spellsList = fullData.spells && fullData.spells.list;
+  if (!spellsList || !spellsList.length) { toast('Ficha sem magias.'); return; }
+  const listEl = document.getElementById('seletorMagiasList');
+  if (!listEl) { toast('Erro de UI.'); return; }
+  listEl.innerHTML = '';
+  const titleEl = document.getElementById('seletorMagiasTitle');
+  if (titleEl) titleEl.textContent = 'Magias (' + charName + ')';
+  const circleLabels = { 1: '1º', 2: '2º', 3: '3º', 4: '4º', 5: '5º' };
+  spellsList.forEach(function(sp) {
+    if (!sp || !sp.name) return;
+    var btn = document.createElement('button');
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid var(--border)';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.fontWeight = 'bold';
+    btn.style.color = 'var(--text-color)';
+    btn.style.marginBottom = '0.2rem';
+    var leftSpan = document.createElement('span');
+    leftSpan.textContent = sp.name;
+    var rightSpan = document.createElement('span');
+    rightSpan.style.fontSize = '0.7rem';
+    rightSpan.style.color = '#c77dff';
+    var circLabel = circleLabels[sp.circle] || sp.circle + 'º';
+    rightSpan.textContent = circLabel + ' Círculo · ' + (sp.pm || '—') + ' PM';
+    btn.appendChild(leftSpan);
+    btn.appendChild(rightSpan);
+    btn.onclick = function() {
+      var text = '**Magia:** ' + sp.name + ' (' + circLabel + ' Círculo · ' + (sp.pm || '—') + ' PM)\n';
+      text += '**Escola:** ' + (sp.school || '—') + ' | **Execução:** ' + (sp.exec || '—') + ' | **Alcance:** ' + (sp.range || '—') + ' | **Alvo/Área:** ' + (sp.target || '—') + ' | **Duração:** ' + (sp.dur || '—') + ' | **Resistência:** ' + (sp.res || '—') + '\n';
+      text += '_' + (sp.desc || '') + '_';
+      executarMacro(text);
+      fecharSeletorMagiasToken();
+    };
+    btn.onmouseover = function() { btn.style.background = 'var(--parch1)'; };
+    btn.onmouseout = function() { btn.style.background = 'var(--parch3)'; };
+    listEl.appendChild(btn);
+  });
+  var modal = document.getElementById('seletorMagiasModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function fecharSeletorMagiasToken() {
+  var modal = document.getElementById('seletorMagiasModal');
+  if (modal) modal.style.display = 'none';
 }
 
 function vincularFichaAToken(type, id) {
@@ -7548,6 +8250,31 @@ function popularCtxCondicoes(token) {
   if (!sub) return;
   const ativas = token.conditions || [];
   sub.innerHTML = '';
+
+  // Opção "Remover Todas" no topo (só se houver condições ativas)
+  if (ativas.length > 0) {
+    const remAll = document.createElement('div');
+    remAll.className = 'ctx-cond-item';
+    remAll.style.borderBottom = '1px solid var(--border)';
+    remAll.style.marginBottom = '4px';
+    remAll.style.paddingBottom = '4px';
+    remAll.style.color = '#ff6b6b';
+    remAll.textContent = '🗑 Remover Todas Condições';
+    remAll.onclick = (e) => {
+      e.stopPropagation();
+      snapshotBoard();
+      const t = BOARD.tokens.find(tk => tk.id === contextTokenId);
+      if (!t) return;
+      t.conditions = [];
+      boardSave();
+      boardRender();
+      syncBoardTokensToPlayers();
+      popularCtxCondicoes(t);
+      fecharContextMenu();
+    };
+    sub.appendChild(remAll);
+  }
+
   CONDITION_LIST.forEach(c => {
     const div = document.createElement('div');
     div.className = 'ctx-cond-item';
@@ -7661,8 +8388,23 @@ function _ajustarMobile() {
   }
 }
 
+function toggleGrid(checked) {
+  BOARD.gridOn = checked;
+  boardRender();
+  boardSave();
+}
+
+function setGridSize(val) {
+  if (isNaN(val) || val < 20) return;
+  BOARD.gridSize = val;
+  document.getElementById('gridSize').value = val;
+  boardRender();
+  boardSave();
+}
+
 function boardRender() {
   if (myRole === 'cego') return;
+  _syncWeatherSelect();
   const { canvas, ctx, offsetX, offsetY, zoom, gridOn, gridSize, mapImg, tokens, dragging, hovered, gridCols, gridRows, gridType, lightingType } = BOARD;
   if (!ctx) return;
 
@@ -7812,6 +8554,11 @@ function boardRender() {
   // Régua / Medição ativa
   if (BOARD.rulerActive) {
     drawRulerPreview(ctx);
+  }
+
+  // Régua com waypoints
+  if (BOARD.wayRulerPoints && BOARD.wayRulerPoints.length > 0) {
+    drawWayRulerPreview(ctx);
   }
 
   // Outline and resize handle for GM map edit
@@ -7999,6 +8746,9 @@ function boardRender() {
     // Compor a camada de darkvision (grayscale com buracos) sobre o canvas principal
     ctx.drawImage(dvCanvas, 0, 0);
   }
+
+  // Partículas de clima (chuva/neve) — em coordenadas de tela
+  _renderWeather(ctx);
 }
 
 // Verifica se o filtro de preto e branco (darkvision) deve ser ativado.
@@ -8586,7 +9336,21 @@ function drawRulerPreview(ctx) {
   const D = Math.hypot(dx, dy);
   if (D < 2) return;
 
-  const cells = D / gridSize;
+  let cells;
+  if (rulerMode === 'circle' || BOARD.gridType === 'hex') {
+    cells = D / gridSize;
+  } else {
+    const gridDx = Math.round(Math.abs(dx) / gridSize);
+    const gridDy = Math.round(Math.abs(dy) / gridSize);
+    if (BOARD.distanceMode === 'euclidean') {
+      cells = D / gridSize;
+    } else if (BOARD.distanceMode === 'double_diagonal') {
+      cells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+    } else {
+      cells = Math.max(gridDx, gridDy);
+    }
+  }
+  
   const val = cells * gridScaleVal;
   const formattedText = val.toFixed(1) + ' ' + (gridScaleUnit || 'm');
 
@@ -8648,6 +9412,182 @@ function drawRulerPreview(ctx) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(formattedText, midX, midY);
+
+  ctx.restore();
+}
+
+// ── Régua com Waypoints ──
+function drawWayRulerPreview(ctx) {
+  const pts = BOARD.wayRulerPoints;
+  if (!pts || !pts.length) return;
+  const { gridSize, gridScaleVal, gridScaleUnit, zoom } = BOARD;
+  const col = '#ffaa44';
+
+  ctx.save();
+  ctx.lineWidth = 2 / zoom;
+  ctx.strokeStyle = col;
+  ctx.fillStyle = col;
+  ctx.setLineDash([]);
+
+  // Linhas entre waypoints fixos
+  let totalDist = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i].x - pts[i - 1].x;
+    const dy = pts[i].y - pts[i - 1].y;
+    
+    let cells;
+    if (BOARD.gridType === 'hex') {
+      cells = Math.hypot(dx, dy) / gridSize;
+    } else {
+      const gridDx = Math.round(Math.abs(dx) / gridSize);
+      const gridDy = Math.round(Math.abs(dy) / gridSize);
+      if (BOARD.distanceMode === 'euclidean') {
+        cells = Math.hypot(dx, dy) / gridSize;
+      } else if (BOARD.distanceMode === 'double_diagonal') {
+        cells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+      } else {
+        cells = Math.max(gridDx, gridDy);
+      }
+    }
+    
+    totalDist += cells;
+
+    const val = cells * gridScaleVal;
+    const label = val.toFixed(1) + ' ' + (gridScaleUnit || 'm');
+
+    ctx.beginPath();
+    ctx.moveTo(pts[i - 1].x, pts[i - 1].y);
+    ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke();
+
+    // Label da distância de cada segmento
+    const mx = (pts[i - 1].x + pts[i].x) / 2;
+    const my = (pts[i - 1].y + pts[i].y) / 2;
+    ctx.font = `${Math.max(11, 13 / zoom)}px 'Cinzel', sans-serif`;
+    const tw = ctx.measureText(label).width;
+    const px = 6 / zoom, py = 3 / zoom;
+    const bw = tw + px * 2, bh = Math.max(14, 18 / zoom);
+    ctx.fillStyle = 'rgba(30,20,10,0.8)';
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1 / zoom;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(mx - bw / 2, my - bh / 2, bw, bh, 3 / zoom);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(mx - bw / 2, my - bh / 2, bw, bh);
+      ctx.strokeRect(mx - bw / 2, my - bh / 2, bw, bh);
+    }
+    ctx.fillStyle = col;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, mx, my);
+  }
+
+  // Linha pontilhada para o preview (último ponto → mouse)
+  if (BOARD.wayRulerActive && pts.length > 0) {
+    const lastPt = pts[pts.length - 1];
+    const dx = BOARD.wayRulerTempX - lastPt.x;
+    const dy = BOARD.wayRulerTempY - lastPt.y;
+    
+    ctx.setLineDash([4 / zoom, 4 / zoom]);
+    ctx.strokeStyle = 'rgba(255,170,68,0.5)';
+    ctx.lineWidth = 1.5 / zoom;
+    ctx.beginPath();
+    ctx.moveTo(lastPt.x, lastPt.y);
+    ctx.lineTo(BOARD.wayRulerTempX, BOARD.wayRulerTempY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Label da distância do segmento atual (preview)
+    let tempCells;
+    if (BOARD.gridType === 'hex') {
+      tempCells = Math.hypot(dx, dy) / gridSize;
+    } else {
+      const gridDx = Math.round(Math.abs(dx) / gridSize);
+      const gridDy = Math.round(Math.abs(dy) / gridSize);
+      if (BOARD.distanceMode === 'euclidean') {
+        tempCells = Math.hypot(dx, dy) / gridSize;
+      } else if (BOARD.distanceMode === 'double_diagonal') {
+        tempCells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+      } else {
+        tempCells = Math.max(gridDx, gridDy);
+      }
+    }
+    
+    if (tempCells > 0) {
+      const val = tempCells * gridScaleVal;
+      const label = '+' + val.toFixed(1) + ' ' + (gridScaleUnit || 'm');
+      const mx = (lastPt.x + BOARD.wayRulerTempX) / 2;
+      const my = (lastPt.y + BOARD.wayRulerTempY) / 2;
+      
+      ctx.font = `${Math.max(11, 13 / zoom)}px 'Cinzel', sans-serif`;
+      const tw = ctx.measureText(label).width;
+      const px = 6 / zoom, py = 3 / zoom;
+      const bw = tw + px * 2, bh = Math.max(14, 18 / zoom);
+      ctx.fillStyle = 'rgba(30,20,10,0.6)';
+      ctx.strokeStyle = 'rgba(255,170,68,0.5)';
+      ctx.lineWidth = 1 / zoom;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(mx - bw / 2, my - bh / 2, bw, bh, 3 / zoom);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(mx - bw / 2, my - bh / 2, bw, bh);
+        ctx.strokeRect(mx - bw / 2, my - bh / 2, bw, bh);
+      }
+      ctx.fillStyle = 'rgba(255,170,68,0.8)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, mx, my);
+      
+      // Add temp distance to totalDist for the final label preview
+      totalDist += tempCells;
+    }
+  }
+
+  // Bolinhas nos waypoints
+  for (let i = 0; i < pts.length; i++) {
+    ctx.beginPath();
+    ctx.arc(pts[i].x, pts[i].y, (i === 0 || i === pts.length - 1 && !BOARD.wayRulerActive) ? 5 / zoom : 3.5 / zoom, 0, Math.PI * 2);
+    ctx.fillStyle = i === 0 ? '#44dd88' : (i === pts.length - 1 && !BOARD.wayRulerActive ? '#ff4444' : col);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1 / zoom;
+    ctx.stroke();
+  }
+
+  // Distância total
+  if (totalDist > 0) {
+    const totalVal = totalDist * gridScaleVal;
+    const totalLabel = 'Total: ' + totalVal.toFixed(1) + ' ' + (gridScaleUnit || 'm');
+
+    ctx.font = `bold ${Math.max(13, 16 / zoom)}px 'Cinzel', sans-serif`;
+    const tw = ctx.measureText(totalLabel).width;
+    const px = 10 / zoom, py = 5 / zoom;
+    const bw = tw + px * 2, bh = Math.max(20, 26 / zoom);
+    const cx = pts[0].x + (pts[pts.length - 1].x - pts[0].x) / 2;
+    const cy = pts[0].y + (pts[pts.length - 1].y - pts[0].y) / 2;
+
+    ctx.fillStyle = 'rgba(30,20,10,0.85)';
+    ctx.strokeStyle = '#ffaa44';
+    ctx.lineWidth = 1.5 / zoom;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(cx - bw / 2, cy - bh / 2 - 22 / zoom, bw, bh, 4 / zoom);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(cx - bw / 2, cy - bh / 2 - 22 / zoom, bw, bh);
+      ctx.strokeRect(cx - bw / 2, cy - bh / 2 - 22 / zoom, bw, bh);
+    }
+    ctx.fillStyle = '#ffcc66';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(totalLabel, cx, cy - 22 / zoom);
+  }
 
   ctx.restore();
 }
@@ -8822,25 +9762,14 @@ function getLightingColor(type) {
     case 'twilight':   return 'rgba(180, 80, 50, 0.18)';  // Crepuúsculo: laranja quente
     case 'cave':       return 'rgba(5, 5, 10, 0.97)';     // Caverna: escuro total
     case 'cloudy':     return 'rgba(100, 100, 120, 0.12)';// Nublado: cinza leve
+    case 'rainy':      return 'rgba(80, 100, 130, 0.25)'; // Chuva: azul-acinzentado
+    case 'snowy':      return 'rgba(200, 210, 230, 0.20)';// Neve: branco-azulado frio
     default:           return 'transparent';
   }
 }
 
 function getTokenCenter(t, gx, gy) {
-  const { gridSize, gridType } = BOARD;
-  const sz = (t.size || 1);
-  if (gridType === 'hex') {
-    const R = gridSize / 2;
-    const hexHeight = Math.sqrt(3) * R;
-    return {
-      x: gx * R * 1.5,
-      y: gy * hexHeight + ((Math.abs(Math.round(gx)) % 2) ? hexHeight / 2 : 0)
-    };
-  }
-  return {
-    x: gx * gridSize + (sz * gridSize) / 2,
-    y: gy * gridSize + (sz * gridSize) / 2
-  };
+  return tokenWorldPos(gx, gy);
 }
 
 function drawToken(ctx, t, isDragging, isHovered) {
@@ -8882,8 +9811,9 @@ function drawToken(ctx, t, isDragging, isHovered) {
   const gs = gridSize;
   const sizeW = (t.sizeX || t.size || 1) * gs;
   const sizeH = (t.sizeY || t.size || 1) * gs;
-  const px = t.gx * gs + sizeW / 2;
-  const py = t.gy * gs + sizeH / 2;
+  const pos = tokenWorldPos(t.gx, t.gy);
+  const px = pos.x;
+  const py = pos.y;
   const rX = isObject ? sizeW / 2 : sizeW * 0.42;
   const rY = isObject ? sizeH / 2 : sizeH * 0.42;
 
@@ -9290,6 +10220,8 @@ function drawToken(ctx, t, isDragging, isHovered) {
     ctx.restore();
   }
 
+  _renderCondEffects(ctx, t);
+
   ctx.restore();
 }
 
@@ -9327,7 +10259,20 @@ function drawTokenMovementPath(ctx, t) {
   ctx.fill();
 
   // Desenhar o badge numérico com a distância percorrida
-  const cells = len / BOARD.gridSize;
+  let cells;
+  if (BOARD.gridType === 'hex') {
+    cells = len / BOARD.gridSize;
+  } else {
+    const gridDx = Math.round(Math.abs(dx) / BOARD.gridSize);
+    const gridDy = Math.round(Math.abs(dy) / BOARD.gridSize);
+    if (BOARD.distanceMode === 'euclidean') {
+      cells = len / BOARD.gridSize;
+    } else if (BOARD.distanceMode === 'double_diagonal') {
+      cells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+    } else {
+      cells = Math.max(gridDx, gridDy);
+    }
+  }
   const val = cells * BOARD.gridScaleVal;
   const formattedText = val.toFixed(1) + ' ' + (BOARD.gridScaleUnit || 'm');
 
@@ -10008,6 +10953,13 @@ function abrirBuscaAudios() {
   if (savedKeyEl) savedKeyEl.value = freesoundApiKey;
 }
 
+function abrirJukebox() {
+  fecharContextMenu();
+  fecharBuscaUnsplash();
+  document.getElementById('soundModal').style.display = 'flex';
+  setSoundTab('soundboard');
+}
+
 function fecharBuscaAudios() {
   document.getElementById('soundModal').style.display = 'none';
   stopPreviewAudio();
@@ -10141,7 +11093,8 @@ function renderSoundboard() {
   var html = '';
   soundboardData.forEach(function(s) {
     html += '<div class="sboard-item">' +
-      '<button class="sboard-play-btn" onclick="tocarSomSoundboard(\'' + s.id + '\')" title="Tocar">▶</button>' +
+      '<button class="sboard-play-btn" onclick="tocarSomSoundboard(\'' + s.id + '\')" title="Tocar uma vez">▶</button>' +
+      '<button class="sboard-play-btn" onclick="playAmbient(\'' + s.url.replace(/'/g, "\\'") + '\')" title="Repetir como música ambiente" style="color:var(--gold);">🔁</button>' +
       '<div class="sboard-info">' +
         '<div class="sboard-name">' + escHTML(s.name.substring(0, 28)) + '</div>' +
         '<div class="sboard-meta">' + (s.duration ? formatDuration(s.duration) : '') + '</div>' +
@@ -10310,6 +11263,132 @@ function carregarMapaDeUrl(url) {
   }, () => {
     toast('Erro ao carregar imagem do mapa.');
   });
+}
+
+function importarUVTT() {
+  if (myRole !== 'mestre') {
+    toast('Apenas o Mestre pode importar mapas UVTT.');
+    return;
+  }
+  document.getElementById('uvttFileInput').click();
+}
+
+async function onUVTTFile(input) {
+  if (myRole !== 'mestre') return;
+  const file = input.files && input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
+
+    let imageFile = null;
+    let metadataFile = null;
+
+    const files = Object.keys(zip.files);
+    for (const name of files) {
+      const lower = name.toLowerCase();
+      if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp')) {
+        if (!name.startsWith('__') && !lower.includes('thumbnail')) {
+          imageFile = name;
+        }
+      }
+      if (lower === 'dd2vtt.json' || lower.endsWith('/dd2vtt.json') || lower.endsWith('metadata.json') || lower.endsWith('map.json')) {
+        metadataFile = name;
+      }
+    }
+
+    if (!imageFile) {
+      toast('Erro: Nenhuma imagem encontrada no arquivo UVTT.');
+      return;
+    }
+
+    const imageBlob = await zip.files[imageFile].async('blob');
+    const imageUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(imageBlob);
+    });
+
+    let wallsData = null;
+    let pixelsPerGrid = 100;
+    let offsetX = 0, offsetY = 0;
+
+    if (metadataFile) {
+      try {
+        const metadataStr = await zip.files[metadataFile].async('string');
+        const metadata = JSON.parse(metadataStr);
+
+        pixelsPerGrid = metadata.resolution?.pixels_per_grid || 100;
+
+        if (metadata.resolution?.map_origin) {
+          offsetX = metadata.resolution.map_origin.x || 0;
+          offsetY = metadata.resolution.map_origin.y || 0;
+        }
+
+        wallsData = metadata.walls || [];
+
+        if (metadata.portals) {
+          for (const p of metadata.portals) {
+            if (p.x !== undefined && p.y !== undefined && p.x2 !== undefined && p.y2 !== undefined) {
+              wallsData.push({ x: p.x, y: p.y, x2: p.x2, y2: p.y2, type: (p.type === 'door' || p.type === 'window') ? p.type : 'door' });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao ler metadados UVTT:', e);
+      }
+    }
+
+    snapshotBoard();
+
+    loadImageWithCORSFallback(imageUrl, (img) => {
+      BOARD.mapImg = img;
+      BOARD.mapDataUrl = imageUrl;
+      BOARD.mapX = 0;
+      BOARD.mapY = 0;
+      BOARD.mapWidth = null;
+      BOARD.mapHeight = null;
+
+      if (wallsData) {
+        const floorZ = (BOARD.activeFloor || 0) * 10;
+        let wallCount = 0;
+        for (const w of wallsData) {
+          if (w.x !== undefined && w.y !== undefined && w.x2 !== undefined && w.y2 !== undefined) {
+            BOARD.walls.push({
+              id: 'uvtt_wall_' + Date.now() + '_' + wallCount,
+              x1: w.x - offsetX,
+              y1: w.y - offsetY,
+              x2: w.x2 - offsetX,
+              y2: w.y2 - offsetY,
+              type: w.type || 'normal',
+              open: false,
+              z: floorZ,
+              soundId: null
+            });
+            wallCount++;
+          }
+        }
+        toast(`📦 UVTT: ${wallCount} paredes importadas!`);
+      } else {
+        toast('📦 UVTT: Mapa importado (sem paredes no arquivo).');
+      }
+
+      boardRender();
+      if (myRole === 'mestre' || amIHost) {
+        syncBoardMapToPlayers();
+        syncWallsToPlayers();
+      }
+      boardSave();
+    }, () => {
+      toast('Erro ao carregar imagem do UVTT.');
+    });
+  } catch (e) {
+    console.error('Erro ao processar UVTT:', e);
+    toast('Erro ao processar arquivo UVTT.');
+  }
 }
 
 async function executarBuscaImagens() {
@@ -11092,7 +12171,7 @@ function boardLoad() {
     if (s.gridScaleVal !== undefined) BOARD.gridScaleVal = s.gridScaleVal;
     if (s.gridScaleUnit !== undefined) BOARD.gridScaleUnit = s.gridScaleUnit;
     if (s.gridType !== undefined) BOARD.gridType = s.gridType;
-    if (s.lightingType !== undefined) BOARD.lightingType = s.lightingType;
+    if (s.lightingType !== undefined) { BOARD.lightingType = s.lightingType; _syncWeatherSelect(); }
     if (s.fogManual && s.fogVisible) {
       BOARD.fogVisible = new Set(s.fogVisible);
       BOARD.fogManual = true;
@@ -11117,6 +12196,14 @@ function boardLoad() {
       BOARD.mapY = 0;
       BOARD.mapWidth = null;
       BOARD.mapHeight = null;
+    }
+    // Auto-iniciar partículas se o clima carregado for chuva/neve
+    var lt = BOARD.lightingType;
+    if (lt === 'rainy' || lt === 'snowy') {
+      var wtype = lt === 'rainy' ? 'rainy' : 'snowy';
+      if (_weatherAnimId) { cancelAnimationFrame(_weatherAnimId); _weatherAnimId = null; }
+      _weatherActive = wtype;
+      setTimeout(function() { _initWeatherParticles(wtype); _lastWeatherTime = 0; _weatherAnimId = requestAnimationFrame(_weatherTick); }, 300);
     }
   } catch (e) { }
 }
@@ -11431,7 +12518,7 @@ function receberBoardSync(data) {
   if (data.gridScaleVal !== undefined) BOARD.gridScaleVal = data.gridScaleVal;
   if (data.gridScaleUnit !== undefined) BOARD.gridScaleUnit = data.gridScaleUnit;
   if (data.gridType !== undefined) BOARD.gridType = data.gridType;
-  if (data.lightingType !== undefined) BOARD.lightingType = data.lightingType;
+  if (data.lightingType !== undefined) { BOARD.lightingType = data.lightingType; _syncWeatherSelect(); }
   setTimeout(atualizarFogJogador, 50);
   boardRender();
 }
@@ -11458,7 +12545,7 @@ function boardSetupRole() {
   if (tbSection) tbSection.style.display = 'flex';
 
   // Ferramentas exclusivas do mestre
-  const masterOnlyTools = ['toolWall', 'btnLimparParedes', 'wallTypeSelect', 'toolFog', 'toolReveal', 'shapeColorPicker'];
+  const masterOnlyTools = ['toolWall', 'btnLimparParedes', 'toolFog', 'toolReveal', 'shapeColorPicker'];
   masterOnlyTools.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isMaster ? '' : 'none';
@@ -11582,7 +12669,7 @@ function entrarSala() {
           if (data.gridScaleVal !== undefined) BOARD.gridScaleVal = data.gridScaleVal;
           if (data.gridScaleUnit !== undefined) BOARD.gridScaleUnit = data.gridScaleUnit;
           if (data.gridType !== undefined) BOARD.gridType = data.gridType;
-          if (data.lightingType !== undefined) BOARD.lightingType = data.lightingType;
+          if (data.lightingType !== undefined) { BOARD.lightingType = data.lightingType; _syncWeatherSelect(); }
           boardRender();
         }
         else if (data.type === 'board-full') receberBoardSync(data);
@@ -11604,41 +12691,74 @@ function entrarSala() {
 
 
 // ──── Estado das Macros ────
-let vttMacros = Array(10).fill(null);
+let vttMacros = [];
+let macroPage = 0;
 
 function carregarMacros() {
   const raw = localStorage.getItem('t20_vtt_macros');
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      for (let i = 0; i < 10; i++) {
-        vttMacros[i] = parsed[i] || null;
-      }
+      vttMacros = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      vttMacros = Array(10).fill(null);
+      vttMacros = [];
     }
   } else {
-    vttMacros = Array(10).fill(null);
+    vttMacros = [];
   }
+  while (vttMacros.length < 10) vttMacros.push(null);
+  macroPage = 0;
   renderizarMacros();
 }
 
 function salvarMacros() {
-  localStorage.setItem('t20_vtt_macros', JSON.stringify(vttMacros));
+  // Trim trailing nulls to keep storage lean
+  let trimmed = [...vttMacros];
+  while (trimmed.length > 10 && trimmed[trimmed.length - 1] === null) trimmed.pop();
+  localStorage.setItem('t20_vtt_macros', JSON.stringify(trimmed));
   renderizarMacros();
+}
+
+function macroPagePrev() {
+  if (macroPage > 0) { macroPage--; renderizarMacros(); }
+}
+
+function macroPageNext() {
+  const totalPages = Math.max(1, Math.ceil(vttMacros.length / 10));
+  if (macroPage < totalPages - 1) { macroPage++; renderizarMacros(); }
+}
+
+function macroAddSlot() {
+  vttMacros.push(null);
+  // Navigate to the page containing the new slot
+  macroPage = Math.floor((vttMacros.length - 1) / 10);
+  renderizarMacros();
+  abrirConfigMacros(vttMacros.length - 1);
 }
 
 function renderizarMacros() {
   const btnList = document.getElementById('macro-buttons-list');
   if (!btnList) return;
 
+  const totalPages = Math.max(1, Math.ceil(vttMacros.length / 10));
+  if (macroPage >= totalPages) macroPage = totalPages - 1;
+
+  // Update nav state
+  const prevBtn = document.getElementById('macro-prev');
+  const nextBtn = document.getElementById('macro-next');
+  const pageInd = document.getElementById('macro-page-indicator');
+  if (prevBtn) prevBtn.style.opacity = macroPage > 0 ? '1' : '0.3';
+  if (nextBtn) nextBtn.style.opacity = macroPage < totalPages - 1 ? '1' : '0.3';
+  if (pageInd) pageInd.textContent = (macroPage + 1) + '/' + totalPages;
+
   btnList.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
+  const start = macroPage * 10;
+  const end = Math.min(start + 10, vttMacros.length);
+  for (let i = start; i < end; i++) {
     const m = vttMacros[i];
     const btn = document.createElement('button');
     btn.className = 'macro-btn';
     
-    // Style adjustments to look like a fixed hotbar
     btn.style.width = '42px';
     btn.style.height = '42px';
     btn.style.display = 'flex';
@@ -11649,8 +12769,8 @@ function renderizarMacros() {
     btn.style.position = 'relative';
     btn.style.overflow = 'hidden';
 
-    // The display number for the slot (1,2,3,4,5,6,7,8,9,0)
-    const slotNum = i === 9 ? '0' : (i + 1).toString();
+    // Slot number (actual index + 1, but last of page shows 0 for page 0)
+    const slotNum = (i + 1).toString();
     const numEl = document.createElement('span');
     numEl.textContent = slotNum;
     numEl.style.position = 'absolute';
@@ -11674,7 +12794,7 @@ function renderizarMacros() {
       icon.style.fontSize = '1.2rem';
       
       const label = document.createElement('span');
-      label.textContent = m.name.substring(0, 5); // truncated
+      label.textContent = m.name.substring(0, 5);
       label.style.fontSize = '0.55rem';
       label.style.marginTop = '-2px';
       
@@ -11727,8 +12847,7 @@ function abrirConfigMacros(index) {
   const delBtn = document.getElementById('macro-delete-btn');
 
   if (modal) {
-    const slotNum = index === 9 ? '0' : (index + 1).toString();
-    title.textContent = `Configurar Macro (Slot ${slotNum})`;
+    title.textContent = `Configurar Macro (#${index + 1})`;
     idxInp.value = index;
     
     const m = vttMacros[index];
@@ -11780,6 +12899,30 @@ function limparMacroSlot() {
     salvarMacros();
     fecharConfigMacros();
     mostrarToast('Macro removida!', 'sucesso');
+  }
+}
+
+// ── Recolher/Expandir Barra de Macros ──
+function toggleMacroBar() {
+  const content = document.getElementById('macro-collapsible-content');
+  const btn = document.getElementById('macro-collapse-toggle');
+  if (!content || !btn) return;
+  const isCollapsed = content.style.display === 'none';
+  content.style.display = isCollapsed ? 'flex' : 'none';
+  btn.textContent = isCollapsed ? '❮' : '❯';
+  btn.title = isCollapsed ? 'Recolher barra de macros' : 'Expandir barra de macros';
+  localStorage.setItem('t20_macro_bar_collapsed', isCollapsed ? '0' : '1');
+}
+
+function _initMacroBarCollapse() {
+  const content = document.getElementById('macro-collapsible-content');
+  const btn = document.getElementById('macro-collapse-toggle');
+  if (!content || !btn) return;
+  const collapsed = localStorage.getItem('t20_macro_bar_collapsed') === '1';
+  if (collapsed) {
+    content.style.display = 'none';
+    btn.textContent = '❯';
+    btn.title = 'Expandir barra de macros';
   }
 }
 
@@ -11980,6 +13123,7 @@ function aplicarCegoVisual() {
   }
   // Inicializa as macros
   carregarMacros();
+  _initMacroBarCollapse();
   // Inicializa o editor de imagens
   initImageEditor();
 
@@ -12021,6 +13165,12 @@ function aplicarCegoVisual() {
       if (BOARD.playerViewTokenId || BOARD.selectedTokens.size > 0) {
         BOARD.selectedTokens.clear();
         exitPlayerView();
+        boardRender();
+        return;
+      }
+      if (BOARD.wayRulerActive || BOARD.wayRulerPoints.length > 0) {
+        BOARD.wayRulerActive = false;
+        BOARD.wayRulerPoints = [];
         boardRender();
         return;
       }
@@ -13201,7 +14351,7 @@ function importarMesa(event) {
       if (s.gridScaleVal !== undefined) BOARD.gridScaleVal = s.gridScaleVal;
       if (s.gridScaleUnit !== undefined) BOARD.gridScaleUnit = s.gridScaleUnit;
       if (s.gridType !== undefined) BOARD.gridType = s.gridType;
-      if (s.lightingType !== undefined) BOARD.lightingType = s.lightingType;
+      if (s.lightingType !== undefined) { BOARD.lightingType = s.lightingType; _syncWeatherSelect(); }
 
       if (s.fogManual && s.fogVisible) {
         BOARD.fogVisible = new Set(s.fogVisible);
@@ -13267,7 +14417,8 @@ function setTool(toolName) {
     { name: 'shape-circle', id: 'toolShapeCircle' }, { name: 'shape-circle', id: 'mobToolCircle' },
     { name: 'shape-freehand', id: 'toolShapeFreehand' }, { name: 'shape-freehand', id: 'mobToolFreehand' },
     { name: 'ruler', id: 'toolRuler' }, { name: 'ruler', id: 'mobToolRuler' },
-    { name: 'circle-ruler', id: 'toolCircleRuler' }, { name: 'circle-ruler', id: 'mobToolCircleRuler' }
+    { name: 'circle-ruler', id: 'toolCircleRuler' }, { name: 'circle-ruler', id: 'mobToolCircleRuler' },
+    { name: 'way-ruler', id: 'toolWayRuler' }, { name: 'way-ruler', id: 'mobToolWayRuler' }
   ];
 
   toolButtons.forEach(btn => {
@@ -13299,7 +14450,30 @@ function setTool(toolName) {
   if (BOARD.marquee) { BOARD.marquee = null; hideSelectionBox(); }
   BOARD.selectedTokens.clear();
   BOARD.selectedWallId = null;
+  BOARD.wayRulerActive = false;
+  BOARD.wayRulerPoints = [];
   atualizarVisaoJogadorPorSelecao();
 
+  // Seletor de tipo de parede: só aparece com a ferramenta parede ativa
+  const wallSelect = document.getElementById('wallTypeSelect');
+  if (wallSelect) {
+    wallSelect.style.display = (toolName === 'wall' && myRole === 'mestre') ? '' : 'none';
+  }
+
+  // Seletor de modo de distância: aparece para régua e caminho
+  const distanceModeSelect = document.getElementById('distanceModeSelect');
+  if (distanceModeSelect) {
+    distanceModeSelect.style.display = (toolName === 'ruler' || toolName === 'way-ruler') ? '' : 'none';
+  }
+
+  boardRender();
+}
+
+function setDistanceMode(mode) {
+  BOARD.distanceMode = mode;
+  const gcDist = document.getElementById('gcDistanceMode');
+  if (gcDist) gcDist.value = mode;
+  const distSel = document.getElementById('distanceModeSelect');
+  if (distSel) distSel.value = mode;
   boardRender();
 }

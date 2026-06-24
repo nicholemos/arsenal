@@ -2124,25 +2124,14 @@ body,
 }
 
 body.theme-blood {
-    /* Paleta Dark & Crimson de Tormenta20 */
-    --t20-red: #ff2e2e;
-    --t20-red-dark: #8b0000;
-    --ouro: #cc0d0d;
-    --ouro-glow: rgba(204, 13, 13, 0.35);
-    --ouro-dark: #ff2e2e;
-    --bg-principal: #0a0404;
-    --bg-radial: radial-gradient(circle at center, #1b0707 0%, #030000 100%);
-    --bg-card: rgba(22, 14, 14, 0.75);
-    --bg-card-solid: #1c0e0e;
-    --borda-card: rgba(204, 13, 13, 0.25);
-    --borda-card-hover: rgba(204, 13, 13, 0.55);
-    --texto-principal: #e8e4e4;
-    --texto-secundario: #a39898;
-    --text-muted: #736868;
+    /* Tema Padrão (Sangue) - Fundo Claro com detalhes em Vermelho */
+    --ouro: #e0483f;
+    --ouro-glow: rgba(224, 72, 63, 0.2);
+    --ouro-dark: #b22222;
 }
 
 /* 2. Premium Dark & Gold Theme Overrides */
-body.theme-dark, body.theme-blood {
+body.theme-dark {
     /* Paleta Dark & Gold de Tormenta20 */
     --t20-red: #e0483f;
     --t20-red-dark: #8b0000;
@@ -2158,7 +2147,9 @@ body.theme-dark, body.theme-blood {
     --texto-principal: #e2d8c3;
     --texto-secundario: #8e7d65;
     --text-muted: #8e7d65;
+}
 
+body.theme-dark {
     /* Global & Body overrides under dark mode */
     background-color: var(--bg-principal) !important;
     background-image: var(--bg-radial) !important;
@@ -3365,16 +3356,17 @@ body:not(.theme-dark):not(.theme-classic) .border-primary {
   vertical-align: middle;
 }
 
-body.theme-dark .theme-switcher,
-body.theme-blood .theme-switcher {
+body.theme-dark .theme-switcher {
   border-color: rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.3);
 }
 
+body.theme-blood .theme-switcher,
 body.theme-classic .theme-switcher {
   border-color: rgba(0, 0, 0, 0.2);
   background: rgba(0, 0, 0, 0.05);
 }
+
 
 .theme-btn {
   background: transparent;
@@ -3420,8 +3412,13 @@ body.vtt-mode .container.sheet { border-radius: 0 !important; box-shadow: none !
 <body class="py-1 vtt-mode">
 
     <!-- Banner de apenas leitura para o mestre -->
-    <div id="readOnlyBanner" class="alert alert-warning py-2 px-3 mb-3 d-none text-center" style="font-family: 'Cinzel', serif; font-size: 0.9rem; border: 1px solid #c9903a; background-color: rgba(201, 144, 58, 0.1); color: #e8b96a;">
-      👁️ <strong>Visualização do Mestre (Apenas Leitura)</strong> — Alterações feitas aqui não serão salvas.
+    <div id="readOnlyBanner" class="alert alert-warning py-2 px-3 mb-3 d-none d-flex justify-content-between align-items-center" style="font-family: 'Cinzel', serif; font-size: 0.9rem; border: 1px solid #c9903a; background-color: rgba(201, 144, 58, 0.1); color: #e8b96a;">
+      <div class="readonly-text">
+          👁️ <strong>Visualização do Mestre (Apenas Leitura)</strong> — Alterações feitas aqui não serão salvas.
+      </div>
+      <button class="btn btn-sm btn-outline-warning ms-3" id="btnToggleReadOnly" onclick="toggleReadOnly()" title="Permitir edição" style="white-space: nowrap;">
+          <i class="bi bi-unlock"></i> Habilitar Edição
+      </button>
     </div>
 
     <div class="container sheet bg-white p-4 rounded shadow-lg">
@@ -4388,6 +4385,60 @@ body.vtt-mode .container.sheet { border-radius: 0 !important; box-shadow: none !
                             </div>
 
                             <div class="mt-4 pt-3 border-top">
+                                <span class="fw-bold small text-muted d-block mb-2">BÔNUS EM PERÍCIAS DE ATRIBUTO</span>
+                                <div class="row g-2 text-center">
+                                    <div class="col-4 col-md-2">
+                                        <div class="border rounded p-1 bg-light border-secondary">
+                                            <div class="fw-bold small text-muted mb-1">FOR</div>
+                                            <input type="number" id="mod-skill-attr-FOR"
+                                                class="form-control form-control-sm text-center fw-bold border-0 bg-white"
+                                                placeholder="+0" oninput="updateCalculations(); saveData()">
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2">
+                                        <div class="border rounded p-1 bg-light border-secondary">
+                                            <div class="fw-bold small text-muted mb-1">DES</div>
+                                            <input type="number" id="mod-skill-attr-DES"
+                                                class="form-control form-control-sm text-center fw-bold border-0 bg-white"
+                                                placeholder="+0" oninput="updateCalculations(); saveData()">
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2">
+                                        <div class="border rounded p-1 bg-light border-secondary">
+                                            <div class="fw-bold small text-muted mb-1">CON</div>
+                                            <input type="number" id="mod-skill-attr-CON"
+                                                class="form-control form-control-sm text-center fw-bold border-0 bg-white"
+                                                placeholder="+0" oninput="updateCalculations(); saveData()">
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2">
+                                        <div class="border rounded p-1 bg-light border-secondary">
+                                            <div class="fw-bold small text-muted mb-1">INT</div>
+                                            <input type="number" id="mod-skill-attr-INT"
+                                                class="form-control form-control-sm text-center fw-bold border-0 bg-white"
+                                                placeholder="+0" oninput="updateCalculations(); saveData()">
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2">
+                                        <div class="border rounded p-1 bg-light border-secondary">
+                                            <div class="fw-bold small text-muted mb-1">SAB</div>
+                                            <input type="number" id="mod-skill-attr-SAB"
+                                                class="form-control form-control-sm text-center fw-bold border-0 bg-white"
+                                                placeholder="+0" oninput="updateCalculations(); saveData()">
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2">
+                                        <div class="border rounded p-1 bg-light border-secondary">
+                                            <div class="fw-bold small text-muted mb-1">CAR</div>
+                                            <input type="number" id="mod-skill-attr-CAR"
+                                                class="form-control form-control-sm text-center fw-bold border-0 bg-white"
+                                                placeholder="+0" oninput="updateCalculations(); saveData()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="fw-bold small text-muted">BÔNUS EM PERÍCIA ESPECÍFICA</span>
                                     <button class="btn btn-xs btn-danger p-0 px-2" onclick="addModPericia()"
@@ -4881,6 +4932,21 @@ body.vtt-mode .container.sheet { border-radius: 0 !important; box-shadow: none !
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script src="../ameacas/ameacas_db.js"></script>
+<script>
+// Ponte de comunicação cross-origin para file://
+var __fichaMsgQueue = [];
+var __msgSeq = 0;
+if (window.name) {
+  try { var q = JSON.parse(window.name); if (Array.isArray(q)) __fichaMsgQueue = q; } catch(e){}
+}
+function __postMessageSafe(msg) {
+  msg.__seq = ++__msgSeq;
+  __fichaMsgQueue.push({msg: msg, ts: Date.now()});
+  if (__fichaMsgQueue.length > 50) __fichaMsgQueue = __fichaMsgQueue.slice(-25);
+  window.name = JSON.stringify(__fichaMsgQueue);
+  try { if (window.parent && window.parent !== window) window.parent.postMessage(msg, '*'); } catch(e){}
+}
+</script>
 <script>const SPELLS_DB = [
     {
         "n": "Abençoar Alimentos",
@@ -10958,6 +11024,25 @@ let currentLoadBonus = 0; // Bônus manual para a carga
 let currentArmorLoadBonus = 0; // Bônus de slots da armadura
 let isLoading = false;    // Flag para suprimir saveData() durante o carregamento inicial
 let isReadOnly = false;   // Flag para visualização do mestre (somente leitura)
+window.forceEditMode = false;
+
+function toggleReadOnly() {
+    isReadOnly = !isReadOnly;
+    window.forceEditMode = !isReadOnly; // Guarda a preferência
+    
+    const banner = document.getElementById('readOnlyBanner');
+    const toggleBtn = document.getElementById('btnToggleReadOnly');
+    if (banner) {
+        const textEl = banner.querySelector('.readonly-text');
+        if (isReadOnly) {
+            textEl.innerHTML = "👁️ <strong>Visualização do Mestre (Apenas Leitura)</strong> — Alterações feitas aqui não serão salvas.";
+            if(toggleBtn) toggleBtn.innerHTML = '<i class="bi bi-unlock"></i> Habilitar Edição';
+        } else {
+            textEl.innerHTML = "✏️ <strong>Modo de Edição Habilitado</strong> — Suas alterações afetam a ficha.";
+            if(toggleBtn) toggleBtn.innerHTML = '<i class="bi bi-lock"></i> Bloquear Edição';
+        }
+    }
+}
 
 const CONDICOES_T20 = {
     "abalado": { nome: "Abalado", pericias: -2, desc: "-2 em testes de perícia. Medo." },
@@ -11291,6 +11376,11 @@ function rollAttack(btn) {
     const dmgBase = (row.querySelector('.inp-dmg').value || "").trim();
     const dmgExtraVal = parseInt(row.querySelector('.inp-dmg-extra').value) || 0;
     const diceExtra = (row.querySelector('.inp-dice-extra').value || "").trim();
+    const dmgAttr = row.querySelector('.inp-dmg-attr')?.value || '';
+    let dmgAttrVal = 0;
+    if (dmgAttr) {
+        dmgAttrVal = getInt('attr-' + dmgAttr);
+    }
 
     if (!confirm(`Deseja realizar o ataque com ${name}?`)) return;
 
@@ -11303,7 +11393,7 @@ function rollAttack(btn) {
     let dmgTotal = 0;
     let dmgDetail = "";
 
-    if (dmgBase || dmgExtraVal || diceExtra) {
+    if (dmgBase || dmgExtraVal || diceExtra || dmgAttrVal) {
         let basePart = dmgBase;
         if (isCrit) {
             basePart = scaleDiceFormula(dmgBase, critMult);
@@ -11311,6 +11401,7 @@ function rollAttack(btn) {
         
         let formulaParts = [];
         if (basePart) formulaParts.push(basePart);
+        if (dmgAttrVal) formulaParts.push(dmgAttrVal >= 0 ? `+${dmgAttrVal}` : `${dmgAttrVal}`);
         if (dmgExtraVal) formulaParts.push(dmgExtraVal >= 0 ? `+${dmgExtraVal}` : `${dmgExtraVal}`);
         if (diceExtra) {
             const cleanDice = diceExtra.startsWith('+') || diceExtra.startsWith('-') ? diceExtra : `+${diceExtra}`;
@@ -11331,9 +11422,10 @@ function rollAttack(btn) {
         let text = `**Ataque com ${name}**\n`;
         text += `**Teste:** 1d20${bonus >= 0 ? '+' : ''}${bonus} → **${total}** [${roll}]${isCrit ? ' **(CRÍTICO!)**' : ''}`;
         if (finalDmgFormula) {
-            text += `\n**Dano:** **${dmgTotal}** (Fórmula: ${finalDmgFormula}) [Detalhamento: ${dmgDetail}]`;
+            const attrLabel = dmgAttrVal ? ` (inclui ${dmgAttr} ${dmgAttrVal >= 0 ? '+' : ''}${dmgAttrVal})` : '';
+            text += `\n**Dano:** **${dmgTotal}** (Fórmula: ${finalDmgFormula})${attrLabel} [Detalhamento: ${dmgDetail}]`;
         }
-        window.parent.postMessage({
+        __postMessageSafe({
             type: 'vtt-send-chat-message',
             msgType: 'roll',
             text: text,
@@ -11357,7 +11449,7 @@ function rollSkill(index) {
 
     if (window.parent !== window) {
         const text = `Rola ${skill.n}: 1d20${total >= 0 ? '+' : ''}${total} → **${finalTotal}** [${roll}]`;
-        window.parent.postMessage({
+        __postMessageSafe({
             type: 'vtt-send-chat-message',
             msgType: 'roll',
             text: text,
@@ -11379,7 +11471,7 @@ function rollAttr(attrName) {
     
     if (window.parent !== window) {
         const text = `Teste de ${attrName}: 1d20${bonus >= 0 ? '+' : ''}${bonus} → **${total}** [${roll}]`;
-        window.parent.postMessage({
+        __postMessageSafe({
             type: 'vtt-send-chat-message',
             msgType: 'roll',
             text: text,
@@ -11482,6 +11574,7 @@ function addAttack(data = null) {
             <div class="col-4"><input type="text" class="form-control form-control-sm inp-name" placeholder="Ataque" value="${data ? data.name : ''}"></div>
             <div class="col-2"><input type="number" class="form-control form-control-sm text-center inp-bonus" placeholder="Bônus" value="${data ? data.bonus : ''}"></div>
             <div class="col-2"><input type="text" class="form-control form-control-sm text-center inp-dmg" placeholder="Dano" value="${data ? data.dmg : ''}"></div>
+            <div class="col-1 d-flex align-items-center justify-content-center"><small class="dmg-attr-display text-nowrap" style="font-size:0.6rem;font-weight:bold;"></small></div>
             <div class="col-1"><button class="btn btn-sm btn-outline-primary border-0 w-100 p-0" onclick="rollAttack(this)" title="Rolar"><i class="bi bi-dice-6-fill"></i></button></div>
             <div class="col-1"><button class="btn btn-sm btn-outline-secondary border-0 w-100 p-0" onclick="toggleDetail(this)"><i class="bi bi-chevron-down"></i></button></div>
             <div class="col-1"><button class="btn btn-sm btn-outline-danger border-0 w-100 p-0" onclick="this.closest('.atk-row').remove(); saveData();"><i class="bi bi-trash"></i></button></div>
@@ -11489,9 +11582,18 @@ function addAttack(data = null) {
         <div class="atk-details d-none bg-light p-2 rounded mt-1">
             <div class="row g-2">
                 <div class="col-3"><label class="small fw-bold">CRÍTICO</label><input type="text" class="form-control form-control-sm inp-crit-range" placeholder="20" value="${data ? data.critRange : '20'}"></div>
-                <div class="col-3"><label class="small fw-bold">MULT.</label><input type="text" class="form-control form-control-sm inp-crit" placeholder="x2" value="${data ? data.crit : 'x2'}"></div>
-                <div class="col-3"><label class="small fw-bold">EXTRA</label><input type="number" class="form-control form-control-sm inp-dmg-extra" placeholder="0" value="${data ? data.dmgExtra : '0'}"></div>
-                <div class="col-3"><label class="small fw-bold">DADOS</label><input type="text" class="form-control form-control-sm inp-dice-extra" placeholder="+1d6" value="${data ? data.diceExtra : ''}"></div>
+                <div class="col-2"><label class="small fw-bold">MULT.</label><input type="text" class="form-control form-control-sm inp-crit" placeholder="x2" value="${data ? data.crit : 'x2'}"></div>
+                <div class="col-2"><label class="small fw-bold">EXTRA</label><input type="number" class="form-control form-control-sm inp-dmg-extra" placeholder="0" value="${data ? data.dmgExtra : '0'}"></div>
+                <div class="col-2"><label class="small fw-bold">DADOS</label><input type="text" class="form-control form-control-sm inp-dice-extra" placeholder="+1d6" value="${data ? data.diceExtra : ''}"></div>
+                <div class="col-3"><label class="small fw-bold">ATRIBUTO DANO</label><select class="form-select form-select-sm inp-dmg-attr" onchange="updateCalculations()">
+                    <option value="">—</option>
+                    <option value="FOR" ${data && data.dmgAttr === 'FOR' ? 'selected' : ''}>FOR</option>
+                    <option value="DES" ${data && data.dmgAttr === 'DES' ? 'selected' : ''}>DES</option>
+                    <option value="CON" ${data && data.dmgAttr === 'CON' ? 'selected' : ''}>CON</option>
+                    <option value="INT" ${data && data.dmgAttr === 'INT' ? 'selected' : ''}>INT</option>
+                    <option value="SAB" ${data && data.dmgAttr === 'SAB' ? 'selected' : ''}>SAB</option>
+                    <option value="CAR" ${data && data.dmgAttr === 'CAR' ? 'selected' : ''}>CAR</option>
+                </select></div>
             </div>
             <div class="row g-2 mt-1">
                 <div class="col-4"><label class="small fw-bold">PERÍCIA</label><select class="form-select form-select-sm inp-atk-skill" onchange="updateCalculations()">${skillOptions}</select></div>
@@ -11829,7 +11931,7 @@ function exibirMagiaClick(btn) {
 function exibirPoder(name, desc) {
     if (window.parent !== window) {
         const text = `**Habilidade:** ${name}\n_${desc}_`;
-        window.parent.postMessage({
+        __postMessageSafe({
             type: 'vtt-send-chat-message',
             msgType: 'ability',
             text: text,
@@ -11851,7 +11953,7 @@ function exibirMagia(name, circle, pm, school, exec, range, target, dur, res, de
         if (details.length > 0) text += details.join(' | ') + '\n';
         text += `_${desc}_`;
         
-        window.parent.postMessage({
+        __postMessageSafe({
             type: 'vtt-send-chat-message',
             msgType: 'ability',
             text: text,
@@ -11968,11 +12070,12 @@ function updateCalculations() {
 
             // Perícias somente treinadas: se não treinar, total = 0
             const isTrainedOnly = TRAINED_ONLY_SKILLS.includes(s.n);
+            const modSkillAttr = getInt(`mod-skill-attr-${s.a}`); // NOVO: bônus para perícias que usam este atributo
             let total;
             if (isTrainedOnly && !s.trained) {
                 total = 0;
             } else {
-                total = halfLevel + attrVal + trained + other + condPer;
+                total = halfLevel + attrVal + trained + other + condPer + modSkillAttr;
                 if (s.n === 'Reflexos') total += condRef;
                 // Penalidade de Armadura/Escudo
                 if (penaltySkills.includes(s.n)) {
@@ -12112,6 +12215,20 @@ function updateCalculations() {
                 // ────────────────────────────────
                 const totalBonus = skillBonus + modBonus + modAtq + condAtq;
                 bonusInput.value = totalBonus;
+            }
+
+            // Atualiza exibição do atributo de dano
+            const dmgAttrSel = row.querySelector('.inp-dmg-attr');
+            const dmgAttrDisplay = row.querySelector('.dmg-attr-display');
+            if (dmgAttrSel && dmgAttrDisplay) {
+                const attr = dmgAttrSel.value;
+                if (attr) {
+                    const val = getInt('attr-' + attr);
+                    dmgAttrDisplay.textContent = (val >= 0 ? '+' : '') + val + ' ' + attr;
+                    dmgAttrDisplay.style.color = val >= 0 ? '#198754' : '#dc3545';
+                } else {
+                    dmgAttrDisplay.textContent = '';
+                }
             }
         });
 
@@ -12263,6 +12380,7 @@ function saveData() {
             dmg: row.querySelector('.inp-dmg').value,
             dmgExtra: row.querySelector('.inp-dmg-extra')?.value || '',
             diceExtra: row.querySelector('.inp-dice-extra')?.value || '',
+            dmgAttr: row.querySelector('.inp-dmg-attr')?.value || '',
             critRange: row.querySelector('.inp-crit-range').value,
             crit: row.querySelector('.inp-crit').value,
             skill: row.querySelector('.inp-atk-skill').value,
@@ -12315,6 +12433,15 @@ function saveData() {
             attrINT: getVal('mod-attr-INT'),
             attrSAB: getVal('mod-attr-SAB'),
             attrCAR: getVal('mod-attr-CAR')
+        },
+        // NOVO: Bônus em perícias de atributo
+        skillAttrMods: {
+            FOR: getVal('mod-skill-attr-FOR'),
+            DES: getVal('mod-skill-attr-DES'),
+            CON: getVal('mod-skill-attr-CON'),
+            INT: getVal('mod-skill-attr-INT'),
+            SAB: getVal('mod-skill-attr-SAB'),
+            CAR: getVal('mod-skill-attr-CAR')
         },
         // Listas de bônus globais individuais (Rolagens, Perícias, Ataque, Dano, Defesa)
         globaisListas: {
@@ -12476,6 +12603,7 @@ function loadDataFromObj(data) {
                 if (data.defense.shield.desc) document.getElementById('shieldDesc').value = data.defense.shield.desc;
             }
             if (data.defense.other) {
+                document.getElementById('defenseList').innerHTML = '';
                 data.defense.other.forEach(item => addDefenseItem(item));
             }
         }
@@ -12488,16 +12616,19 @@ function loadDataFromObj(data) {
 
         // --- ATAQUES ---
         if (data.attacks) {
+            document.getElementById('attacksList').innerHTML = '';
             data.attacks.forEach(item => addAttack(item));
         }
 
         // --- INVENTÁRIO ---
         if (data.inventory) {
+            document.getElementById('inventoryList').innerHTML = '';
             data.inventory.forEach(item => addInventoryItem(item));
         }
 
         // --- PODERES ---
         if (data.abilities) {
+            document.getElementById('abilitiesList').innerHTML = '';
             data.abilities.forEach(item => addAbility(item));
         }
 
@@ -12515,6 +12646,10 @@ function loadDataFromObj(data) {
                 if (data.spells.config.other) document.getElementById('spellCDOther').value = data.spells.config.other;
             }
             if (data.spells.list) {
+                [1, 2, 3, 4, 5].forEach(c => {
+                    const list = document.getElementById(`spellsList${c}`);
+                    if (list) list.innerHTML = '';
+                });
                 data.spells.list.forEach(item => addSpell(item.circle, item));
             }
         }
@@ -12525,6 +12660,7 @@ function loadDataFromObj(data) {
         }
 
         if (data.condicoes) {
+            document.querySelectorAll('.cond-check').forEach(c => c.checked = false);
             data.condicoes.forEach(key => {
                 const chk = document.getElementById(`cond-${key}`);
                 if (chk) chk.checked = true;
@@ -12564,6 +12700,17 @@ function loadDataFromObj(data) {
                         }
                     });
                 }
+            }
+
+            // NOVO: Bônus em perícias de atributo
+            if (m.skillAttrMods) {
+                const setMod = (id, val) => { if (document.getElementById(id)) document.getElementById(id).value = val || ''; };
+                setMod('mod-skill-attr-FOR', m.skillAttrMods.FOR);
+                setMod('mod-skill-attr-DES', m.skillAttrMods.DES);
+                setMod('mod-skill-attr-CON', m.skillAttrMods.CON);
+                setMod('mod-skill-attr-INT', m.skillAttrMods.INT);
+                setMod('mod-skill-attr-SAB', m.skillAttrMods.SAB);
+                setMod('mod-skill-attr-CAR', m.skillAttrMods.CAR);
             }
 
             // Listas individuais de bônus globais
@@ -13530,6 +13677,9 @@ function importarAtaquesDaFicha() {
     const rows = document.querySelectorAll('#attacksList .atk-row');
     if (!rows.length) { alert('Nenhum ataque encontrado na ficha.'); return; }
 
+    // Remove os importados anteriormente para forçar atualização
+    document.querySelectorAll('#am-ataques-list .am-row.from-sheet').forEach(el => el.remove());
+
     const existing = new Set(
         Array.from(document.querySelectorAll('#am-ataques-list .am-atk-nome'))
             .map(el => el.value.trim().toLowerCase())
@@ -13545,7 +13695,7 @@ function importarAtaquesDaFicha() {
         if (!nome || existing.has(nome.toLowerCase())) return;
         const danoCompleto = critR && critR !== '20' ? `${dmg}, ${critR}-20/${crit}` : `${dmg}, ${crit}`;
         const bonusFmt = (parseInt(bonus) >= 0 && !bonus.startsWith('-')) ? `+${bonus}` : bonus;
-        addAmeacaAtaque({ nome, bonus: bonusFmt, dano: danoCompleto });
+        addAmeacaAtaque({ nome, bonus: bonusFmt, dano: danoCompleto }, true);
         existing.add(nome.toLowerCase());
         added++;
     });
@@ -13578,16 +13728,19 @@ function importarMagiasDaFicha() {
 
     if (!magias.length) { alert('Nenhuma magia encontrada na ficha.'); return; }
 
+    // Remove as importadas anteriormente para forçar atualização
+    document.querySelectorAll('#am-habilidades-list .am-row.from-sheet-magia').forEach(el => el.remove());
+
     const existing = new Set(Array.from(document.querySelectorAll('#am-habilidades-list .am-hab-nome')).map(el => el.value.trim().toLowerCase()));
     let added = 0;
     magias.forEach(m => {
         if (existing.has(m.nome.toLowerCase())) return;
-        addAmeacaHabilidade(m);
+        addAmeacaHabilidade(m, true);
         existing.add(m.nome.toLowerCase());
         added++;
     });
     saveAmeaca();
-    if (added > 0) mostrarToastAmeaca(`✨ ${added} magia(s) importada(s)!`);
+    if (added > 0) mostrarToastAmeaca(`✨ ${added} magia(s) atualizada(s)!`);
     else mostrarToastAmeaca('Todas as magias já estão na lista.');
 }
 
@@ -13647,18 +13800,21 @@ function confirmarImportarPericias() {
     const modal = document.getElementById('modalImportarPericias');
     const pericias = modal._pericias || [];
     const checks = document.querySelectorAll('#pericias-import-list input[type=checkbox]:checked');
+    // Remove as importadas anteriormente
+    document.querySelectorAll('#am-pericias-list .am-row.from-sheet').forEach(el => el.remove());
+
     const existing = new Set(Array.from(document.querySelectorAll('#am-pericias-list .am-per-nome')).map(el => el.value.trim().toLowerCase()));
     let added = 0;
     checks.forEach(chk => {
         const p = pericias[parseInt(chk.value)];
         if (!p || existing.has(p.nome.toLowerCase())) return;
-        addAmeacaPericia({ nome: p.nome, valor: (p.total >= 0 ? '+' : '') + p.total });
+        addAmeacaPericia({ nome: p.nome, valor: (p.total >= 0 ? '+' : '') + p.total }, true);
         existing.add(p.nome.toLowerCase());
         added++;
     });
     saveAmeaca();
     fecharModalPericias();
-    if (added > 0) mostrarToastAmeaca(`📋 ${added} perícia(s) importada(s)!`);
+    if (added > 0) mostrarToastAmeaca(`📋 ${added} perícia(s) atualizada(s)!`);
 }
 
 function marcarTodasPericias(val) {
@@ -13887,10 +14043,10 @@ function loadAmeaca() {
     }
 }
 
-function addAmeacaAtaque(data = {}) {
+function addAmeacaAtaque(data = {}, fromSheet = false) {
     const container = document.getElementById('am-ataques-list');
     const row = document.createElement('div');
-    row.className = 'am-row am-ataque-row';
+    row.className = 'am-row am-ataque-row' + (fromSheet ? ' from-sheet' : '');
     row.innerHTML = `
         <div class="am-row-grip"><i class="bi bi-grip-vertical text-muted"></i></div>
         <div class="am-row-body">
@@ -13914,10 +14070,10 @@ function addAmeacaAtaque(data = {}) {
     container.appendChild(row);
 }
 
-function addAmeacaHabilidade(data = {}) {
+function addAmeacaHabilidade(data = {}, fromSheet = false) {
     const container = document.getElementById('am-habilidades-list');
     const row = document.createElement('div');
-    row.className = 'am-row am-hab-row';
+    row.className = 'am-row am-hab-row' + (fromSheet ? ' from-sheet-magia' : '');
     row.innerHTML = `
         <div class="am-row-grip"><i class="bi bi-grip-vertical text-muted"></i></div>
         <div class="am-row-body">
@@ -13942,10 +14098,10 @@ function addAmeacaHabilidade(data = {}) {
     container.appendChild(row);
 }
 
-function addAmeacaPericia(data = {}) {
+function addAmeacaPericia(data = {}, fromSheet = false) {
     const container = document.getElementById('am-pericias-list');
     const row = document.createElement('div');
-    row.className = 'am-row am-per-row';
+    row.className = 'am-row am-per-row' + (fromSheet ? ' from-sheet' : '');
     row.innerHTML = `
         <input type="text" class="am-input am-per-nome" placeholder="Perícia" value="${data.nome || ''}" oninput="saveAmeaca()">
         <input type="text" class="am-input am-per-valor am-val-sm" placeholder="+0" value="${data.valor || ''}" oninput="saveAmeaca()">
@@ -14698,6 +14854,11 @@ function limparModificadores() {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
+    // Limpa os bônus em perícias de atributo
+    ['mod-skill-attr-FOR', 'mod-skill-attr-DES', 'mod-skill-attr-CON', 'mod-skill-attr-INT', 'mod-skill-attr-SAB', 'mod-skill-attr-CAR'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
 
     // 2. Limpa as listas globais individuais
     ['mod-rolagens-list', 'mod-pericias-global-list', 'mod-ataque-list', 'mod-dano-list', 'mod-defesa-list'].forEach(id => {
@@ -15337,16 +15498,18 @@ document.addEventListener('DOMContentLoaded', () => {
         charImage: localStorage.getItem('charImage') || '',
         fullData: data // Envia os dados completos da ficha para o mestre poder ler
       };
-      window.parent.postMessage(resumo, '*');
+      __postMessageSafe(resumo);
     } catch(e) {}
   }
   window.addEventListener('message', (e) => {
     if (e.data?.type === 'vtt-request-resume') enviarResumo();
     if (e.data?.type === 'vtt-load-sheet-data') {
-      isReadOnly = e.data.readOnly || false;
+      if (!window.forceEditMode) {
+          isReadOnly = e.data.readOnly || false;
+      }
       const banner = document.getElementById('readOnlyBanner');
       if (banner) {
-        if (isReadOnly) {
+        if (e.data.readOnly) {
           banner.classList.remove('d-none');
         } else {
           banner.classList.add('d-none');
@@ -15368,7 +15531,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
   });
-  setTimeout(() => { window.parent.postMessage({ type: 'ficha-ready' }, '*'); enviarResumo(); }, 2500);
+  setTimeout(() => { __postMessageSafe({ type: 'ficha-ready' }); enviarResumo(); }, 2500);
 })();
 </script>
 </body>
