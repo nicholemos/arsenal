@@ -394,6 +394,13 @@ function rollAttack(btn) {
     const diceExtra = (row.querySelector('.inp-dice-extra').value || '').trim();
     let danoParts = [];
     let danoTotal = 0;
+    
+    const dmgAttrVal = row.querySelector('.inp-atk-dmg-attr')?.value || '';
+    if (dmgAttrVal) {
+        const attrMod = getInt(`attr-${dmgAttrVal}`) + getTempMod(`mod-attr-${dmgAttrVal}`);
+        danoTotal += attrMod;
+        danoParts.push(`+${attrMod} [${dmgAttrVal}]`);
+    }
     if (dmgFormula) {
         const formula = isCrit ? escalarFormulaDados(dmgFormula, critMult) : dmgFormula;
         const r = rollDiceFormula(formula);
@@ -478,10 +485,21 @@ function addAttack(data = null) {
         </div>
         <div class="atk-details p-2 rounded d-none">
             <div class="row g-2 mb-2">
-                <div class="col-4"><label class="form-label-sm">PERÍCIA</label><select class="form-select form-select-sm border-0 border-bottom p-0 inp-atk-skill" onchange="updateCalculations()">${skillOptions}</select></div>
-                <div class="col-3"><label class="form-label-sm">BÔNUSn EXTRAS</label><input type="number" inputmode="numeric" class="form-control form-control-sm border-0 border-bottom p-0 text-center inp-atk-mod" placeholder="+0" value="${data ? data.mod : ''}" oninput="updateCalculations()"></div>
-                <div class="col-3"><label class="form-label-sm">TIPO</label><input type="text" class="form-control form-control-sm text-center border-0 border-bottom inp-type" placeholder="Corte" value="${data ? data.type : ''}"></div>
-                <div class="col-2"><label class="form-label-sm">ALCANCE</label><input type="text" class="form-control form-control-sm text-center border-0 border-bottom inp-range" placeholder="Curto" value="${data ? data.range : ''}"></div>
+                <div class="col-3"><label class="form-label-sm">PERÍCIA</label><select class="form-select form-select-sm border-0 border-bottom p-0 inp-atk-skill" onchange="updateCalculations()">${skillOptions}</select></div>
+                <div class="col-2"><label class="form-label-sm">BÔNUS EXTRAS</label><input type="number" inputmode="numeric" class="form-control form-control-sm border-0 border-bottom p-0 text-center inp-atk-mod" placeholder="+0" value="${data ? data.mod : ''}" oninput="updateCalculations()"></div>
+                <div class="col-2"><label class="form-label-sm">ATTR. DANO</label>
+                    <select class="form-select form-select-sm border-0 border-bottom p-0 inp-atk-dmg-attr" onchange="saveData()">
+                        <option value="" ${!data || !data.dmgAttr ? 'selected' : ''}>—</option>
+                        <option value="FOR" ${data && data.dmgAttr === 'FOR' ? 'selected' : ''}>FOR</option>
+                        <option value="DES" ${data && data.dmgAttr === 'DES' ? 'selected' : ''}>DES</option>
+                        <option value="CON" ${data && data.dmgAttr === 'CON' ? 'selected' : ''}>CON</option>
+                        <option value="INT" ${data && data.dmgAttr === 'INT' ? 'selected' : ''}>INT</option>
+                        <option value="SAB" ${data && data.dmgAttr === 'SAB' ? 'selected' : ''}>SAB</option>
+                        <option value="CAR" ${data && data.dmgAttr === 'CAR' ? 'selected' : ''}>CAR</option>
+                    </select>
+                </div>
+                <div class="col-3"><label class="form-label-sm">TIPO</label><input type="text" class="form-control form-control-sm text-center border-0 border-bottom inp-type" placeholder="Corte" value="${data ? data.type : ''}" oninput="saveData()"></div>
+                <div class="col-2"><label class="form-label-sm">ALCANCE</label><input type="text" class="form-control form-control-sm text-center border-0 border-bottom inp-range" placeholder="Curto" value="${data ? data.range : ''}" oninput="saveData()"></div>
             </div>
             <div class="row g-2">
                 <div class="col-12"><label class="form-label-sm">NOTAS</label><textarea class="form-control form-control-sm border-0 border-bottom inp-desc" rows="2" placeholder="Detalhes, efeitos, habilidades especiais...">${data ? (data.desc || '') : ''}</textarea></div>
@@ -869,7 +887,7 @@ function updateCalculations() {
 
         currentSkills.forEach((s, i) => {
             const baseAttr = getInt(`attr-${s.a}`);
-            const tempAttr = getInt(`mod-attr-${s.a}`); // NOVO: Atributo temporário
+            const tempAttr = getTempMod(`mod-attr-${s.a}`); // NOVO: Atributo temporário
             const attrVal = baseAttr + tempAttr;
             const check = document.getElementById(`skTrain${i}`); if (check) s.trained = check.checked;
             const trained = s.trained ? trainBonus : 0;
@@ -881,11 +899,12 @@ function updateCalculations() {
 
             // Perícias somente treinadas: se não treinar, total = 0
             const isTrainedOnly = TRAINED_ONLY_SKILLS.includes(s.n);
+            const modSkillAttr = getInt(`mod-skill-attr-${s.a}`); // NOVO: bônus para perícias que usam este atributo
             let total;
             if (isTrainedOnly && !s.trained) {
                 total = 0;
             } else {
-                total = halfLevel + attrVal + trained + other + condPer;
+                total = halfLevel + attrVal + trained + other + condPer + modSkillAttr;
                 if (s.n === 'Reflexos') total += condRef;
                 // Penalidade de Armadura/Escudo
                 if (penaltySkills.includes(s.n)) {
@@ -944,18 +963,15 @@ function updateCalculations() {
 
         // --- DEFESA ---
         const defAttr = getVal('defAttrSelect');
-        const defAttrVal = getInt(`attr-${defAttr}`) + getInt(`mod-attr-${defAttr}`);
+        const defAttrVal = getInt(`attr-${defAttr}`) + getTempMod(`mod-attr-${defAttr}`);
         const applyDefAttr = document.getElementById('applyDefAttr') ? document.getElementById('applyDefAttr').checked : true;
         const armorHalfLevel = document.getElementById('armorHalfLevel') ? document.getElementById('armorHalfLevel').checked : false;
         const armorBonus = getInt('armorBonus') + (armorHalfLevel ? halfLevel : 0);
         const shieldBonus = getInt('shieldBonus');
         let otherBonus = 0;
         document.querySelectorAll('#defenseList .def-row .inp-bonus').forEach(input => { otherBonus += (parseInt(input.value) || 0); });
-        // ── Mod temp: defesa + outros bônus livres ──
+        // ── Mod temp: defesa ──
         otherBonus += getTempMod('mod-defesa');
-        document.querySelectorAll('#mod-bonus-list .mod-bonus-row').forEach(row => {
-            otherBonus += parseInt(row.querySelector('.mod-bonus-val')?.value) || 0;
-        });
         // ────────────────────────────────────────────
         const totalDefense = 10 + (applyDefAttr ? defAttrVal : 0) + armorBonus + shieldBonus + otherBonus + condDef;
 
@@ -995,7 +1011,7 @@ function updateCalculations() {
 
         // --- MAGIAS CD ---
         const spellCDAttr = getVal('spellCDAttrSelect');
-        const spellCDAttrVal = getInt(`attr-${spellCDAttr}`) + getInt(`mod-attr-${spellCDAttr}`);
+        const spellCDAttrVal = getInt(`attr-${spellCDAttr}`) + getTempMod(`mod-attr-${spellCDAttr}`);
         const spellCDPowers = getInt('spellCDPowers');
         const spellCDItems = getInt('spellCDItems');
         const spellCDOther = getInt('spellCDOther');
@@ -1180,6 +1196,7 @@ function saveData() {
             crit: row.querySelector('.inp-crit').value,
             skill: row.querySelector('.inp-atk-skill').value,
             mod: row.querySelector('.inp-atk-mod').value,
+            dmgAttr: row.querySelector('.inp-atk-dmg-attr')?.value || '',
             type: row.querySelector('.inp-type').value,
             range: row.querySelector('.inp-range').value,
             desc: row.querySelector('.inp-desc').value
@@ -1228,47 +1245,41 @@ function saveData() {
             attrINT: getVal('mod-attr-INT'),
             attrSAB: getVal('mod-attr-SAB'),
             attrCAR: getVal('mod-attr-CAR')
-        },
-        // Listas de bônus globais individuais (Rolagens, Perícias, Ataque, Dano, Defesa)
-        globaisListas: {
-            rolagens: Array.from(document.querySelectorAll('#mod-rolagens-list .mod-global-row')).map(row => ({
-                nome: row.querySelector('.mod-global-nome')?.value || '',
-                val: row.querySelector('.mod-global-val')?.value || ''
-            })),
-            pericias: Array.from(document.querySelectorAll('#mod-pericias-global-list .mod-global-row')).map(row => ({
-                nome: row.querySelector('.mod-global-nome')?.value || '',
-                val: row.querySelector('.mod-global-val')?.value || ''
-            })),
-            ataque: Array.from(document.querySelectorAll('#mod-ataque-list .mod-global-row')).map(row => ({
-                nome: row.querySelector('.mod-global-nome')?.value || '',
-                val: row.querySelector('.mod-global-val')?.value || ''
-            })),
-            dano: Array.from(document.querySelectorAll('#mod-dano-list .mod-global-row')).map(row => ({
-                nome: row.querySelector('.mod-global-nome')?.value || '',
-                val: row.querySelector('.mod-global-val')?.value || ''
-            })),
-            defesa: Array.from(document.querySelectorAll('#mod-defesa-list .mod-global-row')).map(row => ({
-                nome: row.querySelector('.mod-global-nome')?.value || '',
-                val: row.querySelector('.mod-global-val')?.value || ''
-            }))
-        },
-        // Mantém o salvamento das listas e condições
-        bonusLivres: Array.from(document.querySelectorAll('#mod-bonus-list .mod-bonus-row')).map(row => ({
-            nome: row.querySelector('.mod-bonus-nome').value,
-            val: row.querySelector('.mod-bonus-val').value
-        })),
-        periciasEspecificas: Array.from(document.querySelectorAll('#mod-pericias-list .mod-pericia-row')).map(row => ({
-            pericia: row.querySelector('.mod-per-sel').value,
-            val: row.querySelector('.mod-per-val').value,
-            origem: row.querySelector('.mod-per-origem')?.value || ''
-        })),
-        parceiros: Array.from(document.querySelectorAll('#mod-parceiros-list .mod-parceiro-row')).map(row => ({
-            nome: row.querySelector('.mod-par-nome').value,
-            tipo: row.querySelector('.mod-par-tipo').value,
-            bonus: row.querySelector('.mod-par-bonus').value
-        })),
-        condicoes: Array.from(document.querySelectorAll('.cond-check:checked')).map(c => c.value)
+        }
     };
+    
+    const globaisListasObj = {};
+    GLOBAL_MOD_TYPES.forEach(t => {
+        const listId = t === 'pericias' ? 'mod-pericias-global-list' : `mod-${t}-list`;
+        globaisListasObj[t] = Array.from(document.querySelectorAll(`#${listId} .mod-global-row`)).map(row => ({
+            nome: row.querySelector('.mod-global-nome')?.value || '',
+            val: row.querySelector('.mod-global-val')?.value || ''
+        }));
+    });
+    data.tempMods.globaisListas = globaisListasObj;
+
+    data.tempMods.skillAttrMods = {
+        FOR: getVal('mod-skill-attr-FOR'),
+        DES: getVal('mod-skill-attr-DES'),
+        CON: getVal('mod-skill-attr-CON'),
+        INT: getVal('mod-skill-attr-INT'),
+        SAB: getVal('mod-skill-attr-SAB'),
+        CAR: getVal('mod-skill-attr-CAR')
+    };
+    
+    data.tempMods.periciasEspecificas = Array.from(document.querySelectorAll('#mod-pericias-list .mod-pericia-row')).map(row => ({
+        pericia: row.querySelector('.mod-per-sel').value,
+        val: row.querySelector('.mod-per-val').value,
+        origem: row.querySelector('.mod-per-origem')?.value || ''
+    }));
+    
+    data.tempMods.parceiros = Array.from(document.querySelectorAll('#mod-parceiros-list .mod-parceiro-row')).map(row => ({
+        nome: row.querySelector('.mod-par-nome').value,
+        tipo: row.querySelector('.mod-par-tipo').value,
+        bonus: row.querySelector('.mod-par-bonus').value
+    }));
+    
+    data.tempMods.condicoes = Array.from(document.querySelectorAll('.cond-check:checked')).map(c => c.value);
 
 
 
@@ -1461,8 +1472,8 @@ function loadData() {
             // Listas individuais de bônus globais
             if (m.globaisListas) {
                 const gl = m.globaisListas;
-                const tipoMap = { rolagens: 'mod-rolagens-list', pericias: 'mod-pericias-global-list', ataque: 'mod-ataque-list', dano: 'mod-dano-list', defesa: 'mod-defesa-list' };
-                Object.entries(tipoMap).forEach(([tipo, listId]) => {
+                GLOBAL_MOD_TYPES.forEach(tipo => {
+                    const listId = tipo === 'pericias' ? 'mod-pericias-global-list' : `mod-${tipo}-list`;
                     const lista = gl[tipo] || [];
                     const container = document.getElementById(listId);
                     if (container) container.innerHTML = '';
@@ -1478,17 +1489,14 @@ function loadData() {
                 });
             }
 
-            // Bônus Livres
-            if (m.bonusLivres) {
-                const container = document.getElementById('mod-bonus-list');
-                if (container) container.innerHTML = '';
-                m.bonusLivres.forEach(b => {
-                    addModBonus(); // Chama a função que cria a linha
-                    const rows = container.querySelectorAll('.mod-bonus-row');
-                    const lastRow = rows[rows.length - 1];
-                    lastRow.querySelector('.mod-bonus-nome').value = b.nome;
-                    lastRow.querySelector('.mod-bonus-val').value = b.val;
-                });
+            // Bônus em Perícias de Atributo
+            if (m.skillAttrMods) {
+                setMod('mod-skill-attr-FOR', m.skillAttrMods.FOR);
+                setMod('mod-skill-attr-DES', m.skillAttrMods.DES);
+                setMod('mod-skill-attr-CON', m.skillAttrMods.CON);
+                setMod('mod-skill-attr-INT', m.skillAttrMods.INT);
+                setMod('mod-skill-attr-SAB', m.skillAttrMods.SAB);
+                setMod('mod-skill-attr-CAR', m.skillAttrMods.CAR);
             }
 
             // Perícias Específicas
@@ -3466,7 +3474,7 @@ function selecionarMagia(nomeMagia) {
 // ================================================================
 
 // Tipos de bônus globais que têm listas individuais
-const GLOBAL_MOD_TYPES = ['rolagens', 'pericias', 'ataque', 'dano', 'defesa'];
+const GLOBAL_MOD_TYPES = ['rolagens', 'pericias', 'ataque', 'dano', 'defesa', 'attr-FOR', 'attr-DES', 'attr-CON', 'attr-INT', 'attr-SAB', 'attr-CAR'];
 
 // Helper: soma todas as linhas da lista de um bônus global e atualiza o input readonly
 function getTempMod(id) {
@@ -3523,18 +3531,7 @@ function addModGlobal(tipo) {
 
 // ── Adicionar/remover linhas dinâmicas ──────────────────────────
 
-function addModBonus() {
-    const container = document.getElementById('mod-bonus-list');
-    const row = document.createElement('div');
-    row.className = 'mod-bonus-row d-flex align-items-center gap-2 mb-2';
-    row.innerHTML = `
-        <input type="text" class="form-control form-control-sm mod-bonus-nome" placeholder="Nome do bônus (ex: Benção)" style="flex:1;">
-        <input type="number" class="form-control form-control-sm mod-bonus-val" placeholder="+0" style="width:70px;" oninput="aplicarModificadores()">
-        <button class="btn btn-sm btn-outline-danger p-0 px-1" onclick="this.closest('.mod-bonus-row').remove(); aplicarModificadores();" title="Remover">
-            <i class="bi bi-x-lg"></i>
-        </button>`;
-    container.appendChild(row);
-}
+
 
 function addModPericia() {
     const container = document.getElementById('mod-pericias-list');
@@ -3581,21 +3578,15 @@ function addParceiro() {
 function limparModificadores() {
     if (!confirm('Limpar todos os modificadores temporários e condições?')) return;
 
-    // 1. Limpa os displays readonly dos globais e classe de highlight
-    ['mod-rolagens', 'mod-pericias', 'mod-ataque', 'mod-dano', 'mod-defesa'].forEach(id => {
+    // 1 e 2. Limpa os displays readonly e as listas globais individuais
+    GLOBAL_MOD_TYPES.forEach(t => {
+        const id = `mod-${t}`;
         const el = document.getElementById(id);
         if (el) { el.value = ''; el.classList.remove('has-value'); }
-    });
-    // Limpa os atributos temporários
-    ['mod-attr-FOR', 'mod-attr-DES', 'mod-attr-CON', 'mod-attr-INT', 'mod-attr-SAB', 'mod-attr-CAR'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-    });
 
-    // 2. Limpa as listas globais individuais
-    ['mod-rolagens-list', 'mod-pericias-global-list', 'mod-ataque-list', 'mod-dano-list', 'mod-defesa-list'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '';
+        const listId = t === 'pericias' ? 'mod-pericias-global-list' : `mod-${t}-list`;
+        const listEl = document.getElementById(listId);
+        if (listEl) listEl.innerHTML = '';
     });
     // Fecha os painéis expansíveis
     GLOBAL_MOD_TYPES.forEach(t => {
@@ -3603,10 +3594,14 @@ function limparModificadores() {
         if (wrap) wrap.classList.add('d-none');
     });
 
-    // 3. Limpa as listas dinâmicas (Bônus livres, Perícias específicas e Parceiros)
-    ['mod-bonus-list', 'mod-pericias-list', 'mod-parceiros-list'].forEach(id => {
+    // 3. Limpa as listas dinâmicas (Perícias específicas e Parceiros) e Bônus de Atributos de Perícia
+    ['mod-pericias-list', 'mod-parceiros-list'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '';
+    });
+    ['mod-skill-attr-FOR', 'mod-skill-attr-DES', 'mod-skill-attr-CON', 'mod-skill-attr-INT', 'mod-skill-attr-SAB', 'mod-skill-attr-CAR'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
     });
 
     // 4. Desmarca todas as condições de jogo
@@ -3649,11 +3644,10 @@ function atualizarHudMods() {
         });
     });
 
-    // Bônus livres ativos
-    document.querySelectorAll('#mod-bonus-list .mod-bonus-row').forEach(row => {
-        const nome = row.querySelector('.mod-bonus-nome')?.value?.trim() || 'Bônus';
-        const v = parseInt(row.querySelector('.mod-bonus-val')?.value) || 0;
-        if (v !== 0) partes.push(`<span class="mod-hud-item" title="${nome}">✨<span class="mod-hud-val">${v > 0 ? '+' : ''}${v}</span></span>`);
+    // Bônus em perícias de atributo (mostrados no HUD se diferentes de 0)
+    ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR'].forEach(a => {
+        const v = getInt(`mod-skill-attr-${a}`);
+        if (v !== 0) partes.push(`<span class="mod-hud-item" title="Perícias de ${a}">📖 ${a} <span class="mod-hud-val">${v > 0 ? '+' : ''}${v}</span></span>`);
     });
 
     // Perícias específicas

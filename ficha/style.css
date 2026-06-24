@@ -2116,25 +2116,14 @@ body,
 }
 
 body.theme-blood {
-    /* Paleta Dark & Crimson de Tormenta20 */
-    --t20-red: #ff2e2e;
-    --t20-red-dark: #8b0000;
-    --ouro: #cc0d0d;
-    --ouro-glow: rgba(204, 13, 13, 0.35);
-    --ouro-dark: #ff2e2e;
-    --bg-principal: #0a0404;
-    --bg-radial: radial-gradient(circle at center, #1b0707 0%, #030000 100%);
-    --bg-card: rgba(22, 14, 14, 0.75);
-    --bg-card-solid: #1c0e0e;
-    --borda-card: rgba(204, 13, 13, 0.25);
-    --borda-card-hover: rgba(204, 13, 13, 0.55);
-    --texto-principal: #e8e4e4;
-    --texto-secundario: #a39898;
-    --text-muted: #736868;
+    /* Tema Padrão (Sangue) - Fundo Claro com detalhes em Vermelho */
+    --ouro: #e0483f;
+    --ouro-glow: rgba(224, 72, 63, 0.2);
+    --ouro-dark: #b22222;
 }
 
 /* 2. Premium Dark & Gold Theme Overrides */
-body.theme-dark, body.theme-blood {
+body.theme-dark {
     /* Paleta Dark & Gold de Tormenta20 */
     --t20-red: #e0483f;
     --t20-red-dark: #8b0000;
@@ -3357,12 +3346,12 @@ body:not(.theme-dark):not(.theme-classic) .border-primary {
   vertical-align: middle;
 }
 
-body.theme-dark .theme-switcher,
-body.theme-blood .theme-switcher {
+body.theme-dark .theme-switcher {
   border-color: rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.3);
 }
 
+body.theme-blood .theme-switcher,
 body.theme-classic .theme-switcher {
   border-color: rgba(0, 0, 0, 0.2);
   background: rgba(0, 0, 0, 0.05);
