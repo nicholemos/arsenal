@@ -208,7 +208,7 @@ const itensMagicosData = {
             imagem: "data/img/adaga.webp"
         },
 
-// Armaduras Específicas
+        // Armaduras Específicas
         {
             nome: "Cota Élfica",
             preco: "T$ 30.000",
@@ -444,7 +444,7 @@ const itensMagicosData = {
             imagem: "data/img/armadura-da-luz.webp"
         },
 
-// acessórios Menores
+        // acessórios Menores
 
         { nome: "Anel do Sustento", preco: "T$ 3.000", categoria: "Item Mágico", tipo: "Acessório Menor", espacos: "1", descricao: "Você não precisa comer ou beber e precisa dormir apenas duas horas por noite para descansar. Os efeitos do anel só se ativam após uma semana de uso." },
         { nome: "Bainha Mágica", preco: "T$ 3.000", categoria: "Item Mágico", tipo: "Acessório Menor", espacos: "1", descricao: "Esta bainha de couro curtido e prata muda de tamanho para acomodar qualquer arma corpo a corpo. Você pode lançar Arma Mágica em qualquer arma na bainha sem pagar seu custo em PM." },
@@ -1564,7 +1564,7 @@ const itensMagicosData = {
             preco: "T$ 9.000",
             espacos: "1",
             categoria: "Item Mágico",
-            tipo: "Acessório Menor",
+            tipo: "Item Mágico de Uso Único",
             descricao: " Cristal (consumível). Quebrar o cristal permite realizar um intervalo entre aventuras no tempo de 1 dia.",
             fonte: "Heróis de Arton",
             imagem: "data/img/po-de-cristal.webp"
@@ -1574,7 +1574,7 @@ const itensMagicosData = {
             preco: "T$ 3.000",
             espacos: "0,5",
             categoria: "Item Mágico",
-            tipo: "Acessório Menor",
+            tipo: "Item Mágico de Uso Único",
             descricao: " Elixir (Poção). Evita que o usuário envelheça (até o fim da aventura). Recebe resistência a trevas +5 e imunidade a envelhecimento mágico.",
             fonte: "Heróis de Arton"
         },
@@ -1583,7 +1583,7 @@ const itensMagicosData = {
             preco: "T$ 1.500",
             espacos: "0,5",
             categoria: "Item Mágico",
-            tipo: "Acessório Menor",
+            tipo: "Item Mágico de Uso Único",
             descricao: " Elixir (Poção). Beber (ação padrão) concede +1 ação de movimento e +1 ação padrão por rodada (não cumulativo) por 1 cena. Causa –5 em testes de perícia (exceto reações) e condição ruim para lançar magias. Causa fadiga por 1 dia após o fim.",
             fonte: "Heróis de Arton"
         },
@@ -1764,7 +1764,7 @@ const itensMagicosData = {
             preco: "T$ 9.000",
             espacos: "1",
             categoria: "Item Mágico",
-            tipo: "Acessório Menor",
+            tipo: "Item Mágico de Uso Único",
             descricao: " Pergaminho (consumível). Abrir exige Vontade (CD 40). Falha: debilidade (permanente). Sucesso: lança Intervenção Divina (sem custo de PM). Pergaminho se desfaz.",
             fonte: "Heróis de Arton",
             imagem: "data/img/organizador-de-pergaminhos.webp"
@@ -1774,7 +1774,7 @@ const itensMagicosData = {
             preco: "T$ 3.000",
             espacos: "1",
             categoria: "Item Mágico",
-            tipo: "Acessório Menor",
+            tipo: "Item Mágico de Uso Único",
             descricao: " Pérola (consumível). Ativar (Ação Mov.) produz efeito básico de Campo Antimagia por 1 cena. Uso único.",
             fonte: "Heróis de Arton"
         },
@@ -2208,6 +2208,27 @@ const itensMagicosData = {
             imagem: "data/img/tormenta.webp"
         },
         {
+        },
+        {
+            nome: "Ossos Dracônicos Deus dos Dragões",
+            preco: "T$ 90.000",
+            espacos: "1",
+            categoria: "Item Mágico",
+            tipo: "Acessório Maior",
+            descricao: " Acessório de ossos. Fornece +4 Intimidação e -2 Diplomacia. Se devoto de Kally: fornece +2 Força, +2 Carisma e +2 na CD de todas as habilidades.",
+            fonte: "Deuses de Arton"
+        },
+        {
+            nome: "Cilício Vivo Deus da Tormenta",
+            preco: "T$ 37.000",
+            espacos: "1",
+            categoria: "Item Mágico",
+            tipo: "Acessório Maior",
+            descricao: " Item vestido (cinta com anzóis). Reduz PV máx em 1/nível. Fornece +1 em todos os testes (cumulativo). Se devoto do Deus da Tormenta: bônus +2. Se Patamar Campeão+, aumenta PM máx em +1/nível.",
+            fonte: "Deuses de Arton",
+            imagem: "data/img/tormenta.webp"
+        },
+        {
             nome: "Coração Corrompido Deus da Tormenta",
             preco: "T$ 45.000",
             espacos: "1",
@@ -2250,94 +2271,178 @@ const itensMagicosData = {
             descricao: " Ferramenta de Guerra aprimorada (+2). Se devoto do Deus da Guerra: pode gastar (Ação Completa, CD 20 Guerra). Sucesso: bônus em Guerra aplica a todos os testes de perícia de aliados em alcance curto (cena). Sucesso por 20+: aliados recebem ação padrão extra.",
             fonte: "Deuses de Arton"
         },
-            {
-        "nome": "Punhal Escarlate",
-        "preco": "T$ 41.000",
-        "espacos": "1",
-        "categoria": "Arma Mágica",
-        "tipo": "Arma Específica Média",
-        "descricao": "Criada por Hemera, esta adaga formidável causa +1d6 pontos de dano de essência. Além disso, conta como um orbe cristalino.",
-        "fonte": "Guia de NPCs",
-        "imagem": "data/img/adaga.webp"
-    },
-    {
-        "nome": "Braceletes das Escamas",
-        "preco": "T$ 21.000",
-        "espacos": "1",
-        "categoria": "Item Mágico",
-        "tipo": "Acessório Médio",
-        "descricao": "Criados por Acteia, estes braceletes de aço escurecido são entalhados de forma a parecer escamas de dragão. Fornecem redução de dano 5 e contam como uma luva de ferro.",
-        "fonte": "Guia de NPCs",
-        "imagem": "data/img/bracelete-bronze.webp"
-    },
-    {
-        "nome": "Face Dracônica",
-        "preco": "T$ 25.000",
-        "espacos": "1",
-        "categoria": "Item Mágico",
-        "tipo": "Acessório Médio",
-        "descricao": "Esta máscara dourada, semelhante ao rosto estilizado de um dragão, fortalece o poder arcano do usuário. Fruto do poder de Ilítia, fornece +2 na CD para resistir a suas habilidades mágicas (incluindo magias) e conta como um medalhão de prata.",
-        "fonte": "Guia de NPCs"
-    },
-    {
-        "nome": "Presuntador",
-        "preco": "T$ 120.000",
-        "espacos": "2",
-        "categoria": "Arma Mágica",
-        "tipo": "Arma Específica Maior",
-        "descricao": "Feito de mana solidificado e dado a Klunc como recompensa por um ato especialmente heroico, o Presuntador é um machado de guerra aumentado energético magnífico. Se Klunc ficar inconsciente, o Presuntador continua lutando sozinho, com as mesmas estatísticas que teria se estivesse sendo empunhado. Quando ataca dessa forma, o Presuntador tem Defesa 35, RD 50 e 50 PV.",
-        "fonte": "Lendas de Arton"
-    },
-    {
-        "nome": "Armadura de Khalmyr",
-        "preco": "T$ 42.000",
-        "espacos": "0",
-        "categoria": "Armadura Mágica",
-        "tipo": "Armadura Específica Média",
-        "descricao": "Esta armadura completa sob medida defensora fica armazenada magicamente em uma gargantilha com o símbolo do Deus da Justiça. Enquanto está armazenada dessa forma, a armadura não ocupa nenhum espaço (embora ainda conte como um item vestido) e não impõe nenhuma penalidade ao usuário (como se ele não estivesse de armadura). Ao pronunciar o nome de Khalmyr, o usuário evoca a armadura, que é vestida automaticamente. Devolver a armadura à gargantilha também é uma ação livre.",
-        "fonte": "Lendas de Arton",
-        "imagem": "data/img/armadura-couro.webp"
-    },
-    {
-        "nome": "Fêmur de Narsogg [Nome Inferido]",
-        "preco": "T$ 96.000",
-        "espacos": "2",
-        "categoria": "Arma Mágica",
-        "tipo": "Arma Específica Maior",
-        "descricao": "Este montante aumentado macabro maciço formidável tumular foi fabricado a partir do fêmur da irmã de Narsogg. Uma arma única, conta como um cajado arcano. Além dos benefícios desse esotérico, as magias do usuário que causam dano de trevas causam +1 ponto de dano por dado.",
-        "fonte": "Lendas de Arton"
-    },
-    {
-        "nome": "Báculo da Fé",
-        "preco": "T$ 45.000",
-        "espacos": "2",
-        "categoria": "Arma Mágica",
-        "tipo": "Arma Específica Maior",
-        "descricao": "Este bordão banhado a ouro formidável é dedicado a uma divindade específica, que pode ser identificada pelos símbolos em sua empunhadura e extremidades. Quando empunhado por um devoto dessa divindade, causa +1d6 pontos de dano de fogo (para divindades que canalizam energia positiva) ou +1d6 pontos de dano de frio (para divindades que canalizam energia negativa).",
-        "fonte": "Lendas de Arton"
-    },
-    {
-        "nome": "Batina Consagrada",
-        "preco": "T$ 80.000",
-        "espacos": "1",
-        "categoria": "Armadura Mágica",
-        "tipo": "Armadura Específica Maior",
-        "descricao": "Esta armadura acolchoada guardiã refletora é dedicada a uma divindade específica, que pode ser identificada pelos símbolos bordados em seu peito e mangas. Conta como um manto eclesiástico aprimorado e, se vestida por um devoto da divindade à qual é dedicada, fornece redução de dano 5.",
-        "fonte": "Lendas de Arton"
-    }
+        {
+            "nome": "Punhal Escarlate",
+            "preco": "T$ 41.000",
+            "espacos": "1",
+            "categoria": "Arma Mágica",
+            "tipo": "Arma Específica Média",
+            "descricao": "Criada por Hemera, esta adaga formidável causa +1d6 pontos de dano de essência. Além disso, conta como um orbe cristalino.",
+            "fonte": "Guia de NPCs",
+            "imagem": "data/img/adaga.webp"
+        },
+        {
+            "nome": "Braceletes das Escamas",
+            "preco": "T$ 21.000",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Médio",
+            "descricao": "Criados por Acteia, estes braceletes de aço escurecido são entalhados de forma a parecer escamas de dragão. Fornecem redução de dano 5 e contam como uma luva de ferro.",
+            "fonte": "Guia de NPCs",
+            "imagem": "data/img/bracelete-bronze.webp"
+        },
+        {
+            "nome": "Face Dracônica",
+            "preco": "T$ 25.000",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Médio",
+            "descricao": "Esta máscara dourada, semelhante ao rosto estilizado de um dragão, fortalece o poder arcano do usuário. Fruto do poder de Ilítia, fornece +2 na CD para resistir a suas habilidades mágicas (incluindo magias) e conta como um medalhão de prata.",
+            "fonte": "Guia de NPCs"
+        },
+        {
+            "nome": "Presuntador",
+            "preco": "T$ 120.000",
+            "espacos": "2",
+            "categoria": "Arma Mágica",
+            "tipo": "Arma Específica Maior",
+            "descricao": "Feito de mana solidificado e dado a Klunc como recompensa por um ato especialmente heroico, o Presuntador é um machado de guerra aumentado energético magnífico. Se Klunc ficar inconsciente, o Presuntador continua lutando sozinho, com as mesmas estatísticas que teria se estivesse sendo empunhado. Quando ataca dessa forma, o Presuntador tem Defesa 35, RD 50 e 50 PV.",
+            "fonte": "Lendas de Arton"
+        },
+        {
+            "nome": "Armadura de Khalmyr",
+            "preco": "T$ 42.000",
+            "espacos": "0",
+            "categoria": "Armadura Mágica",
+            "tipo": "Armadura Específica Média",
+            "descricao": "Esta armadura completa sob medida defensora fica armazenada magicamente em uma gargantilha com o símbolo do Deus da Justiça. Enquanto está armazenada dessa forma, a armadura não ocupa nenhum espaço (embora ainda conte como um item vestido) e não impõe nenhuma penalidade ao usuário (como se ele não estivesse de armadura). Ao pronunciar o nome de Khalmyr, o usuário evoca a armadura, que é vestida automaticamente. Devolver a armadura à gargantilha também é uma ação livre.",
+            "fonte": "Lendas de Arton",
+            "imagem": "data/img/armadura-couro.webp"
+        },
+        {
+            "nome": "Fêmur de Narsogg [Nome Inferido]",
+            "preco": "T$ 96.000",
+            "espacos": "2",
+            "categoria": "Arma Mágica",
+            "tipo": "Arma Específica Maior",
+            "descricao": "Este montante aumentado macabro maciço formidável tumular foi fabricado a partir do fêmur da irmã de Narsogg. Uma arma única, conta como um cajado arcano. Além dos benefícios desse esotérico, as magias do usuário que causam dano de trevas causam +1 ponto de dano por dado.",
+            "fonte": "Lendas de Arton"
+        },
+        {
+            "nome": "Báculo da Fé",
+            "preco": "T$ 45.000",
+            "espacos": "2",
+            "categoria": "Arma Mágica",
+            "tipo": "Arma Específica Maior",
+            "descricao": "Este bordão banhado a ouro formidável é dedicado a uma divindade específica, que pode ser identificada pelos símbolos em sua empunhadura e extremidades. Quando empunhado por um devoto dessa divindade, causa +1d6 pontos de dano de fogo (para divindades que canalizam energia positiva) ou +1d6 pontos de dano de frio (para divindades que canalizam energia negativa).",
+            "fonte": "Lendas de Arton"
+        },
+        {
+            "nome": "Batina Consagrada",
+            "preco": "T$ 80.000",
+            "espacos": "1",
+            "categoria": "Armadura Mágica",
+            "tipo": "Armadura Específica Maior",
+            "descricao": "Esta armadura acolchoada guardiã refletora é dedicada a uma divindade específica, que pode ser identificada pelos símbolos bordados em seu peito e mangas. Conta como um manto eclesiástico aprimorado e, se vestida por um devoto da divindade à qual é dedicada, fornece redução de dano 5.",
+            "fonte": "Lendas de Arton"
+        },
 
+        //Dragao Brasil
 
-
-
+        {
+            "nome": "Arco dos Arautos",
+            "preco": "T$ 39.100",
+            "espacos": "2",
+            "categoria": "Item Mágico",
+            "tipo": "Arma Específica Média",
+            "descricao": "Arma favorita dos Arautos do Destruidor, este arco longo cruel preciso caçador pode ser encontrado por qualquer aventureiro que vasculhe os equipamentos de um membro desta organização. Você recebe a habilidade Marca da Presa do caçador, mas só pode usá-la com esta arma. Se já possui essa habilidade, em vez disso, o custo para usá-la com esta arma diminui em –1 PM.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/arco-longo.webp"
+        },
+        {
+            "nome": "Chave Mestra",
+            "preco": "T$ 25.500",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Médio",
+            "descricao": "Uma chave carregada pelos membros do Claviculário como um símbolo sagrado, este item mágico também é capaz de destrancar qualquer coisa, concedendo sucesso automático em testes de Ladinagem para abrir fechaduras. Contudo, se não for usada por um dos membros do Claviculário ou por um devoto de Sszzaas, um efeito mágico sobre seu material é ativado, reduzindo a Chave Mestra a pó após o primeiro uso.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/chave-mestra.webp"
+        },
+        {
+            "nome": "Bilhete de Valluk Delsori",
+            "preco": "T$ 300",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Item Mágico de Uso Único",
+            "descricao": "Este item mágico é concedido apenas àqueles que conseguirem descobrir onde a companhia irá se apresentar e consigam assistir a cinco de suas apresentações seguidas. Rasgar o bilhete (como se faz ao entrar para assistir a um espetáculo) permite que o usuário se transforme em uma das grandes figuras de Arton — como o herói Orion Drake ou a própria Rainha-Imperatriz Shivara I —, mas com uma característica diferente da verdadeira pessoa. Você poderia, por exemplo, se transformar em sir Alenn Toren, mas seu tapa-olho estaria no olho esquerdo, em vez do direito. Este efeito funciona como a magia Disfarce Ilusório, com direito ao aprimoramento que aumenta o bônus de Enganação para +20 e duração de 1 dia.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/bilhete-de-valluk-delsori.webp"
+        },
+        {
+            "nome": "Máscara do Sol Dourado",
+            "preco": "T$ 9.000",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Menor",
+            "descricao": "Uma máscara amarela com o desenho de um sorriso e dois tibares de ouro no lugar dos olhos, adornados com raios solares em laranja. Enquanto seguir as Obrigações & Restrições de Azgher, as moedas mágicas que substituem os olhos da máscara fornecem +10 em Ladinagem. Contudo, por ser chamativo demais, uma pessoa vestindo este item recebe –2 em Furtividade.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/mascara-do-sol-dourado.webp"
+        },
+        {
+            "nome": "Pingente Rubro",
+            "preco": "T$ 3.000",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Menor",
+            "descricao": "Este colar de matéria vermelha é estranho e parece estar sempre mudando de forma. Enquanto seguir as Obrigações & Restrições de Aharadak, sendo devoto ou não, você reduz a perda de PM causada por efeitos lefeu e da Tormenta em –1 PM por patamar.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/pingente-rubro.webp"
+        },
+        {
+            "nome": "Âncora Naufragista",
+            "preco": "T$ 3.000",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Menor",
+            "descricao": "Um colar com pingente em forma de âncora, feito de ferro oxidado. Enquanto seguir as Obrigações & Restrições de Oceano, sempre que oferecer como tributo para a água do mar um item valioso (valor mínimo de T$ 100), você recebe um benefício a sua escolha por 1 dia: deslocamento de natação igual ao terrestre, +5 em Pilotagem, ou resistência a frio e eletricidade 10. Se recuperar o tributo, este item perde os efeitos e evapora.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/ancora-naufragista.webp"
+        },
+        {
+            "nome": "Arma Silente",
+            "preco": "T$ 31.000",
+            "espacos": "2",
+            "categoria": "Item Mágico",
+            "tipo": "Arma Específica Menor",
+            "descricao": "Uma arma silente é o espólio obtido por aqueles que derrotam um membro da Lança Silente. Este item é uma arma (escolha entre alabarda, azagaia, lança, lança de falange, lança montada, machado de haste ou pique) certeira equilibrada formidável de adamante que fornece +5 em testes de Conhecimento, Guerra e Nobreza cujo objetivo seja perpetuar a guerra.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/arma-silente.webp"
+        },
+        {
+            "nome": "Bússola das Lágrimas",
+            "preco": "T$ 3.500",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Menor",
+            "descricao": "Desenvolvido por inventores Peregrinos, este item inicialmente rastrearia as Lágrimas de Valkaria, mas suas primeiras versões acabaram alertando para a presença de qualquer magia. Ao empunhar a Bússola das Lágrimas com uma das mãos, você tem sucesso automático em testes de Misticismo para detectar magia e pode fazê-los mesmo que não seja treinado nesta perícia.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/bussola-das-lagrimas.webp"
+        },
+        {
+            "nome": "Corso Sombrio",
+            "preco": "T$ 2.500",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Menor",
+            "descricao": "De alguma forma, todo integrante do Rastro da Pólvora tem uma dessas cartas de corso entre seus pertences. Enquanto seguir as Obrigações & Restrições de Tenebra, este item funciona como uma carta de corso comum: concede permissão para usar armas de fogo em território do Reinado. Se tais obrigações forem violadas, a carta imediatamente se transforma em um corvo mágico que voa até a autoridade do Reinado mais próxima e denuncia você pelo porte e uso de itens proibidos pelo Vintílogo.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/corso-sombrio.webp"
+        }
     ]
-
-
 };
 
 window.itensMagicosData = itensMagicosData;
 
-
-
 // itensmagicos.js
 // Baseado na Tabela 8-14: Acessórios Médios (p. 342–343, Livro Básico Tormenta 20)
-

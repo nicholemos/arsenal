@@ -3902,10 +3902,50 @@ const itensData = {
             "tipo": "Material",
             "descricao": "Uma pedra bruta pode ser usada como um item vestido (como um pingente) que fornece redução de dano 2 contra trevas.",
             "fonte": "Só Aventuras"
+        },
+
+        //Dragao Brasil
+
+        {
+            "nome": "Alma de Dragão",
+            "preco": "T$ 250",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Item Esotérico",
+            "descricao": "Uma pedra translúcida, no formato de uma escama de dragão e do tamanho de um punho fechado. Quando sofrer dano de um dos tipos a seguir, você pode reduzir o dano sofrido em um dado como uma reação. Então este item deixa de ser translúcido e armazena a energia do dano, tomando a aparência de uma pedra preciosa: diamante (luz), esmeralda (ácido), ônix (trevas), rubi (fogo), safira (frio) ou topázio (eletricidade). Quando lança uma magia que causa dano do tipo da pedra preciosa enquanto tiver uma energia armazenada, você pode descarregar essa energia como uma ação livre para aumentar o dano em um dado do mesmo tipo. Após descarregar a energia, a pedra volta a ser translúcida e precisa armazenar energia outra vez antes de ser usada novamente.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/alma-de-dragao.webp"
+        },
+        {
+            "nome": "Cítola da Paz",
+            "preco": "T$ 175",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Ferramenta",
+            "descricao": "Feita de madeira de qualidade, com cordas douradas e encantada por um devoto de Marah, esta cítola conta como um instrumento musical. Enquanto seguir as Obrigações & Restrições de Marah, sua Inspiração e suas músicas de bardo custam –1 PM e você recebe um bônus de +5 em testes de perícia para mudar atitude.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/citola-da-paz.webp"
+        },
+        {
+            "nome": "Rosário da Vida",
+            "preco": "T$ 750",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Item Esotérico",
+            "descricao": "Este item costuma ser usado por Parteiras das Mandíbulas para aumentar o efeito de suas magias de cura. Quando empunhado por alguém que siga as Obrigações & Restrições de Lena, este rosário aumenta o número de PV recuperados por efeitos de cura mágica de luz em um dado do mesmo tipo por patamar de personagem (1 dado no 1º patamar, 2 dados no 2º patamar e assim por diante).",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/rosario-da-vida.webp"
+        },
+        {
+            "nome": "Bomba de Tinta",
+            "preco": "T$ 35",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Preparado Alquímico",
+            "descricao": "Segue as mesmas regras da bomba comum, mas, em vez de causar dano, afeta uma esfera com 6m de raio que fica sob efeito simulado da magia Área Escorregadia até o fim da cena. Criaturas dentro dessa área durante a explosão também ficam lentas (Reflexos CD Des evita); elas podem gastar uma ação de movimento para fazer um teste de Força (CD Des) para se recuperar da condição.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/bomba-de-tinta.webp"
         }
-
-
-
 
     ]
 };
