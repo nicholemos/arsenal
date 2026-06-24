@@ -4,745 +4,280 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Arsenal do Mestre — Tormenta20</title>
-
-  <style>
-    @font-face {
-      font-family: "Tormenta";
-      src: url("poderes/assets/fonts/Tormenta.ttf") format("truetype");
-    }
-
-    :root {
-      /* Tema Padrão: Sangue */
-      --bg-dark-base: #0a0404;
-      --bg-dark-surface: #120a0a;
-      --bg-dark-panel: #160e0e;
-      --bg-dark-panel-hover: #241414;
-      --border-color: #4a1414;
-      --text-primary: #e8e4e4;
-      --text-secondary: #a39898;
-      --text-muted: #736868;
-      --gold-primary: #cc0d0d;
-      --gold-secondary: #cfa053;
-      --gold-glow: rgba(204, 13, 13, 0.35);
-      --glass-bg: rgba(22, 14, 14, 0.75);
-      --glass-backdrop: blur(12px);
-      --font-heading: "Tormenta", serif;
-      --font-body: 'Segoe UI', sans-serif;
-      --radius-lg: 16px;
-      --radius-md: 10px;
-    }
-
-    .theme-dark {
-      /* Tema: Sombras (STR Dark) */
-      --bg-dark-base: #06070c;
-      --bg-dark-surface: #0b0d14;
-      --bg-dark-panel: #11131e;
-      --bg-dark-panel-hover: #191c2b;
-      --border-color: #2a2e3d;
-      --text-primary: #e2d8c3;
-      --text-secondary: #a89f8a;
-      --text-muted: #6b6354;
-      --gold-primary: #c9933a;
-      --gold-secondary: #d4af37;
-      --gold-glow: rgba(201, 147, 58, 0.3);
-      --glass-bg: rgba(17, 19, 30, 0.75);
-      --glass-backdrop: blur(12px);
-    }
-
-    .theme-classic {
-      /* Tema: Clássico (STR Classic) */
-      --bg-dark-base: #f0ece4;
-      --bg-dark-surface: #ffffff;
-      --bg-dark-panel: #ffffff;
-      --bg-dark-panel-hover: #f0ede6;
-      --border-color: #b0b8c8;
-      --text-primary: #2c3e50;
-      --text-secondary: #4a5568;
-      --text-muted: #7f8c8d;
-      --gold-primary: #e74c3c;
-      --gold-secondary: #c0392b;
-      --gold-glow: rgba(231, 76, 60, 0.2);
-      --glass-bg: rgba(255, 255, 255, 0.92);
-      --glass-backdrop: blur(8px);
-    }
-
-    body.theme-classic {
-      background: var(--bg-dark-base) !important;
-    }
-
-    .theme-classic header {
-      background: linear-gradient(185deg, #2c3e50 0%, #1a252f 100%) !important;
-      border-bottom: 2px solid #e74c3c !important;
-    }
-
-    .theme-classic header::after {
-      display: none !important;
-    }
-
-    .theme-classic .header-title {
-      color: #ecf0f1 !important;
-      text-shadow: none !important;
-    }
-
-    .theme-classic .header-home-btn {
-      color: #ecf0f1 !important;
-      border-color: rgba(255, 255, 255, 0.2) !important;
-      background: rgba(0, 0, 0, 0.2) !important;
-    }
-
-    .theme-classic .header-home-btn:hover {
-      border-color: #e74c3c !important;
-      box-shadow: 0 0 10px rgba(231, 76, 60, 0.3) !important;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: var(--bg-dark-base);
-      background-image: radial-gradient(circle at center, var(--bg-dark-surface) 0%, var(--bg-dark-base) 100%);
-      color: var(--text-primary);
-      font-family: var(--font-body);
-      min-height: 100vh;
-      padding-bottom: 40px;
-      transition: background-color 0.35s ease, color 0.35s ease;
-      overflow-x: hidden;
-    }
-
-    /* ===== HEADER ===== */
-    header {
-      position: relative;
-      text-align: center;
-      padding: 40px 60px 28px;
-      z-index: 10;
-    }
-
-    header::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
-      box-shadow: 0 0 10px var(--gold-glow);
-    }
-
-    .header-title {
-      font-family: "Tormenta", var(--font-heading);
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      font-weight: 900;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, var(--gold-primary), #ffffff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-      margin-bottom: 8px;
-    }
-
-    .header-subtitle {
-      color: var(--text-secondary);
-      font-size: 1rem;
-      max-width: 500px;
-      margin: 0 auto;
-      opacity: 0.9;
-    }
-
-    .header-btns {
-      position: absolute;
-      top: 50%;
-      right: 20px;
-      transform: translateY(-50%);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 10;
-    }
-
-    .header-home-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-heading);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
-      line-height: 1;
-      background: rgba(0, 0, 0, 0.15);
-      border: 1px solid var(--border-color);
-      color: var(--gold-primary);
-      padding: 7px 12px;
-      border-radius: 8px;
-      gap: 5px;
-    }
-
-    .header-home-btn:hover {
-      border-color: var(--gold-primary);
-      box-shadow: 0 0 10px var(--gold-glow);
-    }
-
-    /* ===== THEME SWITCHER ===== */
-    .theme-switcher {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 3px;
-      transition: border-color 0.25s ease;
-    }
-
-    .theme-btn {
-      background: transparent;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1rem;
-      width: 32px;
-      height: 32px;
-      display: grid;
-      place-items: center;
-      transition: background 0.25s ease, transform 0.1s;
-      opacity: 0.55;
-    }
-
-    .theme-btn:hover {
-      opacity: 1;
-      background: rgba(255, 255, 255, 0.1);
-      transform: scale(1.15);
-    }
-
-    .theme-btn.active {
-      opacity: 1;
-      background: rgba(255, 255, 255, 0.15);
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
-    }
-
-    .theme-dark .theme-switcher {
-      border-color: rgba(201, 147, 58, 0.3);
-    }
-
-    .theme-classic .theme-switcher {
-      border-color: rgba(255, 255, 255, 0.25);
-      background: rgba(0, 0, 0, 0.2);
-    }
-
-    /* ===== CONTAINER ===== */
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 32px 16px;
-    }
-
-    .section-title {
-      font-family: var(--font-heading);
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--text-muted);
-      margin: 32px 0 14px 4px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    /* ===== GRID ===== */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
-
-    .card-btn {
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-backdrop);
-      -webkit-backdrop-filter: var(--glass-backdrop);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 18px 10px;
-      text-align: center;
-      text-decoration: none;
-      color: var(--text-primary);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .card-btn:hover {
-      border-color: var(--gold-primary);
-      box-shadow: 0 6px 20px var(--gold-glow);
-      transform: translateY(-3px);
-    }
-
-    .card-btn:active {
-      transform: scale(0.97);
-    }
-
-    .card-icon {
-      font-size: 2rem;
-      line-height: 1;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-      transition: opacity 0.3s ease;
-    }
-
-    .hide-images .card-icon {
-      opacity: 0;
-      pointer-events: none;
-      height: 0;
-      margin: 0;
-    }
-
-    .hide-images .card-btn {
-      gap: 0;
-      padding: 24px 10px;
-      justify-content: center;
-    }
-
-    .hide-images .card-btn span {
-      font-size: 1.15rem;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      font-family: var(--font-heading);
-      background: linear-gradient(135deg, var(--gold-primary), #ffffff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 2px 12px var(--gold-glow);
-    }
-
-    .card-btn span {
-      font-size: 0.85rem;
-      font-weight: 600;
-      line-height: 1.25;
-      transition: all 0.3s ease;
-    }
-
-    /* ===== ASSINATURA ===== */
-    .sig-wrap {
-      max-width: 1100px;
-      margin: 48px auto 20px;
-      padding: 0 16px;
-    }
-
-    .sig-card {
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-color);
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-backdrop);
-      -webkit-backdrop-filter: var(--glass-backdrop);
-      overflow: hidden;
-      transition: border-color 0.25s ease;
-    }
-
-    .sig-card:hover {
-      border-color: var(--gold-primary);
-    }
-
-    .sig-summary {
-      list-style: none;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      background: var(--bg-dark-surface);
-      color: var(--text-primary);
-      position: relative;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .sig-summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .sig-summary::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
-    }
-
-    .sig-summary-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .sig-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(201, 147, 58, 0.06);
-      border: 1px solid rgba(201, 147, 58, 0.2);
-      font-family: var(--font-heading);
-      font-weight: 700;
-      font-size: 11px;
-      letter-spacing: 0.5px;
-      color: var(--gold-primary);
-      text-transform: uppercase;
-    }
-
-    .sig-title {
-      font-family: var(--font-heading);
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      letter-spacing: 0.5px;
-    }
-
-    .sig-summary-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-secondary);
-    }
-
-    .sig-hint {
-      font-size: 12px;
-      opacity: 0.75;
-      white-space: nowrap;
-    }
-
-    .sig-chevron {
-      font-size: 14px;
-      transition: transform 0.2s ease;
-      color: var(--gold-primary);
-    }
-
-    .sig-card[open] .sig-chevron {
-      transform: rotate(180deg);
-    }
-
-    .sig-body {
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    .sig-hero {
-      background: var(--bg-dark-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 18px;
-      margin-bottom: 16px;
-    }
-
-    .sig-h3 {
-      font-family: var(--font-heading);
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--gold-primary);
-      margin-bottom: 10px;
-    }
-
-    .sig-p {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .sig-p:last-child {
-      margin-bottom: 0;
-    }
-
-    .sig-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 16px;
-    }
-
-    .sig-col {
-      background: var(--bg-dark-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 18px;
-    }
-
-    .sig-h4 {
-      font-family: var(--font-heading);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--gold-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      margin-bottom: 14px;
-    }
-
-    .sig-link {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-color);
-      background: var(--bg-dark-panel);
-      transition: all 0.2s ease;
-      margin-bottom: 12px;
-      text-decoration: none;
-    }
-
-    .sig-link:hover {
-      transform: translateY(-2px);
-      border-color: var(--gold-primary);
-      box-shadow: 0 4px 12px var(--gold-glow);
-    }
-
-    .sig-link-main {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .sig-link-name {
-      font-weight: 600;
-      color: var(--text-primary);
-      font-size: 14px;
-      line-height: 1.25;
-    }
-
-    .sig-link-url {
-      color: var(--text-muted);
-      font-size: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-top: 2px;
-    }
-
-    .sig-ext {
-      color: var(--gold-secondary);
-      font-size: 14px;
-      flex: 0 0 auto;
-    }
-
-    .sig-note {
-      margin-top: 14px;
-      border-radius: var(--radius-md);
-      border: 1px dashed var(--border-color);
-      background: rgba(0, 0, 0, 0.01);
-      padding: 12px;
-    }
-
-    .sig-note-title {
-      font-family: var(--font-heading);
-      font-weight: 700;
-      font-size: 11px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: var(--gold-secondary);
-      margin-bottom: 6px;
-    }
-
-    .sig-note-text {
-      color: var(--text-secondary);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .sig-footer {
-      margin-top: 18px;
-      padding: 12px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-color);
-      background: var(--bg-dark-surface);
-      display: flex;
-      justify-content: center;
-    }
-
-    .sig-footer-text {
-      color: var(--text-muted);
-      font-size: 12px;
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 768px) {
-      header {
-        padding: 30px 16px 24px;
-      }
-
-      .header-title {
-        font-size: clamp(1.5rem, 6vw, 2rem);
-      }
-
-      .header-btns {
-        position: static;
-        transform: none;
-        justify-content: center;
-        margin-top: 12px;
-      }
-
-      .grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-
-      .card-btn {
-        padding: 14px 8px;
-      }
-
-      .card-icon {
-        font-size: 1.6rem;
-      }
-
-      .card-btn span {
-        font-size: 0.8rem;
-      }
-
-      .sig-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .sig-hint {
-        display: none;
-      }
-    }
-
-    .card-icon {
-      width: 100%;
-      max-width: 160px;
-      height: auto;
-      object-fit: contain;
-      display: block;
-      margin: 0 auto;
-    }
-
-    @media (max-width: 400px) {
-      .grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-  </style>
+  <title>T20 Item Finder - Inventário</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-
-  <header>
-    <h1 class="header-title">Arsenal do Mestre</h1>
-    <p class="header-subtitle">Ferramentas essenciais para Tormenta20</p>
+  <header class="header">
+    <h1 class="header-title">T20 Item Finder</h1>
     <div class="header-btns">
+      <a href="../index.html" class="header-home-btn" title="Arsenal do Mestre">🏠 Hub</a>
       <!-- Theme Switcher -->
       <div class="theme-switcher" id="theme-switcher">
         <button class="theme-btn" data-theme="blood" title="Tema Sangue (padrão)">🩸</button>
         <button class="theme-btn" data-theme="dark" title="Tema Sombras (STR escuro)">🌑</button>
         <button class="theme-btn" data-theme="classic" title="Tema Clássico (STR claro)">📜</button>
       </div>
-      <button class="header-home-btn" id="toggleImagesBtn" title="Ocultar/Mostrar imagens" onclick="toggleImages()">
-        <span id="toggleImagesIcon">👁️</span>
-        <span id="toggleImagesText">Imagens</span>
-      </button>
     </div>
   </header>
 
-  <main class="container">
+  <main class="main-content">
+    <div class="container container-grid">
 
-    <div class="section-title">Mesa de Jogo</div>
-    <div class="grid">
-      <a href="ficha/index.html" class="card-btn">
-        <img src="images/fichas.png" alt="Ícone de fichas" class="card-icon">
-        <span>Ficha T20</span>
-      </a>
-      <a href="Vtt/index.html" class="card-btn">
-        <img src="images/vtt.png" alt="Ícone VTT" class="card-icon">
-        <span>VTT</span>
-      </a>
-      <a href="combate/index.html" class="card-btn">
-        <img src="images/combate.png" alt="Ícone de combate" class="card-icon">
-        <span>Combate</span>
-      </a>
-      <a href="dados/index.html" class="card-btn">
-        <img src="images/dados.png" alt="Ícone de dados" class="card-icon">
-        <span>Dados</span>
-      </a>
-      <a href="campanha/index.html" class="card-btn">
-        <img src="images/missoes.png" alt="Ícone de missoes" class="card-icon">
-        <span>Missões</span>
-      </a>
-      <a href="perigos/index.html" class="card-btn">
-        <img src="images/perigos.png" alt="Ícone de perigos" class="card-icon">
-        <span>Perigos Complexos</span>
-      </a>
+      <div class="content-column">
+        <div class="filters-section">
+          <div class="filter-group">
+            <span class="filter-label-hint">Categorias:</span>
+            <button class="filter-btn active" data-category="todos">Todos</button>
+            <button class="filter-btn" data-category="Arma">Armas</button>
+            <button class="filter-btn" data-category="Armadura">Armaduras</button>
+            <button class="filter-btn" data-category="Escudo">Escudos</button>
+            <button class="filter-btn" data-category="Item Geral">Itens Gerais</button>
+            <button class="filter-btn" data-category="Item Superior">Itens Superiores</button>
+            <button class="filter-btn" data-category="Item Mágico">Itens Mágicos</button>
+            <button class="filter-btn" data-category="encantamento">Encantamentos</button>
+            <button class="filter-btn" data-category="Maldição">Maldições</button>
+          </div>
+
+          <div class="search-bar">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Buscar por nome do item..." class="search-input">
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Ordem:</span>
+            <select id="sortSelect" class="quantity-select">
+              <option value="name-asc">Nome (A-Z)</option>
+              <option value="name-desc">Nome (Z-A)</option>
+              <option value="price-asc">Preço (Menor &rarr; Maior)</option>
+              <option value="price-desc">Preço (Maior &rarr; Menor)</option>
+              <option value="spaces-asc">Espaços (Leve &rarr; Pesado)</option>
+              <option value="spaces-desc">Espaços (Pesado &rarr; Leve)</option>
+            </select>
+            <span class="filter-label">Fonte:</span>
+            <select id="sourceFilter" class="quantity-select">
+              <option value="todas">Todas as Fontes</option>
+              <option value="Livro Básico">Livro Básico (T20)</option>
+              <option value="Coração de Rubi">Coração de Rubi</option>
+              <option value="Ameaças de Arton">Ameaças de Arton</option>
+              <option value="Guerra Artoniana">Guerra Artoniana</option>
+              <option value="Guia de NPCs">Guia de NPCs</option>
+              <option value="Heróis de Arton">Heróis de Arton</option>
+              <option value="Deuses de Arton">Deuses de Arton</option>
+              <option value="Duelo de Dragões">Duelo de Dragões</option>
+              <option value="Dragão Brasil">Dragão Brasil</option>
+            </select>
+          </div>
+
+          <div id="empunhaduraFilters" class="filter-group" style="display: none;">
+            <button class="filter-btn active" data-empunhadura="todas">Todas Empunhaduras</button>
+            <button class="filter-btn" data-empunhadura="Leve">Leve</button>
+            <button class="filter-btn" data-empunhadura="Uma Mão">Uma Mão</button>
+            <button class="filter-btn" data-empunhadura="Duas Mãos">Duas Mãos</button>
+          </div>
+          <div id="specificFilters" class="filter-group"></div>
+          <br>
+          <div class="view-toggle">
+            <button id="viewGridBtn" class="view-btn active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Grid</span>
+            </button>
+            <button id="viewTableBtn" class="view-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+              <span>Tabela</span>
+            </button>
+            <button id="randomizerBtn" class="view-btn rand-inline-btn" onclick="openRandomizerModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 3 21 3 21 8"></polyline>
+                <line x1="4" y1="20" x2="21" y2="3"></line>
+                <polyline points="21 16 21 21 16 21"></polyline>
+                <line x1="15" y1="15" x2="21" y2="21"></line>
+              </svg>
+              <span>Aleatório</span>
+            </button>
+          </div>
+
+        </div>
+
+        <div id="itemsGrid" class="items-grid">
+        </div>
+      </div>
+
+      <aside id="inventoryContainer" class="inventory-container">
+        <button id="closeInventoryBtn" class="inventory-close-mobile">&times;</button>
+
+        <h2 class="inventory-title">Inventário</h2>
+
+        <div id="inventoryList" class="inventory-list">
+          <div class="inventory-empty">Seu inventário está vazio.</div>
+        </div>
+
+        <div id="inventorySummary" class="inventory-summary">
+          <div class="summary-row">
+            <span>Espaços Totais:</span>
+            <span id="totalSpaces">0</span>
+          </div>
+          <div class="summary-row summary-price">
+            <span>Preço Total:</span>
+            <span id="totalCost">T$ 0</span>
+          </div>
+          <div class="summary-row">
+            <span>Itens Vestidos:</span>
+            <span id="totalVestidos">0 / 4</span>
+          </div>
+          <button class="btn-exportar-ficha" onclick="enviarInventarioCompletoParaFicha()">
+            <i class="bi bi-box-arrow-right"></i> Enviar p/ Ficha
+          </button>
+
+          <button id="clearInventoryBtn" class="btn-limpar-estilo" onclick="clearInventory()" style="margin-top: 10px;">
+            <i class="bi bi-trash"></i> Limpar Inventário
+          </button>
+
+          <!-- seta AGORA fica abaixo do inventário -->
+          <button id="backToTopBtn" class="inventory-top-btn" type="button" aria-label="Voltar ao topo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 15-6-6-6 6" />
+            </svg>
+          </button>
+        </div>
+
+
+      </aside>
+
+
     </div>
-
-    <div class="section-title">Consultas</div>
-    <div class="grid">
-      <a href="itens/index.html" class="card-btn">
-        <img src="images/inventario.png" alt="Ícone de Inventário" class="card-icon">
-        <span>Inventário</span>
-      </a>
-      <a href="poderes/index.html" class="card-btn">
-        <img src="images/poderes.png" alt="Ícone de Poderes" class="card-icon">        
-        <span>Poderes</span>
-      </a>
-      <a href="grimorio/index.html" class="card-btn">
-        <img src="images/grimorio.png" alt="Ícone de grimorio" class="card-icon">
-        <span>Grimório</span>
-      </a>
-      <a href="ameacas/index.html" class="card-btn">
-        <img src="images/ameacas.png" alt="Ícone de ameacas" class="card-icon">
-        <span>Ameaças</span>
-      </a>
-      <a href="parceiros/index.html" class="card-btn">
-        <img src="images/parceiros.png" alt="Ícone de montarias e parceiros" class="card-icon">
-        <span>Montarias e Parceiros</span>
-      </a>
-    </div>
-
-    <div class="section-title">Planejamento</div>
-    <div class="grid">
-      <a href="calculadoraND_Tormenta/index.html" class="card-btn">
-        <img src="images/nd.png" alt="Ícone de Calculadora de ND" class="card-icon">
-        <span>Calc. de ND</span>
-      </a>
-      <a href="calculadora/index.html" class="card-btn">
-        <img src="images/calculadora.png" alt="Ícone de calculadora" class="card-icon">
-        <span>Calc. Atributos</span>
-      </a>
-      <a href="EncontrosAleatorios/index.html" class="card-btn">
-        <img src="images/encontros.png" alt="Ícone de Encontros Aleatórios" class="card-icon">
-        <span>Encontros Aleatórios</span>
-      </a>
-    </div>
-
-    <div class="section-title">Extras</div>
-    <div class="grid">
-      <a href="STR/index.html" class="card-btn">
-        <img src="images/STR.png" alt="Ícone de STR" class="card-icon">
-        <span>Regras Adicionais</span>
-      </a>
-      <a href="libertacao/index.html" class="card-btn">
-        <img src="images/npc.png" alt="Ícone de NPCs" class="card-icon">
-        <span>NPCs</span>
-      </a>
-      <a href="macrosroll20/index.html" class="card-btn">
-        <img src="images/roll20.png" alt="Ícone de roll20" class="card-icon">
-        <span>Macros Roll20</span>
-      </a>
-    </div>
-
   </main>
 
-  <section class="sig-wrap">
+  <div id="itemModal" class="modal">
+    <button class="modal-nav-btn modal-nav-prev" aria-label="Item anterior">&#10094;</button>
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+
+
+      <div class="modal-header">
+        <h2 id="modalTitle" class="modal-title"></h2>
+        <p id="modalPrice" class="modal-price"></p>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-image-row">
+          <div class="modal-image-container">
+            <img id="modalImage" src="" alt="" class="modal-image" style="display:none;">
+          </div>
+          <div class="modal-add-item">
+            <label for="modalQuantity">Qtd:</label>
+            <input type="number" id="modalQuantity" class="quantity-input" value="1" min="1">
+            <button id="addItemBtn" class="add-item-btn">Adicionar ao Inventário</button>
+          </div>
+        </div>
+        <div id="modalBadges" class="modal-badges"></div>
+        <div class="modal-section">
+          <h3>Descrição</h3>
+          <p id="modalDescription"></p>
+        </div>
+
+        <div id="weaponStats" class="modal-stats-container"></div>
+        <div id="armorStats" class="modal-stats-container"></div>
+
+        <div class="modal-section">
+          <div class="modal-stats">
+            <div class="stat-box">
+              <p class="stat-label">Espaços Ocupados</p>
+              <p id="modalSpaces" class="stat-value"></p>
+            </div>
+            <div id="modalVestido" class="stat-box" style="display: none;">
+              <p class="stat-label">Item Vestido</p>
+              <p class="stat-value" style="color: #4ade80;">Sim</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="itemCustomizer" class="modal-section" style="display: none;">
+
+          <div class="customizer-section">
+            <div class="customizer-header">
+              <label for="modQuantity">Modificações</label>
+              <select id="modQuantity" class="quantity-select">
+                <option value="0">0</option>
+                <option value="1">1 (T$ 300)</option>
+                <option value="2">2 (T$ 3.000)</option>
+                <option value="3">3 (T$ 9.000)</option>
+                <option value="4">4 (T$ 18.000)</option>
+              </select>
+            </div>
+            <div id="modSelectorsContainer" class="customizer-selectors">
+            </div>
+          </div>
+
+          <div class="customizer-section">
+            <div class="customizer-header">
+              <label for="enchantQuantity">Encantamentos</label>
+              <select id="enchantQuantity" class="quantity-select">
+                <option value="0">0</option>
+                <option value="1">1 (+ T$ 18.000)</option>
+                <option value="2">2 (+ T$ 36.000)</option>
+                <option value="3">3 (+ T$ 72.000)</option>
+              </select>
+            </div>
+            <div id="enchantSelectorsContainer" class="customizer-selectors">
+            </div>
+          </div>
+          <div class="customizer-section">
+            <div class="customizer-header">
+              <label for="curseCheckbox">Item Amaldiçoado?</label>
+              <input type="checkbox" id="curseCheckbox" class="curse-checkbox" />
+            </div>
+            <div id="curseQuantityContainer" class="customizer-header" style="display: none;">
+              <label for="curseQuantity">Qtd. Maldições:</label>
+              <select id="curseQuantity" class="quantity-select">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+            <div id="curseSelectorsContainer" class="customizer-selectors">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <button class="modal-nav-btn modal-nav-next" aria-label="Próximo item">&#10095;</button>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay"></div>
+  <div class="floating-buttons">
+    <button id="mobileInventoryBtn" class="float-btn mobile-inv-trigger" aria-label="Abrir Inventário">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18" />
+        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      </svg>
+      <span id="mobileInvCount" class="mobile-badge">0</span>
+    </button>
+  </div>
+  <!-- ASSINATURA / CRÉDITOS (STR-style) -->
+  <section class="sig-wrap" aria-label="Sobre e créditos">
     <details class="sig-card">
       <summary class="sig-summary">
         <div class="sig-summary-left">
@@ -760,70 +295,132 @@
           <h3 class="sig-h3">Quem fez isso?</h3>
           <p class="sig-p">
             Olá! Meu nome é <strong>Nicholas Lemos</strong>.
-            Sou jogador de RPG, desenvolvedor de software e entusiasta de ferramentas para
-            <strong>Tormenta20</strong>.
+            Sou jogador de RPG, desenvolvedor de software e entusiasta de ferramentas para <strong>Tormenta20</strong>.
           </p>
           <p class="sig-p">
-            Criei este arsenal porque senti falta de ferramentas
-            <strong>rápidas, claras e pensadas para a mesa</strong>, especialmente para mestres que lidam com muitos
-            inimigos, condições e regras ao mesmo tempo. A ideia é manter tudo <strong>visível, acessível e sem quebrar
-              o
+            Criei este <strong>Cmpilado de Itens</strong> porque senti falta de uma ferramenta
+            <strong>rápida, clara e pensada para a mesa</strong>, para buscas rápidas e simples. A ideia é manter tudo
+            <strong>visível, acessível e sem quebrar o
               ritmo</strong>.
           </p>
           <p class="sig-p">
             Feedbacks, sugestões e ideias são sempre bem-vindos.
           </p>
         </div>
+        <div class="sig-col">
+          <h4 class="sig-h4">Contato</h4>
+
+          <a class="sig-link"
+            href="https://api.whatsapp.com/send/?phone=5531992825753&text=Ol%C3%A1%2C+gostaria+de+tirar+uma+d%C3%BAvida.&type=phone_number&app_absent=0"
+            target="_blank" rel="noopener noreferrer">
+            <div class="sig-link-main">
+              <span class="sig-link-name">WhatsApp</span>
+              <span class="sig-link-url">Fale comigo diretamente</span>
+            </div>
+            <span class="sig-ext">↗</span>
+          </a>
+
+          <a class="sig-link" href="https://www.linkedin.com/in/nicholas-lemos/" target="_blank"
+            rel="noopener noreferrer">
+            <div class="sig-link-main">
+              <span class="sig-link-name">LinkedIn</span>
+              <span class="sig-link-url">Perfil profissional</span>
+            </div>
+            <span class="sig-ext">↗</span>
+          </a>
+
+          <a class="sig-link" href="https://github.com/nicholemos" target="_blank" rel="noopener noreferrer">
+            <div class="sig-link-main">
+              <span class="sig-link-name">GitHub</span>
+              <span class="sig-link-url">Repositórios e projetos</span>
+            </div>
+            <span class="sig-ext">↗</span>
+          </a>
+
+          <div class="sig-note sig-cta">
+            <div class="sig-note-title">Que tal um site para você?</div>
+            <div class="sig-note-text">
+              Dê uma olhada no modelo de site e me chame para conversarmos.
+              <br>
+              <a href="https://nicholemos.github.io/" target="_blank" rel="noopener noreferrer">
+                https://nicholemos.github.io/
+              </a>
+            </div>
+          </div>
+        </div>
+        <br>
         <div class="sig-grid">
           <div class="sig-col">
-            <h4 class="sig-h4">Contato</h4>
+            <h4 class="sig-h4">Conheça meus outros projetos</h4>
 
-            <a class="sig-link"
-              href="https://api.whatsapp.com/send/?phone=5531992825753&text=Ol%C3%A1%2C+gostaria+de+tirar+uma+d%C3%BAvida.&type=phone_number&app_absent=0"
-              target="_blank" rel="noopener noreferrer">
+            <a class="sig-link" href="https://nicholemos.github.io/STR" target="_blank" rel="noopener noreferrer">
               <div class="sig-link-main">
-                <span class="sig-link-name">WhatsApp</span>
-                <span class="sig-link-url">Fale comigo diretamente</span>
+                <span class="sig-link-name">STR – Supremo Tribunal Regreiro</span>
+                <span class="sig-link-url">nicholemos.github.io/STR</span>
               </div>
-              <span class="sig-ext">↗</span>
+              <span class="sig-ext" aria-hidden="true">↗</span>
             </a>
 
-            <a class="sig-link" href="https://www.linkedin.com/in/nicholas-lemos/" target="_blank"
+            <a class="sig-link" href="https://nicholemos.github.io/ficha/" target="_blank" rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">Ficha Automática de Tormenta20</span>
+                <span class="sig-link-url">nicholemos.github.io/ficha</span>
+              </div>
+              <span class="sig-ext" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="sig-link" href="https://nicholemos.github.io/combate/" target="_blank" rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">Compilado de Itens</span>
+                <span class="sig-link-url">nicholemos.github.io/combate</span>
+              </div>
+              <span class="sig-ext" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="sig-link" href="https://nicholemos.github.io/poderes/" target="_blank" rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">Compilado de Poderes</span>
+                <span class="sig-link-url">nicholemos.github.io/poderes</span>
+              </div>
+              <span class="sig-ext" aria-hidden="true">↗</span>
+            </a>
+
+            <a class="sig-link" href="https://nicholemos.github.io/CalculadoradeAtributos/" target="_blank"
               rel="noopener noreferrer">
               <div class="sig-link-main">
-                <span class="sig-link-name">LinkedIn</span>
-                <span class="sig-link-url">Perfil profissional</span>
+                <span class="sig-link-name">Calculadora de Atributos</span>
+                <span class="sig-link-url">nicholemos.github.io/CalculadoradeAtributos</span>
               </div>
-              <span class="sig-ext">↗</span>
+              <span class="sig-ext" aria-hidden="true">↗</span>
             </a>
 
-            <a class="sig-link" href="https://github.com/nicholemos" target="_blank" rel="noopener noreferrer">
+            <a class="sig-link" href="https://nicholemos.github.io/EncontrosAleatorios/" target="_blank"
+              rel="noopener noreferrer">
               <div class="sig-link-main">
-                <span class="sig-link-name">GitHub</span>
-                <span class="sig-link-url">Repositórios e projetos</span>
+                <span class="sig-link-name">Encontros Aleatórios</span>
+                <span class="sig-link-url">nicholemos.github.io/EncontrosAleatorios</span>
               </div>
-              <span class="sig-ext">↗</span>
+              <span class="sig-ext" aria-hidden="true">↗</span>
             </a>
 
-            <div class="sig-note">
-              <div class="sig-note-title">Que tal um site para você?</div>
-              <div class="sig-note-text">
-                Dê uma olhada no modelo de site e me chame para conversarmos.
-                <br>
-                <a href="https://nicholemos.github.io/arsenal/" target="_blank" rel="noopener noreferrer">
-                  https://nicholemos.github.io/arsenal/
-                </a>
+            <a class="sig-link" href="https://nicholemos.github.io/calculadoraND_Tormenta/" target="_blank"
+              rel="noopener noreferrer">
+              <div class="sig-link-main">
+                <span class="sig-link-name">Calculadora de ND</span>
+                <span class="sig-link-url">nicholemos.github.io/calculadoraND_Tormenta</span>
               </div>
-            </div>
+              <span class="sig-ext" aria-hidden="true">↗</span>
+            </a>
           </div>
 
           <div class="sig-col">
             <h4 class="sig-h4">Este projeto</h4>
 
-            <a class="sig-link" href="https://nicholemos.github.io/arsenal/combate/" target="_blank" rel="noopener noreferrer">
+            <a class="sig-link sig-link-primary" href="https://nicholemos.github.io/itens/" target="_blank"
+              rel="noopener noreferrer">
               <div class="sig-link-main">
-                <span class="sig-link-name">Gerenciador de Combate – Tormenta20</span>
-                <span class="sig-link-url">nicholemos.github.io/combate</span>
+                <span class="sig-link-name">Compilado de Itens – Tormenta20</span>
+                <span class="sig-link-url">nicholemos.github.io/itens</span>
               </div>
               <span class="sig-ext" aria-hidden="true">↗</span>
             </a>
@@ -835,6 +432,8 @@
               </div>
             </div>
           </div>
+
+
         </div>
 
         <div class="sig-footer">
@@ -844,68 +443,112 @@
     </details>
   </section>
 
-  <script>
-    (function () {
-      var body = document.body;
-      var key = 't20_theme'; // Sincronizado com o bestiário (ameacas)
-      
-      function applyTheme(theme) {
-        // Remove classes antigas de tema
-        body.classList.remove('theme-dark', 'theme-classic');
-        
-        // Aplica o novo tema no body (se não for o padrão 'blood')
-        if (theme === 'dark') {
-          body.classList.add('theme-dark');
-        } else if (theme === 'classic') {
-          body.classList.add('theme-classic');
-        }
-        
-        // Atualiza a classe ativa nos botões do seletor
-        document.querySelectorAll('.theme-btn').forEach(function (btn) {
-          btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
-        });
-        
-        localStorage.setItem(key, theme);
-      }
-      
-      // Carrega o tema salvo com fallback de migração do antigo 'hubTheme'
-      var saved = localStorage.getItem(key);
-      if (!saved) {
-        var oldSaved = localStorage.getItem('hubTheme');
-        if (oldSaved === 'dark') saved = 'dark';
-        else if (oldSaved === 'classic' || oldSaved === 'light') saved = 'classic';
-        else saved = 'blood';
-      }
-      
-      applyTheme(saved);
-      
-      // Adiciona o ouvinte de eventos aos botões
-      document.querySelectorAll('.theme-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          applyTheme(btn.getAttribute('data-theme'));
-        });
-      });
-    })();
 
-    function toggleImages() {
-      document.body.classList.toggle('hide-images');
-      const hidden = document.body.classList.contains('hide-images');
-      document.getElementById('toggleImagesIcon').textContent = hidden ? '🚫' : '👁️';
-      document.getElementById('toggleImagesText').textContent = hidden ? 'Imagens' : 'Imagens';
-      localStorage.setItem('t20_hideImages', hidden ? '1' : '0');
-    }
-    (function () {
-      const saved = localStorage.getItem('t20_hideImages');
-      if (saved === '0') {
-        document.body.classList.remove('hide-images');
-        document.getElementById('toggleImagesIcon').textContent = '👁️';
-      } else {
-        document.body.classList.add('hide-images');
-        document.getElementById('toggleImagesIcon').textContent = '🚫';
-      }
-    })();
-  </script>
 
+  <!-- ===== MODAL RANDOMIZADOR ===== -->
+  <div id="randomizerModal" class="modal">
+    <div class="modal-content rand-modal-content">
+      <button class="modal-close" onclick="closeRandomizerModal()">&times;</button>
+      <div class="modal-header">
+        <h2 class="modal-title">🎲 Gerador de Item Aleatório</h2>
+        <p class="modal-price" style="font-size:.85rem;color:#6b7a8d;">Configure e gere um item equipado aleatório</p>
+      </div>
+      <div class="modal-body rand-body">
+        <!-- CONFIGURAÇÃO -->
+        <div id="randConfig" class="rand-config">
+          <div class="rand-section">
+            <p class="rand-label">Tipo de geração</p>
+            <div class="rand-mode-btns">
+              <button class="rand-mode-btn active" id="randModeAleatorio" onclick="setRandMode('aleatorio')">🎲
+                Totalmente aleatório</button>
+              <button class="rand-mode-btn" id="randModeEscolher" onclick="setRandMode('escolher')">🎯 Escolher
+                categoria</button>
+              <button class="rand-mode-btn" id="randModeItem" onclick="setRandMode('item')">🗡️ Escolher item</button>
+            </div>
+          </div>
+
+          <!-- Seletor de categoria -->
+          <div id="randCategorySection" class="rand-section" style="display:none;">
+            <label class="rand-label" for="randCategorySelect">Categoria do item base</label>
+            <select id="randCategorySelect" class="quantity-select rand-select">
+              <option value="Arma">Arma</option>
+              <option value="Armadura">Armadura</option>
+              <option value="Escudo">Escudo</option>
+              <option value="Item Mágico">Item Mágico</option>
+            </select>
+          </div>
+
+          <!-- Seletor de item específico -->
+          <div id="randItemSection" class="rand-section" style="display:none;">
+            <label class="rand-label" for="randItemCatFilter">Filtrar por categoria</label>
+            <select id="randItemCatFilter" class="quantity-select rand-select" onchange="populateItemPicker()">
+              <option value="Arma">Arma</option>
+              <option value="Armadura">Armadura</option>
+              <option value="Escudo">Escudo</option>
+              <option value="Item Geral">Item Geral</option>
+              <option value="Item Mágico">Item Mágico</option>
+            </select>
+            <label class="rand-label" for="randItemSelect" style="margin-top:4px;">Item específico</label>
+            <select id="randItemSelect" class="quantity-select rand-select"></select>
+          </div>
+          <div class="rand-section rand-row">
+            <div class="rand-col">
+              <label class="rand-label" for="randModQty">Modificações</label>
+              <select id="randModQty" class="quantity-select rand-select">
+                <option value="-1">Aleatório</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+            <div class="rand-col">
+              <label class="rand-label" for="randEnchQty">Encantamentos</label>
+              <select id="randEnchQty" class="quantity-select rand-select">
+                <option value="-1">Aleatório</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+          </div>
+          <button class="add-item-btn rand-generate-btn" onclick="generateRandomItem()">🎲 Gerar Item!</button>
+        </div>
+        <!-- RESULTADO -->
+        <div id="randResult" class="rand-result" style="display:none;">
+          <div class="rand-result-header">
+            <p class="rand-result-label">Item Gerado</p>
+            <button class="rand-reroll-btn" onclick="generateRandomItem()">🎲 Novo</button>
+          </div>
+          <div class="rand-result-card">
+            <h3 id="randResultName" class="rand-result-name"></h3>
+            <p id="randResultPrice" class="rand-result-price"></p>
+            <div id="randResultBadges" class="modal-badges" style="margin-bottom:10px;"></div>
+            <p id="randResultDesc" class="rand-result-desc"></p>
+            <div id="randResultStats" class="modal-stats" style="margin-top:10px;"></div>
+            <div id="randResultCustomizations" class="rand-customizations"></div>
+          </div>
+          <div class="modal-add-item" style="margin-top:14px;">
+            <label for="randResultQty">Qtd:</label>
+            <input type="number" id="randResultQty" class="quantity-input" value="1" min="1">
+            <button class="add-item-btn" onclick="addRandomItemToInventory()">Adicionar ao Inventário</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data/armas.js"></script>
+  <script src="data/armaduras.js"></script>
+  <script src="data/modificacoes.js"></script>
+  <script src="data/encantamentos.js"></script>
+  <script src="data/itens.js"></script>
+  <script src="data/itensmagicos.js"></script>
+  <script src="data/maldicao.js"></script>
+
+  <script src="script.js"></script>
 </body>
 
 </html>
