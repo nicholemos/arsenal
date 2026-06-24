@@ -9,7 +9,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Munição",
-            "descricao": "Munição para pistola ou mosquete. Cada disparo consome uma bala. Recarregar uma arma de fogo é uma ação padrão."
+            "descricao": "Munição para pistola ou mosquete. Cada disparo consome uma bala. Recarregar uma arma de fogo é uma ação padrão.",
+            "imagem": "data/img/balas.webp"
         },
         {
             "nome": "Flechas (20)",
@@ -17,7 +18,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Munição",
-            "descricao": "Munição para arco curto ou arco longo. Recarregar é uma ação livre. Cada flecha custa T$ 0,05."
+            "descricao": "Munição para arco curto ou arco longo. Recarregar é uma ação livre. Cada flecha custa T$ 0,05.",
+            "imagem": "data/img/flechas.webp"
         },
         {
             "nome": "Pedras (20)",
@@ -25,7 +27,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Munição",
-            "descricao": "Munição para funda. Recarregar é uma ação de movimento. Munição barata e facilmente disponível."
+            "descricao": "Munição para funda. Recarregar é uma ação de movimento. Munição barata e facilmente disponível.",
+            "imagem": "data/img/pedras.webp"
         },
         {
             "nome": "Virotes (20)",
@@ -33,7 +36,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Munição",
-            "descricao": "Munição para besta leve (recarregar é ação de movimento) ou besta pesada (recarregar é ação padrão)."
+            "descricao": "Munição para besta leve (recarregar é ação de movimento) ou besta pesada (recarregar é ação padrão).",
+            "imagem": "data/img/virotes.webp"
         },
 
         // ---------- EQUIPAMENTO DE AVENTURA (Tabela 3-5) ----------
@@ -43,7 +47,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Frasco de água sagrada que causa 2d10 de dano de luz em mortos-vivos ou abissais em alcance curto (Reflexos CD Sab reduz à metade)."
+            "descricao": "Frasco de água sagrada que causa 2d10 de dano de luz em mortos-vivos ou abissais em alcance curto (Reflexos CD Sab reduz à metade).",
+            "imagem": "data/img/agua-benta.webp"
         },
         {
             "nome": "Algemas",
@@ -51,7 +56,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Par de algemas para criaturas Médias. Escapar exige Acrobacia (CD 30) ou Força (CD 25)."
+            "descricao": "Par de algemas para criaturas Médias. Escapar exige Acrobacia (CD 30) ou Força (CD 25).",
+            "imagem": "data/img/algemas.webp"
         },
         {
             "nome": "Arpéu",
@@ -59,7 +65,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Gancho de aço amarrado em corda. Prender exige Pontaria (CD 15). Fornece +5 em Atletismo para escalar."
+            "descricao": "Gancho de aço amarrado em corda. Prender exige Pontaria (CD 15). Fornece +5 em Atletismo para escalar.",
+            "imagem": "data/img/arpeu.webp"
         },
         {
             "nome": "Bandoleira de poções",
@@ -67,7 +74,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Cinto de couro com bolsos que permite sacar itens alquímicos e poções como ação livre."
+            "descricao": "Cinto de couro com bolsos que permite sacar itens alquímicos e poções como ação livre.",
+            "imagem": "data/img/bandoleira-de-pocoes.webp"
         },
         {
             "nome": "Barraca",
@@ -75,7 +83,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Barraca de lona para duas pessoas. Fornece +2 em testes de Sobrevivência para acampar."
+            "descricao": "Barraca de lona para duas pessoas. Fornece +2 em testes de Sobrevivência para acampar.",
+            "imagem": "data/img/barraca.webp"
         },
         {
             "nome": "Corda",
@@ -83,7 +92,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Rolo com 10 metros de corda de cânhamo. Arrebentar exige 2 pontos de dano de corte ou Força (CD 20)."
+            "descricao": "Rolo com 10 metros de corda de cânhamo. Arrebentar exige 2 pontos de dano de corte ou Força (CD 20).",
+            "imagem": "data/img/corda.webp"
         },
         {
             "nome": "Espelho",
@@ -91,7 +101,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Pequeno espelho com diversas utilidades: observar cantos, fazer sinais de luz, etc."
+            "descricao": "Pequeno espelho com diversas utilidades: observar cantos, fazer sinais de luz, etc.",
+            "imagem": "data/img/espelho.webp"
         },
         {
             "nome": "Lampião",
@@ -99,7 +110,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Lampião que emite luz como uma tocha. Queima óleo e dura 6 horas por frasco."
+            "descricao": "Lampião que emite luz como uma tocha. Queima óleo e dura 6 horas por frasco.",
+            "imagem": "data/img/lampiao.webp"
         },
         {
             "nome": "Mochila",
@@ -107,7 +119,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Mochila de viagem que aumenta a capacidade de carga em 5 espaços."
+            "descricao": "Mochila de viagem que aumenta a capacidade de carga em 5 espaços.",
+            "imagem": "data/img/mochila.webp"
         },
         {
             "nome": "Mochila de aventureiro",
@@ -115,7 +128,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Feita de couro resistente, esta mochila é repleta de bolsos. Aumenta sua capacidade de carga em 2 espaços. (p. 161)"
+            "descricao": "Feita de couro resistente, esta mochila é repleta de bolsos. Aumenta sua capacidade de carga em 2 espaços. (p. 161)",
+            "imagem": "data/img/mochila-de-aventureiro.webp"
         },
         {
             "nome": "Óleo",
@@ -123,7 +137,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Frasco de óleo que queima em uma tocha por 6 horas."
+            "descricao": "Frasco de óleo que queima em uma tocha por 6 horas.",
+            "imagem": "data/img/oleo.webp"
         },
         {
             "nome": "Organizador de pergaminhos",
@@ -131,7 +146,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Um estojo de madeira ou couro rígido. Se estiver vestindo, pode sacar pergaminhos como uma ação livre. (p. 163)"
+            "descricao": "Um estojo de madeira ou couro rígido. Se estiver vestindo, pode sacar pergaminhos como uma ação livre. (p. 163)",
+            "imagem": "data/img/organizador-de-pergaminhos.webp"
         },
         {
             "nome": "Pé de cabra",
@@ -139,7 +155,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Esta barra de ferro fornece +5 em testes de Força para abrir portas, janelas e baús fechados. Pode ser usado como clava. (p. 163)"
+            "descricao": "Esta barra de ferro fornece +5 em testes de Força para abrir portas, janelas e baús fechados. Pode ser usado como clava. (p. 163)",
+            "imagem": "data/img/pe-de-cabra.webp"
         },
         {
             "nome": "Saco de dormir",
@@ -147,7 +164,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Saco de dormir que fornece +2 em testes de Sobrevivência para descansar."
+            "descricao": "Saco de dormir que fornece +2 em testes de Sobrevivência para descansar.",
+            "imagem": "data/img/saco-de-dormir.webp"
         },
         {
             "nome": "Símbolo sagrado",
@@ -155,7 +173,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Símbolo de uma divindade. Necessário para lançar magias divinas."
+            "descricao": "Símbolo de uma divindade. Necessário para lançar magias divinas.",
+            "imagem": "data/img/simbolo-sagrado.webp"
         },
         {
             "nome": "Tocha",
@@ -163,7 +182,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Tocha que emite luz como uma lanterna. Dura 1 hora."
+            "descricao": "Tocha que emite luz como uma lanterna. Dura 1 hora.",
+            "imagem": "data/img/tocha.webp"
         },
         {
             "nome": "Vara de madeira (3m)",
@@ -171,7 +191,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Equipamento de Aventura",
-            "descricao": "Uma haste com 3m de comprimento. Útil para alcançar pontos distantes. (p. 163)"
+            "descricao": "Uma haste com 3m de comprimento. Útil para alcançar pontos distantes. (p. 163)",
+            "imagem": "data/img/vara-madeira.webp"
         },
 
         // ---------- FERRAMENTAS (Tabela 3-5) ----------
@@ -181,7 +202,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Instrumento musical. Permite usar a habilidade Inspiração como uma ação de movimento. (p. 164)"
+            "descricao": "Instrumento musical. Permite usar a habilidade Inspiração como uma ação de movimento. (p. 164)",
+            "imagem": "data/img/alaude-elfico.webp"
         },
         {
             "nome": "Coleção de livros",
@@ -189,7 +211,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Fornece +1 em Conhecimento, Guerra, Misticismo, Nobreza ou Religião (definido na compra). (p. 164)"
+            "descricao": "Fornece +1 em Conhecimento, Guerra, Misticismo, Nobreza ou Religião (definido na compra). (p. 164)",
+            "imagem": "data/img/colecao-de-livros.webp"
         },
         {
             "nome": "Equipamento de viagem",
@@ -197,7 +220,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Saco com pederneira, panelas, anzol, etc. Evita penalidade de -5 em testes de Sobrevivência para acampar. (p. 164)"
+            "descricao": "Saco com pederneira, panelas, anzol, etc. Evita penalidade de -5 em testes de Sobrevivência para acampar. (p. 164)",
+            "imagem": "data/img/equipamento-de-viagem.webp"
         },
         {
             "nome": "Estojo de disfarces",
@@ -205,7 +229,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Cosméticos, tintas para cabelo e próteses. Evita penalidade de -5 em testes de Enganação para disfarce. (p. 164)"
+            "descricao": "Cosméticos, tintas para cabelo e próteses. Evita penalidade de -5 em testes de Enganação para disfarce. (p. 164)",
+            "imagem": "data/img/estojo-de-disfarces.webp"
         },
         {
             "nome": "Flauta mística",
@@ -213,7 +238,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Instrumento musical. Um bardo que empunhe este item aumenta a CD para resistir às magias lançadas por ele em +1. (p. 164)"
+            "descricao": "Instrumento musical. Um bardo que empunhe este item aumenta a CD para resistir às magias lançadas por ele em +1. (p. 164)",
+            "imagem": "data/img/flauta-mistica.webp"
         },
         {
             "nome": "Gazua",
@@ -221,7 +247,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Uma barra fina de ferro. Evita penalidade de -5 em testes de Ladinagem para abrir fechaduras. (p. 164)"
+            "descricao": "Uma barra fina de ferro. Evita penalidade de -5 em testes de Ladinagem para abrir fechaduras. (p. 164)",
+            "imagem": "data/img/gazua.webp"
         },
         {
             "nome": "Instrumentos de Ofício",
@@ -229,7 +256,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Kit para uma perícia de Ofício. Um personagem sem os instrumentos sofre –5 nessa perícia. (p. 164)"
+            "descricao": "Kit para uma perícia de Ofício. Um personagem sem os instrumentos sofre –5 nessa perícia. (p. 164)",
+            "imagem": "data/img/instrumentos-de-oficio.webp"
         },
         {
             "nome": "Instrumento musical",
@@ -237,7 +265,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Um instrumento típico, como um bandolim, flauta ou lira. (p. 164)"
+            "descricao": "Um instrumento típico, como um bandolim, flauta ou lira. (p. 164)",
+            "imagem": "data/img/instrumento-musical.webp"
         },
         {
             "nome": "Luneta",
@@ -245,7 +274,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Cilindro metálico com lentes. Fornece +5 em testes de Percepção para observar coisas em alcance longo ou além. (p. 164)"
+            "descricao": "Cilindro metálico com lentes. Fornece +5 em testes de Percepção para observar coisas em alcance longo ou além. (p. 164)",
+            "imagem": "data/img/luneta.webp"
         },
         {
             "nome": "Maleta de medicamentos",
@@ -253,7 +283,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Caixa com ervas, unguentos, bandagens. Evita penalidade de -5 em Cura. (p. 164)"
+            "descricao": "Caixa com ervas, unguentos, bandagens. Evita penalidade de -5 em Cura. (p. 164)",
+            "imagem": "data/img/maleta-de-medicamentos.webp"
         },
         {
             "nome": "Sela",
@@ -261,7 +292,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Peça de couro para montaria. Evita penalidade de -5 em testes de Cavalgar. (p. 164)"
+            "descricao": "Peça de couro para montaria. Evita penalidade de -5 em testes de Cavalgar. (p. 164)",
+            "imagem": "data/img/sela.webp"
         },
         {
             "nome": "Tambor das profundezas",
@@ -269,7 +301,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Ferramenta",
-            "descricao": "Instrumento musical anão. Dobra o alcance da habilidade Inspiração e de qualquer Música de Bardo. (p. 164)"
+            "descricao": "Instrumento musical anão. Dobra o alcance da habilidade Inspiração e de qualquer Música de Bardo. (p. 164)",
+            "imagem": "data/img/tambor-das-profundezas.webp"
         },
 
         // ---------- VESTUÁRIO (Tabela 3-5) ----------
@@ -279,7 +312,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Roupas típicas de camponês. +2 em testes de Investigação para interrogar, mas -2 em perícias de Carisma social. (p. 159)"
+            "descricao": "Roupas típicas de camponês. +2 em testes de Investigação para interrogar, mas -2 em perícias de Carisma social. (p. 159)",
+            "imagem": "data/img/andrajos-de-aldeao.webp"
         },
         {
             "nome": "Bandana",
@@ -287,7 +321,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Lenço de bandido/pirata. Fornece +1 em Intimidação. (p. 159)"
+            "descricao": "Lenço de bandido/pirata. Fornece +1 em Intimidação. (p. 159)",
+            "imagem": "data/img/bandana.webp"
         },
         {
             "nome": "Botas reforçadas",
@@ -295,7 +330,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Botas de cano alto. Aumentam seu deslocamento em +1,5m em terreno difícil. (p. 159)"
+            "descricao": "Botas de cano alto. Aumentam seu deslocamento em +1,5m em terreno difícil. (p. 159)",
+            "imagem": "data/img/botas-reforcadas.webp"
         },
         {
             "nome": "Camisa bufante",
@@ -303,7 +339,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Blusa colorida, com mangas e golas longas. Fornece +1 em Atuação. (p. 159)"
+            "descricao": "Blusa colorida, com mangas e golas longas. Fornece +1 em Atuação. (p. 159)",
+            "imagem": "data/img/camisa-bufante.webp"
         },
         {
             "nome": "Capa esvoaçante",
@@ -311,7 +348,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Capa de seda chamativa. Fornece +1 em Enganação. (p. 159)"
+            "descricao": "Capa de seda chamativa. Fornece +1 em Enganação. (p. 159)",
+            "imagem": "data/img/capa-esvoacante.webp"
         },
         {
             "nome": "Capa pesada",
@@ -319,7 +357,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Capa de couro grossa e resistente. Fornece +1 em Fortitude. (p. 159)"
+            "descricao": "Capa de couro grossa e resistente. Fornece +1 em Fortitude. (p. 159)",
+            "imagem": "data/img/capa-pesada.webp"
         },
         {
             "nome": "Casaco longo",
@@ -327,7 +366,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Casaco quente e pesado. Fornece +5 em Fortitude (frio), mas impõe penalidade de armadura de –2. (p. 159)"
+            "descricao": "Casaco quente e pesado. Fornece +5 em Fortitude (frio), mas impõe penalidade de armadura de –2. (p. 159)",
+            "imagem": "data/img/casaco-longo.webp"
         },
         {
             "nome": "Chapéu arcano",
@@ -335,7 +375,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Chapéu pontudo. Fornece +1 ponto de mana (apenas Arcanistas). (p. 159)"
+            "descricao": "Chapéu pontudo. Fornece +1 ponto de mana (apenas Arcanistas). (p. 159)",
+            "imagem": "data/img/chapeu-arcano.webp"
         },
         {
             "nome": "Enfeite de elmo",
@@ -343,7 +384,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Adorno chamativo (plumas, asas, etc). Fornece resistência a medo +2. (p. 159)"
+            "descricao": "Adorno chamativo (plumas, asas, etc). Fornece resistência a medo +2. (p. 159)",
+            "imagem": "data/img/enfeite-de-elmo.webp"
         },
         {
             "nome": "Farrapos de ermitão",
@@ -351,7 +393,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Trapos com plantas. -2 em Diplomacia e Investigação (interrogar), +2 em Adestramento. (p. 159)"
+            "descricao": "Trapos com plantas. -2 em Diplomacia e Investigação (interrogar), +2 em Adestramento. (p. 159)",
+            "imagem": "data/img/farrapos-de-ermitao.webp"
         },
         {
             "nome": "Gorro de ervas",
@@ -359,7 +402,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Chapéu preenchido com ervas. Fornece +1 em Vontade. (p. 159)"
+            "descricao": "Chapéu preenchido com ervas. Fornece +1 em Vontade. (p. 159)",
+            "imagem": "data/img/gorro-de-ervas.webp"
         },
         {
             "nome": "Luva de pelica",
@@ -367,7 +411,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Luvas delicadas. Fornecem +1 em Ladinagem. (p. 159)"
+            "descricao": "Luvas delicadas. Fornecem +1 em Ladinagem. (p. 159)",
+            "imagem": "data/img/luva-de-pelica.webp"
         },
         {
             "nome": "Manopla",
@@ -375,7 +420,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Luva metálica. Ataques desarmados causam dano letal. Conta como uma arma para melhorias/encantos. (p. 159)"
+            "descricao": "Luva metálica. Ataques desarmados causam dano letal. Conta como uma arma para melhorias/encantos. (p. 159)",
+            "imagem": "data/img/manopla.webp"
         },
         {
             "nome": "Manto camuflado",
@@ -383,7 +429,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Manto para terreno específico. Fornece +2 em Furtividade no terreno correto. (p. 159)"
+            "descricao": "Manto para terreno específico. Fornece +2 em Furtividade no terreno correto. (p. 159)",
+            "imagem": "data/img/manto-camuflado.webp"
         },
         {
             "nome": "Manto eclesiástico",
@@ -391,7 +438,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Manto típico de igrejas e templos. Fornece +1 em Religião. (p. 159)"
+            "descricao": "Manto típico de igrejas e templos. Fornece +1 em Religião. (p. 159)",
+            "imagem": "data/img/manto-eclesiastico.webp"
         },
         {
             "nome": "Robe místico",
@@ -399,7 +447,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Manto longo, adornado com temas arcanos. Fornece +1 em Misticismo. (p. 159)"
+            "descricao": "Manto longo, adornado com temas arcanos. Fornece +1 em Misticismo. (p. 159)",
+            "imagem": "data/img/robe-mistico.webp"
         },
         {
             "nome": "Sapatos de camurça",
@@ -407,7 +456,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Leves e resistentes. Fornecem +1 em Acrobacia. (p. 159)"
+            "descricao": "Leves e resistentes. Fornecem +1 em Acrobacia. (p. 159)",
+            "imagem": "data/img/sapatos-de-camurca.webp"
         },
         {
             "nome": "Tabardo",
@@ -415,7 +465,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Peça de tecido com heráldica. Fornece +1 em Diplomacia. (p. 159)"
+            "descricao": "Peça de tecido com heráldica. Fornece +1 em Diplomacia. (p. 159)",
+            "imagem": "data/img/tabardo.webp"
         },
         {
             "nome": "Traje da corte",
@@ -423,7 +474,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Roupas de luxo. Evita penalidade de -5 em perícias de Carisma em ambientes aristocráticos. (p. 159)"
+            "descricao": "Roupas de luxo. Evita penalidade de -5 em perícias de Carisma em ambientes aristocráticos. (p. 159)",
+            "imagem": "data/img/traje-da-corte.webp"
         },
         {
             "nome": "Traje de viajante",
@@ -431,7 +483,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Roupa padrão de aventureiros. Não ocupa espaço. (p. 159)"
+            "descricao": "Roupa padrão de aventureiros. Não ocupa espaço. (p. 159)",
+            "imagem": "data/img/traje-de-viajante.webp"
         },
         {
             "nome": "Veste de seda",
@@ -439,7 +492,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
-            "descricao": "Roupa leve e elegante. Fornece +1 em Reflexos. (p. 159)"
+            "descricao": "Roupa leve e elegante. Fornece +1 em Reflexos. (p. 159)",
+            "imagem": "data/img/veste-de-seda.webp"
         },
 
         // ---------- ITENS ESOTÉRICOS (Tabela 3-5) ----------
@@ -449,7 +503,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Pó de flores da Pondsmânia. +2 PM para aprimorar magias de encantamento ou ilusão. (p. 161)"
+            "descricao": "Pó de flores da Pondsmânia. +2 PM para aprimorar magias de encantamento ou ilusão. (p. 161)",
+            "imagem": "data/img/bolsa-de-po.webp"
         },
         {
             "nome": "Cajado arcano",
@@ -457,7 +512,8 @@ const itensData = {
             "espacos": "2",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Cajado com runas. Limite de PM e CD de magias arcanas +1. (Duas mãos). Pode ser usado como bordão. (p. 161)"
+            "descricao": "Cajado com runas. Limite de PM e CD de magias arcanas +1. (Duas mãos). Pode ser usado como bordão. (p. 161)",
+            "imagem": "data/img/cajado-arcano.webp"
         },
         {
             "nome": "Cetro elemental",
@@ -465,7 +521,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Cetro com gema (ácido, eletricidade, fogo ou frio). Magias de dano desse tipo causam +1 dado. (p. 161)"
+            "descricao": "Cetro com gema (ácido, eletricidade, fogo ou frio). Magias de dano desse tipo causam +1 dado. (p. 161)",
+            "imagem": "data/img/cetro-elemental.webp"
         },
         {
             "nome": "Costela de lich",
@@ -473,7 +530,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Varinha de osso. Magias causam +1d6 dano de trevas. Você não recupera PV por cura mágica. (p. 161)"
+            "descricao": "Varinha de osso. Magias causam +1d6 dano de trevas. Você não recupera PV por cura mágica. (p. 161)",
+            "imagem": "data/img/costela-de-lich.webp"
         },
         {
             "nome": "Dedo de ente",
@@ -481,7 +539,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Varinha de árvore senciente. Ao gastar 1 PM ou mais, role 1d4. Se 4, recupera 1 PM. (p. 161)"
+            "descricao": "Varinha de árvore senciente. Ao gastar 1 PM ou mais, role 1d4. Se 4, recupera 1 PM. (p. 161)",
+            "imagem": "data/img/dedo-de-ente.webp"
         },
         {
             "nome": "Luva de ferro",
@@ -489,7 +548,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Dedais interligados. Bônus de Defesa/Resistência de magias arcanas pessoais +1. (p. 161)"
+            "descricao": "Dedais interligados. Bônus de Defesa/Resistência de magias arcanas pessoais +1. (p. 161)",
+            "imagem": "data/img/luva-de-ferro.webp"
         },
         {
             "nome": "Medalhão de prata",
@@ -497,7 +557,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Medalhão com runa. Custo de magias de alcance pessoal diminui em -1 PM. (p. 161)"
+            "descricao": "Medalhão com runa. Custo de magias de alcance pessoal diminui em -1 PM. (p. 161)",
+            "imagem": "data/img/medalhao-de-prata.webp"
         },
         {
             "nome": "Orbe cristalino",
@@ -505,7 +566,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Esfera perfeita. Limite de PM para magias arcanas +1. (p. 161)"
+            "descricao": "Esfera perfeita. Limite de PM para magias arcanas +1. (p. 161)",
+            "imagem": "data/img/orbe-cristalina.webp"
         },
         {
             "nome": "Tomo hermético",
@@ -513,7 +575,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Livro de tratados. CD para resistir a magias arcanas de uma escola específica +2. (p. 161)"
+            "descricao": "Livro de tratados. CD para resistir a magias arcanas de uma escola específica +2. (p. 161)",
+            "imagem": "data/img/tomo-hermetico.webp"
         },
         {
             "nome": "Varinha arcana",
@@ -521,7 +584,8 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Esotérico",
-            "descricao": "Varinha com runas. CD para resistir a magias arcanas +1. (p. 161)"
+            "descricao": "Varinha com runas. CD para resistir a magias arcanas +1. (p. 161)",
+            "imagem": "data/img/varinha-arcana.webp"
         },
 
         // ---------- ITENS ALQUÍMICOS (PREPARADOS) ----------
@@ -531,7 +595,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Frasco de vidro. Causa 2d4 de dano de ácido (Reflexos CD Des reduz à metade). (p. 160)"
+            "descricao": "Frasco de vidro. Causa 2d4 de dano de ácido (Reflexos CD Des reduz à metade). (p. 160)",
+            "imagem": "data/img/acido.webp"
         },
         {
             "nome": "Bálsamo restaurador",
@@ -539,7 +604,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Pasta de ervas. Recupera 2d4 PV. (p. 160)"
+            "descricao": "Pasta de ervas. Recupera 2d4 PV. (p. 160)",
+            "imagem": "data/img/balsamo-restaurador.webp"
         },
         {
             "nome": "Bomba",
@@ -547,7 +613,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Granada rudimentar. Causa 6d6 de dano de impacto em área de 3m (Reflexos CD Des reduz à metade). (p. 160)"
+            "descricao": "Granada rudimentar. Causa 6d6 de dano de impacto em área de 3m (Reflexos CD Des reduz à metade). (p. 160)",
+            "imagem": "data/img/bomba.webp"
         },
         {
             "nome": "Cosmético",
@@ -555,7 +622,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Perfume ou maquiagem. Fornece +2 em testes de perícias baseadas em Carisma até o fim da cena. (p. 160)"
+            "descricao": "Perfume ou maquiagem. Fornece +2 em testes de perícias baseadas em Carisma até o fim da cena. (p. 160)",
+            "imagem": "data/img/cosmetico.webp"
         },
         {
             "nome": "Elixir do amor",
@@ -563,7 +631,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Humanoide que beba fica enfeitiçado pela primeira criatura que vir (Vontade CD Car anula). Dura 1d3 dias. (p. 160)"
+            "descricao": "Humanoide que beba fica enfeitiçado pela primeira criatura que vir (Vontade CD Car anula). Dura 1d3 dias. (p. 160)",
+            "imagem": "data/img/elixir-do-amor.webp"
         },
         {
             "nome": "Essência de mana",
@@ -571,7 +640,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Poção de ervas raras. Recupera 1d4 pontos de mana. (p. 160)"
+            "descricao": "Poção de ervas raras. Recupera 1d4 pontos de mana. (p. 160)",
+            "imagem": "data/img/essencia-mana.webp"
         },
         {
             "nome": "Fogo alquímico",
@@ -579,7 +649,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Frasco de cerâmica. Causa 1d6 de dano de fogo e deixa em chamas (Reflexos CD Des reduz à metade e evita chamas). (p. 160)"
+            "descricao": "Frasco de cerâmica. Causa 1d6 de dano de fogo e deixa em chamas (Reflexos CD Des reduz à metade e evita chamas). (p. 160)",
+            "imagem": "data/img/fogo-alquimico.webp"
         },
         {
             "nome": "Pó do desaparecimento",
@@ -587,7 +658,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Cobre criatura ou objeto, tornando-o invisível por 2d6 rodadas. (p. 160)"
+            "descricao": "Cobre criatura ou objeto, tornando-o invisível por 2d6 rodadas. (p. 160)",
+            "imagem": "data/img/po-do-desaparecimento.webp"
         },
 
         // ---------- ITENS ALQUÍMICOS (CATALISADORES) ----------
@@ -598,7 +670,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Adiciona +1d6 de dano de fogo a magias. (p. 160)"
+            "descricao": "Adiciona +1d6 de dano de fogo a magias. (p. 160)",
+            "imagem": "data/img/baga-de-fogo.webp"
         },
         {
             "nome": "Dente-de-dragão",
@@ -606,7 +679,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Aumenta o dano de magias em um dado do mesmo tipo. (p. 160)"
+            "descricao": "Aumenta o dano de magias em um dado do mesmo tipo. (p. 160)",
+            "imagem": "data/img/dente-de-dragao.webp"
         },
         {
             "nome": "Essência abissal",
@@ -614,7 +688,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Aumenta os dados de dano de magias de fogo em uma categoria (ex: d6 para d8). (p. 160)"
+            "descricao": "Aumenta os dados de dano de magias de fogo em uma categoria (ex: d6 para d8). (p. 160)",
+            "imagem": "data/img/essencia-abissal.webp"
         },
         {
             "nome": "Líquen lilás",
@@ -622,7 +697,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Adiciona +1d6 de dano de frio a magias. (p. 160)"
+            "descricao": "Adiciona +1d6 de dano de frio a magias. (p. 160)",
+            "imagem": "data/img/liquen-lilas.webp"
         },
         {
             "nome": "Musgo púrpura",
@@ -630,7 +706,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Fornece +2 na CD de magias de ilusão. (p. 160)"
+            "descricao": "Fornece +2 na CD de magias de ilusão. (p. 160)",
+            "imagem": "data/img/musgo-purpura.webp"
         },
         {
             "nome": "Ossos de monstro",
@@ -638,7 +715,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Fornece +2 na CD de magias de necromancia. (p. 160)"
+            "descricao": "Fornece +2 na CD de magias de necromancia. (p. 160)",
+            "imagem": "data/img/ossos-de-monstro.webp"
         },
         {
             "nome": "Pó de cristal",
@@ -646,7 +724,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Diminui o custo de magias de encantamento em –1 PM. (p. 160)"
+            "descricao": "Diminui o custo de magias de encantamento em –1 PM. (p. 160)",
+            "imagem": "data/img/po-de-cristal.webp"
         },
         {
             "nome": "Pó de giz",
@@ -654,7 +733,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Diminui o custo de magias de convocação em –1 PM. (p. 160)"
+            "descricao": "Diminui o custo de magias de convocação em –1 PM. (p. 160)",
+            "imagem": "data/img/po-de-giz.webp"
         },
         {
             "nome": "Ramo verdejante",
@@ -670,7 +750,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Fornece +2 na CD de magias de abjuração. (p. 160)"
+            "descricao": "Fornece +2 na CD de magias de abjuração. (p. 160)",
+            "imagem": "data/img/saco-de-sal.webp"
         },
         {
             "nome": "Seixo de âmbar",
@@ -678,7 +759,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Diminui o custo de magias de transmutação em –1 PM. (p. 160)"
+            "descricao": "Diminui o custo de magias de transmutação em –1 PM. (p. 160)",
+            "imagem": "data/img/seixo-de-ambar.webp"
         },
         {
             "nome": "Terra de cemitério",
@@ -686,7 +768,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Preparados",
-            "descricao": "Adiciona +1d6 de dano de trevas a magias. (p. 160)"
+            "descricao": "Adiciona +1d6 de dano de trevas a magias. (p. 160)",
+            "imagem": "data/img/terra-de-cemiterio.webp"
         },
         {
             nome: "Corrosivo Mineral",
@@ -695,7 +778,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Aumenta os dados de dano de magias de ácido em uma categoria (máx. d12).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/acido.webp"
         },
         {
             nome: "Gelo Extremo",
@@ -704,7 +788,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Aumenta os dados de dano de magias de frio em uma categoria (máx. d12).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/gelo-eterno.webp"
         },
         {
             nome: "Pedaço de Língua",
@@ -731,7 +816,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Quando lança uma magia de adivinhação, você recebe +1 na Defesa pela duração da magia.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/po-de-cristal.webp"
         },
         {
             nome: "Essência Fantasmal",
@@ -740,7 +826,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "A magia ignora 5 pontos da RD de todas as criaturas afetadas.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/essencia-mana.webp"
         },
         {
             nome: "Noz Saltadora",
@@ -767,7 +854,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Abissais e mortos-vivos afetados por magia divina sofrem –2 em TR e +2 dados de dano.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/agua-benta.webp"
         },
         {
             nome: "Favo de Mel",
@@ -794,7 +882,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Ao lançar cura em uma criatura, uma 2ª criatura no alcance recupera PV igual à metade do efeito.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/balsamo-restaurador.webp"
         },
         {
             nome: "Frasco de Luz",
@@ -803,7 +892,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Fornece +2 na CD de magias de luz.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/essencia-mana.webp"
         },
         {
             nome: "Lantejoula",
@@ -821,7 +911,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Alvos de magia divina recuperam 1d8 PV (além do efeito).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/pena.webp"
         },
         {
             nome: "Pedra de Sombras",
@@ -830,7 +921,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Catalisador",
             descricao: "Reduz em –1 PM o custo de magias de trevas.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/pedras.webp"
         },
         {
             nome: "Vela Eclesiástica",
@@ -851,7 +943,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Ingestão. Vítima fica paralisada (lenta) por 3 rodadas (Fort CD Int+5 anula/reduz). (p. 161)"
+            "descricao": "Ingestão. Vítima fica paralisada (lenta) por 3 rodadas (Fort CD Int+5 anula/reduz). (p. 161)",
+            "imagem": "data/img/veneno.webp"
         },
         {
             "nome": "Bruma sonolenta",
@@ -867,7 +960,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Ingestão. Perde 1d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 1d12 PV). (p. 161)"
+            "descricao": "Ingestão. Perde 1d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 1d12 PV). (p. 161)",
+            "imagem": "data/img/veneno.webp"
         },
         {
             "nome": "Essência de sombra",
@@ -875,7 +969,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Contato. Vítima fica debilitada (fraca) (Fort CD Int anula/reduz). (p. 161)"
+            "descricao": "Contato. Vítima fica debilitada (fraca) (Fort CD Int anula/reduz). (p. 161)",
+            "imagem": "data/img/essencia-mana.webp"
         },
         {
             "nome": "Névoa tóxica",
@@ -883,7 +978,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Inalação. Perde 1d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 1d12 PV). (p. 161)"
+            "descricao": "Inalação. Perde 1d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 1d12 PV). (p. 161)",
+            "imagem": "data/img/nevoa.webp"
         },
         {
             "nome": "Peçonha comum",
@@ -891,7 +987,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Contato. Perde 1d12 PV (Fort CD Int anula). (p. 161)"
+            "descricao": "Contato. Perde 1d12 PV (Fort CD Int anula). (p. 161)",
+            "imagem": "data/img/veneno.webp"
         },
         {
             "nome": "Peçonha concentrada",
@@ -899,7 +996,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Contato. Perde 1d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 1d12 PV). (p. 161)"
+            "descricao": "Contato. Perde 1d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 1d12 PV). (p. 161)",
+            "imagem": "data/img/veneno.webp"
         },
         {
             "nome": "Peçonha potente",
@@ -907,7 +1005,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Contato. Perde 2d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 2d12 PV). (p. 161)"
+            "descricao": "Contato. Perde 2d12 PV por rodada durante 3 rodadas (Fort CD Int reduz para 2d12 PV). (p. 161)",
+            "imagem": "data/img/veneno.webp"
         },
         {
             "nome": "Pó de lich",
@@ -915,7 +1014,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Venenos",
-            "descricao": "Ingestão. Perde 4d12 PV por rodada durante 5 rodadas (Fort CD Int+5 reduz para 4d12 PV). (p. 161)"
+            "descricao": "Ingestão. Perde 4d12 PV por rodada durante 5 rodadas (Fort CD Int+5 reduz para 4d12 PV). (p. 161)",
+            "imagem": "data/img/po-do-desaparecimento.webp"
         },
         {
             "nome": "Riso de Deus do Caos",
@@ -941,7 +1041,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Venenos",
             descricao: "Contato. Perde 3d12 PV por rodada (3 rodadas). Ignora imunidade a venenos (perde 3d12 PV). Fort CD Int reduz à metade/nega.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/veneno.webp"
         },
         {
             nome: "Peçonha Irritante",
@@ -950,7 +1051,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Venenos",
             descricao: "Contato. Perde 1d6 PV (sem TR).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/veneno.webp"
         },
         {
             nome: "Veneno Batráquio",
@@ -959,7 +1061,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Venenos",
             descricao: "Contato. Perde 1d12 PV e fica enjoado por 1 rodada (perde 1d6 PV). Fort CD Int reduz à metade/nega.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/veneno.webp"
         },
         {
             nome: "Peçonha Flamejante",
@@ -968,7 +1071,8 @@ const itensData = {
             categoria: "Item Geral",
             "tipo": "Venenos",
             descricao: "Contato. Perde 1d12 PV e fica em chamas durante 3 rodadas (perde 1d12 PV).",
-            fonte: "Duelo de Dragões"
+            fonte: "Duelo de Dragões",
+            imagem: "data/img/veneno.webp"
         },
         {
             nome: "Bolor Hemorrágico",
@@ -1016,7 +1120,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Todo dano de queda que você sofre é reduzido em −1d6.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Cozido de Pimenta",
@@ -1025,7 +1130,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Fornece +1 em Fortitude (cumulativo com bônus de outros itens).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Manjar de Sombras",
@@ -1034,7 +1140,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Você ignora os próximos 10 pontos de dano de trevas que sofrer.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
 
         {
@@ -1051,7 +1158,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Básico",
-            "descricao": " Fornece +2 PM temporários. (p. 163)"
+            "descricao": " Fornece +2 PM temporários. (p. 163)",
+            "imagem": "data/img/gorad-quente.webp"
         },
         {
             "nome": "Macarrão de Yuvalin",
@@ -1059,7 +1167,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Básico",
-            "descricao": " Fornece +5 PV temporários. (p. 163)"
+            "descricao": " Fornece +5 PV temporários. (p. 163)",
+            "imagem": "data/img/prato-aventureiro.webp"
         },
         {
             "nome": "Prato do aventureiro",
@@ -1067,7 +1176,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Básico",
-            "descricao": " Aumenta a recuperação de PV em +1 por nível na próxima noite de sono. (p. 163)"
+            "descricao": " Aumenta a recuperação de PV em +1 por nível na próxima noite de sono. (p. 163)",
+            "imagem": "data/img/prato-aventureiro.webp"
         },
         {
             "nome": "Ração de viagem (por dia)",
@@ -1075,7 +1185,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Básico",
-            "descricao": "Alimentos conservados que alimentam uma pessoa por um dia. (p. 163)"
+            "descricao": "Alimentos conservados que alimentam uma pessoa por um dia. (p. 163)",
+            "imagem": "data/img/racao-viagem.webp"
         },
         {
             "nome": "Refeição comum",
@@ -1083,7 +1194,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Básico",
-            "descricao": "Refeição típica em taverna (pão, queijo, cozido, bebida). (p. 163)"
+            "descricao": "Refeição típica em taverna (pão, queijo, cozido, bebida). (p. 163)",
+            "imagem": "data/img/refeicao-comum.webp"
         },
         {
             "nome": "Sopa de peixe",
@@ -1091,7 +1203,8 @@ const itensData = {
             "espacos": "0,5",
             "categoria": "Item Geral",
             "tipo": "Básico",
-            "descricao": " Aumenta a recuperação de PM em +1 por nível na próxima noite de sono. (p. 163)"
+            "descricao": " Aumenta a recuperação de PM em +1 por nível na próxima noite de sono. (p. 163)",
+            "imagem": "data/img/sopa-peixe.webp"
         },
 
         {
@@ -1101,7 +1214,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Você recebe 1d4+1 dados de auxílio (d6 com Mestre Cuca) para gastar em testes de perícia.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Coc-au-Triz",
@@ -1119,7 +1233,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Requer teste estendido de Ofício (cozinheiro) (CD 20, 3 sucessos). Se passar, fornece +1 em todos os testes de perícia. Se falhar, é envenenado.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Gorlogg Ensopado",
@@ -1128,7 +1243,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Em sua próxima noite de sono, aumenta a recuperação de PV e PM em +1 por nível.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/gorlogg.webp"
         },
         {
             nome: "Omelete Monstruosa",
@@ -1137,7 +1253,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Você recebe +2 em rolagens de dano e –2 em testes de Sabedoria. Com ovos de dragão, muda para +5 e –5.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Sashimi de Kraken",
@@ -1146,7 +1263,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Você recebe +2 em Diplomacia (cumulativo) e 5 PM temporários.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Macarrão de Caravana",
@@ -1155,7 +1273,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Recebe +2 em testes de Fortitude contra marcha forçada e em testes contra o perigo complexo jornada pelos ermos.",
-            fonte: "Atlas de Arton"
+            fonte: "Atlas de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Assado Deheoni",
@@ -1164,7 +1283,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. Até o fim do dia, você pode rolar novamente um único teste recém realizado (exceto testes de ataque), mas deve ficar com o segundo resultado.",
-            fonte: "Atlas de Arton"
+            fonte: "Atlas de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Buquê de Thantalla",
@@ -1182,7 +1302,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Prato especial. O acolhedor e reconfortante bolo dos pequenos. Concede +2 em Atletismo e Iniciativa.",
-            fonte: "Duelo de Dragões"
+            fonte: "Duelo de Dragões",
+            imagem: "data/img/prato-aventureiro.webp"
         },
 
         {
@@ -1210,7 +1331,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais Divinos",
             descricao: "(Só pode ser preparado por devotos de Megalokk). Até o fim do dia, pode invocar instintos para receber +1 dano corpo a corpo por uma cena.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Bênção dos Mares",
@@ -1219,7 +1341,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais Divinos",
             descricao: "(Só pode ser preparado por devotos de Oceano). Até o fim do dia, pode invocar poder para receber deslocamento de natação igual ao seu deslocamento (ou +3m se já tem) por uma cena.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/bencao.webp"
         },
         {
             nome: "Bolinho de Jade",
@@ -1309,7 +1432,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais Divinos",
             descricao: "(Só pode ser preparado por devotos de Marah). 1/dia, quando criatura em alcance curto ataca, você pode forçá-la a rolar 2 dados e usar o pior.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Ouro de Dragão",
@@ -1381,7 +1505,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +2 em rolagens de dano corpo a corpo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Balinhas",
@@ -1399,7 +1524,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +1 em um atributo a sua escolha (não oferece PV/PM/perícias adicionais).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Bolo de Cenoura",
@@ -1408,7 +1534,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Fornece +2 em testes de Percepção.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Bolo do Panteão",
@@ -1417,7 +1544,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Escolha uma habilidade. Seu custo diminui em –1 PM (mínimo 1).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Ensopado Reforçado",
@@ -1471,7 +1599,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +1d4 em testes de perícias baseadas em Força, Destreza ou Constituição.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Ovo de Monstro Frito",
@@ -1480,7 +1609,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +10 PV temporários.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/ovo.webp"
         },
         {
             nome: "Pão de Queijo",
@@ -1489,7 +1619,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +2 em testes de Fortitude.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/queijo.webp"
         },
         {
             nome: "Pavão Celestial",
@@ -1516,7 +1647,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +1 em testes de ataque corpo a corpo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/porco.webp"
         },
         {
             nome: "Salada de Salistick",
@@ -1552,7 +1684,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +2 em rolagens de dano à distância.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
         },
         {
             nome: "Sopa de Cogumelos",
@@ -1561,7 +1694,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Recebe +2 em testes de Misticismo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/sopa-peixe.webp"
         },
         {
             nome: "Torta de Maçã",
@@ -1570,7 +1704,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Pratos Especiais",
             descricao: "Fornece resistência a veneno +5.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/maca-de-guerra.webp"
         },
         // Bebidas
         {
@@ -1716,7 +1851,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Animal",
-            "descricao": "Parceiro perseguidor (iniciante) ou montaria (Pequeno/Minúsculo). (p. 163)"
+            "descricao": "Parceiro perseguidor (iniciante) ou montaria (Pequeno/Minúsculo). (p. 163)",
+            "imagem": "data/img/cao.webp"
         },
         {
             "nome": "Cavalo",
@@ -1724,7 +1860,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Animal",
-            "descricao": "Parceiro montaria (iniciante). Deslocamento 12m, +1 ação de movimento (deslocar). (p. 163)"
+            "descricao": "Parceiro montaria (iniciante). Deslocamento 12m, +1 ação de movimento (deslocar). (p. 163)",
+            "imagem": "data/img/cavalo.webp"
         },
         {
             "nome": "Cavalo de guerra",
@@ -1732,7 +1869,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Animal",
-            "descricao": "Montaria (parceiro iniciante). Não se assusta em combate. (p. 163)"
+            "descricao": "Montaria (parceiro iniciante). Não se assusta em combate. (p. 163)",
+            "imagem": "data/img/cavalo.webp"
         },
         {
             "nome": "Pônei",
@@ -1740,7 +1878,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Animal",
-            "descricao": "Montaria (iniciante) para raças Pequenas. (p. 163)"
+            "descricao": "Montaria (iniciante) para raças Pequenas. (p. 163)",
+            "imagem": "data/img/ponei.webp"
         },
         {
             "nome": "Pônei de guerra",
@@ -1748,7 +1887,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Animal",
-            "descricao": "Montaria (iniciante) para raças Pequenas. Não se assusta em combate. (p. 163)"
+            "descricao": "Montaria (iniciante) para raças Pequenas. Não se assusta em combate. (p. 163)",
+            "imagem": "data/img/ponei.webp"
         },
         {
             "nome": "Trobo",
@@ -1756,7 +1896,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Animal",
-            "descricao": "Ave-touro. Montaria (iniciante). Deslocamento 9m, +1 ação de movimento (deslocar), +1 em testes de resistência. (p. 163)"
+            "descricao": "Ave-touro. Montaria (iniciante). Deslocamento 9m, +1 ação de movimento (deslocar), +1 em testes de resistência. (p. 163)",
+            "imagem": "data/img/trobo.webp"
         },
         {
             "nome": "Balão goblin",
@@ -1764,7 +1905,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Veículo",
-            "descricao": "Engenho voador. Deslocamento voo 12m, 100 PV, Defesa 5. Carrega 160 espaços. (p. 163)"
+            "descricao": "Engenho voador. Deslocamento voo 12m, 100 PV, Defesa 5. Carrega 160 espaços. (p. 163)",
+            "imagem": "data/img/balao-goblin.webp"
         },
         {
             "nome": "Carroça",
@@ -1772,7 +1914,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Veículo",
-            "descricao": "Veículo terrestre puxado por 2 cavalos ou 1 trobo. Deslocamento 9m, 50 PV, Defesa 8. Carrega 80 espaços. (p. 163)"
+            "descricao": "Veículo terrestre puxado por 2 cavalos ou 1 trobo. Deslocamento 9m, 50 PV, Defesa 8. Carrega 80 espaços. (p. 163)",
+            "imagem": "data/img/carroca.webp"
         },
         {
             "nome": "Carruagem",
@@ -1780,7 +1923,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Veículo",
-            "descricao": "Similar à carroça, mas com cabine fechada (cobertura leve). (p. 163)"
+            "descricao": "Similar à carroça, mas com cabine fechada (cobertura leve). (p. 163)",
+            "imagem": "data/img/carruagem.webp"
         },
         {
             "nome": "Canoa",
@@ -1788,7 +1932,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Veículo",
-            "descricao": "Embarcação simples de tronco de árvore. Mesmas estatísticas de carroça, mas com deslocamento de natação. (p. 163)"
+            "descricao": "Embarcação simples de tronco de árvore. Mesmas estatísticas de carroça, mas com deslocamento de natação. (p. 163)",
+            "imagem": "data/img/canoa.webp"
         },
         {
             "nome": "Veleiro",
@@ -1796,7 +1941,8 @@ const itensData = {
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Veículo",
-            "descricao": "Navio de viagem com três mastros. (p. 163)"
+            "descricao": "Navio de viagem com três mastros. (p. 163)",
+            "imagem": "data/img/veleiro.webp"
         },
         // (Itens de Ameaças de Arton)
         {
@@ -1815,7 +1961,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Feita de teia de aranha gigante, esta corda de 10m funciona como uma corda normal, mas é mais resistente. Arrebentá-la exige 5 pontos de dano de corte ou um teste de Força (CD 28).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/corda.webp"
         },
         {
             nome: "Dente de Wisphago",
@@ -1833,7 +1980,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Esta gema tem 1d4 cargas. Empunhando a gema, você pode gastar uma ação padrão e uma carga para produzir um domo semelhante ao efeito básico da magia Campo de Força. Alternativamente, pode usar uma carga para reduzir o custo de Campo de Força em –2 PM. Não pode ser fabricada.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/gema-elemental.webp"
         },
         {
             nome: "Garra Feroz",
@@ -1842,7 +1990,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Estas pinças de insetos gigantes, presas com tiras de couro, funcionam como uma manopla, mas seus benefícios também se aplicam a uma garra ou a uma arma natural.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/garra.webp"
         },
         {
             nome: "Manto do Mantor",
@@ -1851,7 +2000,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Feito a partir do couro de um mantor. Na escuridão completa fornece camuflagem total, mesmo contra criaturas que vejam no escuro.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/manto-da-resistencia.webp"
         },
         {
             nome: "Manto Pesado",
@@ -1860,7 +2010,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Estas vestes pesadas com um grande capuz oferecem proteção contra o sol. Você recebe imunidade a condição ofuscado e não é considerado sob luz solar.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/manto-da-resistencia.webp"
         },
         {
             nome: "Sombreiro",
@@ -1896,7 +2047,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Esotérico",
             descricao: "Quando lança uma magia de evocação, você recebe +1 PM para gastar em aprimoramentos.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/tomo-hermetico.webp"
         },
         {
             nome: "Tomo do Rancor",
@@ -1905,7 +2057,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Esotérico",
             descricao: "Suas magias de dano recebem o aprimoramento: '+2 PM: além do normal, a magia causa +2d8+2 pontos de dano (corte, impacto ou perfuração).'",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/tomo-hermetico.webp"
         },
         {
             nome: "Bálsamo de Drogadora",
@@ -1914,7 +2067,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Preparado alquímico. Aplicar é uma ação completa e cura 4d6+4 PV.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/balsamo-restaurador.webp"
         },
         {
             nome: "Bomba de Fumaça",
@@ -1923,7 +2077,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Preparado alquímico. Segue as regras da bomba, mas cria uma nuvem de fumaça com 6m de raio (camuflagem leve a 1,5m, total a 3m) por 1 cena.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/bomba-fumaca.webp"
         },
         {
             nome: "Elixir Quimérico",
@@ -1968,7 +2123,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Preparado alquímico. Aplicar (ação padrão) em arma ou munição para ignorar penalidades de combate submerso até o fim da cena.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/fogo-alquimico.webp"
         },
         {
             nome: "Óleo de Besouro",
@@ -1977,7 +2133,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Preparado alquímico. Arremessar (ação de movimento para acender, padrão para arremessar, alcance curto). Criaturas a 3m sofrem 4d6 dano de fogo e ficam em chamas (Ref CD Des reduz à metade e evita chamas).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/fogo-alquimico.webp"
         },
         {
             nome: "Pó Azul",
@@ -1986,7 +2143,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Preparado alquímico. Inalar (ação completa) recupera 2d4 PM.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/po-do-desaparecimento.webp"
         },
         {
             nome: "Bulette (Animal)",
@@ -2119,7 +2277,8 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Munição",
             "descricao": "Simulam o canto de um pássaro. Permite fazer uma finta contra qualquer alvo dentro do alcance da arma (normalmente, apenas alcance curto).",
-            "fonte": "Heróis de Arton"
+            "fonte": "Heróis de Arton",
+            "imagem": "data/img/flechas.webp"
         },
         {
             "nome": "Flechas de Caça (20)",
@@ -2128,7 +2287,8 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Munição",
             "descricao": "Possuem cabeças chatas e pesadas. Esta munição causa dano de impacto não letal.",
-            "fonte": "Heróis de Arton"
+            "fonte": "Heróis de Arton",
+            "imagem": "data/img/flechas.webp"
         },
         {
             "nome": "Flechas Pesadas (20)",
@@ -2137,7 +2297,8 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Munição",
             "descricao": "Versões de ponta mais pesada e afiada. Você sofre –2 em testes de ataque com estas flechas, mas ignora 5 pontos da RD dos alvos.",
-            "fonte": "Heróis de Arton"
+            "fonte": "Heróis de Arton",
+            "imagem": "data/img/flechas.webp"
         },
         {
             "nome": "Virotes Pesados (20)",
@@ -2146,7 +2307,8 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Munição",
             "descricao": "Versões de ponta mais pesada e afiada. Você sofre –2 em testes de ataque com estes virotes, mas ignora 5 pontos da RD dos alvos.",
-            "fonte": "Heróis de Arton"
+            "fonte": "Heróis de Arton",
+            "imagem": "data/img/virotes.webp"
         },
 
         // (Itens de Heróis de Arton - Equipamento de Aventura)
@@ -2157,7 +2319,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Requer treino em Conhecimento. Se fizer teste de Ofício para sustento, recebe TO em vez de T$. Se possuir Poder Monetário, limite de TO/dia +2.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/instrumento-musical-exotico.webp"
         },
         {
             nome: "Ampulheta",
@@ -2184,7 +2347,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Estrutura de metal. Uma mochila de aventureiro encaixada nela aumenta a capacidade de carga em 6 espaços (em vez de 2). A ação para sacar itens dela aumenta em um passo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/mochila.webp"
         },
         {
             nome: "Asas do Texugo",
@@ -2193,7 +2357,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Mochila com asas retráteis. Requer ação de movimento para estender (ocupa espaço de criatura 1 categoria maior). Permite voar (desl. 12m) por 1 rodada (+1 rodada/5 pontos acima de CD 15 em Atletismo para saltar). Ao fim, plana (Queda Suave). Causa vulnerabilidade e condição ruim para magias (ignora com Pilotagem).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/asas.webp"
         },
         {
             nome: "Astrolábio",
@@ -2220,7 +2385,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Instrumento de navegação que aponta para o norte. Quando faz um teste de Sobrevivência para orientar-se, rola 2 dados e usa o melhor.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/bussola.webp"
         },
         {
             nome: "Dente Falso",
@@ -2247,7 +2413,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Pequeno espelho. Pode gastar ação de movimento para teste de Ladinagem oposto (Reflexos) contra criatura em alcance curto. Se vencer, ela fica desprevenida contra seu próximo ataque (até fim do próximo turno). 1/cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espelho.webp"
         },
         {
             nome: "Estetoscópio",
@@ -2265,7 +2432,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Cobre um quadrado de 3m (ação padrão). Causa 1d4 dano de perfuração em quem pisa na área. A criatura fica lenta até o fim do próximo turno dela.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/terra-de-cemiterio.webp"
         },
         {
             nome: "Favor da Pessoa Amada",
@@ -2283,7 +2451,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Lanterna sofisticada. Funciona como um lampião, mas concentra a luz em um cone de 24m.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/lampiao.webp"
         },
         {
             nome: "Leque",
@@ -2301,7 +2470,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Contém métodos de estatística e probabilidade. Pode gastar 1 minuto e 1 PM para substituir testes de Jogatina por testes de Conhecimento até o fim da cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/grimorio.webp"
         },
         {
             nome: "Lupa",
@@ -2337,7 +2507,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Possui compartimento oculto (1 espaço). Recebe +5 em Ladinagem para ocultar esses itens. Deve ser vestida (não ocupa espaço de carga).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/mochila.webp"
         },
         {
             nome: "Prancheta",
@@ -2373,7 +2544,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Gema com 1d4 cargas. Pode gastar 1 ação padrão e 1 carga para criar o efeito básico de Campo de Força. Pode gastar 1 carga para reduzir o custo de Campo de Força em –2 PM. Não pode ser fabricada.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/gema-elemental.webp"
         },
         {
             nome: "Apito de Caça",
@@ -2382,7 +2554,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Ferramenta",
             descricao: "Fornece +1 em Adestramento. Permite usar 'Manejar Animal' com parceiro não inteligente (Int -4 ou -5) como ação livre (1/rodada).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/apito.webp"
         },
         {
             nome: "Baralho Marcado",
@@ -2391,7 +2564,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Ferramenta",
             descricao: "Recebe +2 em testes de Jogatina com cartas. Se rolar 1 natural, você é descoberto.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/baralho.webp"
         },
         {
             nome: "Cinto de Utilidades",
@@ -2400,7 +2574,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Ferramenta",
             descricao: "Cinturão de couro cheio de bolsos. Se estiver vestindo, pode sacar e guardar engenhocas como uma ação livre.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cinto-da-forca-do-gigante.webp"
         },
         {
             nome: "Espelho Cirúrgico",
@@ -2409,7 +2584,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Ferramenta",
             descricao: "Haste com espelho articulado. Se estiver usando, você não sofre a penalidade de –5 em testes de Cura em si mesmo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espelho.webp"
         },
         {
             nome: "Estandarte",
@@ -2544,7 +2720,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Avental grosso de couro. Se estiver usando, pode perder 1d6 PV para receber +1 em um teste de Ofício (cumulativo).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/avental.webp"
         },
         {
             nome: "Camisolão",
@@ -2562,7 +2739,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Capa elegante com ombreiras. Enquanto você estiver vestindo esta capa, sua armadura conta como um traje da corte.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/capa-esvoacante.webp"
         },
         {
             nome: "Casaca de Apetrechos",
@@ -2580,7 +2758,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Na primeira rodada de um combate, pode gastar uma ação de movimento para saudar seus inimigos. Se fizer, recebe 1 PM temporário.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/chapeu-arcano.webp"
         },
         {
             nome: "Elmo Leve",
@@ -2589,7 +2768,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Capuz de couro ou capacete aberto. Fornece fortificação 25%, mas impõe –2 em Iniciativa e Percepção (ignora penalidade se proficiente em armadura pesada).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/enfeite-de-elmo.webp"
         },
         {
             nome: "Elmo Pesado",
@@ -2598,7 +2778,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Coifa ou capacete fechado. Fornece fortificação 50%, mas impõe –5 em Iniciativa e Percepção (reduz para –2 se proficiente em armadura pesada).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/enfeite-de-elmo.webp"
         },
         {
             nome: "Jaqueta de Couro",
@@ -2787,7 +2968,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Esotérico",
             descricao: "Aumenta o bônus de dano fornecido pelo poder Arcano de Batalha em +2.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/varinha-arcana.webp"
         },
         {
             nome: "Ácido Concentrado",
@@ -2796,7 +2978,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Como ácido, mas o alvo sofre 4d8 de dano de ácido e fica vulnerável até o fim da cena (Reflexos CD Des reduz à metade e evita a condição).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/acido.webp"
         },
         {
             nome: "Analgésico",
@@ -2823,7 +3006,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Usar (ação padrão, alcance curto). Alvo sofre 2d12 de dano de frio e fica lento por 1 rodada (Reflexos CD Des reduz à metade e evita a condição).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/gelo-eterno.webp"
         },
         {
             nome: "Extrato de Oxxdon",
@@ -2841,7 +3025,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Arremessar (ação padrão, alcance curto). Criaturas a 3m sofrem 6d6 de dano de fogo e ficam em chamas (Reflexos CD Des reduz à metade e evita a condição). Chamas mais fortes (2d6 de dano, CD 20 para apagar).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/essencia-mana.webp"
         },
         {
             nome: "Pó de Cinza",
@@ -2850,7 +3035,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Lubrificante. Fornece +5 em um teste de Ladinagem para abrir fechaduras ou sabotar (cumulativo com outros itens).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/po-do-desaparecimento.webp"
         },
         {
             nome: "Pó do Aparecimento",
@@ -2859,7 +3045,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Preparados",
             descricao: "Usar (ação padrão, alcance curto). Criaturas invisíveis a 3m do ponto deixam de estar invisíveis (passam a ter camuflagem leve).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/po-do-desaparecimento.webp"
         },
         {
             nome: "Visco Persistente",
@@ -2886,7 +3073,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Ferramenta",
             descricao: "Aparato. Toda cura de luz da engenhoca aumenta em +1 por dado. Funciona apenas com engenhocas de cura de luz.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/luz.webp"
         },
         {
             nome: "Comutador",
@@ -2949,7 +3137,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Ferramenta",
             descricao: "Aparato. Permite ativar uma engenhoca (de ação padrão) com uma ação de movimento. Após o uso, deve-se gastar uma ação completa para dar corda.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/corda.webp"
         },
         {
             nome: "Giroscópio",
@@ -3023,7 +3212,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Deve ser vestida pela montaria. Aumenta um bônus numérico fornecido por ela em +1 (se fixo) ou em um passo (se rolado).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Armadura de Montaria Pesada",
@@ -3032,7 +3222,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Como a armadura leve, mas aumenta o bônus em +2 ou em dois passos. Diminui o deslocamento da montaria em –3m. Montarias voadoras não podem usar.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Arreios Namalkahnianos",
@@ -3096,7 +3287,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Veículo",
             descricao: "Versão maior do balão goblin (Enorme). Desl. voo 12m, Defesa 5 (+ Des piloto), 180 PV. Carrega 16 criaturas Médias ou 320 espaços. Segue regras de queda e reparos do balão goblin.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/goblin.webp"
         },
         {
             nome: "Jangada",
@@ -3114,7 +3306,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Veículo",
             descricao: "Navio de viagem (Colossal) com 3 mastros. Tripulação 30 (+ piloto, navegador, capitão). Desl. natação 12m, 220 PV, RD 5. Carrega 60 criaturas Médias ou 1.200 espaços.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/veleiro.webp"
         },
         {
             nome: "Banho Quente",
@@ -3322,7 +3515,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Funciona como água benta, mas causa 4d10 de dano.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/agua-benta.webp"
         },
         {
             nome: "Amuleto do Deus da Justiça",
@@ -3331,7 +3525,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Amuleto em forma de balança. Ao fazer um teste de perícia, pode fazer Sabedoria (CD 10). Se passar, pode escolher 10 no teste. Uso único.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/amuleto.webp"
         },
         {
             nome: "Amuleto de Deus do Caos",
@@ -3340,7 +3535,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Amuleto em forma de dado. Ao fazer um teste de perícia, pode fazer Inteligência (CD 10). Se falhar no teste de Inteligência, pode rolar novamente o teste de perícia (melhor resultado). Uso único.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/amuleto.webp"
         },
         {
             nome: "Apanhador de Sonhos",
@@ -3367,7 +3563,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Cajado com ponta curva. Se rezar uma Missa com ele, participantes recebem +5 PV e +1 PM temporários (cumulativo).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/cajado-arcano.webp"
         },
         {
             nome: "Cálice Consagrado",
@@ -3385,7 +3582,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Equipamento de Aventura",
             descricao: "Se devoto da divindade do colar: 1/dia, pode gastar (Ação Mov.) e 1 conta para recuperar 1 PM. Tem 10 contas.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/colar-guardiao.webp"
         },
         {
             nome: "Emblema Religioso",
@@ -3448,7 +3646,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Se for clérigo ou frade: +1 em Diplomacia e Intimidação.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/anel.webp"
         },
         {
             nome: "Carcaça do Predador Primal",
@@ -3466,7 +3665,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Colar/braceletes de garras. Quando adquire forma selvagem, recebe +1 dano com armas naturais.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/garras.webp"
         },
         {
             nome: "Hábito Monástico",
@@ -3493,7 +3693,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Vestuário",
             descricao: "Se tiver Autoridade Eclesiástica: recebe +1 PM por patamar acima de iniciante (após 1 dia).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/manto-da-resistencia.webp"
         },
         {
             nome: "Penas do Predador Primal",
@@ -3567,7 +3768,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Esotérico",
             descricao: "Aumenta seu limite de PM para magias divinas em +1.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/oracao.webp"
         },
         {
             nome: "Estola",
@@ -3585,7 +3787,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Esotérico",
             descricao: "Contém 10 doses. Ao lançar magia em criatura, pode gastar doses (limite Sabedoria) para curar 1d4 PV por dose. Apenas devotos de energia positiva.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/essencia-mana.webp"
         },
         {
             nome: "Medalhão Afiado",
@@ -3612,7 +3815,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Esotérico",
             descricao: "Apenas devotos de energia negativa. Ao lançar magia divina de trevas, recebe 1 PV temporário cumulativo por cada resultado máximo nos dados de dano.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/rede.webp"
         },
         {
             nome: "Turíbulo Ungido",

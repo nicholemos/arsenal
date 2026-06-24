@@ -51,7 +51,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Esta espada longa de guarda reta fornece +1 em testes de ataque e rolagens de dano. Este bônus aumenta em +1 se você possuir um código de conduta (de honra, do herói...), for devoto de Khalmyr ou for treinado em Nobreza. Os bônus são cumulativos — um personagem com um código de conduta, devoto de Khalmyr e treinado em Nobreza recebe +4 em ataque e dano."
+            descricao: "Esta espada longa de guarda reta fornece +1 em testes de ataque e rolagens de dano. Este bônus aumenta em +1 se você possuir um código de conduta (de honra, do herói...), for devoto de Khalmyr ou for treinado em Nobreza. Os bônus são cumulativos — um personagem com um código de conduta, devoto de Khalmyr e treinado em Nobreza recebe +4 em ataque e dano.",
+            imagem: "data/img/espada-baronial.webp"
         },
         {
             nome: "Lâmina da Luz",
@@ -59,7 +60,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "De lâmina prateada e reluzente, esta espada bastarda formidável é concedida a cavaleiros da Luz de honra e virtude comprovadas. Você pode gastar uma ação de movimento e 2 PM para erguer a lâmina da luz acima de sua cabeça. Se fizer isso, ela irradia luz brilhante em alcance médio até o fim da cena. Todos os inimigos dentro da luz ficam ofuscados."
+            descricao: "De lâmina prateada e reluzente, esta espada bastarda formidável é concedida a cavaleiros da Luz de honra e virtude comprovadas. Você pode gastar uma ação de movimento e 2 PM para erguer a lâmina da luz acima de sua cabeça. Se fizer isso, ela irradia luz brilhante em alcance médio até o fim da cena. Todos os inimigos dentro da luz ficam ofuscados.",
+            imagem: "data/img/lamina-da-luz.webp"
         },
         {
             nome: "Lança Animalesca",
@@ -67,7 +69,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Espinhos e folhas vivas brotam desta lança formidável. Se você usar a habilidade Forma Selvagem, aplica o bônus de +2 em ataque e dano da lança animalesca em suas armas naturais."
+            descricao: "Espinhos e folhas vivas brotam desta lança formidável. Se você usar a habilidade Forma Selvagem, aplica o bônus de +2 em ataque e dano da lança animalesca em suas armas naturais.",
+            imagem: "data/img/lanca-animalesca.webp"
         },
         {
             nome: "Maça do Terror",
@@ -75,7 +78,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Esta maça formidável é feita com um osso e um crânio e permite que você lance a magia Amedrontar (CD For ou Car a sua escolha). Caso já conheça a magia, o custo para lançá-la diminui em –1 PM."
+            descricao: "Esta maça formidável é feita com um osso e um crânio e permite que você lance a magia Amedrontar (CD For ou Car a sua escolha). Caso já conheça a magia, o custo para lançá-la diminui em –1 PM.",
+            imagem: "data/img/maca-do-terror.webp"
         },
         {
             nome: "Florete Fugaz",
@@ -83,7 +87,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Este florete formidável tem o cabo e a guarda trabalhados com prata e pedrarias. Quando usa a ação agarrir, você pode gastar 1 PM. Se fizer isso e acertar um crítico no turno, pode fazer um ataque adicional contra a mesma criatura."
+            descricao: "Este florete formidável tem o cabo e a guarda trabalhados com prata e pedrarias. Quando usa a ação agarrir, você pode gastar 1 PM. Se fizer isso e acertar um crítico no turno, pode fazer um ataque adicional contra a mesma criatura.",
+            imagem: "data/img/florete-fugaz.webp"
         },
         {
             nome: "Cajado da Destruição",
@@ -91,7 +96,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "Este bordão formidável escuro e reforçado com ponteiras de metal é procurado por conjuradores de batalha. Conta como um cajado arcano. Além dos benefícios desse esotérico, quando você lança uma magia de dano, ela causa +1 ponto de dano por dado."
+            descricao: "Este bordão formidável escuro e reforçado com ponteiras de metal é procurado por conjuradores de batalha. Conta como um cajado arcano. Além dos benefícios desse esotérico, quando você lança uma magia de dano, ela causa +1 ponto de dano por dado.",
+            imagem: "data/img/cajado-da-destruicao.webp"
         },
         {
             nome: "Cajado da Vida",
@@ -99,7 +105,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "Este bordão formidável branco com runas prateadas é valorizado por curandeiros. Conta como um cajado arcano, mas afeta magias divinas. Além disso, quando você lança uma magia de cura, ela cura +2 pontos de vida por dado."
+            descricao: "Este bordão formidável branco com runas prateadas é valorizado por curandeiros. Conta como um cajado arcano, mas afeta magias divinas. Além disso, quando você lança uma magia de cura, ela cura +2 pontos de vida por dado.",
+            imagem: "data/img/cajado-da-vida.webp"
         },
         {
             nome: "Machado Silvestre",
@@ -107,7 +114,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "O cabo e a lâmina deste machado de batalha formidável são cobertos de gravuras representando plantas e animais selvagens. Quando você usa o machado silvestre em um ambiente ermo e ao ar livre, causa +1d8 de dano e recebe o poder Trespassar. Caso já possua este poder, pode utilizá-lo sem pagar pontos de mana."
+            descricao: "O cabo e a lâmina deste machado de batalha formidável são cobertos de gravuras representando plantas e animais selvagens. Quando você usa o machado silvestre em um ambiente ermo e ao ar livre, causa +1d8 de dano e recebe o poder Trespassar. Caso já possua este poder, pode utilizá-lo sem pagar pontos de mana.",
+            imagem: "data/img/machado-silvestre.webp"
         },
         {
             nome: "Martelo de Doherimm",
@@ -115,7 +123,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "Este martelo de guerra formidável é feito de pedra e aço. Quando empunhado por um anão, adquire o encanto arremesso e aumenta seu dano em +1d8 (ou +2d8 se usado contra criaturas Grandes ou maiores)."
+            descricao: "Este martelo de guerra formidável é feito de pedra e aço. Quando empunhado por um anão, adquire o encanto arremesso e aumenta seu dano em +1d8 (ou +2d8 se usado contra criaturas Grandes ou maiores).",
+            imagem: "data/img/martelo-de-doherimm.webp"
         },
         {
             nome: "Arco do Poder",
@@ -123,7 +132,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "O arco do poder conta como um arco longo formidável, mas parece apenas o corpo de um arco — não tem corda e não aceita flechas. Contudo, quando você o empunha e faz o gesto de puxar a corda inexistente, o arco cria uma corda e uma flecha de energia dourada. O arco do poder é capaz de ler suas intenções, produzindo diferentes tipos de flechas energéticas a sua escolha: Flecha Normal (3d8 pontos de dano de essência), Flecha Piedosa (4d8 pontos de dano de essência não letal), Flecha Explosiva (3d6 pontos de dano de fogo no alvo e em todas as criaturas adjacentes a ele, Ref CD Des para reduzir à metade), Flecha-Rede (não causa dano, mas deixa a vítima agarrada por uma rede de energia; CD 25 Força ou Acrobacia para se soltar; a rede se dissipa quando a criatura se solta ou no fim da cena)."
+            descricao: "O arco do poder conta como um arco longo formidável, mas parece apenas o corpo de um arco — não tem corda e não aceita flechas. Contudo, quando você o empunha e faz o gesto de puxar a corda inexistente, o arco cria uma corda e uma flecha de energia dourada. O arco do poder é capaz de ler suas intenções, produzindo diferentes tipos de flechas energéticas a sua escolha: Flecha Normal (3d8 pontos de dano de essência), Flecha Piedosa (4d8 pontos de dano de essência não letal), Flecha Explosiva (3d6 pontos de dano de fogo no alvo e em todas as criaturas adjacentes a ele, Ref CD Des para reduzir à metade), Flecha-Rede (não causa dano, mas deixa a vítima agarrada por uma rede de energia; CD 25 Força ou Acrobacia para se soltar; a rede se dissipa quando a criatura se solta ou no fim da cena).",
+            imagem: "data/img/arco-poder.webp"
         },
         {
             nome: "Língua do Deserto",
@@ -131,7 +141,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Esta cimitarra formidável é originária do Deserto da Perdição. Você pode gastar uma ação de movimento e 1 PM para transformar a lâmina dela em chamas até o fim da cena. Nessa condição, o dano da arma aumenta em um passo e passa a ser do tipo fogo. Você pode gastar uma ação de movimento e 2 PM para fazer as chamas brilharem com muita força. Isso deixa os inimigos em alcance curto desprevenidos por uma rodada."
+            descricao: "Esta cimitarra formidável é originária do Deserto da Perdição. Você pode gastar uma ação de movimento e 1 PM para transformar a lâmina dela em chamas até o fim da cena. Nessa condição, o dano da arma aumenta em um passo e passa a ser do tipo fogo. Você pode gastar uma ação de movimento e 2 PM para fazer as chamas brilharem com muita força. Isso deixa os inimigos em alcance curto desprevenidos por uma rodada.",
+            imagem: "data/img/lingua-do-deserto.webp"
         },
         {
             nome: "Besta Explosiva",
@@ -139,7 +150,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "Esta besta pesada formidável é feita de madeira escurecida, similar a carvão. Quando usa uma besta explosiva, você pode gastar 3 PM para transformar o virote disparado por ela em uma Bola de Fogo. Você pode mirar esta Bola de Fogo em uma criatura ou em um ponto em alcance médio. No primeiro caso, faça um ataque contra o alvo. Se acertar, ele sofre o dano do disparo mais 6d6 de fogo. Além disso, todas as criaturas a até 6m do alvo sofrem 6d6 pontos de dano de fogo (Ref CD Des reduz à metade). Porém, se o ataque errar, o virote se desfaz em uma nuvem de cinzas inofensivas. No segundo caso, ela funciona como a magia de mesmo nome. Nenhum teste de ataque é necessário e todas as criaturas a 6m do ponto escolhido sofrem 6d6 pontos de dano de fogo (Ref reduz à metade)."
+            descricao: "Esta besta pesada formidável é feita de madeira escurecida, similar a carvão. Quando usa uma besta explosiva, você pode gastar 3 PM para transformar o virote disparado por ela em uma Bola de Fogo. Você pode mirar esta Bola de Fogo em uma criatura ou em um ponto em alcance médio. No primeiro caso, faça um ataque contra o alvo. Se acertar, ele sofre o dano do disparo mais 6d6 de fogo. Além disso, todas as criaturas a até 6m do alvo sofrem 6d6 pontos de dano de fogo (Ref CD Des reduz à metade). Porém, se o ataque errar, o virote se desfaz em uma nuvem de cinzas inofensivas. No segundo caso, ela funciona como a magia de mesmo nome. Nenhum teste de ataque é necessário e todas as criaturas a 6m do ponto escolhido sofrem 6d6 pontos de dano de fogo (Ref reduz à metade).",
+            imagem: "data/img/besta-explosiva.webp"
         },
         {
             nome: "Punhal Traidor",
@@ -147,7 +159,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Adaga +4 envenenada; ao atingir, o alvo sofre 1d6 de dano por veneno por rodada (Fortitude CD 18 anula)."
+            descricao: "Adaga +4 envenenada; ao atingir, o alvo sofre 1d6 de dano por veneno por rodada (Fortitude CD 18 anula).",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Espada Sortuda",
@@ -155,7 +168,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Esta espada curta formidável é cravejada de brilhantes. Você recebe +2 nos testes de resistência e, quando faz um teste, pode gastar 3 PM para rolá-lo novamente. Se possuir o poder Sortudo, em vez disso seu custo diminui em –1 PM."
+            descricao: "Esta espada curta formidável é cravejada de brilhantes. Você recebe +2 nos testes de resistência e, quando faz um teste, pode gastar 3 PM para rolá-lo novamente. Se possuir o poder Sortudo, em vez disso seu custo diminui em –1 PM.",
+            imagem: "data/img/espada-sortuda.webp"
         },
         {
             nome: "Avalanche",
@@ -163,7 +177,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "Este machado de guerra de gelo eterno congelante formidável fornece redução de fogo 10. Você pode gastar uma ação padrão e 6 PM para brandi-lo acima de sua cabeça e invocar uma tempestade de gelo que afeta alcance curto ao seu redor. Criaturas na área recebem camuflagem leve e sofrem 3d6 pontos de dano de impacto e 3d6 pontos de frio por rodada. Você não sofre os efeitos nocivos da tempestade (o dano e a chance de falha pela camuflagem) e pode gastar 1 PM no início de cada um de seus turnos para mantê-la."
+            descricao: "Este machado de guerra de gelo eterno congelante formidável fornece redução de fogo 10. Você pode gastar uma ação padrão e 6 PM para brandi-lo acima de sua cabeça e invocar uma tempestade de gelo que afeta alcance curto ao seu redor. Criaturas na área recebem camuflagem leve e sofrem 3d6 pontos de dano de impacto e 3d6 pontos de frio por rodada. Você não sofre os efeitos nocivos da tempestade (o dano e a chance de falha pela camuflagem) e pode gastar 1 PM no início de cada um de seus turnos para mantê-la.",
+            imagem: "data/img/avalanche.webp"
         },
         {
             nome: "Cajado do Poder",
@@ -171,7 +186,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "Este bordão defensor magnificent tem cabo reto e liso, com uma joia cintilante na ponta. Conta como um cajado arcano. Além dos benefícios desse esotérico, o custo de suas magias arcanas diminui em –1 PM (cumulativo com Mestre em Escola) e a CD para resistir a elas aumenta em +2 (para um aumento total de +3)."
+            descricao: "Este bordão defensor magnificent tem cabo reto e liso, com uma joia cintilante na ponta. Conta como um cajado arcano. Além dos benefícios desse esotérico, o custo de suas magias arcanas diminui em –1 PM (cumulativo com Mestre em Escola) e a CD para resistir a elas aumenta em +2 (para um aumento total de +3).",
+            imagem: "data/img/cajado-do-poder.webp"
         },
         {
             nome: "Vingadora Sagrada",
@@ -179,7 +195,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "2",
-            descricao: "Esta espada longa formidável revela todo o seu poder apenas quando empunhada por um paladino. Se você for um paladino, recebe +5 em testes de ataque e rolagens de dano, o custo de seu Golpe Divino é reduzido em –1 PM e você e seus aliados em alcance curto recebem resistência a magia +5."
+            descricao: "Esta espada longa formidável revela todo o seu poder apenas quando empunhada por um paladino. Se você for um paladino, recebe +5 em testes de ataque e rolagens de dano, o custo de seu Golpe Divino é reduzido em –1 PM e você e seus aliados em alcance curto recebem resistência a magia +5.",
+            imagem: "data/img/vingadora-sagrada.webp"
         },
         {
             nome: "Punhal Sszzaazita",
@@ -187,7 +204,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             espacos: "1",
-            descricao: "Esta adaga assassina formidável venenosa tem lâmina negra e ondulada. Você pode gastar uma ação padrão e 2 PM para transformar o punhal sszzaazita em um objeto inofensivo de tamanho similar, como uma colher ou pena. Nenhuma magia é capaz de detectar essa transformação. Transformar o punhal em arma é uma ação livre."
+            descricao: "Esta adaga assassina formidável venenosa tem lâmina negra e ondulada. Você pode gastar uma ação padrão e 2 PM para transformar o punhal sszzaazita em um objeto inofensivo de tamanho similar, como uma colher ou pena. Nenhuma magia é capaz de detectar essa transformação. Transformar o punhal em arma é uma ação livre.",
+            imagem: "data/img/adaga.webp"
         },
 
 // Armaduras Específicas
@@ -197,7 +215,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "2",
-            descricao: "Composta de anéis finíssimos, esta cota de malha defensora de mitral parece ser feita de seda. Ela permite que você aplique sua Destreza na Defesa como se fosse uma armadura leve."
+            descricao: "Composta de anéis finíssimos, esta cota de malha defensora de mitral parece ser feita de seda. Ela permite que você aplique sua Destreza na Defesa como se fosse uma armadura leve.",
+            imagem: "data/img/cota-elfica.webp"
         },
         {
             nome: "Couro de Monstro",
@@ -205,7 +224,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "2",
-            descricao: "Usado por chefes bárbaros das Montanhas Sanguinárias, este gibão de peles defensor é feito do couro de monstros, como basiliscos e serpes. Se você usar o poder Ataque Poderoso ou fazer uma investida, recebe um bônus de +2d6 nas rolagens de dano."
+            descricao: "Usado por chefes bárbaros das Montanhas Sanguinárias, este gibão de peles defensor é feito do couro de monstros, como basiliscos e serpes. Se você usar o poder Ataque Poderoso ou fazer uma investida, recebe um bônus de +2d6 nas rolagens de dano.",
+            imagem: "data/img/couro-de-monstro.webp"
         },
         {
             nome: "Escudo do Conjurador",
@@ -213,7 +233,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágica Maior",
             espacos: "1",
-            descricao: "Este escudo leve defensor tem uma pequena tira de couro na parte interna, sobre a qual um conjurador pode lançar uma magia. A magia não surte efeito na hora; em vez disso, fica inscrita na tira. A tira pode então ser lida como um pergaminho, descargando a magia em seus alvos/área. Uma vez que a magia seja descarregada, outra pode ser armazenada."
+            descricao: "Este escudo leve defensor tem uma pequena tira de couro na parte interna, sobre a qual um conjurador pode lançar uma magia. A magia não surte efeito na hora; em vez disso, fica inscrita na tira. A tira pode então ser lida como um pergaminho, descargando a magia em seus alvos/área. Uma vez que a magia seja descarregada, outra pode ser armazenada.",
+            imagem: "data/img/escudo-do-conjurador.webp"
         },
         {
             nome: "Loriga do Centurião",
@@ -221,7 +242,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Esta loriga segmentada defensora é dourada com detalhes em vermelho e possui o símbolo de Tauron, antigo Deus da Força, gravado no peitoral. Se estiver liderando uma ou mais criaturas (em termos de jogo, se estiver usando o poder Comandar ou similar), seus ataques corpo a corpo causam +2d6 de fogo."
+            descricao: "Esta loriga segmentada defensora é dourada com detalhes em vermelho e possui o símbolo de Tauron, antigo Deus da Força, gravado no peitoral. Se estiver liderando uma ou mais criaturas (em termos de jogo, se estiver usando o poder Comandar ou similar), seus ataques corpo a corpo causam +2d6 de fogo.",
+            imagem: "data/img/loriga-do-centuriao.webp"
         },
         {
             nome: "Manto da Noite",
@@ -229,7 +251,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "2",
-            descricao: "Este couro batido ajustado defensor sombrio é negro com partes metálicas foscas. Quando usa esta armadura, você não sofre penalidade em testes de Furtividade por se mover em seu deslocamento normal e a penalidade que você sofre em testes de Furtividade por atacar diminui para –10."
+            descricao: "Este couro batido ajustado defensor sombrio é negro com partes metálicas foscas. Quando usa esta armadura, você não sofre penalidade em testes de Furtividade por se mover em seu deslocamento normal e a penalidade que você sofre em testes de Furtividade por atacar diminui para –10.",
+            imagem: "data/img/manto-da-noite.webp"
         },
         {
             nome: "Couraça do Comando",
@@ -237,7 +260,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Esta couraça banhada a ouro sob medida defensora irradia uma aura de autoridade. Você recebe +1 em Carisma. Se usar o poder Comandar, o bônus fornecido aumenta para +2."
+            descricao: "Esta couraça banhada a ouro sob medida defensora irradia uma aura de autoridade. Você recebe +1 em Carisma. Se usar o poder Comandar, o bônus fornecido aumenta para +2.",
+            imagem: "data/img/couraca-do-comando.webp"
         },
         {
             nome: "Baluarte Anão",
@@ -245,7 +269,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Esta armadura completa reforçada defensora de adamante fornece proteção sem igual. Se você não se deslocar em seu turno, a RD que ela fornece aumenta para 10 até seu próximo turno."
+            descricao: "Esta armadura completa reforçada defensora de adamante fornece proteção sem igual. Se você não se deslocar em seu turno, a RD que ela fornece aumenta para 10 até seu próximo turno.",
+            imagem: "data/img/baluarte-anao.webp"
         },
         {
             nome: "Escudo Espinhoso",
@@ -253,7 +278,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágica Maior",
             espacos: "2",
-            descricao: "Este escudo pesado defensor é coberto de espinhos. Você pode gastar uma ação de movimento e 2 PM para disparar um espinho em um alvo em alcance curto. O espinho acerta automaticamente e causa 1d10+2 pontos de dano de perfuração."
+            descricao: "Este escudo pesado defensor é coberto de espinhos. Você pode gastar uma ação de movimento e 2 PM para disparar um espinho em um alvo em alcance curto. O espinho acerta automaticamente e causa 1d10+2 pontos de dano de perfuração.",
+            imagem: "data/img/escudo-espinhoso.webp"
         },
         {
             nome: "Escudo do Leão",
@@ -261,7 +287,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágica Maior",
             espacos: "2",
-            descricao: "Este escudo pesado defensor é forjado como uma cabeça de leão rugindo. Uma vez por rodada, você pode gastar 2 PM para fazer a cabeça criar vida e morder uma criatura adjacente. A mordida acerta automaticamente e causa 2d6+2 pontos de dano de perfuração."
+            descricao: "Este escudo pesado defensor é forjado como uma cabeça de leão rugindo. Uma vez por rodada, você pode gastar 2 PM para fazer a cabeça criar vida e morder uma criatura adjacente. A mordida acerta automaticamente e causa 2d6+2 pontos de dano de perfuração.",
+            imagem: "data/img/escudo-do-leao.webp"
         },
         {
             nome: "Carapaça Demoníaca",
@@ -269,7 +296,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Esta armadura completa macabra reforçada guardiã é forjada para fazer com que o usuário pareça um demônio — o elmo tem o formato de uma cabeça demoníaca com chifres e o usuário enxerga através da boca aberta e repleta de dentes. Se você for devoto de uma divindade que canaliza apenas energia negativa, os seus ataques corpo a corpo causam +1d8 de dano de trevas."
+            descricao: "Esta armadura completa macabra reforçada guardiã é forjada para fazer com que o usuário pareça um demônio — o elmo tem o formato de uma cabeça demoníaca com chifres e o usuário enxerga através da boca aberta e repleta de dentes. Se você for devoto de uma divindade que canaliza apenas energia negativa, os seus ataques corpo a corpo causam +1d8 de dano de trevas.",
+            imagem: "data/img/carapaca-demoniaca.webp"
         },
         {
             nome: "Escudo do Eclipse",
@@ -277,7 +305,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágica Maior",
             espacos: "2",
-            descricao: "Este escudo pesado defensor é completamente negro e parece absorver a luz. Ele fornece redução de trevas 10 e causa +1d8 de dano de trevas num ataque. Além disso, você pode gastar uma ação de movimento e 2 PM para lançar Escuridão."
+            descricao: "Este escudo pesado defensor é completamente negro e parece absorver a luz. Ele fornece redução de trevas 10 e causa +1d8 de dano de trevas num ataque. Além disso, você pode gastar uma ação de movimento e 2 PM para lançar Escuridão.",
+            imagem: "data/img/escudo-do-eclipse.webp"
         },
         {
             nome: "Escudo do Deus do Sol",
@@ -285,7 +314,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágica Maior",
             espacos: "2",
-            descricao: "Escudo +5 banhado em luz solar; reflete magias de trevas e causa 3d6 de dano de luz em mortos-vivos adjacentes."
+            descricao: "Escudo +5 banhado em luz solar; reflete magias de trevas e causa 3d6 de dano de luz em mortos-vivos adjacentes.",
+            imagem: "data/img/escudo-leve.webp"
         },
         {
             nome: "Escudo de Azgher",
@@ -293,7 +323,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágica Maior",
             espacos: "2",
-            descricao: "Este escudo pesado guardião é forjado na forma de um sol estilizado. Você pode gastar uma ação padrão e 10 PM para fazê-lo emitir uma luz brilhante e quente num cone com alcance curto. A luz gera os efeitos da magia Visão da Verdade e causa 6d6 pontos de dano de fogo em todos os seus inimigos (mortos-vivos e criaturas vulneráveis a luz solar sofrem 6d8 pontos de dano). Você pode gastar 1 PM no início de cada um de seus turnos para manter a luz."
+            descricao: "Este escudo pesado guardião é forjado na forma de um sol estilizado. Você pode gastar uma ação padrão e 10 PM para fazê-lo emitir uma luz brilhante e quente num cone com alcance curto. A luz gera os efeitos da magia Visão da Verdade e causa 6d6 pontos de dano de fogo em todos os seus inimigos (mortos-vivos e criaturas vulneráveis a luz solar sofrem 6d8 pontos de dano). Você pode gastar 1 PM no início de cada um de seus turnos para manter a luz.",
+            imagem: "data/img/escudo-leve.webp"
         },
         {
             nome: "Armadura da Luz",
@@ -301,7 +332,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Esta armadura completa banhada a ouro reforçada guardiã zelosa possui o símbolo de Khalmyr gravado no peitoral. Se você possuir um código de conduta (de honra, do herói...) ou for devoto de uma divindade que canaliza apenas energia positiva, recebe redução de dano igual ao seu Carisma."
+            descricao: "Esta armadura completa banhada a ouro reforçada guardiã zelosa possui o símbolo de Khalmyr gravado no peitoral. Se você possuir um código de conduta (de honra, do herói...) ou for devoto de uma divindade que canaliza apenas energia positiva, recebe redução de dano igual ao seu Carisma.",
+            imagem: "data/img/armadura-da-luz.webp"
         },
         {
             nome: "Couro de Monstro",
@@ -309,7 +341,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "2",
-            descricao: "Feita de peles e escamas de bestas mágicas; concede resistência 10 a um tipo de energia."
+            descricao: "Feita de peles e escamas de bestas mágicas; concede resistência 10 a um tipo de energia.",
+            imagem: "data/img/couro-de-monstro.webp"
         },
         {
             nome: "Escudo do Conjurador",
@@ -317,7 +350,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágico Maior",
             espacos: "1",
-            descricao: "Concede +2 na Defesa e permite ignorar a chance de falha arcana ao conjurar magias com escudo."
+            descricao: "Concede +2 na Defesa e permite ignorar a chance de falha arcana ao conjurar magias com escudo.",
+            imagem: "data/img/escudo-do-conjurador.webp"
         },
         {
             nome: "Loriga do Centurião",
@@ -325,7 +359,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Armadura de escamas +3 que concede +2 em testes de Guerra e Intimidação."
+            descricao: "Armadura de escamas +3 que concede +2 em testes de Guerra e Intimidação.",
+            imagem: "data/img/loriga-do-centuriao.webp"
         },
         {
             nome: "Manto da Noite",
@@ -333,7 +368,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "2",
-            descricao: "Manto encantado que funciona como armadura leve +3 e concede invisibilidade em áreas de escuridão."
+            descricao: "Manto encantado que funciona como armadura leve +3 e concede invisibilidade em áreas de escuridão.",
+            imagem: "data/img/manto-da-noite.webp"
         },
         {
             nome: "Couraça do Comando",
@@ -341,7 +377,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Couraça +3 que concede +2 em testes de Carisma e permite inspirar aliados como uma ação de movimento."
+            descricao: "Couraça +3 que concede +2 em testes de Carisma e permite inspirar aliados como uma ação de movimento.",
+            imagem: "data/img/couraca-do-comando.webp"
         },
         {
             nome: "Baluarte Anão",
@@ -349,7 +386,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágico Maior",
             espacos: "5",
-            descricao: "Escudo pesado +3 feito de aço anão; concede RD 5 e vantagem em testes de resistência contra efeitos de empurrão."
+            descricao: "Escudo pesado +3 feito de aço anão; concede RD 5 e vantagem em testes de resistência contra efeitos de empurrão.",
+            imagem: "data/img/baluarte-anao.webp"
         },
         {
             nome: "Escudo Espinhoso",
@@ -357,7 +395,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágico Maior",
             espacos: "2",
-            descricao: "Escudo +3 coberto de espinhos; causa 1d6 de dano de perfuração em quem ataca corpo a corpo."
+            descricao: "Escudo +3 coberto de espinhos; causa 1d6 de dano de perfuração em quem ataca corpo a corpo.",
+            imagem: "data/img/escudo-espinhoso.webp"
         },
         {
             nome: "Escudo do Leão",
@@ -365,7 +404,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágico Maior",
             espacos: "2",
-            descricao: "Escudo +3 com símbolo de leão; pode rugir uma vez por dia, apavorando inimigos próximos (Vontade CD 20)."
+            descricao: "Escudo +3 com símbolo de leão; pode rugir uma vez por dia, apavorando inimigos próximos (Vontade CD 20).",
+            imagem: "data/img/escudo-do-leao.webp"
         },
         {
             nome: "Carapaça Demoníaca",
@@ -373,7 +413,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Armadura de placas +4 feita de ossos infernais; concede resistência 10 a fogo e +2 em testes de Intimidação."
+            descricao: "Armadura de placas +4 feita de ossos infernais; concede resistência 10 a fogo e +2 em testes de Intimidação.",
+            imagem: "data/img/carapaca-demoniaca.webp"
         },
         {
             nome: "Escudo do Eclipse",
@@ -381,7 +422,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágico Maior",
             espacos: "2",
-            descricao: "Escudo +4 que pode gerar uma área de escuridão mágica uma vez por dia."
+            descricao: "Escudo +4 que pode gerar uma área de escuridão mágica uma vez por dia.",
+            imagem: "data/img/escudo-do-eclipse.webp"
         },
         {
             nome: "Escudo do Deus do Sol",
@@ -389,7 +431,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Escudo Mágico Maior",
             espacos: "2",
-            descricao: "Escudo +5 banhado em luz solar; reflete magias de trevas e causa 3d6 de dano de luz em mortos-vivos adjacentes."
+            descricao: "Escudo +5 banhado em luz solar; reflete magias de trevas e causa 3d6 de dano de luz em mortos-vivos adjacentes.",
+            imagem: "data/img/escudo-leve.webp"
         },
         {
             nome: "Armadura da Luz",
@@ -397,7 +440,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             espacos: "5",
-            descricao: "Armadura completa +5 que emite luz intensa e concede imunidade a dano de trevas e a cegueira."
+            descricao: "Armadura completa +5 que emite luz intensa e concede imunidade a dano de trevas e a cegueira.",
+            imagem: "data/img/armadura-da-luz.webp"
         },
 
 // acessórios Menores
@@ -485,7 +529,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: "Menor. Uma pérola enorme e brilhante. Seu usuário se torna imune a sono e sua recuperação de PV e PM é sempre confortável. O usuário pode gastar uma ação de movimento e 1 PM para remover uma condição de fadiga (alcance curto).",
-            fonte: "Coração de Rubi"
+            fonte: "Coração de Rubi",
+            imagem: "data/img/pingente.webp"
         },
         {
             nome: "Cálices Encantados de Mulk",
@@ -507,7 +552,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Arma específica. É uma adaga formidável (+2), assassina (+2d6) e sanguinária (cura metade do dano). Você pode gastar 2 PM para tocar em um cadáver e ver a última cena vista por esta criatura antes de morrer.",
-            fonte: "Coração de Rubi"
+            fonte: "Coração de Rubi",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Manoplas do Mestre Moldador",
@@ -527,7 +573,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: "Simbionte (Elmo). Invocar é ação livre (perde 1d4 PV). Funciona como uma armadura completa espinhosa selada sob medida de matéria vermelha (não requer proficiência). Usuário não precisa respirar. Ativa-se como reação ao sofrer dano (Vontade CD 10 + dano evita).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Asas do Devorador",
@@ -536,7 +583,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Simbionte (Costas). O hospedeiro pode gastar 2 PM para ativar as Asas e ganhar deslocamento de voo igual ao seu deslocamento em terra (duração sustentada).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/asas.webp"
         },
         {
             nome: "Flagelo do Devorador",
@@ -615,7 +663,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: ". Pistola formidável (+2) e profana (+1d6 trevas). Está sempre carregada e não precisa de munição. 1/dia (escolha do mestre), o portador deve tentar disparar em uma criatura inteligente aleatória (Vontade CD 25 evita).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/pistola.webp"
         },
         {
             nome: "Uyzrrak Da'ukthra",
@@ -639,7 +688,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Manto velho e surrado. Fornece +5 em Sobrevivência e +3m em deslocamento (apenas em ambientes ermos). Permite lançar a magia Primor Atlético (apenas em você mesmo).",
-            fonte: "Guerra Artoniana"
+            fonte: "Guerra Artoniana",
+            imagem: "data/img/manto-da-resistencia.webp"
         },
 
         // (Item de Duelo de Dragões)
@@ -650,7 +700,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Lança que canaliza poder dracônico, causando +2d6 de dano de fogo.",
-            fonte: "Duelo de Dragões"
+            fonte: "Duelo de Dragões",
+            imagem: "data/img/lanca.webp"
         },
         // (Itens de Heróis de Arton - Implantes)
         {
@@ -660,7 +711,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Implante. Asas monstruosas. Você pode voar com deslocamento igual ao seu deslocamento base mas, enquanto estiver voando dessa forma, fica vulnerável.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/asas.webp"
         },
         {
             nome: "Braço de Ogro",
@@ -678,7 +730,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Implante (Cauda). Concede arma natural de ferrão (dano 1d6, crítico x2, perfuração). 1/rodada, pode gastar 1 PM para ataque extra com ferrão. Ao causar dano com ele, pode gastar 1 PM para inocular veneno (1d12 PV).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cauda.webp"
         },
         {
             nome: "Escamas (+2 Defesa)",
@@ -705,7 +758,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Implante (Mãos). Mãos se transformam em armas naturais de garra (dano 1d6 cada, crítico x2, corte). 1/rodada, pode gastar 1 PM para ataque extra com uma garra (se livre). Pode usá-las para Estilo de Duas Armas.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/garras.webp"
         },
         {
             nome: "Olho Anulador",
@@ -750,7 +804,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Implante. Concede arma natural de tentáculo (dano 1d4, crítico x2, impacto) com alcance +1,5m. 1/rodada, pode gastar 1 PM para ataque extra com o tentáculo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/garras.webp"
         },
         // (Itens de Heróis de Arton - Armas Específicas)
         {
@@ -764,7 +819,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Adaga formidável envolta em névoa que permite se tornar invisível por 1 rodada após um acerto (custo 2 PM).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Arco das Sombras",
@@ -777,7 +833,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Arco curto sombrio que deixa alvos cegos por 1 rodada ao acertar (custo 2 PM).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/arco-curto.webp"
         },
         {
             nome: "Arco do Crepúsculo",
@@ -790,7 +847,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Arco longo formidável que ofusca inimigos por 1d4 rodadas ao acertar (custo 1 PM).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/arco-curto.webp"
         },
         {
             nome: "Azagaia Fantasma",
@@ -803,7 +861,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Azagaia caçadora de cristal que ignora RD ao acertar (custo 1 PM). Retorna ao usuário.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/azagaia.webp"
         },
         {
             nome: "Besta Estelar",
@@ -816,7 +875,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Besta leve cravejada de gemas que dispara múltiplos virotes (custo 3 PM).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/besta-leve.webp"
         },
         {
             nome: "Clava de Lava",
@@ -829,7 +889,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: " Clava maciça (crit +1), flamejante (+1d6 fogo) e formidável (+2). Ao acertar, pode gastar 1 PM para aumentar o dano de fogo para +3d6.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/clava.webp"
         },
         {
             nome: "Espada da Tempestade",
@@ -842,7 +903,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Espada que canaliza poder de tempestades, causando +1d6 de dano elétrico.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Espada do Guardião",
@@ -855,7 +917,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Espada que protege seu portador, concedendo +1 na Defesa e +2 em testes de resistência.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Espada Solar",
@@ -868,7 +931,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Espada que brilha com luz solar intensa, causando +2d6 de dano de luz contra criaturas do mal.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Florete do Vendaval",
@@ -881,7 +945,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: ". Florete formidável (+2) de mitral (ágil, -1 espaço). Pode gastar 3 PM para ganhar voo 12m por 2 rodadas. Durante o voo, recebe +5 na Defesa contra ataques à distância.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/florete.webp"
         },
         {
             nome: "Lança da Fênix",
@@ -894,7 +959,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Lança que retorna como a fênix após ser arremessada, regenerando dano.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/lanca.webp"
         },
         {
             nome: "Machado da Natureza",
@@ -907,7 +973,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Machado feito de madeira viva que regenera 1 PV por rodada.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/machado-de-batalha.webp"
         },
         {
             nome: "Machado do Abismo",
@@ -920,7 +987,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Machado que canaliza poder das profundezas, causando +1d6 de dano de trevas.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/machado-de-batalha.webp"
         },
         {
             nome: "Machado do Vulcão",
@@ -933,7 +1001,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Machado que queima como lava, causando +2d6 de dano de fogo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/machado-de-batalha.webp"
         },
         {
             nome: "Martelo da Terra",
@@ -946,7 +1015,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Martelo que canaliza poder da terra, causando dano em área ao impactar.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/martelo-de-guerra.webp"
         },
         {
             nome: "Martelo do Titã",
@@ -959,7 +1029,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Martelo de tamanho imenso que causa +3d6 de dano.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/martelo-de-guerra.webp"
         },
         {
             nome: "Punhal das Profundezas",
@@ -972,7 +1043,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: " Adaga formidável (+2). Quando ataca, pode gastar 1 PM para causar +3d6 de dano de ácido.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/adaga.webp"
         },
         // (Itens de Heróis de Arton - Armaduras e Escudos Específicos)
         {
@@ -984,7 +1056,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: ". Cota de malha (+2) sob medida (penalidade -2) defensora (+2) e sombria (+2 Furtividade, lança Escuridão). Recebe RD luz 10 e pode lançar Invisibilidade (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Armadura do Dragão Ancião",
@@ -995,7 +1068,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: ". Armadura completa (+4) guardiã (+4) e invulnerável (RD 5). Recebe RD eletricidade, fogo e frio 10. Se estiver com menos da metade dos PV, pode usar efeito de item 'Assustador' (T20, p. 338).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Armadura do Inverno Perene",
@@ -1006,7 +1080,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: ". Couraça (+2) defensora (+2), gélida (+1d6 frio) de gelo eterno (RD Fogo 5). Habilidade do encanto gélido cura 20 PV (em vez de 10). Pode lançar Área Escorregadia (CD Sab) como ação de movimento (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Cota da Serpente Marinha",
@@ -1017,7 +1092,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Média",
             descricao: ". Cota de malha (+4) ajustada (penalidade -1) e guardiã (+4). Recebe deslocamento de natação 12m. Pode lançar Sopro das Uivantes (CD Sab) (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cota-malha.webp"
         },
         {
             nome: "Couraça do Guardião Celeste",
@@ -1028,7 +1104,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: ". Couraça (+2) banhada a ouro (+2 Diplomacia), defensora (+2) e protetora (+2 TR). Concede +1 em Carisma (após 1 dia). Efeitos de cura de luz curam +1 PV por dado.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/couraca.webp"
         },
         {
             nome: "Escudo da Luz Estelar",
@@ -1039,7 +1116,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Média",
             descricao: ". Escudo leve (+1) defensor (+2). Recebe +5 em Percepção. Pode lançar Luz (CD Int) (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/escudo-leve.webp"
         },
         {
             nome: "Escudo da Ira Vulcânica",
@@ -1050,7 +1128,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: ". Escudo pesado (+2) guardião (+4). Fornece RD fogo 10. Permite lançar Explosão de Chamas (Ref CD Car) como ação de movimento (área dobrada se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/escudo-leve.webp"
         },
         {
             nome: "Escudo da Natureza Viva",
@@ -1061,7 +1140,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Média",
             descricao: ". Escudo leve (+1) defensor (+2) de madeira Tollon (resist. magia +2). Recebe +2 em Fortitude. Pode lançar Curar Ferimentos (CD Sab) (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/escudo-leve.webp"
         },
         {
             nome: "Escudo do Grifo",
@@ -1072,7 +1152,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Média",
             descricao: ". Escudo pesado (+2) defensor (+2). Recebe RD 10 contra ataques à distância. Pode lançar Sopro das Uivantes (CD Sab) (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/escudo-leve.webp"
         },
         {
             nome: "Escudo do Trovão",
@@ -1083,7 +1164,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: ". Escudo pesado (+2) guardião (+4) de mitral (penalidade -2, -1 espaço). Ao sofrer dano corpo a corpo, pode gastar 2 PM para empurrar inimigos adjacentes 3m (Fort CD Car evita).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/escudo-leve.webp"
         },
         // (Itens de Heróis de Arton - Esotéricos Específicos)
         {
@@ -1093,7 +1175,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Esotérico Mágico Médio",
             descricao: "Cajado arcano (+1 CD) glacial (+1d6 frio, vulnerável). Recebe deslocamento de natação 9m (+3m se já possuir). Pode gastar (Ação Mov., 2 PM) para empurrar inimigos adjacentes 4,5m (Ref CD Int evita).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cajado-arcano.webp"
         },
         {
             nome: "Cálice Sagrado",
@@ -1111,7 +1194,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Esotérico Mágico Maior",
             descricao: " Relógio de bolso. Ao lançar magia arcana (execução mov, padrão ou completa), pode gastar +4 PM para lançá-la como ação livre. Se possuir Magia Acelerada, o custo diminui em –2 PM.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/arcanista.webp"
         },
         {
             nome: "Varinha MiDeusa da Vidar",
@@ -1120,7 +1204,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Esotérico Mágico Maior",
             descricao: " Varinha arcana (+1 CD). Aumenta a CD para resistir a suas magias arcanas em +4 (total +5) e aumenta todos os dados de dano de suas magias arcanas em um passo. Se um inimigo passar no TR contra uma magia sua, você perde 1 PV por PM gasto na magia.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/varinha-arcana.webp"
         },
         // (Itens de Heróis de Arton - Acessórios Específicos)
         {
@@ -1130,7 +1215,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Bolsa. Quando uma criatura faz punga contra você, sofre 6d6 dano de corte e fica agarrada (Acrobacia CD 20 para soltar).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/algibeira.webp"
         },
         {
             nome: "Algibeira Provedora",
@@ -1139,7 +1225,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Bolsa. Pode gastar ação completa para procurar item mundano (até 1 espaço). Role 1d20: 6+ encontra; 5- falha (perde poderes por 1 dia); 1 natural morde (4d6 dano) e desaparece.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/algibeira.webp"
         },
         {
             nome: "Ampulheta da Harmonia Temporal",
@@ -1157,7 +1244,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Concede resistência a ilusões +5. Pode lançar Visão Mística (como ação livre se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/amuleto.webp"
         },
         {
             nome: "Amuleto do Amparo",
@@ -1166,7 +1254,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Medalhão. Quando você faz um teste para ajudar, o bônus que fornece aumenta em +2.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/amuleto.webp"
         },
         {
             nome: "Anel da Beleza Ilusória",
@@ -1175,7 +1264,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Concede +5 em perícias baseadas em Carisma (exceto Intimidação). Pode lançar Enfeitiçar (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/anel.webp"
         },
         {
             nome: "Anel da Chama Dançante",
@@ -1184,7 +1274,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Chama mágica age como um parceiro vigilante veterano. Permite lançar Controlar Fogo (custo -1 PM se já a conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/anel.webp"
         },
         {
             nome: "Anel da Proteção Mental",
@@ -1193,7 +1284,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Concede resistência a efeitos mentais +5.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/anel.webp"
         },
         {
             nome: "Anel do Pacto Oneroso",
@@ -1202,7 +1294,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Permite lançar uma magia divina (até 4º círculo) sem custo em PM. Exige realizar uma penitência (definida pelo mestre) antes de usar de novo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/anel.webp"
         },
         {
             nome: "Bastão da Grande Harmonia",
@@ -1238,7 +1331,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Botas. Concede +5 em Furtividade (em ambientes urbanos ou escuros). 1/dia, pode lançar Salto Dimensional (apenas para uma sombra em alcance).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/botas-velozes.webp"
         },
         {
             nome: "Braçadeiras da Força do Colosso",
@@ -1256,7 +1350,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Bracelete. Fornece +10 PV (após 1 dia). Quando reduzido a 0 PV ou menos, pode gastar 2 PM para curar 2d8+2 PV (luz).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/bracelete-bronze.webp"
         },
         {
             nome: "Braceletes da Amizade Intensa",
@@ -1265,7 +1360,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Par de braceletes. Usuários (em alcance médio) podem se comunicar por telepatia e sentir direção/distância um do outro. Cura mágica ou efeito benéfico em um afeta o outro (em alcance curto).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/bracelete-bronze.webp"
         },
         {
             nome: "Caixa dos Ecos Perdidos",
@@ -1292,7 +1388,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Capa de névoa. Sempre que estiver sob camuflagem leve (escuridão ou neblina), ela se torna camuflagem total.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/capa-esvoacante.webp"
         },
         {
             nome: "Chapéu dos Truques Infinitos",
@@ -1301,7 +1398,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Cartola. Pode lançar livremente qualquer versão 'truque' de magias de 1º círculo, mesmo que não as conheça.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/chapeu-arcano.webp"
         },
         {
             nome: "Chapéu Pensador",
@@ -1310,7 +1408,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Chapéu. Recebe a habilidade Engenhosidade. Se já a possui, o bônus aumenta em +2.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/chapeu-arcano.webp"
         },
         {
             nome: "Chave dos Planos",
@@ -1328,7 +1427,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Cinto. Permite lançar Forma Etérea (apenas em você).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cinto-da-forca-do-gigante.webp"
         },
         {
             nome: "Cinto da Flecha Veloz",
@@ -1337,7 +1437,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Cinto. Recebe a habilidade Ataque Extra (apenas com armas de disparo). Se já a possui, o custo para usá-la com armas de disparo diminui em –1 PM.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cinto-da-forca-do-gigante.webp"
         },
         {
             nome: "Cinto da Leveza Graciosa",
@@ -1346,7 +1447,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Cinto. Recebe +5 em Acrobacia e está sempre sob efeito básico de Queda Suave.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cinto-da-forca-do-gigante.webp"
         },
         {
             nome: "Cinto dos Caminhos Cruzados",
@@ -1355,7 +1457,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Cinto. 1/cena, pode gastar (Ação Mov., 3 PM) para trocar de lugar com um aliado em alcance curto.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cinto-da-forca-do-gigante.webp"
         },
         {
             nome: "Cinturão do Trobo",
@@ -1364,7 +1467,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Cinto. Recebe +5 em testes de Atletismo para erguer peso e sua capacidade de carga aumenta em 5 espaços.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/cinto-da-forca-do-gigante.webp"
         },
         {
             nome: "Colar da Fúria Monstruosa",
@@ -1373,7 +1477,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Colar. Adquire a habilidade Fúria (de Bárbaro). Se já a possui, os bônus em ataque e dano aumentam em +1.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/colar-guardiao.webp"
         },
         {
             nome: "Colar da Perseverança",
@@ -1382,7 +1487,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Colar. Recebe +5 em Vontade e +2 em todos os testes estendidos.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/colar-guardiao.webp"
         },
         {
             nome: "Colar do Tirano",
@@ -1391,7 +1497,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Colar. Conectado a 1d8 coleiras. 1/rodada, pode causar 2d8+2 dano de eletricidade a um escravo. Dano ou efeito nocivo ao usuário também afeta os escravos.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/colar-guardiao.webp"
         },
         {
             nome: "Colar das Bolas de Fogo",
@@ -1400,7 +1507,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Colar com 1d4+1 rubis. Recebe RD fogo 10. Pode lançar Bola de Fogo (CD Int/Car; +2 PM em aprimoramentos se já a conhece). Pode gastar (Ação Mov.) e 1 rubi para aumentar a CD em +2 e o dano em +1 passo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/colar-guardiao.webp"
         },
         {
             nome: "Coração do Inverno",
@@ -1418,7 +1526,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Corda. Quando usada para amarrar, a CD para escapar (Acrobacia) aumenta em +20. A vítima fica alquebrada e esmorecida.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/corda.webp"
         },
         {
             nome: "Coroa da Floresta Sussurrante",
@@ -1427,7 +1536,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Tiara. Está sempre sob efeito de Voz Divina. Pode lançar Acalmar Animal e Controlar Plantas (CD Sab; como ação de movimento se já as conhece).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/coroa.webp"
         },
         {
             nome: "Coroa da Majestade Distorcida",
@@ -1436,7 +1546,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Coroa. Recebe +1 Carisma (após 1 dia). Pode lançar Comando (CD Car, +2 CD) como ação de movimento. (Criaturas que passam no TR ficam imunes).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/coroa.webp"
         },
         {
             nome: "Cristal da Voz Silenciosa",
@@ -1445,7 +1556,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Pingente. Permite falar com voz mágica (audível apenas por quem selecionar em alcance curto). Permite lançar magias sem componente verbal.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/po-de-cristal.webp"
         },
         {
             nome: "Cristal do Tempo Célere",
@@ -1454,7 +1566,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Cristal (consumível). Quebrar o cristal permite realizar um intervalo entre aventuras no tempo de 1 dia.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/po-de-cristal.webp"
         },
         {
             nome: "Elixir da Eternidade",
@@ -1481,7 +1594,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Espelho grande. Revela a forma verdadeira de criaturas/objetos (como Visão da Verdade). Pode ser usado para lançar Vidência (CD +5, alvo também afetado por Visão da Verdade).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espelho.webp"
         },
         {
             nome: "Espelho do Outro Lado",
@@ -1490,7 +1604,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Espelho pequeno. 1/aventura, pode conversar com sua contraparte espiritual. Role 1d10–3. Se positivo, recebe esse valor em d6 de auxílio (para testes de perícia). Se negativo, o mestre recebe esse valor em d6 de penalidade (para seus testes de perícia).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espelho.webp"
         },
         {
             nome: "Frigideira do Chef Anão",
@@ -1499,7 +1614,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Instrumento de Ofício (cozinheiro) aprimorado (+5). Pode ser usada como Maça maciça (+1 crit) formidável (+2) de adamante (+1 passo). Pode ser usada como Escudo Pesado defensor (+2) de adamante (RD 2), mas exige duas mãos.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/anao.webp"
         },
         {
             nome: "Gaiola dos Arcanos",
@@ -1517,7 +1633,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Gema. O custo de suas habilidades mágicas que causam dano de trevas diminui em –2 PM.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/gema-elemental.webp"
         },
         {
             nome: "Gema da Purificação",
@@ -1526,7 +1643,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Gema. Pode lançar a magia Purificação. Custo -1 PM se for devoto do Deus de energia positiva e/ou já conhecer a magia (cumulativo).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/gema-elemental.webp"
         },
         {
             nome: "Gema da Santificação",
@@ -1535,7 +1653,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Gema. Área em alcance curto da gema é considerada sob efeito de Consagrar. Se for devoto, pode pagar PM para ativar aprimoramentos (duração 1 cena).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/gema-elemental.webp"
         },
         {
             nome: "Instrumentos da Celeridade",
@@ -1553,7 +1672,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Lâmpada de cristal. Pode lançar Criar Ilusão (apenas visual, CD Int; +2 PM em aprimoramentos se já a conhece). A CD para resistir à magia aumenta em +5.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/ilusao.webp"
         },
         // (Itens de Heróis de Arton - Acessórios Específicos Finais)
         {
@@ -1626,7 +1746,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Pedra. Pode gastar (Ação Padrão, 3 PM) para criar uma abertura Média em superfície sólida não mágica (RD 8 ou menos). Apenas portas e paredes.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/pedras.webp"
         },
         {
             nome: "Pena da Criação",
@@ -1635,7 +1756,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Ferramenta (Ofício: escriba) aprimorada. 1/cena (Ação Completa), faça um teste de Ofício (escriba) (CD 10) para lançar Conjurar Monstro (básico). A cada 5 pontos acima da CD, recebe +1 PM para aprimoramentos.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/pena.webp"
         },
         {
             nome: "Pergaminho da Verdade Cósmica",
@@ -1644,7 +1766,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: " Pergaminho (consumível). Abrir exige Vontade (CD 40). Falha: debilidade (permanente). Sucesso: lança Intervenção Divina (sem custo de PM). Pergaminho se desfaz.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/organizador-de-pergaminhos.webp"
         },
         {
             nome: "Pérola da Nulificação Mágica",
@@ -1662,7 +1785,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: "Pingente. Quando um aliado em alcance curto se fere, pode gastar 2 PM; o aliado não sofre o dano, mas você perde PV em quantidade igual ao dano (após RD/etc. do aliado).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/pingente.webp"
         },
         {
             nome: "Saco dos Ventos Silenciosos",
@@ -1689,7 +1813,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Tomo. Estudar (ação entre aventuras). Seu Golpe Pessoal recebe +2 PM em efeitos (não contam no limite e não aumentam o custo). Aplica-se a apenas um Golpe Pessoal.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/tomo-hermetico.webp"
         },
         {
             nome: "Tomo dos Companheiros",
@@ -1698,7 +1823,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Tomo. Pode gastar (Ação Completa, 3 PM) para convocar um parceiro veterano (à escolha), que surge adjacente. Dura até o fim do dia ou até conjurar outro.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/tomo-hermetico.webp"
         },
 
         // (Itens do Deuses de Arton - Itens Litúrgicos 2)
@@ -1711,7 +1837,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Maior",
             descricao: "Meia armadura reforçada (+1) guardiã (+4) de mitral (penalidade -2). Conta como armadura leve para Destreza na Defesa e habilidades (como Evasão).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Varinha da Generosidada Deusa da Magia",
@@ -1720,7 +1847,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: " Varinha arcana poderosa (+2 CD) de madeira Tollon. Se devoto da Deusa da Magia: fornece RD 5. Quando lança magia, transfere mana para aliado em alcance curto (1 PM temporário por círculo, máx. custo da magia). 1/dia por aliado.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/varinha-arcana.webp"
         },
         {
             nome: "Machado Lamnoriano do Deus dos Goblinóides",
@@ -1733,7 +1861,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Machado ancestral dos anões que causa +1d6 de dano adicional contra lefeu.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/machado-de-batalha.webp"
         },
         {
             nome: "Espada Imaculada Deus da Ressurreição",
@@ -1746,7 +1875,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: " Espada longa precisa (crit +1). Se devoto do Deus da Ressurreição: torna-se formidável (+2). Pode gastar 2 PM (cena) para virar plasma vermelho: ataque +4, dano aumenta 2 passos (fogo não letal) e ignora 20 RD.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Pira Póstera Deus da Ressurreição",
@@ -1764,7 +1894,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: " Se devoto da Deusa da Ambição: +1 Constituição (após 1 dia) e +5 Fortitude (marcha forçada). Ao fazer investida, recebe 1 PM temporário cumulativo (máx. 3 PM/patamar por dia).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/botas-velozes.webp"
         },
         {
             nome: "Mangual Aventureiro Deusa da Ambição",
@@ -1777,7 +1908,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Média. Mangual certeiro (+1 ataque) e cruel (+1 dano). Se devoto da Deusa da Ambição: torna-se dançarino (flutua) e formidável (+2). Se estiver em lugar inédito, dano aumenta 2 passos.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/mangual.webp"
         },
         {
             nome: "Argolas Místicas Deusa da Magia",
@@ -1786,7 +1918,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: " Vestuário. Se devoto da Deusa da Magia: ao lançar magia, recebe +2 PM para aprimoramentos (pode exceder limite). Pode ser usada sobre outras roupas.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/magia.webp"
         },
         {
             nome: "Maça Monstruosa Deus dos Monstros",
@@ -1799,7 +1932,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Maça que causa dano devastador, +2d6 de dano adicional.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/maca-de-guerra.webp"
         },
         {
             nome: "Alguma Coisa do Deus do Caos...",
@@ -1834,7 +1968,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Tridente que controla água, permitindo respirar debaixo d'água.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/tridente.webp"
         },
         {
             nome: "Adaga Ofídica Deus da Traição",
@@ -1847,7 +1982,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Média. Adaga cruel (+1 dano). Possui veneno (peçonha concentrada, reposta magicamente). Se devoto do Deus da Traição: torna-se formidável (+2) e ignora imunidade a veneno. Se Patamar Campeão+, veneno vira peçonha potente.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Bordão Sabichão Deusa do Conhecimento",
@@ -1860,7 +1996,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Maior. Bordão maciço (crit +1). Se devoto da Deusa do Conhecimento: torna-se formidável (+2) e piedoso (+1d6 luz). Pode gastar 2 PM para somar Sabedoria a um teste de perícia.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/bordao.webp"
         },
         {
             nome: "Escrivaninha Consagrada Deusa do Conhecimento",
@@ -1892,7 +2029,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: " Espada longa certeira (+1 ataque). Se devoto do Deus da Justiça: pode gastar (Ação Mov.) para ler versículo e fazer teste de Religião (CD 20). Sucesso: torna-se formidável (+2). Por 10+: gera efeito Oração. Por 20+: torna-se magnífica (+4). Dura pela cena.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Armadura do Julgamento Deus da Justiça",
@@ -1903,7 +2041,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Armadura Mágica Média",
             descricao: "Armadura completa polida (+5 Def 1ª rodada) e reforçada (+1). Se devoto do Deus da Justiça: torna-se defensora (+2). Quando criatura ataca, pode gastar 2 PM para deixá-la pasma (1 rodada, 1/cena) e frustrada (Vontade CD Sab reduz para frustrada). Se Patamar Campeão+, torna-se guardiã (+4).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/armadura-couro.webp"
         },
         {
             nome: "Caldeirão da Vida Deusa da Vida",
@@ -1925,7 +2064,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: " Alabarda certeira (+1 ataque) e precisa (crit +1). Se devoto do Deus da Honra: torna-se formidável (+2) e fornece +5 Iniciativa. Se for o primeiro a agir, recebe 2 PM temporários por nível (cena).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/alabarda.webp"
         },
         {
             nome: "Katana da Determinação Deus da Honra",
@@ -1938,7 +2078,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Katana que fortalece a vontade, concedendo +2 em testes de Vontade.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/katana.webp"
         },
         {
             nome: "Instrumento da Alegria Deusa da Paz",
@@ -1965,7 +2106,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
             descricao: " Colar. Fornece +2 Intimidação e -2 Diplomacia. Se devoto do Deus dos Monstros: fornece +2 em ataque e dano com armas naturais.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/colar-guardiao.webp"
         },
         {
             nome: "Machado da Bravura Deus da Guerra",
@@ -1978,7 +2120,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: "Machado que inspira coragem, concedendo +1 em Intimidação aos aliados próximos.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/machado-de-batalha.webp"
         },
         {
             nome: "Alfange Dourado Deus do Sol",
@@ -1991,7 +2134,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: " Alfange maciço (crit +1, -2 ataque, 2d6 dano). Se devoto do Deus do Sol: pode gastar (Ação Completa) para sacrificar ouro. Remove penalidade e dá bônus (dia): T$ 10 (+2), T$ 100 (+3), T$ 500 (+4), T$ 1.000 (+5).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/alfange.webp"
         },
         {
             nome: "Cimitarra Solar Deus do Sol",
@@ -2004,7 +2148,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Maior",
             descricao: "Cimitarra que brilha com luz solar, causando +1d6 de dano de fogo contra lefeu.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/cimitarra.webp"
         },
         {
             nome: "Adaga Sorrateira Deus dos Ladrões",
@@ -2017,7 +2162,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Menor",
             descricao: "Adaga. Se devoto do Deus dos Ladrões: torna-se formidável (+2). Na 1ª vez na cena que passar em Enganação ou Furtividade, recebe +5 em um teste à escolha (cena). Se Patamar Campeão+, torna-se magnífica (+4).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Cubo Armadilha Deus dos Ladrões",
@@ -2039,7 +2185,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Média",
             descricao: " Lança maciça (crit +1). Se devoto de Kally: +1 ataque/dano e +1d10 dano elemental (ácido/eletricidade/fogo/frio) à escolha. Bônus aumenta +1 a cada nível (máx +6). Se ficar 1 mês longe, bônus cai.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/lanca.webp"
         },
         {
             nome: "Ossos Dracônicos Deus dos Dragões",
@@ -2057,7 +2204,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Item vestido (cinta com anzóis). Reduz PV máx em 1/nível. Fornece +1 em todos os testes (cumulativo). Se devoto do Deus da Tormenta: bônus +2. Se Patamar Campeão+, aumenta PM máx em +1/nível.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/tormenta.webp"
         },
         {
             nome: "Coração Corrompido Deus da Tormenta",
@@ -2066,7 +2214,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Maior",
             descricao: " Baú com coração. Se devoto do Deus da Tormenta sacrificar criatura inteligente, item absorve dano/condições do devoto (até 100 PV e 3 condições). Funciona à distância.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/tormenta.webp"
         },
         {
             nome: "Coroa de Flores Deusa da Natureza",
@@ -2075,7 +2224,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Acessório Menor",
             descricao: ". Tiara. Se devoto da Deusa da Natureza: +1 Sabedoria (após 1 dia) e magias com efeitos numéricos variáveis recebem +1 por dado.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/coroa.webp"
         },
         {
             nome: "Cajado das Matas Deusa da Natureza",
@@ -2088,7 +2238,8 @@ const itensMagicosData = {
             categoria: "Item Mágico",
             tipo: "Arma Mágica Menor",
             descricao: "Bordão. Se devoto da Deusa da Natureza: torna-se formidável (+2) e fornece +2 Defesa ao ar livre (cumulativo). Se Patamar Campeão+, torna-se magnífico (+4).",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/cajado-arcano.webp"
         },
         {
             nome: "Tapeçaria da Guerra Deus da Guerra",
@@ -2106,7 +2257,8 @@ const itensMagicosData = {
         "categoria": "Arma Mágica",
         "tipo": "Arma Específica Média",
         "descricao": "Criada por Hemera, esta adaga formidável causa +1d6 pontos de dano de essência. Além disso, conta como um orbe cristalino.",
-        "fonte": "Guia de NPCs"
+        "fonte": "Guia de NPCs",
+        "imagem": "data/img/adaga.webp"
     },
     {
         "nome": "Braceletes das Escamas",
@@ -2115,7 +2267,8 @@ const itensMagicosData = {
         "categoria": "Item Mágico",
         "tipo": "Acessório Médio",
         "descricao": "Criados por Acteia, estes braceletes de aço escurecido são entalhados de forma a parecer escamas de dragão. Fornecem redução de dano 5 e contam como uma luva de ferro.",
-        "fonte": "Guia de NPCs"
+        "fonte": "Guia de NPCs",
+        "imagem": "data/img/bracelete-bronze.webp"
     },
     {
         "nome": "Face Dracônica",
@@ -2142,7 +2295,8 @@ const itensMagicosData = {
         "categoria": "Armadura Mágica",
         "tipo": "Armadura Específica Média",
         "descricao": "Esta armadura completa sob medida defensora fica armazenada magicamente em uma gargantilha com o símbolo do Deus da Justiça. Enquanto está armazenada dessa forma, a armadura não ocupa nenhum espaço (embora ainda conte como um item vestido) e não impõe nenhuma penalidade ao usuário (como se ele não estivesse de armadura). Ao pronunciar o nome de Khalmyr, o usuário evoca a armadura, que é vestida automaticamente. Devolver a armadura à gargantilha também é uma ação livre.",
-        "fonte": "Lendas de Arton"
+        "fonte": "Lendas de Arton",
+        "imagem": "data/img/armadura-couro.webp"
     },
     {
         "nome": "Fêmur de Narsogg [Nome Inferido]",

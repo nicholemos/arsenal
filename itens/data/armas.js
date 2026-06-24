@@ -15,7 +15,7 @@ const armasData = {
             "tipo": "Simples",
             "empunhadura": "Leve",
             "descricao": "Faca afiada de 15-20cm que causa 1d4 de dano de perfuração (crítico 19). Arma leve que pode ser usada com Destreza. Arremessável com alcance curto. Fornece +5 em Ladinagem para ocultá-la.",
-            "imagem": "https://www.pngmart.com/files/8/Dagger-PNG-File.png"
+            "imagem": "data/img/adaga.webp"
         },
         {
             "nome": "Espada curta",
@@ -29,7 +29,7 @@ const armasData = {
             "tipo": "Simples",
             "empunhadura": "Leve",
             "descricao": "Espada de 40-50cm que causa 1d6 de dano de perfuração (crítico 19). Arma leve, comum entre guardas.",
-            "imagem": "https://images.squarespace-cdn.com/content/v1/59aa8bee197aea4ad67f52ae/1504463915011-AHPSUZ67KRCE81OBNFLM/shortsword.png"
+            "imagem": "data/img/espada-curta.webp"
         },
         {
             "nome": "Foice",
@@ -43,7 +43,7 @@ const armasData = {
             "tipo": "Simples",
             "empunhadura": "Leve",
             "descricao": "Instrumento agrícola com lâmina curva que causa 1d6 de dano de corte (crítico x3). Arma tradicional de druidas.",
-            "imagem": "https://www.pngmart.com/files/23/Sickle-PNG-Isolated-Photo.png"
+            "imagem": "data/img/foice.webp"
         },
         {
             "nome": "Clava",
@@ -56,7 +56,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Uma Mão",
-            "descricao": "Pedaço de madeira que causa 1d6 de dano de impacto (crítico x2). Arma simples de preço zero, comum entre bárbaros."
+            "descricao": "Pedaço de madeira que causa 1d6 de dano de impacto (crítico x2). Arma simples de preço zero, comum entre bárbaros.",
+            "imagem": "data/img/clava.webp"
         },
         {
             "nome": "Lança",
@@ -69,7 +70,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Uma Mão",
-            "descricao": "Arma com haste de madeira e ponta afiada que causa 1d6 de dano de perfuração (crítico x2). Arremessável com alcance curto."
+            "descricao": "Arma com haste de madeira e ponta afiada que causa 1d6 de dano de perfuração (crítico x2). Arremessável com alcance curto.",
+            "imagem": "data/img/lanca.webp"
         },
         {
             "nome": "Maça",
@@ -82,7 +84,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Uma Mão",
-            "descricao": "Bastão com peso cheio de protuberâncias que causa 1d8 de dano de impacto (crítico x2). Favorita de clérigos."
+            "descricao": "Bastão com peso cheio de protuberâncias que causa 1d8 de dano de impacto (crítico x2). Favorita de clérigos.",
+            "imagem": "data/img/maca.webp"
         },
         {
             "nome": "Bordão",
@@ -95,7 +98,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Duas Mãos",
-            "descricao": "Cajado de madeira que causa 1d6 de dano de impacto (crítico x2) em cada ponta. Arma dupla de preço zero. Ocupa 2 espaços. (Opcional DH: quando empunhada corpo a corpo recebe a habilidade de arma ágil)"
+            "descricao": "Cajado de madeira que causa 1d6 de dano de impacto (crítico x2) em cada ponta. Arma dupla de preço zero. Ocupa 2 espaços. (Opcional DH: quando empunhada corpo a corpo recebe a habilidade de arma ágil)",
+            "imagem": "data/img/bordao.webp"
         },
         {
             "nome": "Pique",
@@ -108,7 +112,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Duas Mãos",
-            "descricao": "Lança muito longa que causa 1d8 de dano de perfuração (crítico x2). Arma alongada que dobra o alcance natural. Ocupa 2 espaços."
+            "descricao": "Lança muito longa que causa 1d8 de dano de perfuração (crítico x2). Arma alongada que dobra o alcance natural. Ocupa 2 espaços.",
+            "imagem": "data/img/pique.webp"
         },
         {
             "nome": "Tacape",
@@ -121,7 +126,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Duas Mãos",
-            "descricao": "Clava grande com pregos que causa 1d10 de dano de impacto (crítico x2). Arma de preço zero, comum entre bárbaros. Ocupa 2 espaços."
+            "descricao": "Clava grande com pregos que causa 1d10 de dano de impacto (crítico x2). Arma de preço zero, comum entre bárbaros. Ocupa 2 espaços.",
+            "imagem": "data/img/tacape.webp"
         },
         {
             "nome": "Azagaia",
@@ -134,7 +140,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Uma Mão",
-            "descricao": "Lança leve e flexível que causa 1d6 de dano de perfuração (crítico x2). Arremessável com alcance médio. Sofre -5 em ataques corpo a corpo. (Opcional DH: quando empunhada corpo a corpo recebe a habilidade de arma ágil)"
+            "descricao": "Lança leve e flexível que causa 1d6 de dano de perfuração (crítico x2). Arremessável com alcance médio. Sofre -5 em ataques corpo a corpo. (Opcional DH: quando empunhada corpo a corpo recebe a habilidade de arma ágil)",
+            "imagem": "data/img/azagaia.webp"
         },
         {
             "nome": "Besta leve",
@@ -147,7 +154,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Uma Mão",
-            "descricao": "Arco montado com gatilho que causa 1d8 de dano de perfuração (crítico 19). Alcance médio. Recarregar é ação de movimento."
+            "descricao": "Arco montado com gatilho que causa 1d8 de dano de perfuração (crítico 19). Alcance médio. Recarregar é ação de movimento.",
+            "imagem": "data/img/besta-leve.webp"
         },
         {
             "nome": "Funda",
@@ -160,7 +168,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Uma Mão",
-            "descricao": "Arma de arremesso que causa 1d4 de dano de impacto (crítico x2). Alcance médio. Munição é barata."
+            "descricao": "Arma de arremesso que causa 1d4 de dano de impacto (crítico x2). Alcance médio. Munição é barata.",
+            "imagem": "data/img/funda.webp"
         },
         {
             "nome": "Arco curto",
@@ -173,7 +182,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Simples",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arco pequeno que causa 1d6 de dano de perfuração (crítico x3). Alcance médio. Recarregar é ação de movimento."
+            "descricao": "Arco pequeno que causa 1d6 de dano de perfuração (crítico x3). Alcance médio. Recarregar é ação de movimento.",
+            "imagem": "data/img/arco-curto.webp"
         },
         // ---------- ARMAS MARCIAIS ----------
         {
@@ -187,7 +197,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Leve",
-            "descricao": "Ferramenta útil para cortar madeira e também inimigos. Uma machadinha pode ser arremessada."
+            "descricao": "Ferramenta útil para cortar madeira e também inimigos. Uma machadinha pode ser arremessada.",
+            "imagem": "data/img/machadinha.webp"
         },
         {
             "nome": "Cimitarra",
@@ -200,7 +211,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Espada curva que causa 1d8 de dano de corte (crítico 18). Arma ágil."
+            "descricao": "Espada curva que causa 1d8 de dano de corte (crítico 18). Arma ágil.",
+            "imagem": "data/img/cimitarra.webp"
         },
         {
             "nome": "Espada longa",
@@ -213,7 +225,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Espada de 70-80cm que causa 1d8 de dano de corte (crítico 19)."
+            "descricao": "Espada de 70-80cm que causa 1d8 de dano de corte (crítico 19).",
+            "imagem": "data/img/espada-longa.webp"
         },
         {
             "nome": "Florete",
@@ -226,7 +239,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Espada fina que causa 1d6 de dano de perfuração (crítico 18). Arma ágil."
+            "descricao": "Espada fina que causa 1d6 de dano de perfuração (crítico 18). Arma ágil.",
+            "imagem": "data/img/florete.webp"
         },
         {
             "nome": "Machado de batalha",
@@ -239,7 +253,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Machado com lâmina larga que causa 1d8 de dano de corte (crítico x3). Arma versátil."
+            "descricao": "Machado com lâmina larga que causa 1d8 de dano de corte (crítico x3). Arma versátil.",
+            "imagem": "data/img/machado-de-batalha.webp"
         },
         {
             "nome": "Mangual",
@@ -252,7 +267,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Cabo com bola de metal que causa 1d8 de dano de impacto (crítico x2). Arma que pode ser usada com uma ou duas mãos."
+            "descricao": "Cabo com bola de metal que causa 1d8 de dano de impacto (crítico x2). Arma que pode ser usada com uma ou duas mãos.",
+            "imagem": "data/img/mangual.webp"
         },
         {
             "nome": "Martelo de guerra",
@@ -265,7 +281,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Martelo pesado que causa 1d8 de dano de impacto (crítico x2) com uma mão ou 1d10 com duas mãos. Arma versátil."
+            "descricao": "Martelo pesado que causa 1d8 de dano de impacto (crítico x2) com uma mão ou 1d10 com duas mãos. Arma versátil.",
+            "imagem": "data/img/martelo-de-guerra.webp"
         },
         {
             "nome": "Picareta",
@@ -278,7 +295,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Arma com ponta e gancho que causa 1d6 de dano de perfuração (crítico x4)."
+            "descricao": "Arma com ponta e gancho que causa 1d6 de dano de perfuração (crítico x4).",
+            "imagem": "data/img/picareta.webp"
         },
         {
             "nome": "Tridente",
@@ -291,7 +309,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Uma Mão",
-            "descricao": "Arma com três pontas que causa 1d8 de dano de perfuração (crítico x2). Arma versátil."
+            "descricao": "Arma com três pontas que causa 1d8 de dano de perfuração (crítico x2). Arma versátil.",
+            "imagem": "data/img/tridente.webp"
         },
         {
             "nome": "Alabarda",
@@ -304,7 +323,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arma com lâmina e gancho que causa 1d10 de dano de corte (crítico x3). Arma alongada. Ocupa 2 espaços."
+            "descricao": "Arma com lâmina e gancho que causa 1d10 de dano de corte (crítico x3). Arma alongada. Ocupa 2 espaços.",
+            "imagem": "data/img/alabarda.webp"
         },
         {
             "nome": "Alfange",
@@ -317,7 +337,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Uma versão maior da cimitarra, esta espada de lâmina larga e curva é bastante usada por guerreiros do Deserto da Perdição."
+            "descricao": "Uma versão maior da cimitarra, esta espada de lâmina larga e curva é bastante usada por guerreiros do Deserto da Perdição.",
+            "imagem": "data/img/alfange.webp"
         },
         {
             "nome": "Gadanho",
@@ -330,7 +351,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Outra ferramenta agrícola, o gadanho é uma versão maior da foice, para uso com as duas mãos."
+            "descricao": "Outra ferramenta agrícola, o gadanho é uma versão maior da foice, para uso com as duas mãos.",
+            "imagem": "data/img/gadanho.webp"
         },
         {
             "nome": "Lança montada",
@@ -343,7 +365,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arma alongada. Se montado, pode usá-la com uma mão. Causa +2d8 de dano em investida montada."
+            "descricao": "Arma alongada. Se montado, pode usá-la com uma mão. Causa +2d8 de dano em investida montada.",
+            "imagem": "data/img/lanca-montada.webp"
         },
         {
             "nome": "Machado de guerra",
@@ -356,7 +379,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Machado grande."
+            "descricao": "Machado grande.",
+            "imagem": "data/img/machado-de-guerra.webp"
         },
         {
             "nome": "Marreta",
@@ -369,7 +393,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Martelo grande que causa 1d10 de dano de impacto (crítico x2). Ocupa 2 espaços."
+            "descricao": "Martelo grande que causa 1d10 de dano de impacto (crítico x2). Ocupa 2 espaços.",
+            "imagem": "data/img/marreta.webp"
         },
         {
             "nome": "Montante",
@@ -382,7 +407,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Espada gigante que causa 1d12 de dano de corte (crítico 19). Ocupa 2 espaços."
+            "descricao": "Espada gigante que causa 1d12 de dano de corte (crítico 19). Ocupa 2 espaços.",
+            "imagem": "data/img/montante.webp"
         },
         {
             "nome": "Arco longo",
@@ -395,7 +421,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arco grande que causa 1d8 de dano de perfuração (crítico x3). Alcance longo. Recarregar é ação de movimento."
+            "descricao": "Arco grande que causa 1d8 de dano de perfuração (crítico x3). Alcance longo. Recarregar é ação de movimento.",
+            "imagem": "data/img/arco-longo.webp"
         },
         {
             "nome": "Besta pesada",
@@ -408,7 +435,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Besta poderosa que causa 1d10 de dano de perfuração (crítico 19). Alcance longo. Recarregar é ação padrão."
+            "descricao": "Besta poderosa que causa 1d10 de dano de perfuração (crítico 19). Alcance longo. Recarregar é ação padrão.",
+            "imagem": "data/img/besta-pesada.webp"
         },
         // ---------- ARMAS EXÓTICAS ----------
         {
@@ -422,7 +450,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Exótica",
             "empunhadura": "Uma Mão",
-            "descricao": "Arma flexível que causa 1d3 de dano de corte (crítico x2). Arma que fornece +2 em testes de Luta para desarmar e derrubar."
+            "descricao": "Arma flexível que causa 1d3 de dano de corte (crítico x2). Arma que fornece +2 em testes de Luta para desarmar e derrubar.",
+            "imagem": "data/img/chicote.webp"
         },
         {
             "nome": "Espada bastarda (1 Mão)",
@@ -435,7 +464,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Exótica",
             "empunhadura": "Uma Mão",
-            "descricao": "Arma adaptável. Pode ser usada como arma marcial de duas mãos."
+            "descricao": "Arma adaptável. Pode ser usada como arma marcial de duas mãos.",
+            "imagem": "data/img/espada-bastarda.webp"
         },
         {
             "nome": "Espada bastarda (2 Mãos)",
@@ -448,7 +478,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arma adaptável. Pode ser usada como arma marcial de duas mãos."
+            "descricao": "Arma adaptável. Pode ser usada como arma marcial de duas mãos.",
+            "imagem": "data/img/espada-bastarda.webp"
         },
         {
             "nome": "Katana (1 Mão)",
@@ -461,7 +492,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Exótica",
             "empunhadura": "Uma Mão",
-            "descricao": "Espada tradicional do samurai. Arma adaptável e ágil. Pode ser usada como arma marcial de duas mãos (dano 1d10)."
+            "descricao": "Espada tradicional do samurai. Arma adaptável e ágil. Pode ser usada como arma marcial de duas mãos (dano 1d10).",
+            "imagem": "data/img/katana.webp"
         },
         {
             "nome": "Katana (2 Mãos)",
@@ -474,7 +506,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Espada tradicional do samurai. Arma adaptável e ágil. Pode ser usada como arma exótica de uma mão (dano 1d8)."
+            "descricao": "Espada tradicional do samurai. Arma adaptável e ágil. Pode ser usada como arma exótica de uma mão (dano 1d8).",
+            "imagem": "data/img/katana.webp"
         },
         {
             "nome": "Machado anão",
@@ -487,7 +520,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Exótica",
             "empunhadura": "Uma Mão",
-            "descricao": "Arma preferida dos anões. Pode ser usada como arma marcial de duas mãos."
+            "descricao": "Arma preferida dos anões. Pode ser usada como arma marcial de duas mãos.",
+            "imagem": "data/img/machado-anao.webp"
         },
         {
             "nome": "Corrente de espinhos",
@@ -500,7 +534,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Exótica",
             "empunhadura": "Duas Mãos",
-            "descricao": "Ataca a até 4,5m. Arma ágil, dupla e versátil (+2 em derrubar ou desarmar)."
+            "descricao": "Ataca a até 4,5m. Arma ágil, dupla e versátil (+2 em derrubar ou desarmar).",
+            "imagem": "data/img/corrente-de-espinhos.webp"
         },
         {
             "nome": "Machado táurico",
@@ -513,7 +548,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Exótica",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arma ancestral dos minotauros. Arma desbalanceada (−2 em ataques)."
+            "descricao": "Arma ancestral dos minotauros. Arma desbalanceada (−2 em ataques).",
+            "imagem": "data/img/machado-taurico.webp"
         },
         {
             "nome": "Rede",
@@ -526,7 +562,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Exótica",
             "empunhadura": "Uma Mão",
-            "descricao": "Se acertar, não causa dano, mas deixa a vítima enredada."
+            "descricao": "Se acertar, não causa dano, mas deixa a vítima enredada.",
+            "imagem": "data/img/rede.webp"
         },
         // ---------- ARMAS DE FOGO ----------
         {
@@ -540,7 +577,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "De Fogo",
             "empunhadura": "Leve",
-            "descricao": "Arma de fogo que causa 1d8 de dano de perfuração (crítico x3). Alcance médio. Recarregar é ação padrão."
+            "descricao": "Arma de fogo que causa 1d8 de dano de perfuração (crítico x3). Alcance médio. Recarregar é ação padrão.",
+            "imagem": "data/img/pistola.webp"
         },
         {
             "nome": "Mosquete",
@@ -553,7 +591,8 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "De Fogo",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arma de fogo grande que causa 1d10 de dano de perfuração (crítico x4). Alcance longo. Recarregar é ação padrão."
+            "descricao": "Arma de fogo grande que causa 1d10 de dano de perfuração (crítico x4). Alcance longo. Recarregar é ação padrão.",
+            "imagem": "data/img/mosquete.webp"
         },
         {
             "nome": "Bacamarte",
@@ -567,7 +606,8 @@ const armasData = {
             "tipo": "De Fogo",
             "empunhadura": "Duas Mãos",
             "descricao": "Esta arma de fogo tem boca larga, capaz de espalhar a munição como um cone de 6m (seu alcance máximo). Para atacar, faça um ataque à distância e compare com a Defesa de cada criatura na área. Recarregar exige uma ação completa e 2 balas.",
-            "fonte": "Coração de Rubi"
+            "fonte": "Coração de Rubi",
+            "imagem": "data/img/mosquete.webp"
         },
 
         // (Itens de Ameaças de Arton)
@@ -597,7 +637,8 @@ const armasData = {
             tipo: "Simples",
             empunhadura: "Uma Mão",
             descricao: "Pequeno tubo oco usado para disparar dardos. Causa dano mínimo, mas é excelente para inocular venenos; a CD para resistir ao veneno dos dardos aumenta em +2.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/funda.webp"
         },
         {
             nome: "Neko-te",
@@ -611,7 +652,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Leve",
             descricao: "Uma luva com garras metálicas na palma e no dorso. Fornece +2 em testes de Atletismo para escalar e conta como uma mão livre para isso. Se estiver usando duas neko-te, seu deslocamento ao escalar aumenta em +1,5m.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/manopla.webp"
         },
         {
             nome: "Gládio",
@@ -625,7 +667,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Uma Mão",
             descricao: "Espada de lâmina curta, mas pesada, sem guarda. A ponta é muito afiada, capaz de infligir ferimentos precisos e letais. Arma padrão dos legionários do Império de Tauron.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/espada-curta.webp"
         },
         {
             nome: "Tetsubo",
@@ -639,7 +682,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Uma versão mais pesada e sofisticada do tacape, geralmente reforçado com anéis metálicos. É uma arma versátil, fornecendo +2 em testes para derrubar ou empurrar.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/tacape.webp"
         },
         {
             nome: "Traque",
@@ -667,7 +711,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Duas Mãos",
             descricao: "Versão mais pesada e mais potente do mosquete. Por seu peso e recuo, é uma arma desbalanceada. Recarregar é uma ação padrão.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/mosquete.webp"
         },
         {
             nome: "Bacamarte",
@@ -681,7 +726,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Duas Mãos",
             descricao: "Esta arma de fogo tem boca larga, capaz de espalhar a munição como um cone de 6m (seu alcance máximo). Para atacar, faça um ataque à distância e compare com a Defesa de cada criatura na área. Recarregar exige uma ação completa e 2 balas.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/mosquete.webp"
         },
         {
             nome: "Açoite Finntroll",
@@ -695,7 +741,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Feito de tiras de couro com farpas de aço nas pontas. Uma criatura que sofra dano do açoite sofre –2 em testes de perícia e rolagens de dano por 1 rodada (metabolismo).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/chicote.webp"
         },
         {
             nome: "Espada Vespa (Corte)",
@@ -709,7 +756,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida. Feita com três ferrões de vespas gigantes. Pode-se pressionar a empunhadura para unir os ferrões (Corte) ou separá-los (Perfuração).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/florete.webp"
         },
         {
             nome: "Espada Vespa (Perfuração)",
@@ -723,7 +771,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida. Feita com três ferrões de vespas gigantes. Pode-se pressionar a empunhadura para unir os ferrões (Corte) ou separá-los (Perfuração).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/florete.webp"
         },
         {
             nome: "Pistola-Punhal (Corpo a Corpo)",
@@ -737,7 +786,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida (ágil). Quando faz um ataque corpo a corpo, pode acionar seu mecanismo para disparar a bala (+2d6 dano). Recarregar é uma ação padrão.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/pistola.webp"
         },
         {
             nome: "Pistola-Punhal (À Distância)",
@@ -751,7 +801,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida. Para atacar com ela como arma de fogo, você deve também ter proficiência em armas de fogo. Recarregar é uma ação padrão.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/pistola.webp"
         },
         {
             nome: "Mordida do Diabo",
@@ -765,7 +816,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Aparato em forma de mandíbula com corrente, pode se destacar do cabo (alcance 3m). É uma arma ágil e versátil (+2 para agarrar e desarmar).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/mordida.webp"
         },
         {
             nome: "Presa de Serpente",
@@ -779,7 +831,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Espada de obsidiana. Em um acerto crítico, o dano aumenta em um passo (antes de ser multiplicado). Não pode receber material especial. É uma arma ágil.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Lança de Fogo (Corpo a Corpo)",
@@ -793,7 +846,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Duas Mãos",
             descricao: "Arma híbrida (alongada). Quando faz um ataque corpo a corpo, pode acionar seu mecanismo para disparar a bala (+2d8 dano).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/lanca.webp"
         },
         {
             nome: "Lança de Fogo (À Distância)",
@@ -807,7 +861,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Duas Mãos",
             descricao: "Arma híbrida. Quando faz um ataque à distância contra oponente adjacente, causa +1d8 dano. Recarregar é uma ação padrão.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/lanca.webp"
         },
 
         {
@@ -822,7 +877,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma de arremesso. Se causar dano, fica preso. Alvo pode se soltar (ação de movimento, 1d10 PV). Pode ser usado corpo a corpo (-5 no ataque).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            imagem: "data/img/lanca.webp"
         },
 
         // (Itens de Duelo de Dragões)
@@ -838,7 +894,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida (ágil, desbalanceada). Mudar de forma é ação padrão (ou mov. com CD 20 Conhecimento). Formas: Serpente (alongada), Escudo (escudo leve, perde bônus se atacar), Lua (arremesso/curto, ricocheteia), Pilar (adaptável, alongada).",
-            fonte: "Duelo de Dragões"
+            fonte: "Duelo de Dragões",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Katar",
@@ -852,7 +909,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Leve",
             descricao: "Arma discreta (+5 em Ladinagem para ocultar). Para personagens com Briga ou Estilo Desarmado, é uma arma simples.",
-            fonte: "Duelo de Dragões"
+            fonte: "Duelo de Dragões",
+            imagem: "data/img/adaga.webp"
         },
         // (Itens de Heróis de Arton)
         {
@@ -881,7 +939,8 @@ const armasData = {
             tipo: "Simples",
             empunhadura: "Uma Mão",
             descricao: "Pequeno tubo oco usado para disparar dardos. A CD para resistir ao veneno dos dardos aumenta em +2.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/funda.webp"
         },
         {
             nome: "Besta de Mão",
@@ -895,7 +954,8 @@ const armasData = {
             tipo: "Simples",
             empunhadura: "Uma Mão",
             descricao: "Pequena e discreta, é uma arma surpreendente. Recarregar é uma ação de movimento.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/besta-leve.webp"
         },
         {
             nome: "Adaga Oposta",
@@ -909,7 +969,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Leve",
             descricao: "Possui uma guarda elaborada. Quando usa uma habilidade que permite um teste de ataque para evitar dano (como Aparar), você recebe +2 nesse teste.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Agulha de Ahlen",
@@ -923,7 +984,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Leve",
             descricao: "Adaga com lâmina oca, armazena 1 dose de veneno de contato. O veneno permanece até acertar um ataque e a CD para resistir a ele aumenta em +2.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/florete.webp"
         },
         {
             nome: "Cinquedea",
@@ -936,8 +998,9 @@ const armasData = {
             categoria: "Arma",
             tipo: "Marcial",
             empunhadura: "Leve",
-            descricao: "Lâmina triangular feita para estocar. Contra uma criatura desprevenida ou que você esteja flanqueando, causa +1d6 de dano.",
-            fonte: "Heróis de Arton"
+            descricao: "Lâmina triangular feita para estocar. Contra uma criatura desprevenida ou que você esteja flanqueando, a cinquedea causa um dado de dano extra do mesmo tipo.",
+            fonte: "Heróis de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Dirk",
@@ -951,7 +1014,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Leve",
             descricao: "Punhal longo e delgado. Permite atacar oponentes caídos, desprevenidos ou indefesos sem violar o Código de Honra.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Martelo Leve",
@@ -965,7 +1029,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Leve",
             descricao: "Martelo de metal apreciado por anões como arma secundária. Pode ser arremessado.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/martelo-de-guerra.webp"
         },
         {
             nome: "Neko-te",
@@ -979,7 +1044,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Leve",
             descricao: "Luva com garras metálicas. Fornece +2 em Atletismo para escalar (conta como mão livre). Com duas neko-te, deslocamento de escalada +1,5m.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/manopla.webp"
         },
         {
             nome: "Espada Larga",
@@ -993,7 +1059,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Uma Mão",
             descricao: "Lâmina menos afiada, mas mais larga e pesada que a da espada longa.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/montante.webp"
         },
         {
             nome: "Espadim",
@@ -1007,7 +1074,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Uma Mão",
             descricao: "Espada cerimonial. Se for treinado em Nobreza, você recebe +1 em testes de ataque e rolagens de dano com ela.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/florete.webp"
         },
         {
             nome: "Gládio",
@@ -1021,7 +1089,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Uma Mão",
             descricao: "Espada de lâmina curta e pesada, sem guarda. Arma padrão dos legionários do Império de Tauron.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espada-curta.webp"
         },
         {
             nome: "Maça-Estrela",
@@ -1035,7 +1104,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Uma Mão",
             descricao: "Uma maça com cravos. Causa dano de impacto e perfuração ao mesmo tempo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/maca.webp"
         },
         {
             nome: "Serrilheira",
@@ -1049,7 +1119,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Uma Mão",
             descricao: "Facão com gume serrilhado. Se acertar um ataque por 5 ou mais, deixa a vítima vulnerável (1 rodada) e sangrando. Impõe –2 em Diplomacia e Enganação.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Bico de Corvo",
@@ -1063,7 +1134,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Martelo alongado e versátil, que fornece +2 em testes para derrubar e quebrar.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/martelo-de-guerra.webp"
         },
         {
             nome: "Desmontador",
@@ -1077,7 +1149,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Haste longa com gancho de mola. Pode ser usado para agarrar. É uma arma alongada e versátil (+2 em agarrar, derrubar e empurrar).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/machadinha.webp"
         },
         {
             nome: "Espada de Execução",
@@ -1091,7 +1164,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Lâmina pesada. Sofre –5 em testes de ataque, a menos que gaste uma ação de movimento para prepará-la (remove a penalidade no próximo ataque do turno).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/montante.webp"
         },
         {
             nome: "Lança de Justa",
@@ -1105,7 +1179,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Como uma lança montada, mas causa dano não letal. Em investida montada, pode fazer a manobra derrubar (ação livre). 50% de chance de quebrar se acertar.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/lanca-montada.webp"
         },
         {
             nome: "Malho",
@@ -1119,7 +1194,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Martelo de madeira dura e pesada. É uma arma versátil (+2 em derrubar ou empurrar). Pode ser feito de Madeira Tollon.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/marreta.webp"
         },
         {
             nome: "Martelo Longo",
@@ -1133,7 +1209,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Haste de 2m com ponta de metal e cabeça pesada. É uma arma alongada.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/martelo-de-guerra.webp"
         },
         {
             nome: "Tan-korak",
@@ -1161,7 +1238,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Versão mais pesada do tacape. É uma arma versátil (+2 em derrubar ou empurrar).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/tacape.webp"
         },
         {
             nome: "Tai-tai",
@@ -1189,7 +1267,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Não sofre penalidade em ataques à distância por estar montado. Se já não sofria, recebe +2 no dano com este arco quando montado.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/arco-curto.webp"
         },
         {
             nome: "Besta Dupla",
@@ -1203,7 +1282,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Permite usar o poder Disparo Rápido. Se já o possui, pode usá-lo sem penalidade. Recarregar é uma ação completa.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/besta-leve.webp"
         },
         {
             nome: "Kimbata",
@@ -1231,7 +1311,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Cultivada por druidas. Pode aplicar Sabedoria às rolagens de dano (+2 no dano se já o faz). Para druidas, é uma arma simples.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/clava.webp"
         },
         {
             nome: "Espada Canora",
@@ -1245,7 +1326,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Possui frestas na lâmina que produzem som. Conta como um instrumento musical para bardos. É uma arma ágil.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Espada-Gadanho",
@@ -1259,7 +1341,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Lâmina afiada na parte de dentro. É uma arma ágil e surpreendente.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/foice.webp"
         },
         {
             nome: "Khopesh",
@@ -1287,7 +1370,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Lança de infantaria. É uma arma alongada que pode ser arremessada. Pode ser usada como uma arma marcial de duas mãos.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/pique.webp"
         },
         {
             nome: "Machado de Haste",
@@ -1301,7 +1385,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Pequena cabeça de machado em um cabo longo. É uma arma adaptável e alongada. Pode ser usada como uma arma marcial de duas mãos.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/machado-de-batalha.webp"
         },
         {
             nome: "Mordida do Diabo",
@@ -1315,7 +1400,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Mandíbula com corrente, pode se destacar do cabo (alcance 3m). É uma arma ágil e versátil (+2 para agarrar e desarmar).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/mordida.webp"
         },
         {
             nome: "Pistola-Punhal (Corpo a Corpo)",
@@ -1329,7 +1415,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida e ágil. Quando faz um ataque corpo a corpo, pode acionar seu mecanismo para disparar a bala (+2d6 dano). Recarregar é uma ação padrão.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/pistola.webp"
         },
         {
             nome: "Pistola-Punhal (À Distância)",
@@ -1343,7 +1430,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida e ágil. Para atacar com ela como arma de fogo, você deve também ter proficiência em armas de fogo. Recarregar é uma ação padrão.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/pistola.webp"
         },
         {
             nome: "Presa de Serpente",
@@ -1357,7 +1445,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Espada de obsidiana. Em um acerto crítico, o dano aumenta em dois passos (antes de multiplicar). Não pode receber material especial. É uma arma ágil.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Rapieira",
@@ -1385,7 +1474,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Duas Mãos",
             descricao: "Arma híbrida (alongada). Quando faz um ataque corpo a corpo, pode acionar seu mecanismo para disparar a bala (+2d8 dano).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/lanca.webp"
         },
         {
             nome: "Lança de Fogo (À Distância)",
@@ -1399,7 +1489,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Duas Mãos",
             descricao: "Arma híbrida. Quando faz um ataque à distância contra oponente adjacente, causa +1d8 dano. Recarregar é uma ação padrão.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/lanca.webp"
         },
         {
             nome: "Marrão",
@@ -1427,7 +1518,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Duas Mãos",
             descricao: "Espada com esferas de adamante no interior. Se rolar 1 ou 2 no ataque (e não for proficiente), erra e atinge a si mesmo. Pode ser usada como arma marcial.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/montante.webp"
         },
         {
             nome: "Shuriken",
@@ -1469,7 +1561,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Disco de metal. Se acertar, pode retornar à mão (reação) ou ricochetear (novo ataque com -5 cumulativo).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/adaga.webp"
         },
         {
             nome: "Arpão",
@@ -1483,7 +1576,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma de arremesso. Se causar dano, fica preso (alvo pode se soltar com ação de movimento, sofrendo 1d10 PV). Pode ser usado corpo a corpo (-5 no ataque).",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/lanca.webp"
         },
         {
             nome: "Arco de Guerra",
@@ -1497,7 +1591,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Duas Mãos",
             descricao: "Arco robusto. Aplica Força às rolagens de dano. Não pode ser usado montado. É uma arma desbalanceada.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/arco-curto.webp"
         },
         {
             nome: "Balestra",
@@ -1525,7 +1620,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Duas Mãos",
             descricao: "Armazena 10 virotes. Recarregar cada virote é ação livre. Pode gastar 5 virotes para atacar até 3 alvos adjacentes (1 teste) ou causar +1d6 de dano a 1 alvo.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/besta-leve.webp"
         },
         {
             nome: "Garrucha",
@@ -1553,7 +1649,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Duas Mãos",
             descricao: "Arma desbalanceada. Se For < 4, é arrastado 3m para trás ao atirar. Usa Bolas de Ferro. Recarregar é uma ação completa.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            imagem: "data/img/mosquete.webp"
         },
         {
             nome: "Pistola-Tambor",
@@ -1567,7 +1664,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Uma mão",
             descricao: "Esta arma de fogo possui um tambor giratório que armazena 4 munições. Esse tambor é parte de um mecanismo complexo e por isso conta como uma melhoria para a arma. Recarregar uma pistola-tambor é uma ação completa.",
-            fonte: "Guia de NPCs"
+            fonte: "Guia de NPCs",
+            imagem: "data/img/pistola.webp"
         },
         {
             nome: "Cajado de Batalha",
@@ -1581,7 +1679,8 @@ const armasData = {
             tipo: "Marcial",
             empunhadura: "Duas Mãos",
             descricao: "Um cajado reforçado com chapas de metal nas pontas. Uma arma discreta, usada por andarilhos que não querem levantar suspeitas. O cajado de batalha é uma arma dupla.",
-            fonte: "Guia de NPCs"
+            fonte: "Guia de NPCs",
+            imagem: "data/img/cajado-de-batalha.webp"
         },
 
         {
@@ -1624,7 +1723,8 @@ const armasData = {
             "tipo": "Exótica",
             "empunhadura": "Uma mão",
             "descricao": "Uma versão mais perigosa da maça comum, com uma cabeça formada por grandes placas de metal. Arma desbalanceada (−2 em ataques).",
-            "fonte": "Guia de NPCs"
+            "fonte": "Guia de NPCs",
+            "imagem": "data/img/maca-de-guerra.webp"
         },
         {
             "nome": "Machado de Lenha",
@@ -1638,7 +1738,8 @@ const armasData = {
             "tipo": "Simples",
             "empunhadura": "Uma mão",
             "descricao": "Uma ferramenta comum para corte de madeira. Devido à sua lâmina projetada para materiais rígidos, ataques desferidos com esta arma ignoram 5 pontos de RD (Redução de Dano) de objetos e construtos.",
-            "fonte": "Guia de NPCs"
+            "fonte": "Guia de NPCs",
+            "imagem": "data/img/machado-de-batalha.webp"
 
         },
         {
@@ -1653,7 +1754,8 @@ const armasData = {
             tipo: "Exótica",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida. Quando faz um ataque corpo a corpo, pode acionar seu mecanismo para disparar a bala (+2d6 dano). Recarregar é uma ação padrão.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/espada-longa.webp"
         },
         {
             nome: "Espada-Calibre (À Distância)",
@@ -1667,7 +1769,8 @@ const armasData = {
             tipo: "De Fogo",
             empunhadura: "Uma Mão",
             descricao: "Arma híbrida. Para atacar com ela como arma de fogo, você deve também ter proficiência em armas de fogo. Recarregar é uma ação padrão.",
-            fonte: "Deuses de Arton"
+            fonte: "Deuses de Arton",
+            imagem: "data/img/espada-longa.webp"
         }
 
     ]
