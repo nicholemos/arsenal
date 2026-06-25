@@ -132,68 +132,151 @@ select option { background: var(--parch3); color: var(--text); }
 .role-jogador { color: #a0c0e0; border-color: #4060a0; background: rgba(64,96,160,0.1); }
 .room-body { flex: 1; display: flex; overflow: hidden; }
 
-/* Painel colapsável de Aventureiros no topo */
+/* Painel de Aventureiros no topo (layout horizontal compacto) */
 .players-top-panel {
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   background: var(--parch2);
+  padding: 0.25rem 1rem;
 }
-.players-top-bar {
+.players-top-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 1rem;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.2s;
+  gap: 0.6rem;
 }
-.players-top-bar:hover { background: rgba(107,77,42,0.15); }
 .players-top-title {
   font-family: 'Cinzel', serif;
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   letter-spacing: 0.14em;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 .players-top-count {
   font-family: 'Cinzel', serif;
-  font-size: 0.55rem;
+  font-size: 0.58rem;
   color: var(--gold);
   background: rgba(201,144,58,0.15);
-  padding: 0.05rem 0.4rem;
+  padding: 0.05rem 0.35rem;
   border-radius: 8px;
-  min-width: 1.2rem;
+  min-width: 1.1rem;
   text-align: center;
 }
-.players-top-arrow {
-  margin-left: auto;
-  font-size: 0.55rem;
-  color: var(--text-muted);
-  transition: transform 0.25s;
-}
-.players-top-arrow.open { transform: rotate(180deg); }
 .players-top-list {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.25s ease;
-  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-left: 0.5rem;
 }
-.players-top-list.open { max-height: 300px; padding: 0.3rem 1rem 0.5rem; }
-.players-top-list .player-entry { padding: 0.3rem 0.4rem; cursor: default; }
-.players-top-list .player-entry.host-clickable { cursor: context-menu; }
+.players-top-list .player-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  cursor: default;
+}
+.players-top-list .player-entry.host-clickable {
+  cursor: context-menu;
+}
+.players-top-list .player-entry .name {
+  flex: none;
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
 .players-top-list .player-entry .tag-role {
   font-family: 'Cinzel', serif;
   font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  padding: 0.1rem 0.35rem;
+  letter-spacing: 0.06em;
+  padding: 0.05rem 0.3rem;
   border-radius: 2px;
   border: 1px solid;
   flex-shrink: 0;
+  line-height: 1.2;
 }
 .tag-mestre { color: var(--gold-light); border-color: var(--gold); background: rgba(201,144,58,0.1); }
 .tag-jogador { color: #a0c0e0; border-color: #4060a0; background: rgba(64,96,160,0.1); }
 .tag-expectador { color: #90b090; border-color: #509060; background: rgba(80,144,96,0.1); }
 .tag-cego { color: #806060; border-color: #604040; background: rgba(96,64,64,0.1); }
+
+/* Painel de Cenas no topo */
+.scenes-top-panel {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--parch3);
+  padding: 0.25rem 1rem;
+}
+.scenes-top-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.scenes-top-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.scenes-top-list {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-left: 0.5rem;
+  flex: 1;
+}
+.scene-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border);
+  background: rgba(107, 77, 42, 0.1);
+  color: var(--text-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.2s ease;
+}
+.scene-btn:hover {
+  background: rgba(201, 144, 58, 0.15);
+  color: var(--gold-light);
+  border-color: var(--gold);
+}
+.scene-btn.active {
+  background: rgba(201, 144, 58, 0.25);
+  color: var(--gold-light);
+  border-color: var(--gold-light);
+  box-shadow: 0 0 5px rgba(201, 144, 58, 0.4);
+}
+.scene-action-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 0 0.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+.scene-action-btn:hover {
+  color: var(--gold);
+}
+.scene-action-btn.delete-scene-btn:hover {
+  color: #ff6b6b;
+}
+.scene-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.3rem;
+  border-left: 1px solid rgba(107, 77, 42, 0.3);
+  padding-left: 0.2rem;
+}
 
 /* Sidebar jogadores */
 .sidebar { width: 160px; background: var(--parch2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
@@ -248,6 +331,16 @@ select option { background: var(--parch3); color: var(--text); }
 .msg-combat .msg-text { font-style: normal; color: #a0c0e8; font-size: 0.82rem; }
 .msg-ability { background: rgba(201,144,58,0.12); border: 1px solid rgba(201,144,58,0.25); border-radius: 3px; padding: 0.3rem 0.5rem; }
 .msg-ability .msg-text { font-style: normal; color: #e8c080; }
+.msg-spell { background: linear-gradient(135deg, rgba(111,66,193,0.2), rgba(81,36,163,0.25)); border: 1px solid rgba(160,100,230,0.4); border-left: 4px solid #9966ff; border-radius: 3px; padding: 0.4rem 0.5rem; margin-bottom: 0.3rem; }
+.msg-spell .msg-text { font-style: normal; color: #d4bfff; }
+.msg-damage { background: rgba(180,40,40,0.15); border: 1px solid rgba(200,60,60,0.3); border-left: 4px solid #cc4444; border-radius: 3px; padding: 0.3rem 0.5rem; margin-bottom: 0.3rem; }
+.msg-damage .msg-text { font-style: normal; color: #ffb0b0; }
+.dmg-btns { display: flex; gap: 0.3rem; margin-bottom: 0.3rem; }
+.dmg-btn { border: none; border-radius: 4px; padding: 0.15rem 0.5rem; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; font-size: 0.75rem; transition: all 0.1s; }
+.dmg-minus { background: #8a1a1a; color: #fff; }
+.dmg-minus:hover { background: #aa2222; }
+.dmg-plus { background: #1a6a2a; color: #fff; }
+.dmg-plus:hover { background: #228a3a; }
 .chat-visibility-row {
   display: flex;
   gap: 2px;
@@ -2286,3 +2379,74 @@ font-size: 0.68rem;
   justify-content: center;
   align-items: center;
 }
+
+/* ── Gerenciador de Cenas ── */
+.cena-card {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(107,77,42,0.4);
+  border-radius: 5px;
+  padding: 0.45rem 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: border-color 0.15s;
+}
+.cena-card:hover { border-color: var(--gold); }
+.cena-card.active-scene { border-color: var(--gold); background: rgba(201,144,58,0.1); }
+.cena-card-name {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.cena-card-name:hover { color: var(--gold-light); }
+.cena-card-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+.cena-thumb {
+  width: 36px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid rgba(107,77,42,0.4);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.cena-thumb-placeholder {
+  width: 36px;
+  height: 28px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 3px;
+  border: 1px solid rgba(107,77,42,0.3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* Indicador visual de onde os jogadores estão atualmente */
+.scene-players-indicator {
+  color: #2ecc71; /* verde brilhante premium */
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  font-weight: bold;
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    text-shadow: 0 0 2px rgba(46, 204, 113, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 6px rgba(46, 204, 113, 0.9), 0 0 10px rgba(46, 204, 113, 0.5);
+  }
+  100% {
+    text-shadow: 0 0 2px rgba(46, 204, 113, 0.4);
+  }
+}
+

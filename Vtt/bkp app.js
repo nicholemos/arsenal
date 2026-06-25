@@ -12,6 +12,11 @@ let contextShapeId = null;
 let connections = {}, masterConn = null, players = {}, myPeerId = '';
 let localFichaUpdateData = null;
 const tokenImageCache = {};
+
+// ──── Estado das Cenas ────
+let SCENES = [];
+let ACTIVE_SCENE_ID = '';
+let PLAYERS_SCENE_ID = '';
 let giphyApiKey = localStorage.getItem('giphy_api_key') || 'TlBoc67SNv0OTVPkfjUofJzuaiQ04MQ2';
 
 const STORAGE_KEY = 't20_combat_app_v1';
@@ -44,38 +49,44 @@ let currentThreatData = null;
 // ══════════════════════════════════════════════════════
 //  UTILITÁRIOS
 // ══════════════════════════════════════════════════════
-function toast(msg, dur=2500) {
+function toast(msg, dur = 2500) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), dur);
 }
 function formatTime() {
   const d = new Date();
-  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
 }
 function escHTML(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 function gerarRoomId() {
-  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let id='';
-  for(let i=0;i<8;i++) id+=c[Math.floor(Math.random()*c.length)];
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let id = '';
+  for (let i = 0; i < 8; i++) id += c[Math.floor(Math.random() * c.length)];
   return id;
 }
-function formatTime2() {
-  const d=new Date();
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+
+function loadImageWithCORSFallback(url, onload, onerror) {
+  const img = new Image();
+  let triedCors = true;
+  img.onload = () => { if (onload) onload(img); };
+  img.onerror = () => {
+    if (triedCors) {
+      triedCors = false;
+      img.removeAttribute('crossOrigin');
+      img.src = url;
+    } else {
+      if (onerror) onerror();
+    }
+  };
+  img.crossOrigin = 'anonymous';
+  img.src = url;
 }
 
 // ══════════════════════════════════════════════════════
 //  TABS DO PAINEL MESTRE
 // ══════════════════════════════════════════════════════
-function switchTab(name) {
-  ['encontros','combate'].forEach(t => {
-    document.getElementById('tab-'+t)?.classList.toggle('active', t===name);
-    document.getElementById('content-'+t)?.classList.toggle('active', t===name);
-  });
-}
-
 // ══════════════════════════════════════════════════════
 //  CHAT
 // ══════════════════════════════════════════════════════
@@ -93,7 +104,7 @@ function addMsg(data) {
   const div = document.createElement('div');
   const vis = data.visibility || 'global';
   const visIcons = { global: '🌍', tog: '🕵️', togm: '🕵️', blind: '🙈', personal: '👤' };
-  const visBadge = vis !== 'global' ? `<span class="msg-vis-badge">${visIcons[vis]||''}</span>` : '';
+  const visBadge = vis !== 'global' ? `<span class="msg-vis-badge">${visIcons[vis] || ''}</span>` : '';
   const isMaster = myRole === 'mestre' || amIHost;
   const canReveal = vis !== 'global' && vis !== 'personal' && (isMaster || vis === 'togm');
   const revealBtn = canReveal
@@ -101,26 +112,26 @@ function addMsg(data) {
     : '';
   const msgJson = JSON.stringify(data);
 
-  if (data.type==='system') {
-    div.className='msg-system'; div.textContent='— '+data.text+' —';
-  } else if (data.type==='roll') {
-    div.className='msg msg-roll';
-    div.innerHTML=`<div class="msg-header">${visBadge}<span class="msg-author ${data.role==='jogador'?'jogador':''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span>${revealBtn}</div><div class="msg-text">🎲 ${formatChatText(data.text)}</div>`;
-  } else if (data.type==='combat-sync-notify') {
-    div.className='msg msg-combat';
-    div.innerHTML=`<div class="msg-text">⚔ ${formatChatText(data.text)}</div>`;
-  } else if (data.type==='ability') {
-    div.className='msg msg-ability';
-    div.innerHTML=`<div class="msg-header"><span class="msg-author ${data.role==='jogador'?'jogador':''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span></div><div class="msg-text">✨ ${formatChatText(data.text)}</div>`;
-  } else if (data.type==='gif') {
-    div.className='msg msg-gif';
-    div.innerHTML=`<div class="msg-header">${visBadge}<span class="msg-author ${data.role==='jogador'?'jogador':''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span>${revealBtn}</div><div class="msg-text"><img src="${escHTML(data.gifUrl)}" alt="GIF"></div>`;
+  if (data.type === 'system') {
+    div.className = 'msg-system'; div.textContent = '— ' + data.text + ' —';
+  } else if (data.type === 'roll') {
+    div.className = 'msg msg-roll';
+    div.innerHTML = `<div class="msg-header">${visBadge}<span class="msg-author ${data.role === 'jogador' ? 'jogador' : ''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span>${revealBtn}</div><div class="msg-text">🎲 ${formatChatText(data.text)}</div>`;
+  } else if (data.type === 'combat-sync-notify') {
+    div.className = 'msg msg-combat';
+    div.innerHTML = `<div class="msg-text">⚔ ${formatChatText(data.text)}</div>`;
+  } else if (data.type === 'ability') {
+    div.className = 'msg msg-ability';
+    div.innerHTML = `<div class="msg-header"><span class="msg-author ${data.role === 'jogador' ? 'jogador' : ''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span></div><div class="msg-text">✨ ${formatChatText(data.text)}</div>`;
+  } else if (data.type === 'gif') {
+    div.className = 'msg msg-gif';
+    div.innerHTML = `<div class="msg-header">${visBadge}<span class="msg-author ${data.role === 'jogador' ? 'jogador' : ''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span>${revealBtn}</div><div class="msg-text"><img src="${escHTML(data.gifUrl)}" alt="GIF"></div>`;
   } else {
-    div.className='msg';
-    div.innerHTML=`<div class="msg-header">${visBadge}<span class="msg-author ${data.role==='jogador'?'jogador':''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span>${revealBtn}</div><div class="msg-text">${formatChatText(data.text)}</div>`;
+    div.className = 'msg';
+    div.innerHTML = `<div class="msg-header">${visBadge}<span class="msg-author ${data.role === 'jogador' ? 'jogador' : ''}">${escHTML(data.name)}</span><span class="msg-time">${data.time}</span>${revealBtn}</div><div class="msg-text">${formatChatText(data.text)}</div>`;
   }
   if (canReveal) div.dataset.msgData = msgJson;
-  c.appendChild(div); c.scrollTop=c.scrollHeight;
+  c.appendChild(div); c.scrollTop = c.scrollHeight;
 }
 // ──── Histórico de Comandos do Chat ────
 let commandHistory = [];
@@ -183,7 +194,7 @@ function revelarMensagem(el) {
     broadcast(msgData, null);
     addMsg(msgData);
   } else if (masterConn) {
-    try { masterConn.send({ type: 'msg-reveal', msgData }); } catch(e) {}
+    try { masterConn.send({ type: 'msg-reveal', msgData }); } catch (e) { }
   }
 }
 function handleChatKey(e) {
@@ -206,24 +217,24 @@ function rotearMensagem(msgData) {
   if (vis === 'togm') {
     addMsg(msgData);
     if (isMaster) { /* só o mestre vê */ }
-    else if (masterConn) try { masterConn.send(msgData); } catch(e) {}
+    else if (masterConn) try { masterConn.send(msgData); } catch (e) { }
     return;
   }
   if (vis === 'blind') {
     if (isMaster) { addMsg(msgData); }
-    else if (masterConn) try { masterConn.send(msgData); } catch(e) {}
+    else if (masterConn) try { masterConn.send(msgData); } catch (e) { }
     return;
   }
   addMsg(msgData);
   if (isMaster) broadcast(msgData, null);
-  else if (masterConn) try { masterConn.send(msgData); } catch(e) {}
+  else if (masterConn) try { masterConn.send(msgData); } catch (e) { }
 }
 
 function enviarMsg() {
   if (myRole === 'expectador') { toast('Expectadores não podem enviar mensagens.'); return; }
   if (myRole === 'cego') return;
   const inp = document.getElementById('chat-input');
-  const text = inp.value.trim(); if(!text) return; inp.value='';
+  const text = inp.value.trim(); if (!text) return; inp.value = '';
 
   adicionarAoHistorico(text);
 
@@ -231,158 +242,142 @@ function enviarMsg() {
   let msgData;
   if (text.toLowerCase().startsWith('/r ')) {
     const res = processarRolagem(text, vis !== 'global');
-    if (res) msgData={type:'roll',name:myName,role:myRole,text:res,time:formatTime(),visibility:vis};
+    if (res) msgData = { type: 'roll', name: myName, role: myRole, text: res, time: formatTime(), visibility: vis };
     else {
-      if (vis !== 'blind') addMsg({type:'system',text:'Sintaxe: /r 2d6 ou /r d20+3'});
+      if (vis !== 'blind') addMsg({ type: 'system', text: 'Sintaxe: /r 2d6 ou /r d20+3' });
       return;
     }
   } else {
-    msgData={type:'chat',name:myName,role:myRole,text,time:formatTime(),visibility:vis};
+    msgData = { type: 'chat', name: myName, role: myRole, text, time: formatTime(), visibility: vis };
   }
   rotearMensagem(msgData);
 
   // ── Detect initiative rolls from chat command ──
-  if (msgData.type === 'roll' && isInitiativeRoll(text)) {
-    const initTotal = extractInitiativeTotal(msgData.text);
-    if (initTotal !== null) {
-      if (myRole === 'mestre' || amIHost) {
-        processarIniciativaRoll(myName, initTotal, myPeerId);
-      } else if (masterConn) {
-        const selToken = getSelectedTokenForInit();
-        if (!selToken) {
-          toast('Selecione seu token no mapa para rolar iniciativa.');
-        } else {
-          try {
-            masterConn.send({
-              type: 'solicitar-iniciativa',
-              name: selToken.tokenName,
-              initTotal: initTotal,
-              tokenId: selToken.tokenId
-            });
-          } catch(err) {}
-        }
-      }
-    }
-  }
+  if (msgData.type === 'roll') detectarERolarIniciativa(msgData.text);
 }
 function parseRoll(cmd) {
-  const m=cmd.match(/^\/r\s+(?:(.*?)(?::|-)\s*)?(\d*)d(\d+)([+-]\d+)?$/i); if(!m) return null;
-  const label=m[1] ? m[1].trim() + ': ' : '';
-  const qtd=parseInt(m[2]||'1'),faces=parseInt(m[3]),mod=parseInt(m[4]||'0');
-  if(qtd<1||qtd>20||faces<2||faces>100) return null;
-  let rolls=[],total=0;
-  for(let i=0;i<qtd;i++){const r=Math.floor(Math.random()*faces)+1;rolls.push(r);total+=r;}
-  total+=mod;
-  const ms=mod!==0?(mod>0?'+'+mod:mod):'';
-  const det=qtd>1?` [${rolls.join(', ')}]`:'';
+  const m = cmd.match(/^\/r\s+(?:(.*?)(?::|-)\s*)?(\d*)d(\d+)([+-]\d+)?$/i); if (!m) return null;
+  const label = m[1] ? m[1].trim() + ': ' : '';
+  const qtd = parseInt(m[2] || '1'), faces = parseInt(m[3]), mod = parseInt(m[4] || '0');
+  if (qtd < 1 || qtd > 20 || faces < 2 || faces > 100) return null;
+  let rolls = [], total = 0;
+  for (let i = 0; i < qtd; i++) { const r = Math.floor(Math.random() * faces) + 1; rolls.push(r); total += r; }
+  total += mod;
+  const ms = mod !== 0 ? (mod > 0 ? '+' + mod : mod) : '';
+  const det = qtd > 1 ? ` [${rolls.join(', ')}]` : '';
   return `${label}${qtd}d${faces}${ms} → **${total}**${det}`;
 }
 
 // ─────────── Dados 3D ───────────
 function processarRolagem(text, skip3d) {
-  const m=text.toLowerCase().match(/^\/r\s+(?:(.*?)(?::|-)\s*)?(\d*)d(\d+)([+-]\d+)?$/i);
-  if(!m) return null;
-  const label=m[1] ? m[1].trim() : '';
-  const qtd=parseInt(m[2]||'1'),faces=parseInt(m[3]),mod=parseInt(m[4]||'0');
-  if(qtd<1||qtd>20||faces<2||faces>100) return null;
-  return efetuarRolagem(faces,qtd,mod,label,0,skip3d);
+  const m = text.toLowerCase().match(/^\/r\s+(?:(.*?)(?::|-)\s*)?(\d*)d(\d+)((?:[+-]\s*\d+)*)$/i);
+  if (!m) return null;
+  const label = m[1] ? m[1].trim() : '';
+  const qtd = parseInt(m[2] || '1'), faces = parseInt(m[3]);
+  let mod = 0;
+  if (m[4]) {
+    const mods = m[4].replace(/\s+/g, '').match(/[+-]\d+/g) || [];
+    mod = mods.reduce((sum, val) => sum + parseInt(val), 0);
+  }
+  if (qtd < 1 || qtd > 20 || faces < 2 || faces > 100) return null;
+  return efetuarRolagem(faces, qtd, mod, label, 0, skip3d);
 }
 
-function efetuarRolagem(faces,qtd,mod,label,vantagem,skip3d) {
-  let rolls=[],total=0;
-  for(let i=0;i<qtd;i++){
+function efetuarRolagem(faces, qtd, mod, label, vantagem, skip3d) {
+  let rolls = [], total = 0;
+  for (let i = 0; i < qtd; i++) {
     let r;
-    if(vantagem!==0){
-      const r1=Math.floor(Math.random()*faces)+1,r2=Math.floor(Math.random()*faces)+1;
-      r=vantagem===1?Math.max(r1,r2):Math.min(r1,r2);
-    }else r=Math.floor(Math.random()*faces)+1;
-    rolls.push(r);total+=r;
+    if (vantagem !== 0) {
+      const r1 = Math.floor(Math.random() * faces) + 1, r2 = Math.floor(Math.random() * faces) + 1;
+      r = vantagem === 1 ? Math.max(r1, r2) : Math.min(r1, r2);
+    } else r = Math.floor(Math.random() * faces) + 1;
+    rolls.push(r); total += r;
   }
-  total+=mod;
-  const modStr=mod!==0?(mod>0?'+'+mod:mod):'';
-  const det=qtd>1?` [${rolls.join(', ')}]`:'';
-  const lb=label?label+': ':'';
-  const adv=vantagem===1?' (vantagem)':vantagem===-1?' (desvantagem)':'';
-  const textRes=`${lb}${qtd}d${faces}${modStr}${adv} → **${total}**${det}`;
-  if (!skip3d) rolarDados3d(faces,qtd,rolls,total,mod,lb);
+  total += mod;
+  const modStr = mod !== 0 ? (mod > 0 ? '+' + mod : mod) : '';
+  const det = qtd > 1 ? ` [${rolls.join(', ')}]` : '';
+  const lb = label ? label + ': ' : '';
+  const adv = vantagem === 1 ? ' (vantagem)' : vantagem === -1 ? ' (desvantagem)' : '';
+  const textRes = `${lb}${qtd}d${faces}${modStr}${adv} → **${total}**${det}`;
+  if (!skip3d) rolarDados3d(faces, qtd, rolls, total, mod, lb);
   return textRes;
 }
 
-function rolarDados3d(faces,qtd,rolls,total,mod,label) {
-  const overlay=document.getElementById('diceOverlay');
-  const tray=document.getElementById('diceTray');
-  const resultDiv=document.getElementById('diceResult');
-  tray.innerHTML=''; resultDiv.style.display='none'; resultDiv.innerHTML='';
-  overlay.style.display='flex';
-  overlay.onclick=function(e){if(e.target===this)fecharDados3d();};
+function rolarDados3d(faces, qtd, rolls, total, mod, label) {
+  const overlay = document.getElementById('diceOverlay');
+  const tray = document.getElementById('diceTray');
+  const resultDiv = document.getElementById('diceResult');
+  tray.innerHTML = ''; resultDiv.style.display = 'none'; resultDiv.innerHTML = '';
+  overlay.style.display = 'flex';
+  overlay.onclick = function (e) { if (e.target === this) fecharDados3d(); };
 
-  let revealed=0;
-  for(let i=0;i<qtd;i++) criarDado3d(faces,rolls[i],tray,i,qtd,()=>{
+  let revealed = 0;
+  for (let i = 0; i < qtd; i++) criarDado3d(faces, rolls[i], tray, i, qtd, () => {
     revealed++;
-    if(revealed===qtd){
-      setTimeout(()=>{
-        const ms=mod!==0?(mod>0?' + '+mod:' '+mod):'';
-        resultDiv.style.display='block';
-        resultDiv.innerHTML='<div style="margin-bottom:4px;opacity:0.8;font-size:1rem;">'+label+qtd+'d'+faces+ms+'</div><div style="font-size:3rem;font-weight:700;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.4);">'+total+'</div>';
-      },200);
+    if (revealed === qtd) {
+      setTimeout(() => {
+        const ms = mod !== 0 ? (mod > 0 ? ' + ' + mod : ' ' + mod) : '';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="margin-bottom:4px;opacity:0.8;font-size:1rem;">' + label + qtd + 'd' + faces + ms + '</div><div style="font-size:3rem;font-weight:700;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.4);">' + total + '</div>';
+      }, 200);
     }
   });
 }
 
-function criarDado3d(faces,valor,tray,idx,total,onReveal) {
-  const c=document.createElement('div');
-  c.style.cssText='width:80px;height:80px;perspective:400px;opacity:0;transform:scale(0.5) translateY(-40px);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);';
-  c.innerHTML='<div class="d3i" style="position:relative;width:100%;height:100%;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1);transform-style:preserve-3d;">'
-    +'<div class="d3f" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;background:linear-gradient(145deg,#f5f0e8,#e8dcc8);border:2px solid #8b6b3e;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:\'Cinzel\',serif;box-shadow:inset 0 0 15px rgba(0,0,0,0.08);">'
-    +'<span class="d3n" style="font-size:2rem;font-weight:700;color:#2a1f14;">?</span>'
-    +'<span style="font-size:0.65rem;color:#8b6b3e;margin-top:2px;">d'+faces+'</span></div>'
-    +'<div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(145deg,#ffd700,#e8a800);border:2px solid #b8860b;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:\'Cinzel\',serif;box-shadow:0 0 25px rgba(255,215,0,0.2);">'
-    +'<span style="font-size:2rem;font-weight:700;color:#2a1f14;">'+valor+'</span>'
-    +'<span style="font-size:0.65rem;color:#6b4f00;">d'+faces+'</span></div></div>';
+function criarDado3d(faces, valor, tray, idx, total, onReveal) {
+  const c = document.createElement('div');
+  c.style.cssText = 'width:80px;height:80px;perspective:400px;opacity:0;transform:scale(0.5) translateY(-40px);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);';
+  c.innerHTML = '<div class="d3i" style="position:relative;width:100%;height:100%;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1);transform-style:preserve-3d;">'
+    + '<div class="d3f" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;background:linear-gradient(145deg,#f5f0e8,#e8dcc8);border:2px solid #8b6b3e;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:\'Cinzel\',serif;box-shadow:inset 0 0 15px rgba(0,0,0,0.08);">'
+    + '<span class="d3n" style="font-size:2rem;font-weight:700;color:#2a1f14;">?</span>'
+    + '<span style="font-size:0.65rem;color:#8b6b3e;margin-top:2px;">d' + faces + '</span></div>'
+    + '<div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(145deg,#ffd700,#e8a800);border:2px solid #b8860b;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:\'Cinzel\',serif;box-shadow:0 0 25px rgba(255,215,0,0.2);">'
+    + '<span style="font-size:2rem;font-weight:700;color:#2a1f14;">' + valor + '</span>'
+    + '<span style="font-size:0.65rem;color:#6b4f00;">d' + faces + '</span></div></div>';
   tray.appendChild(c);
 
-  setTimeout(()=>{c.style.opacity='1';c.style.transform='scale(1) translateY(0)';},idx*120);
+  setTimeout(() => { c.style.opacity = '1'; c.style.transform = 'scale(1) translateY(0)'; }, idx * 120);
 
-  const nEl=c.querySelector('.d3n'), inner=c.querySelector('.d3i');
-  const dur=400+Math.random()*200, intv=50, cyc=Math.floor(dur/intv);
-  let cc=0;
-  const t=setInterval(()=>{
-    cc++; nEl.textContent=Math.floor(Math.random()*faces)+1;
-    if(cc>=cyc){clearInterval(t);inner.style.transform='rotateY(180deg)';setTimeout(onReveal,500);}
-  },intv);
+  const nEl = c.querySelector('.d3n'), inner = c.querySelector('.d3i');
+  const dur = 400 + Math.random() * 200, intv = 50, cyc = Math.floor(dur / intv);
+  let cc = 0;
+  const t = setInterval(() => {
+    cc++; nEl.textContent = Math.floor(Math.random() * faces) + 1;
+    if (cc >= cyc) { clearInterval(t); inner.style.transform = 'rotateY(180deg)'; setTimeout(onReveal, 500); }
+  }, intv);
 }
 
 function fecharDados3d() {
-  document.getElementById('diceOverlay').style.display='none';
+  document.getElementById('diceOverlay').style.display = 'none';
 }
 
 // ─────────── Atalhos de Dados ───────────
 function abrirDialogDados(faces) {
-  document.getElementById('ddTitle').textContent='Rolar d'+faces;
-  document.getElementById('diceDialog').dataset.faces=faces;
-  document.getElementById('ddQtd').value=1;
-  document.getElementById('ddBonus').value=0;
-  document.getElementById('ddVantagem').checked=false;
-  document.getElementById('ddDesvantagem').checked=false;
-  document.getElementById('diceDialog').style.display='flex';
+  document.getElementById('ddTitle').textContent = 'Rolar d' + faces;
+  document.getElementById('diceDialog').dataset.faces = faces;
+  document.getElementById('ddQtd').value = 1;
+  document.getElementById('ddBonus').value = 0;
+  document.getElementById('ddVantagem').checked = false;
+  document.getElementById('ddDesvantagem').checked = false;
+  document.getElementById('diceDialog').style.display = 'flex';
 }
 
 function fecharDialogDados() {
-  document.getElementById('diceDialog').style.display='none';
+  document.getElementById('diceDialog').style.display = 'none';
 }
 
 function rolarDoDialog() {
   if (myRole === 'expectador') { toast('Expectadores não podem rolar dados.'); fecharDialogDados(); return; }
   if (myRole === 'cego') { fecharDialogDados(); return; }
-  const faces=parseInt(document.getElementById('diceDialog').dataset.faces);
-  const qtd=parseInt(document.getElementById('ddQtd').value)||1;
-  const bonus=parseInt(document.getElementById('ddBonus').value)||0;
-  const vantagem=document.getElementById('ddVantagem').checked?1:document.getElementById('ddDesvantagem').checked?-1:0;
+  const faces = parseInt(document.getElementById('diceDialog').dataset.faces);
+  const qtd = parseInt(document.getElementById('ddQtd').value) || 1;
+  const bonus = parseInt(document.getElementById('ddBonus').value) || 0;
+  const vantagem = document.getElementById('ddVantagem').checked ? 1 : document.getElementById('ddDesvantagem').checked ? -1 : 0;
   fecharDialogDados();
 
-  const res=efetuarRolagem(faces,qtd,bonus,'',vantagem, chatVisibility !== 'global');
-  if(!res)return;
-  const msgData={type:'roll',name:myName,role:myRole,text:res,time:formatTime(),visibility:chatVisibility};
+  const res = efetuarRolagem(faces, qtd, bonus, '', vantagem, chatVisibility !== 'global');
+  if (!res) return;
+  const msgData = { type: 'roll', name: myName, role: myRole, text: res, time: formatTime(), visibility: chatVisibility };
   rotearMensagem(msgData);
 }
 
@@ -486,196 +481,326 @@ function renderPlayers() {
   const topList = document.getElementById('playersTopList');
   const countEl = document.getElementById('playersTopCount');
   if (topList) {
-    topList.innerHTML='';
+    topList.innerHTML = '';
     const entries = Object.entries(players);
     if (countEl) countEl.textContent = entries.length;
-    entries.forEach(([pid,p]) => {
-      const d=document.createElement('div'); d.className='player-entry';
-      const isSelf = pid===myPeerId;
-      const roleLabel = p.role==='mestre'?'Mestre':p.role==='expectador'?'Expectador':p.role==='cego'?'Cego':'Jogador';
-      const tagClass = 'tag-'+p.role;
-      d.innerHTML=`<div class="dot ${isSelf?'self':''}"></div><div class="name">${escHTML(p.name)}</div><div class="${tagClass}">${roleLabel}</div>`;
+    entries.forEach(([pid, p]) => {
+      const d = document.createElement('div'); d.className = 'player-entry';
+      const isSelf = pid === myPeerId;
+      const roleLabel = p.role === 'mestre' ? 'Mestre' : p.role === 'expectador' ? 'Expectador' : p.role === 'cego' ? 'Cego' : 'Jogador';
+      const tagClass = 'tag-' + p.role;
+      let tagHtml = `<div class="tag-role ${tagClass}">${roleLabel}</div>`;
+      if (isSelf) {
+        if (amIHost) {
+          tagHtml = `<div class="tag-role ${tagClass}" id="role-badge" onclick="toggleLocalRole()" style="cursor: pointer;" title="Clique para alternar entre Mestre e Jogador">${roleLabel}</div>`;
+        } else {
+          tagHtml = `<div class="tag-role ${tagClass}" id="role-badge" title="Sua função na mesa">${roleLabel}</div>`;
+        }
+      }
+      d.innerHTML = `<div class="dot ${isSelf ? 'self' : ''}"></div><div class="name">${escHTML(p.name)}</div>${tagHtml}`;
       if (amIHost && !isSelf) {
         d.classList.add('host-clickable');
-        d.addEventListener('contextmenu',(e)=>{e.preventDefault();abrirPlayerContextMenu(e,pid);});
+        d.addEventListener('contextmenu', (e) => { e.preventDefault(); abrirPlayerContextMenu(e, pid); });
       }
       topList.appendChild(d);
     });
   }
 }
 function broadcast(data, excludePeer) {
-  Object.entries(connections).forEach(([pid,conn]) => {
-    if(pid!==excludePeer) try{conn.send(data);}catch(e){}
+  Object.entries(connections).forEach(([pid, conn]) => {
+    if (pid !== excludePeer) try { conn.send(data); } catch (e) { }
   });
 }
 function criarSala() {
-  const name=document.getElementById('master-name').value.trim();
-  if(!name){setLobbyStatus('create','Digite seu nome, ó Mestre.',true);return;}
-  myName=name; myRole='mestre'; amIHost=true;
-  roomTitle=document.getElementById('room-name').value.trim()||'Mesa de '+name;
-  roomId=gerarRoomId();
-  setLobbyStatus('create','Abrindo a mesa...');
-  peer=new Peer('vtt-room-'+roomId,{debug:0});
-  peer.on('open',(id)=>{
-    myPeerId=id; players[myPeerId]={name:myName,role:'mestre'};
+  const name = document.getElementById('master-name').value.trim();
+  if (!name) { setLobbyStatus('create', 'Digite seu nome, ó Mestre.', true); return; }
+  myName = name; myRole = 'mestre'; amIHost = true;
+  roomTitle = document.getElementById('room-name').value.trim() || 'Mesa de ' + name;
+  roomId = gerarRoomId();
+  setLobbyStatus('create', 'Abrindo a mesa...');
+  peer = new Peer('vtt-room-' + roomId, { debug: 0 });
+  peer.on('open', (id) => {
+    myPeerId = id; players[myPeerId] = { name: myName, role: 'mestre' };
     entrarNoAmbiente(); renderPlayers();
-    addMsg({type:'system',text:'Mesa aberta. Aguardando aventureiros...'});
+    addMsg({ type: 'system', text: 'Mesa aberta. Aguardando aventureiros...' });
   });
-  peer.on('connection',(conn)=>configurarConexaoMestre(conn));
-  peer.on('error',(err)=>{
-    if(err.type==='unavailable-id'){roomId=gerarRoomId();peer.destroy();criarSala();}
-    else setLobbyStatus('create','Erro: '+err.message,true);
+  peer.on('connection', (conn) => configurarConexaoMestre(conn));
+  peer.on('error', (err) => {
+    if (err.type === 'unavailable-id') { roomId = gerarRoomId(); peer.destroy(); criarSala(); }
+    else setLobbyStatus('create', 'Erro: ' + err.message, true);
   });
 }
 function configurarConexaoMestre(conn) {
-  conn.on('open',()=>{
-    connections[conn.peer]=conn;
-    conn.on('data',(data)=>{
-      if(data.type==='join'){
-        players[conn.peer]={name:data.name,role:'jogador'}; renderPlayers();
-        conn.send({type:'room-info',roomTitle,players});
-        broadcast({type:'player-joined',peerId:conn.peer,name:data.name},conn.peer);
-        const jm={type:'system',text:data.name+' entrou na mesa'};
-        addMsg(jm); broadcast({type:'chat',...jm},null);
-        broadcast({type:'players-update',players},null);
-      } else if(data.type==='chat'||data.type==='roll'||data.type==='gif'){
+  conn.on('open', () => {
+    connections[conn.peer] = conn;
+    conn.on('data', (data) => {
+      if (data.type === 'join') {
+        players[conn.peer] = { name: data.name, role: 'jogador' }; renderPlayers();
+        conn.send({ type: 'room-info', roomTitle, players });
+        conn.send({
+          type: 'scenes-update',
+          scenes: getScenesMetadata(),
+          activeSceneId: PLAYERS_SCENE_ID
+        });
+        syncBoardToConnection(conn, PLAYERS_SCENE_ID);
+        broadcast({ type: 'player-joined', peerId: conn.peer, name: data.name }, conn.peer);
+        const jm = { type: 'system', text: data.name + ' entrou na mesa' };
+        addMsg(jm); broadcast({ type: 'chat', ...jm }, null);
+        broadcast({ type: 'players-update', players }, null);
+      } else if (data.type === 'chat' || data.type === 'roll' || data.type === 'gif') {
         const vis = data.visibility || 'global';
         if (vis === 'global') { addMsg(data); broadcast(data, conn.peer); }
         else if (vis === 'togm' || vis === 'blind') { addMsg(data); }
-      } else if(data.type==='msg-reveal'){
-        broadcast(data.msgData, null); addMsg(data.msgData);
-      } else if(data.type==='player-shapes'){
-        BOARD.shapes = data.shapes;
-        boardSave();
-        broadcast({ type: 'board-shapes', shapes: BOARD.shapes }, null);
+      } else if (data.type === 'player-shapes') {
+        if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+          BOARD.shapes = data.shapes;
+          boardSave();
+          broadcast({ type: 'board-shapes', shapes: BOARD.shapes }, null);
+          boardRender();
+        } else {
+          const scene = SCENES.find(s => s.id === PLAYERS_SCENE_ID);
+          if (scene) {
+            scene.shapes = data.shapes;
+            saveScenesLocally();
+            const filtered = data.shapes.filter(s => !s.hidden || s.triggered);
+            broadcast({ type: 'board-shapes', shapes: filtered }, conn.peer);
+          }
+        }
+      } else if (data.type === 'board-ping') {
+        if (!BOARD.pings) BOARD.pings = [];
+        BOARD.pings.push({ x: data.x, y: data.y, time: data.time, color: data.color || '#33ccff' });
         boardRender();
-      } else if(data.type==='board-ping'){
-        BOARD.pings.push({ x: data.x, y: data.y, time: data.time });
-        boardRender();
+        if (!BOARD.pingAnimId) {
+          BOARD.pingAnimId = requestAnimationFrame(pingAnimationTick);
+        }
         broadcast(data, conn.peer);
-      } else if(data.type==='player-targets'){
+      } else if (data.type === 'player-targets') {
         BOARD.playerTargets[data.peerId] = data.targets;
         boardRender();
         broadcast(data, conn.peer);
-      } else if(data.type==='leave'){
-        const n=players[conn.peer]?.name||'Alguém';
+      } else if (data.type === 'solicitar-iniciativa') {
+        // Player explicitly requests to set their initiative
+        processarIniciativaRoll(data.name || players[conn.peer]?.name || 'Jogador', data.initTotal, conn.peer);
+      } else if (data.type === 'leave') {
+        const n = players[conn.peer]?.name || 'Alguém';
         delete players[conn.peer]; delete connections[conn.peer]; renderPlayers();
-        const lm={type:'system',text:n+' saiu da mesa'};
-        addMsg(lm); broadcast({type:'chat',...lm},null);
-        broadcast({type:'players-update',players},null);
-      }
-    });
-    conn.on('close',()=>{
-      if(players[conn.peer]){
-        const n=players[conn.peer].name;
-        delete players[conn.peer]; delete connections[conn.peer]; renderPlayers();
-        const lm={type:'system',text:n+' desconectou'};
-        addMsg(lm); broadcast({type:'chat',...lm},null);
-        broadcast({type:'players-update',players},null);
-      }
-    });
-  });
-}
-function entrarSala() {
-  const name=document.getElementById('player-name').value.trim();
-  let code=document.getElementById('room-code').value.trim();
-  if(!name){setLobbyStatus('join','Como você se chama?',true);return;}
-  const match=code.match(/[?&]sala=([A-Z0-9]{8})/);
-  if(match) code=match[1];
-  code=code.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,8);
-  if(code.length!==8){setLobbyStatus('join','Código inválido.',true);return;}
-  myName=name; myRole='jogador'; roomId=code;
-  setLobbyStatus('join','Buscando a mesa...');
-  peer=new Peer(undefined,{debug:0});
-  peer.on('open',(id)=>{
-    myPeerId=id;
-    masterConn=peer.connect('vtt-room-'+roomId,{reliable:true,metadata:{name}});
-    masterConn.on('open',()=>{
-      masterConn.send({type:'join',name});
-      masterConn.on('data',(data)=>{
-        if(data.type==='room-info'){
-          roomTitle=data.roomTitle; players=data.players;
-          if (players[myPeerId]) myRole = players[myPeerId].role;
-          entrarNoAmbiente(); renderPlayers();
-          addMsg({type:'system',text:'Você entrou em "'+roomTitle+'"'});
-        } else if(data.type==='player-joined') addMsg({type:'system',text:data.name+' entrou na mesa'});
-        else if(data.type==='players-update'){
-          players=data.players;
-          if (players[myPeerId] && players[myPeerId].role !== myRole) {
-            myRole = players[myPeerId].role;
-            aplicarRoleVisual();
-          }
-          renderPlayers();
+        const lm = { type: 'system', text: n + ' saiu da mesa' };
+        addMsg(lm); broadcast({ type: 'chat', ...lm }, null);
+        broadcast({ type: 'players-update', players }, null);
+      } else if (data.type === 'ficha-resumo') {
+        receberResumoFicha(data);
+        // Notificar no chat discretamente (apenas uma vez)
+        const key = 'ficha_notif_' + data.peerId;
+        if (!window[key]) {
+          window[key] = true;
+          addMsg({ type: 'system', text: '📋 Ficha de ' + data.playerName + ' recebida.' });
         }
-        else if(data.type==='chat'||data.type==='roll'||data.type==='gif') addMsg(data);
-        else if(data.type==='combat-sync') { receberSyncCombate(data.state); }
-        else if(data.type==='combat-sync-notify') addMsg(data);
-      });
-      masterConn.on('close',()=>addMsg({type:'system',text:'Conexão com o Mestre perdida.'}));
+      } else if (data.type === 'solicitar-criar-token') {
+        const entry = fichasJogadores[conn.peer];
+        const r = entry?.resumo;
+        adicionarTokenNaCena({
+          name: data.name,
+          hp: data.hp ?? r?.pvC ?? r?.pvM ?? 0,
+          hpMax: data.hpMax ?? r?.pvM ?? data.hp ?? 0,
+          pm: data.pm ?? r?.pmC ?? r?.pmM ?? 0,
+          pmMax: data.pmMax ?? r?.pmM ?? data.pm ?? 0,
+          defense: data.defense ?? r?.defenseTotal ?? 0,
+          imageUrl: data.imageUrl || r?.charImage || '',
+          controlledBy: conn.peer
+        }, PLAYERS_SCENE_ID);
+      } else if (data.type === 'solicitar-mover-token') {
+        if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+          const t = BOARD.tokens.find(tk => tk.id === data.tokenId);
+          if (t && t.controlledBy === conn.peer) {
+            if (checkMoveBlocked(t, t.gx, t.gy, data.gx, data.gy)) {
+              // Rejeitar movimento. Enviar atualização de sync para forçar o revert no cliente do jogador.
+              syncBoardTokensToPlayers();
+            } else {
+              t.gx = data.gx;
+              t.gy = data.gy;
+              boardSave();
+              boardRender();
+              syncBoardTokensToPlayers();
+              verificarGatilhosToken(t);
+              setTimeout(atualizarSeguirToken, 50);
+            }
+          }
+        } else {
+          const scene = SCENES.find(s => s.id === PLAYERS_SCENE_ID);
+          if (scene && scene.tokens) {
+            const t = scene.tokens.find(tk => tk.id === data.tokenId);
+            if (t && t.controlledBy === conn.peer) {
+              if (checkMoveBlockedForScene(t, t.gx, t.gy, data.gx, data.gy, scene)) {
+                const filtered = scene.tokens.filter(tk => (tk.layer || 'players') !== 'gm');
+                conn.send({ type: 'board-tokens', tokens: filtered });
+              } else {
+                t.gx = data.gx;
+                t.gy = data.gy;
+                saveScenesLocally();
+                const filtered = scene.tokens.filter(tk => (tk.layer || 'players') !== 'gm');
+                broadcast({ type: 'board-tokens', tokens: filtered }, null);
+              }
+            }
+          }
+        }
+      } else if (data.type === 'solicitar-alternar-parede') {
+        if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+          const w = BOARD.walls.find(wall => wall.id === data.wallId);
+          if (w) {
+            w.open = !w.open;
+            boardSave();
+            boardRender();
+            syncWallsToPlayers();
+            setTimeout(atualizarFogJogador, 50);
+          }
+        } else {
+          const scene = SCENES.find(s => s.id === PLAYERS_SCENE_ID);
+          if (scene && scene.walls) {
+            const w = scene.walls.find(wall => wall.id === data.wallId);
+            if (w) {
+              w.open = !w.open;
+              saveScenesLocally();
+              broadcast({ type: 'board-walls', walls: scene.walls }, null);
+            }
+          }
+        }
+      } else if (data.type === 'solicitar-ativar-gatilho') {
+        if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+          const t = BOARD.tokens.find(tk => tk.id === data.tokenId);
+          const s = BOARD.shapes.find(sk => sk.id === data.shapeId);
+          if (t && s && t.controlledBy === conn.peer) {
+            aplicarAcaoGatilho(t, s, data.action);
+          }
+        } else {
+          const scene = SCENES.find(sc => sc.id === PLAYERS_SCENE_ID);
+          if (scene && scene.tokens && scene.shapes) {
+            const t = scene.tokens.find(tk => tk.id === data.tokenId);
+            const s = scene.shapes.find(sk => sk.id === data.shapeId);
+            if (t && s && t.controlledBy === conn.peer) {
+              const oldFloor = Math.floor((t.z || 0) / 10);
+              if (data.action === 'subir') {
+                t.z = (t.z || 0) + 10;
+              } else if (data.action === 'descer') {
+                t.z = (t.z || 0) - 10;
+              } else if (data.action === 'teleport') {
+                const target = s.targetFloor !== undefined ? s.targetFloor : 0;
+                t.z = target * 10;
+              }
+              saveScenesLocally();
+              
+              const targetFloor = Math.floor((t.z || 0) / 10);
+              const filteredTokens = scene.tokens.filter(tk => (tk.layer || 'players') !== 'gm');
+              broadcast({ type: 'board-tokens', tokens: filteredTokens }, null);
+              
+              if (oldFloor !== targetFloor) {
+                broadcast({ type: 'board-floor', activeFloor: targetFloor }, null);
+              }
+            }
+          }
+        }
+      }
     });
-    masterConn.on('error',()=>setLobbyStatus('join','Não foi possível conectar.',true));
+    conn.on('close', () => {
+      if (players[conn.peer]) {
+        const n = players[conn.peer].name;
+        delete players[conn.peer]; delete connections[conn.peer]; renderPlayers();
+        const lm = { type: 'system', text: n + ' desconectou' };
+        addMsg(lm); broadcast({ type: 'chat', ...lm }, null);
+        broadcast({ type: 'players-update', players }, null);
+      }
+    });
   });
-  peer.on('error',(e)=>setLobbyStatus('join','Erro: '+(e.type||e.message),true));
 }
 function entrarNoAmbiente() {
-  document.getElementById('lobby').style.display='none';
+  document.getElementById('lobby').style.display = 'none';
   document.getElementById('room').classList.add('active');
-  document.getElementById('room-title-text').textContent=roomTitle||'Mesa Virtual';
-  document.getElementById('display-room-id').textContent=roomId;
+  document.getElementById('room-title-text').textContent = roomTitle || 'Mesa Virtual';
+  document.getElementById('display-room-id').textContent = roomId;
   aplicarRoleVisual();
-  if(myRole==='mestre'){
-    document.getElementById('invite-area').style.display='block';
-    document.getElementById('invite-link-box').textContent=gerarLinkConvite();
-    document.getElementById('master-panel').style.display='flex';
+  if (myRole === 'mestre') {
+    document.getElementById('invite-area').style.display = 'block';
+    document.getElementById('invite-link-box').textContent = gerarLinkConvite();
+    document.getElementById('master-panel').style.display = 'flex';
     initMasterTools();
   } else {
-    document.getElementById('btn-convidar').style.display='none';
-    document.getElementById('master-panel').style.display='none';
+    document.getElementById('btn-convidar').style.display = 'none';
+    document.getElementById('master-panel').style.display = 'none';
   }
+
+  // Ajustes para jogadores verem o botão de ficha / mestre inicializar o Baú
+  if (myRole === 'mestre') {
+    initBau();
+  }
+  if (myRole === 'jogador') {
+    document.getElementById('btn-ficha').style.display = 'inline-flex';
+  }
+
+  // Inicialização do tabuleiro (board)
+  boardLoad();
+  boardInit();
+  _ajustarMobile();
+  boardSetupRole();
+  if (myRole === 'mestre') initBoardCombatButton();
+  if (myRole === 'jogador') {
+    document.getElementById('master-panel').style.display = 'flex';
+    ['encontros', 'combate', 'fichas', 'notas'].forEach(t => {
+      const btn = document.getElementById('tab-' + t);
+      if (btn) btn.style.display = 'none';
+    });
+    const bestBtn = document.getElementById('bau-subtab-bestiary');
+    if (bestBtn) bestBtn.style.display = 'none';
+    currentBauSubtab = 'equip';
+    switchTab('bau');
+    switchBauSubtab('equip');
+  }
+  // Calcula fog inicial para jogadores
+  setTimeout(atualizarFogJogador, 300);
+  // Aplica efeitos de condições do token do jogador
+  setTimeout(applyPlayerConditionEffects, 500);
 }
-function gerarLinkConvite(){return window.location.href.split('?')[0].split('#')[0]+'?sala='+roomId;}
-function copiarConvite(){navigator.clipboard.writeText(gerarLinkConvite()).then(()=>toast('Link copiado!'));}
-function copiarCodigo(){navigator.clipboard.writeText(roomId).then(()=>toast('Código copiado!'));}
-function convidarJogador(){
-  const link=gerarLinkConvite();
-  const text='Você foi convidado para "'+roomTitle+'"!\n\nEntre em: '+link+'\n\nOu use o código: '+roomId;
-  if(navigator.share) navigator.share({title:'Arsenal VTT',text,url:link}).catch(()=>{});
-  else navigator.clipboard.writeText(text).then(()=>toast('Convite copiado!'));
+function gerarLinkConvite() { return window.location.href.split('?')[0].split('#')[0] + '?sala=' + roomId; }
+function copiarConvite() { navigator.clipboard.writeText(gerarLinkConvite()).then(() => toast('Link copiado!')); }
+function copiarCodigo() { navigator.clipboard.writeText(roomId).then(() => toast('Código copiado!')); }
+function convidarJogador() {
+  const link = gerarLinkConvite();
+  const text = 'Você foi convidado para "' + roomTitle + '"!\n\nEntre em: ' + link + '\n\nOu use o código: ' + roomId;
+  if (navigator.share) navigator.share({ title: 'Arsenal VTT', text, url: link }).catch(() => { });
+  else navigator.clipboard.writeText(text).then(() => toast('Convite copiado!'));
 }
-function sairSala(){
-  if(myRole==='jogador'&&masterConn) try{masterConn.send({type:'leave',name:myName});}catch(e){}
-  if(peer) peer.destroy(); location.reload();
+function sairSala() {
+  if (myRole === 'jogador' && masterConn) try { masterConn.send({ type: 'leave', name: myName }); } catch (e) { }
+  if (peer) peer.destroy(); location.reload();
 }
-function setLobbyStatus(panel,msg,isError=false){
-  const el=document.getElementById(panel+'-status');
-  if(el){el.textContent=msg;el.className='status-msg'+(isError?' error':'');}
+function setLobbyStatus(panel, msg, isError = false) {
+  const el = document.getElementById(panel + '-status');
+  if (el) { el.textContent = msg; el.className = 'status-msg' + (isError ? ' error' : ''); }
 }
 
 // ══════════════════════════════════════════════════════
 //  SINCRONIZAÇÃO DE COMBATE P2P
 // ══════════════════════════════════════════════════════
 function syncCombatToPlayers() {
-  if(myRole!=='mestre' && !amIHost) return;
-  const payload={type:'combat-sync',state:JSON.parse(JSON.stringify(combatState))};
-  broadcast(payload,null);
-  const notify={type:'combat-sync-notify',text:'Mestre sincronizou o combate com a mesa.'};
-  broadcast(notify,null);
+  if (myRole !== 'mestre' && !amIHost) return;
+  const payload = { type: 'combat-sync', state: JSON.parse(JSON.stringify(combatState)) };
+  broadcast(payload, null);
+  const notify = { type: 'combat-sync-notify', text: 'Mestre sincronizou o combate com a mesa.' };
+  broadcast(notify, null);
   addMsg(notify);
   showInitTracker();
-  document.getElementById('sync-badge').textContent='✓ Sync';
+  document.getElementById('sync-badge').textContent = '✓ Sync';
   document.getElementById('sync-badge').classList.add('synced');
-  setTimeout(()=>{document.getElementById('sync-badge').classList.remove('synced');document.getElementById('sync-badge').textContent='—';},3000);
+  setTimeout(() => { document.getElementById('sync-badge').classList.remove('synced'); document.getElementById('sync-badge').textContent = '—'; }, 3000);
   toast('⚔ Combate sincronizado com os jogadores!');
 }
 function receberSyncCombate(state) {
-  combatState=state;
+  combatState = state;
   showInitTracker();
-  addMsg({type:'combat-sync-notify',text:'Combate atualizado pelo Mestre — Rodada '+state.round+', vez de '+getCombatActiveName(state)});
+  addMsg({ type: 'combat-sync-notify', text: 'Combate atualizado pelo Mestre — Rodada ' + state.round + ', vez de ' + getCombatActiveName(state) });
   renderInitTracker();
 }
-function getCombatActiveName(state){
-  const c=(state.combatants||[]).find(x=>x.id===state.activeId);
-  return c?c.name:'—';
+function getCombatActiveName(state) {
+  const c = (state.combatants || []).find(x => x.id === state.activeId);
+  return c ? c.name : '—';
 }
 
 // ══════════════════════════════════════════════════════
@@ -780,6 +905,32 @@ function getSelectedTokenForInit() {
   return { tokenId: token.id, tokenName: token.name || 'Token' };
 }
 
+// Detecta uma rolagem de iniciativa em um texto e, se houver, processa-a
+// (mestre rola para si mesmo / jogador pede ao mestre via P2P).
+// Usado tanto pelo envio normal de chat quanto por mensagens vindas da ficha.
+function detectarERolarIniciativa(text) {
+  if (!isInitiativeRoll(text)) return;
+  const initTotal = extractInitiativeTotal(text);
+  if (initTotal === null) return;
+  if (myRole === 'mestre' || amIHost) {
+    processarIniciativaRoll(myName, initTotal, myPeerId);
+  } else if (masterConn) {
+    const selToken = getSelectedTokenForInit();
+    if (!selToken) {
+      toast('Selecione seu token no mapa para rolar iniciativa.');
+    } else {
+      try {
+        masterConn.send({
+          type: 'solicitar-iniciativa',
+          name: selToken.tokenName,
+          initTotal: initTotal,
+          tokenId: selToken.tokenId
+        });
+      } catch (err) { }
+    }
+  }
+}
+
 // Process an initiative roll — adds or updates the combatant in combatState
 // Called on the MASTER side only
 function processarIniciativaRoll(playerName, initTotal, peerId) {
@@ -841,147 +992,145 @@ function initMasterTools() {
   const sel = document.getElementById('enc-terreno');
   sel.innerHTML = '';
   Object.keys(terrenos).forEach(t => {
-    const opt=document.createElement('option'); opt.value=t; opt.textContent=t; sel.appendChild(opt);
+    const opt = document.createElement('option'); opt.value = t; opt.textContent = t; sel.appendChild(opt);
   });
-  // Init combate
+  // Init combate (também inicializa os autocompletes do bestiário e de fichas)
   combatInit();
-  // Datalist bestiário
-  initDbAutocomplete();
   // Renderiza fichas do mestre (se houver)
   renderMasterFichas();
 }
-function avancarDia(){
+function avancarDia() {
   encDiasSemEncontro++;
   updateViagemUI();
-  addMsg({type:'system',text:'☀ Viagem avança. Dia '+encDiasSemEncontro+' — Chance: '+(5+encDiasSemEncontro*5)+'%'});
+  addMsg({ type: 'system', text: '☀ Viagem avança. Dia ' + encDiasSemEncontro + ' — Chance: ' + (5 + encDiasSemEncontro * 5) + '%' });
 }
-function resetarViagem(){
-  if(!confirm('Resetar diário de viagem para o Dia 0?')) return;
-  encDiasSemEncontro=0; updateViagemUI();
-  addMsg({type:'system',text:'⟳ Diário reiniciado para o Dia 0.'});
+function resetarViagem() {
+  if (!confirm('Resetar diário de viagem para o Dia 0?')) return;
+  encDiasSemEncontro = 0; updateViagemUI();
+  addMsg({ type: 'system', text: '⟳ Diário reiniciado para o Dia 0.' });
 }
-function updateViagemUI(){
-  document.getElementById('viagem-dia').textContent=encDiasSemEncontro;
-  document.getElementById('viagem-chance').textContent=(5+encDiasSemEncontro*5)+'%';
+function updateViagemUI() {
+  document.getElementById('viagem-dia').textContent = encDiasSemEncontro;
+  document.getElementById('viagem-chance').textContent = (5 + encDiasSemEncontro * 5) + '%';
 }
-function testarSorte(){
-  const chance=5+encDiasSemEncontro*5;
-  const roll=Math.floor(Math.random()*100)+1;
-  if(roll<=chance){
-    encDiasSemEncontro=0; updateViagemUI();
-    addMsg({type:'system',text:'⚠ Perigo! Rolou '+roll+' contra '+chance+'% — encontro!'});
+function testarSorte() {
+  const chance = 5 + encDiasSemEncontro * 5;
+  const roll = Math.floor(Math.random() * 100) + 1;
+  if (roll <= chance) {
+    encDiasSemEncontro = 0; updateViagemUI();
+    addMsg({ type: 'system', text: '⚠ Perigo! Rolou ' + roll + ' contra ' + chance + '% — encontro!' });
     gerarEncontro();
   } else {
     encDiasSemEncontro++; updateViagemUI();
-    addMsg({type:'system',text:'☀ Dia pacífico ('+roll+' vs '+chance+'%). Dia '+encDiasSemEncontro+' acumulado.'});
+    addMsg({ type: 'system', text: '☀ Dia pacífico (' + roll + ' vs ' + chance + '%). Dia ' + encDiasSemEncontro + ' acumulado.' });
   }
 }
 function selecionarPatamar(el, ajuste) {
-  document.querySelectorAll('.patamar-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active'); encPatamarAjuste=ajuste;
+  document.querySelectorAll('.patamar-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); encPatamarAjuste = ajuste;
 }
 function encontrarResultadoTerreno(terreno, rolagem) {
-  if(!terrenos||!terrenos[terreno]) return null;
-  for(const e of terrenos[terreno]) { if(rolagem<=e.porcentagem) return e; }
-  const list=terrenos[terreno]; return list[list.length-1];
+  if (!terrenos || !terrenos[terreno]) return null;
+  for (const e of terrenos[terreno]) { if (rolagem <= e.porcentagem) return e; }
+  const list = terrenos[terreno]; return list[list.length - 1];
 }
 function gerarEncontro() {
-  let rnd=Math.floor(Math.random()*100)+1;
-  if(rnd===100&&Math.floor(Math.random()*100)+1<=25){
-    mostrarResultadoEncontro(100,{descricao:'O Rhandomm',pag:'Ameaças, pag. 113'});
-    toast('👹 Evento Lendário: O Rhandomm!');return;
+  let rnd = Math.floor(Math.random() * 100) + 1;
+  if (rnd === 100 && Math.floor(Math.random() * 100) + 1 <= 25) {
+    mostrarResultadoEncontro(100, { descricao: 'O Rhandomm', pag: 'Ameaças, pag. 113' });
+    toast('👹 Evento Lendário: O Rhandomm!'); return;
   }
-  const final=rnd+encPatamarAjuste;
-  const terreno=document.getElementById('enc-terreno').value;
-  const res=encontrarResultadoTerreno(terreno,final);
-  mostrarResultadoEncontro(final,res,terreno);
+  const final = rnd + encPatamarAjuste;
+  const terreno = document.getElementById('enc-terreno').value;
+  const res = encontrarResultadoTerreno(terreno, final);
+  mostrarResultadoEncontro(final, res, terreno);
 }
 function mostrarResultadoEncontro(roll, res, terreno) {
-  const box=document.getElementById('enc-result-box');
-  if(!res){box.innerHTML='<div style="font-size:0.82rem;color:var(--text-muted);font-style:italic;text-align:center;">Sem resultado para esta rolagem.</div>';return;}
-  box.innerHTML=`
-    <div class="enc-result-roll">Rolagem: ${roll} ${terreno?'| '+terreno:''}</div>
+  const box = document.getElementById('enc-result-box');
+  if (!res) { box.innerHTML = '<div style="font-size:0.82rem;color:var(--text-muted);font-style:italic;text-align:center;">Sem resultado para esta rolagem.</div>'; return; }
+  box.innerHTML = `
+    <div class="enc-result-roll">Rolagem: ${roll} ${terreno ? '| ' + terreno : ''}</div>
     <div class="enc-result-desc">${escHTML(res.descricao)}</div>
-    ${res.pag?`<div class="enc-result-pag">📖 ${escHTML(res.pag)}</div>`:''}
+    ${res.pag ? `<div class="enc-result-pag">📖 ${escHTML(res.pag)}</div>` : ''}
   `;
   // Detectar ameaças
-  const threats=findThreatsInDescription(res.descricao);
-  encCurrentThreats=threats;
+  const threats = findThreatsInDescription(res.descricao);
+  encCurrentThreats = threats;
   renderThreatMiniCards(threats);
   // Notificar chat
-  addMsg({type:'system',text:'🗺 ['+roll+'] '+res.descricao.substring(0,60)+(res.descricao.length>60?'...':'')});
+  addMsg({ type: 'system', text: '🗺 [' + roll + '] ' + res.descricao.substring(0, 60) + (res.descricao.length > 60 ? '...' : '') });
 }
 function findThreatsInDescription(desc) {
-  if(!desc||typeof AMEACAS_DB==='undefined') return [];
-  const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\*/g,'').replace(/[''']/g,'').replace(/[.,-\/#!$%\^&\*;:{}=\-_`~()]/g,' ');
-  const STOP=new Set(['das','dos','com','sob','uma','uns','para','pelo','pela','pelos','pelas','como','sob']);
-  const fixes={defeitusos:'defeituosos',defeituso:'defeituoso',namasquall:'namasqall'};
-  const stem=w=>{let s=w;if(s.endsWith('oes'))s=s.slice(0,-3)+'ao';else if(s.endsWith('ais'))s=s.slice(0,-3)+'al';else if(s.endsWith('eis'))s=s.slice(0,-3)+'el';else if(s.endsWith('nns'))s=s.slice(0,-1);else if(s.endsWith('ens'))s=s.slice(0,-3)+'em';else if(s.endsWith('ins'))s=s.slice(0,-3)+'im';else if(s.endsWith('uns'))s=s.slice(0,-3)+'um';else if(s.endsWith('ons'))s=s.slice(0,-1);else if(s.endsWith('ans'))s=s.slice(0,-1);else if(s.endsWith('res')||s.endsWith('ses')||s.endsWith('zes'))s=s.slice(0,-2);else if(s.endsWith('is')&&!s.endsWith('lis')&&!s.endsWith('mis')&&!s.endsWith('ris'))s=s.slice(0,-1);else if(s.endsWith('s'))s=s.slice(0,-1);if(s==='cae')s='cao';return s;};
-  const words=norm(desc).split(/\s+/).filter(w=>w.length>2&&!STOP.has(w)).map(w=>fixes[w]||w);
-  const stemsD=words.map(stem);
-  return AMEACAS_DB.filter(t=>{
-    const tw=norm(t.nome||'').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w)).map(w=>fixes[w]||w);
-    return tw.length>0&&tw.every(w=>stemsD.some(d=>d===stem(w)));
-  }).sort((a,b)=>b.nome.length-a.nome.length);
+  if (!desc || typeof AMEACAS_DB === 'undefined') return [];
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\*/g, '').replace(/[''']/g, '').replace(/[.,-\/#!$%\^&\*;:{}=\-_`~()]/g, ' ');
+  const STOP = new Set(['das', 'dos', 'com', 'sob', 'uma', 'uns', 'para', 'pelo', 'pela', 'pelos', 'pelas', 'como', 'sob']);
+  const fixes = { defeitusos: 'defeituosos', defeituso: 'defeituoso', namasquall: 'namasqall' };
+  const stem = w => { let s = w; if (s.endsWith('oes')) s = s.slice(0, -3) + 'ao'; else if (s.endsWith('ais')) s = s.slice(0, -3) + 'al'; else if (s.endsWith('eis')) s = s.slice(0, -3) + 'el'; else if (s.endsWith('nns')) s = s.slice(0, -1); else if (s.endsWith('ens')) s = s.slice(0, -3) + 'em'; else if (s.endsWith('ins')) s = s.slice(0, -3) + 'im'; else if (s.endsWith('uns')) s = s.slice(0, -3) + 'um'; else if (s.endsWith('ons')) s = s.slice(0, -1); else if (s.endsWith('ans')) s = s.slice(0, -1); else if (s.endsWith('res') || s.endsWith('ses') || s.endsWith('zes')) s = s.slice(0, -2); else if (s.endsWith('is') && !s.endsWith('lis') && !s.endsWith('mis') && !s.endsWith('ris')) s = s.slice(0, -1); else if (s.endsWith('s')) s = s.slice(0, -1); if (s === 'cae') s = 'cao'; return s; };
+  const words = norm(desc).split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)).map(w => fixes[w] || w);
+  const stemsD = words.map(stem);
+  return AMEACAS_DB.filter(t => {
+    const tw = norm(t.nome || '').split(/\s+/).filter(w => w.length > 2 && !STOP.has(w)).map(w => fixes[w] || w);
+    return tw.length > 0 && tw.every(w => stemsD.some(d => d === stem(w)));
+  }).sort((a, b) => b.nome.length - a.nome.length);
 }
 function renderThreatMiniCards(threats) {
-  const c=document.getElementById('enc-threats'); c.innerHTML='';
-  if(!threats||threats.length===0) return;
-  threats.forEach((t,i)=>{
-    const card=document.createElement('div'); card.className='threat-mini';
-    const hasPM=parseInt(t.pm)>0;
-    card.innerHTML=`
+  const c = document.getElementById('enc-threats'); c.innerHTML = '';
+  if (!threats || threats.length === 0) return;
+  threats.forEach((t, i) => {
+    const card = document.createElement('div'); card.className = 'threat-mini';
+    const hasPM = parseInt(t.pm) > 0;
+    card.innerHTML = `
       <div class="threat-mini-header">
         <div class="threat-mini-name">${escHTML(t.nome)}</div>
-        <div class="threat-mini-nd">ND ${t.nd||'—'}</div>
+        <div class="threat-mini-nd">ND ${t.nd || '—'}</div>
       </div>
       <div class="threat-mini-stats">
-        <span>PV ${t.pv||'—'}</span>${hasPM?`<span>PM ${t.pm}</span>`:''}
-        <span>Def ${t.defesa||'—'}</span>
+        <span>PV ${t.pv || '—'}</span>${hasPM ? `<span>PM ${t.pm}</span>` : ''}
+        <span>Def ${t.defesa || '—'}</span>
       </div>
       <div class="threat-mini-actions">
         <button class="btn btn-sm" onclick="enviarAoCombate(${i},1)">⚔ Ao Combate</button>
         <input type="number" id="enc-qty-${i}" value="1" min="1" max="20" style="width:45px;padding:0.2rem 0.3rem;font-size:0.8rem;">
       </div>
     `;
-    card.querySelector('button').onclick=()=>{
-      const qty=parseInt(document.getElementById('enc-qty-'+i).value)||1;
-      enviarAoCombate(i,qty);
+    card.querySelector('button').onclick = () => {
+      const qty = parseInt(document.getElementById('enc-qty-' + i).value) || 1;
+      enviarAoCombate(i, qty);
     };
     c.appendChild(card);
   });
 }
 function enviarAoCombate(threatIdx, qty) {
-  const threat=encCurrentThreats[threatIdx]; if(!threat) return;
-  for(let i=1;i<=qty;i++){
-    const id=`c${Date.now()}${Math.floor(Math.random()*99999)}`;
-    const nome=qty>1?`${threat.nome} ${i}`:threat.nome;
-    const initText=threat.iniciativa||'+0';
-    const initMod=parseInt(initText.replace('+',''))||0;
-    const roll=Math.floor(Math.random()*20)+1;
-    const totalInit=roll+initMod;
-    const def=threat.defesa+(threat.defesaObs?` (${threat.defesaObs})`:'');
-    const res=`Fort ${threat.fort||'+0'}, Ref ${threat.ref||'+0'}, Von ${threat.von||'+0'}`;
-    let notes=`Tipo: ${threat.tipo||'—'} | ND: ${threat.nd||'—'}\nDeslocamento: ${threat.desl||'—'}\n`;
-    if(threat.atributos){const a=threat.atributos;notes+=`FOR ${a.for||'—'}, DES ${a.des||'—'}, CON ${a.con||'—'}, INT ${a.int||'—'}, SAB ${a.sab||'—'}, CAR ${a.car||'—'}\n`;}
-    notes+='\n--- ATAQUES ---\n';
-    if(Array.isArray(threat.ataques)) threat.ataques.forEach(a=>{notes+=`• ${a.nome}: ${a.tipo||''} ${a.bonus||''} (${a.dano||''})${a.desc?' - '+a.desc:''}\n`;});
-    notes+='\n--- HABILIDADES ---\n';
-    if(Array.isArray(threat.habilidades)) threat.habilidades.forEach(h=>{notes+=`• ${h.nome} (${h.tipo||''}): ${h.desc||''}\n`;});
-    combatState.combatants.push({id,name:nome,init:totalInit,hpCur:parseInt(threat.pv)||0,hpMax:parseInt(threat.pv)||0,mpCur:parseInt(threat.pm)||0,mpMax:parseInt(threat.pm)||0,notes,conditions:[],stats:{def,res,cd:''},open:false,imageUrl:threat.img||''});
-    if(!combatState.activeId) combatState.activeId=id;
+  const threat = encCurrentThreats[threatIdx]; if (!threat) return;
+  for (let i = 1; i <= qty; i++) {
+    const id = `c${Date.now()}${Math.floor(Math.random() * 99999)}`;
+    const nome = qty > 1 ? `${threat.nome} ${i}` : threat.nome;
+    const initText = threat.iniciativa || '+0';
+    const initMod = parseInt(initText.replace('+', '')) || 0;
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const totalInit = roll + initMod;
+    const def = threat.defesa + (threat.defesaObs ? ` (${threat.defesaObs})` : '');
+    const res = `Fort ${threat.fort || '+0'}, Ref ${threat.ref || '+0'}, Von ${threat.von || '+0'}`;
+    let notes = `Tipo: ${threat.tipo || '—'} | ND: ${threat.nd || '—'}\nDeslocamento: ${threat.desl || '—'}\n`;
+    if (threat.atributos) { const a = threat.atributos; notes += `FOR ${a.for || '—'}, DES ${a.des || '—'}, CON ${a.con || '—'}, INT ${a.int || '—'}, SAB ${a.sab || '—'}, CAR ${a.car || '—'}\n`; }
+    notes += '\n--- ATAQUES ---\n';
+    if (Array.isArray(threat.ataques)) threat.ataques.forEach(a => { notes += `• ${a.nome}: ${a.tipo || ''} ${a.bonus || ''} (${a.dano || ''})${a.desc ? ' - ' + a.desc : ''}\n`; });
+    notes += '\n--- HABILIDADES ---\n';
+    if (Array.isArray(threat.habilidades)) threat.habilidades.forEach(h => { notes += `• ${h.nome} (${h.tipo || ''}): ${h.desc || ''}\n`; });
+    combatState.combatants.push({ id, name: nome, init: totalInit, hpCur: parseInt(threat.pv) || 0, hpMax: parseInt(threat.pv) || 0, mpCur: parseInt(threat.pm) || 0, mpMax: parseInt(threat.pm) || 0, notes, conditions: [], stats: { def, res, cd: '' }, open: false, imageUrl: threat.img || '' });
+    if (!combatState.activeId) combatState.activeId = id;
   }
   combatSave(); combatRender();
   switchTab('combate');
   toast(`⚔ ${qty}x ${threat.nome} adicionados ao combate! (INI auto-rolada)`);
-  addMsg({type:'system',text:`⚔ ${qty}x ${threat.nome} entrou no combate.`});
+  addMsg({ type: 'system', text: `⚔ ${qty}x ${threat.nome} entrou no combate.` });
 }
 
 // ══════════════════════════════════════════════════════
 //  COMBATE — adaptação do arsenal original
 // ══════════════════════════════════════════════════════
 // STORAGE_KEY is declared at the top of the file
-let combatState=null;
+let combatState = null;
 
 function combatDefaultState() {
   return {
@@ -992,49 +1141,6 @@ function combatDefaultState() {
     logOpen: false,
     autoSort: false
   };
-}
-
-function combatInit() {
-  combatState = combatLoad() || combatDefaultState();
-
-  // Normalizações defensivas
-  if (!combatState || typeof combatState !== "object") combatState = combatDefaultState();
-  if (!Array.isArray(combatState.combatants)) combatState.combatants = [];
-  // Migração: garante que máximos existam e nunca aumentem automaticamente
-  combatState.combatants.forEach(c => {
-    if (!Number.isFinite(parseInt(c.hpCur))) c.hpCur = 0;
-    if (!Number.isFinite(parseInt(c.mpCur))) c.mpCur = 0;
-    if (!Number.isFinite(parseInt(c.hpMax))) c.hpMax = Math.max(0, parseInt(c.hpCur) || 0);
-    if (!Number.isFinite(parseInt(c.mpMax))) c.mpMax = Math.max(0, parseInt(c.mpCur) || 0);
-  });
-
-  if (!Array.isArray(combatState.log)) combatState.log = [];
-  combatState.round = clampInt(combatState.round, 1, 9999, 1);
-  combatState.autoSort = !!combatState.autoSort;
-
-  const auto = document.getElementById("combatAutoSort");
-  if (auto) auto.checked = combatState.autoSort;
-
-  // Enter no nome adiciona
-  const nameInp = document.getElementById("combatNewName");
-  if (nameInp) {
-    nameInp.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        combatAddFromForm();
-      }
-    });
-  }
-
-  combatRender();
-  // Validação do formulário de adicionar (nome + iniciativa obrigatórios)
-  combatBindAddFormValidation();
-  combatEnableDrag();
-  combatLogRender();
-  
-  // Inicialização dos Autocompletes
-  combatInitDbAutocomplete();
-  combatInitFichaAutocomplete();
 }
 
 function combatSetAutoSort(on) {
@@ -1061,11 +1167,6 @@ function combatLoad() {
   }
 }
 
-// Sistema de Notificações Toast
-function mostrarToast(mensagem, tipo = 'info') {
-  toast(mensagem);
-}
-
 // Inicializa Autocomplete do Bestiário Oficial
 function combatInitDbAutocomplete() {
   const datalist = document.getElementById("combatDbDatalist");
@@ -1074,8 +1175,8 @@ function combatInitDbAutocomplete() {
 
   if (typeof AMEACAS_DB !== "undefined" && Array.isArray(AMEACAS_DB)) {
     const sortedAmeacas = [...AMEACAS_DB].sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
-    datalist.innerHTML = sortedAmeacas.map(a => 
-      `<option value="${escapeHtml(a.nome)}">${escapeHtml(a.tipo || "Criatura")} · ND ${escapeHtml(a.nd || "?")}</option>`
+    datalist.innerHTML = sortedAmeacas.map(a =>
+      `<option value="${escHTML(a.nome)}">${escHTML(a.tipo || "Criatura")} · ND ${escHTML(a.nd || "?")}</option>`
     ).join("");
 
     searchInput.addEventListener("input", () => {
@@ -1083,29 +1184,29 @@ function combatInitDbAutocomplete() {
       const match = AMEACAS_DB.find(a => (a.nome || "").toLowerCase() === val.toLowerCase());
       if (match) {
         currentThreatData = match;
-        
+
         const nameInp = document.getElementById("combatNewName");
         const hpInp = document.getElementById("combatNewHP");
         const mpInp = document.getElementById("combatNewMP");
         const initInp = document.getElementById("combatNewInit");
         const fichaSearch = document.getElementById("combatFichaSearch");
-        
+
         if (nameInp) nameInp.value = match.nome;
         if (hpInp) hpInp.value = parseInt(match.pv) || 0;
         if (mpInp) mpInp.value = parseInt(match.pm) || 0;
         if (fichaSearch) fichaSearch.value = "";
-        
+
         // Auto rola iniciativa
         const initText = match.iniciativa || "+0";
         const initMod = parseInt(initText.replace("+", "")) || 0;
         const roll = Math.floor(Math.random() * 20) + 1;
         const totalInit = roll + initMod;
-        
+
         if (initInp) initInp.value = totalInit;
-        
+
         combatLogAdd(`🎲 Iniciativa auto-rolada para ${match.nome}: 1d20 (${roll}) + ${initMod} = ${totalInit}`);
         mostrarToast(`🎲 ${match.nome} iniciativa: ${totalInit} (1d20 [${roll}] + ${initMod})`, "sucesso");
-        
+
         // Revalida formulário
         combatBindAddFormValidation();
       }
@@ -1136,7 +1237,7 @@ function getFichasDisponiveis() {
         });
       }
     }
-  } catch(e) {}
+  } catch (e) { }
   // Fichas dos jogadores conectados
   if (typeof fichasJogadores !== 'undefined') {
     Object.entries(fichasJogadores).forEach(([pid, entry]) => {
@@ -1180,7 +1281,7 @@ function getFichasDisponiveis() {
         });
       }
     }
-  } catch(e) {}
+  } catch (e) { }
   return fichas;
 }
 
@@ -1191,7 +1292,7 @@ function combatInitFichaAutocomplete() {
 
   const fichas = getFichasDisponiveis();
   datalist.innerHTML = fichas.map(f =>
-    `<option value="${escapeHtml(f.charName)}">${escapeHtml(f.label)}</option>`
+    `<option value="${escHTML(f.charName)}">${escHTML(f.label)}</option>`
   ).join("");
 }
 
@@ -1242,10 +1343,10 @@ function combatRollNewInit() {
   const roll = Math.floor(Math.random() * 20) + 1;
   const total = roll + mod;
   initInp.value = total;
-  
+
   combatLogAdd(`🎲 Iniciativa rolada: 1d20 (${roll}) + ${mod} = ${total}`);
   mostrarToast(`🎲 Rolado: ${total} (1d20 [${roll}] + ${mod})`);
-  
+
   combatBindAddFormValidation();
 }
 
@@ -1297,12 +1398,12 @@ function combatAddFromForm() {
   let res = "";
   let cd = "";
   let notesStr = "";
-  
+
   // Se houver dados de criatura no banco e o nome inserido iniciar com o nome da criatura (ex: Goblin 1 começa com Goblin)
   if (currentThreatData && name.toLowerCase().startsWith(currentThreatData.nome.toLowerCase())) {
     def = currentThreatData.defesa + (currentThreatData.defesaObs ? ` (${currentThreatData.defesaObs})` : "");
     res = `Fort ${currentThreatData.fort || "+0"}, Ref ${currentThreatData.ref || "+0"}, Von ${currentThreatData.von || "+0"}`;
-    
+
     // Tenta encontrar uma CD nas descrições de ataques ou habilidades
     const descTexts = [];
     if (Array.isArray(currentThreatData.ataques)) currentThreatData.ataques.forEach(a => descTexts.push(a.desc || ""));
@@ -1310,7 +1411,7 @@ function combatAddFromForm() {
     const joinedText = descTexts.join(" ");
     const cdMatch = joinedText.match(/CD\s*(\d+)/i);
     if (cdMatch) cd = cdMatch[1];
-    
+
     // Formata o resumo da criatura nas notas
     notesStr += `Tipo: ${currentThreatData.tipo || "—"} | ND: ${currentThreatData.nd || "—"}\n`;
     notesStr += `Deslocamento: ${currentThreatData.desl || "—"}\n`;
@@ -1365,10 +1466,10 @@ function combatAddFromForm() {
   document.getElementById("combatNewName").value = "";
   const dbSearchInput = document.getElementById("combatDbSearch");
   if (dbSearchInput) dbSearchInput.value = "";
-  
+
   // Reseta estado temporário da ameaça para não auto-aplicar na próxima criação genérica
   currentThreatData = null;
-  
+
   combatBindAddFormValidation();
 
   combatLogAdd(`+ ${name} (INI ${init})`);
@@ -1628,18 +1729,18 @@ const CONDITION_INFO = {
   "Surpreendido": "O personagem fica desprevenido e não pode fazer ações.",
   "Vulnerável": "O personagem sofre -2 na Defesa.",
 };
-const CONDITION_LIST = Object.keys(CONDITION_INFO).sort((a,b)=>a.localeCompare(b, "pt-BR"));
+const CONDITION_LIST = Object.keys(CONDITION_INFO).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
 const CONDITION_EMOJI = {
-  "Abalado":"😰","Agarrado":"🤝","Alquebrado":"😩","Apavorado":"😱",
-  "Atordoado":"💫","Caído":"🦶","Cego":"🦯","Confuso":"🌀",
-  "Debilitado":"😵","Desprevenido":"⚡","Doente":"🤒","Em Chamas":"🔥",
-  "Enfeitiçado":"🫦","Enjoado":"🤢","Enredado":"🕸️","Envenenado":"☠️",
-  "Esmorecido":"🥀","Exausto":"😫","Fascinado":"✨","Fatigado":"😮‍💨",
-  "Fraco":"🪫","Frustrado":"😤","Imóvel":"🗿","Inconsciente":"💤",
-  "Indefeso":"🛐","Lento":"🐌","Ofuscado":"🌟","Paralisado":"🧊",
-  "Pasmo":"😶","Petrificado":"🪨","Sangrando":"🩸","Sobrecarregado":"🎒",
-  "Surdo":"🦻","Surpreendido":"😮","Vulnerável":"🎯",
+  "Abalado": "😰", "Agarrado": "🤝", "Alquebrado": "😩", "Apavorado": "😱",
+  "Atordoado": "💫", "Caído": "🦶", "Cego": "🦯", "Confuso": "🌀",
+  "Debilitado": "😵", "Desprevenido": "⚡", "Doente": "🤒", "Em Chamas": "🔥",
+  "Enfeitiçado": "🫦", "Enjoado": "🤢", "Enredado": "🕸️", "Envenenado": "☠️",
+  "Esmorecido": "🥀", "Exausto": "😫", "Fascinado": "✨", "Fatigado": "😮‍💨",
+  "Fraco": "🪫", "Frustrado": "😤", "Imóvel": "🗿", "Inconsciente": "💤",
+  "Indefeso": "🛐", "Lento": "🐌", "Ofuscado": "🌟", "Paralisado": "🧊",
+  "Pasmo": "😶", "Petrificado": "🪨", "Sangrando": "🩸", "Sobrecarregado": "🎒",
+  "Surdo": "🦻", "Surpreendido": "😮", "Vulnerável": "🎯",
 };
 
 function combatAddCondition(id) {
@@ -1709,13 +1810,13 @@ function combatTickConditionsOnLeaveCurrentTurn() {
   const cur = combatFind(combatState.activeId);
   if (!cur || !Array.isArray(cur.conditions) || cur.conditions.length === 0) return;
 
-  const before = cur.conditions.map(x => ({...x}));
+  const before = cur.conditions.map(x => ({ ...x }));
   cur.conditions.forEach(x => {
     if (Number.isFinite(parseInt(x.remaining)) && parseInt(x.remaining) > 0) {
       x.remaining = parseInt(x.remaining) - 1;
     }
   });
-  
+
   // Remove as que zeraram
   cur.conditions = cur.conditions.filter(x => (parseInt(x.remaining) || 0) > 0);
 
@@ -1751,6 +1852,7 @@ function combatNextTurn() {
   mostrarToast(` Vez de: ${combatGetActiveName()}`);
   combatRender();
   combatSave();
+  if (myRole === 'mestre') setTimeout(atualizarTokensDoCombate, 50);
 }
 
 function combatPrevTurn() {
@@ -1770,6 +1872,7 @@ function combatPrevTurn() {
   combatLogAdd(`Vez: ${combatGetActiveName()}`);
   combatRender();
   combatSave();
+  if (myRole === 'mestre') setTimeout(atualizarTokensDoCombate, 50);
 }
 
 function combatResetRound() {
@@ -1864,9 +1967,9 @@ function combatImport(input) {
         name: c.name || "—",
         init: parseInt(c.init) || 0,
         hpCur: clampInt(c.hpCur, -999999, 999999, 0),
-        hpMax: clampInt(c.hpMax, 0, 999999, clampInt(c.hpCur,0,999999,0)),
+        hpMax: clampInt(c.hpMax, 0, 999999, clampInt(c.hpCur, 0, 999999, 0)),
         mpCur: clampInt(c.mpCur, 0, 999999, 0),
-        mpMax: clampInt(c.mpMax, 0, 999999, clampInt(c.mpCur,0,999999,0)),
+        mpMax: clampInt(c.mpMax, 0, 999999, clampInt(c.mpCur, 0, 999999, 0)),
         notes: c.notes || "",
         conditions: Array.isArray(c.conditions) ? c.conditions.map(x => ({
           name: (x.name || "").toString(),
@@ -1876,7 +1979,7 @@ function combatImport(input) {
           def: c.stats.def ?? "",
           res: c.stats.res ?? "",
           cd: c.stats.cd ?? ""
-        } : { def:"", res:"", cd:"" },
+        } : { def: "", res: "", cd: "" },
         open: false
       }));
 
@@ -1995,6 +2098,15 @@ function combatRender() {
 
   // Update floating initiative tracker
   renderInitTracker();
+
+  // Atualiza barra de rodada no painel VTT
+  const roundEl = document.getElementById('c-round');
+  const nameEl = document.getElementById('c-active-name');
+  if (roundEl) roundEl.textContent = combatState?.round || 1;
+  if (nameEl) {
+    const act = (combatState?.combatants || []).find(x => x.id === combatState?.activeId);
+    nameEl.textContent = act ? act.name : '—';
+  }
 }
 
 function combatRowHTML(c) {
@@ -2011,8 +2123,8 @@ function combatRowHTML(c) {
 
   const condHTML = (Array.isArray(c.conditions) && c.conditions.length)
     ? `<div class="chip-row mt-2">${c.conditions.map((x, i) => `
-        <span class="cond-chip" data-cond="${escapeAttr(x.name)}" title="${escapeAttr(combatCondDesc(x.name))}">
-          ${escapeHtml(x.name)} <span class="n">${clampInt(x.remaining,0,999,1)}r</span>
+        <span class="cond-chip" data-cond="${escHTML(x.name)}" title="${escHTML(combatCondDesc(x.name))}">
+          ${escHTML(x.name)} <span class="n">${clampInt(x.remaining, 0, 999, 1)}r</span>
           <button title="-1" onclick="combatCondBump('${c.id}',${i},-1); event.stopPropagation();">-</button>
           <button title="+1" onclick="combatCondBump('${c.id}',${i},+1); event.stopPropagation();">+</button>
           <button title="Remover" onclick="combatCondRemove('${c.id}',${i}); event.stopPropagation();">×</button>
@@ -2042,7 +2154,7 @@ function combatRowHTML(c) {
       </div>
 
       <div class="cs-name text-start">
-        <span id="combatName-${c.id}" class="combat-name ${nameStateClass}">${escapeHtml(c.name || "—")}</span>
+        <span id="combatName-${c.id}" class="combat-name ${nameStateClass}">${escHTML(c.name || "—")}</span>
         <span id="combatNoteIndicator-${c.id}" class="combat-note-indicator ${noteClass}" title="Anotações">📝</span>
       </div>
 
@@ -2128,15 +2240,15 @@ function combatRowHTML(c) {
           <div class="stats-inputs-row">
             <div class="form-group">
               <label class="t20-label">Defesa</label>
-              <input class="form-control t20-input" value="${escapeHtml(c.stats?.def ?? "")}" oninput="combatUpdateStats('${c.id}','def', this.value)">
+              <input class="form-control t20-input" value="${escHTML(c.stats?.def ?? "")}" oninput="combatUpdateStats('${c.id}','def', this.value)">
             </div>
             <div class="form-group">
               <label class="t20-label">Resistências</label>
-              <input class="form-control t20-input" value="${escapeHtml(c.stats?.res ?? "")}" placeholder="Ex: Fort +8, Ref +4, Von +2" oninput="combatUpdateStats('${c.id}','res', this.value)">
+              <input class="form-control t20-input" value="${escHTML(c.stats?.res ?? "")}" placeholder="Ex: Fort +8, Ref +4, Von +2" oninput="combatUpdateStats('${c.id}','res', this.value)">
             </div>
             <div class="form-group">
               <label class="t20-label">CD</label>
-              <input class="form-control t20-input" value="${escapeHtml(c.stats?.cd ?? "")}" placeholder="Ex: 16" oninput="combatUpdateStats('${c.id}','cd', this.value)">
+              <input class="form-control t20-input" value="${escHTML(c.stats?.cd ?? "")}" placeholder="Ex: 16" oninput="combatUpdateStats('${c.id}','cd', this.value)">
             </div>
           </div>
         </div>
@@ -2173,7 +2285,7 @@ function combatRowHTML(c) {
         <!-- Anotações -->
         <div class="form-group details-span-all">
           <label class="t20-label">Anotações da Criatura / Ataques / Habilidades</label>
-          <textarea class="notes-textarea" rows="4" placeholder="Reação preparada, efeitos, lembretes, itens usados ou ficha..." oninput="combatUpdateNotes('${c.id}', this.value)" onclick="event.stopPropagation()">${escapeHtml(c.notes || "")}</textarea>
+          <textarea class="notes-textarea" rows="4" placeholder="Reação preparada, efeitos, lembretes, itens usados ou ficha..." oninput="combatUpdateNotes('${c.id}', this.value)" onclick="event.stopPropagation()">${escHTML(c.notes || "")}</textarea>
         </div>
 
         <!-- Rodapé do Card -->
@@ -2202,17 +2314,6 @@ function clampNum(v, min, max) {
   if (!Number.isFinite(n)) return min;
   return Math.max(min, Math.min(max, n));
 }
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll("\"", "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escapeAttr(str) { return escapeHtml(str); }
 
 function combatCondDesc(name) {
   return CONDITION_INFO && CONDITION_INFO[name] ? CONDITION_INFO[name] : "";
@@ -2282,17 +2383,20 @@ function incrementName(name) {
 // ──── Sobreposição: combatInit para VTT ────
 function combatInit() {
   combatState = combatLoad() || combatDefaultState();
-  if(!combatState||typeof combatState!=='object') combatState=combatDefaultState();
-  if(!Array.isArray(combatState.combatants)) combatState.combatants=[];
-  combatState.combatants.forEach(c=>{
-    if(!Number.isFinite(parseInt(c.hpCur))) c.hpCur=0;
-    if(!Number.isFinite(parseInt(c.mpCur))) c.mpCur=0;
-    if(!Number.isFinite(parseInt(c.hpMax))) c.hpMax=Math.max(0,parseInt(c.hpCur)||0);
-    if(!Number.isFinite(parseInt(c.mpMax))) c.mpMax=Math.max(0,parseInt(c.mpCur)||0);
+  if (!combatState || typeof combatState !== 'object') combatState = combatDefaultState();
+  if (!Array.isArray(combatState.combatants)) combatState.combatants = [];
+  combatState.combatants.forEach(c => {
+    if (!Number.isFinite(parseInt(c.hpCur))) c.hpCur = 0;
+    if (!Number.isFinite(parseInt(c.mpCur))) c.mpCur = 0;
+    if (!Number.isFinite(parseInt(c.hpMax))) c.hpMax = Math.max(0, parseInt(c.hpCur) || 0);
+    if (!Number.isFinite(parseInt(c.mpMax))) c.mpMax = Math.max(0, parseInt(c.mpCur) || 0);
   });
-  if(!Array.isArray(combatState.log)) combatState.log=[];
-  combatState.round=clampInt(combatState.round,1,9999,1);
-  combatState.autoSort=!!combatState.autoSort;
+  if (!Array.isArray(combatState.log)) combatState.log = [];
+  combatState.round = clampInt(combatState.round, 1, 9999, 1);
+  combatState.autoSort = !!combatState.autoSort;
+
+  const auto = document.getElementById("combatAutoSort");
+  if (auto) auto.checked = combatState.autoSort;
 
   // Enter no nome adiciona
   const nameInp = document.getElementById("combatNewName");
@@ -2310,64 +2414,38 @@ function combatInit() {
   combatBindAddFormValidation();
   combatEnableDrag();
   combatLogRender();
-}
 
-function initDbAutocomplete() {
-  const datalist=document.getElementById('combatDbDatalist');
-  const searchInput=document.getElementById('combatDbSearch');
-  if(!datalist||!searchInput) return;
-  if(typeof AMEACAS_DB!=='undefined'&&Array.isArray(AMEACAS_DB)){
-    const sorted=[...AMEACAS_DB].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-    datalist.innerHTML=sorted.map(a=>`<option value="${escHTML(a.nome)}">${escHTML(a.tipo||'Criatura')} · ND ${escHTML(a.nd||'?')}</option>`).join('');
-  }
+  // Inicialização dos Autocompletes (bestiário e fichas)
+  combatInitDbAutocomplete();
+  combatInitFichaAutocomplete();
 }
 
 function onDbSearchInput() {
-  const inp=document.getElementById('combatDbSearch');
-  const val=(inp?.value||'').trim();
-  const match=AMEACAS_DB.find(a=>(a.nome||'').toLowerCase()===val.toLowerCase());
-  if(match){
-    currentThreatData=match;
-    const nameInp=document.getElementById('combatNewName');
-    const hpInp=document.getElementById('combatNewHP');
-    const mpInp=document.getElementById('combatNewMP');
-    const initInp=document.getElementById('combatNewInit');
-    if(nameInp) {
-      nameInp.value=match.nome;
+  const inp = document.getElementById('combatDbSearch');
+  const val = (inp?.value || '').trim();
+  const match = AMEACAS_DB.find(a => (a.nome || '').toLowerCase() === val.toLowerCase());
+  if (match) {
+    currentThreatData = match;
+    const nameInp = document.getElementById('combatNewName');
+    const hpInp = document.getElementById('combatNewHP');
+    const mpInp = document.getElementById('combatNewMP');
+    const initInp = document.getElementById('combatNewInit');
+    if (nameInp) {
+      nameInp.value = match.nome;
       nameInp.dispatchEvent(new Event('input'));
     }
-    if(hpInp) hpInp.value=parseInt(match.pv)||0;
-    if(mpInp) mpInp.value=parseInt(match.pm)||0;
-    const initMod=parseInt((match.iniciativa||'+0').replace('+',''))||0;
-    const roll=Math.floor(Math.random()*20)+1;
-    if(initInp) {
-      initInp.value=roll+initMod;
+    if (hpInp) hpInp.value = parseInt(match.pv) || 0;
+    if (mpInp) mpInp.value = parseInt(match.pm) || 0;
+    const initMod = parseInt((match.iniciativa || '+0').replace('+', '')) || 0;
+    const roll = Math.floor(Math.random() * 20) + 1;
+    if (initInp) {
+      initInp.value = roll + initMod;
       initInp.dispatchEvent(new Event('input'));
     }
-    toast(`🎲 ${match.nome} — Iniciativa: ${roll+initMod}`);
+    toast(`🎲 ${match.nome} — Iniciativa: ${roll + initMod}`);
     combatBindAddFormValidation();
   }
 }
-
-// Sobreposição de combatRender para usar IDs do VTT e fazer auto-sync visual
-const _origCombatRender = combatRender;
-combatRender = function() {
-  _origCombatRender();
-  // Atualiza barra de rodada no painel VTT
-  const roundEl=document.getElementById('c-round');
-  const nameEl=document.getElementById('c-active-name');
-  if(roundEl) roundEl.textContent=combatState?.round||1;
-  if(nameEl){
-    const act=(combatState?.combatants||[]).find(x=>x.id===combatState?.activeId);
-    nameEl.textContent=act?act.name:'—';
-  }
-};
-
-// Sobreposição para redirecionar log para o chat do VTT também
-const _origCombatLogAdd = combatLogAdd;
-combatLogAdd = function(text) {
-  _origCombatLogAdd(text);
-};
 
 // ══════════════════════════════════════════════════════
 //  INTEGRAÇÃO DA FICHA
@@ -2383,6 +2461,10 @@ const FICHA_URL = 'ficha-vtt.html';
 const MASTER_FICHAS_KEY = 't20_mestre_fichas';
 
 function toggleFichaPanel() {
+  if (myRole === 'expectador' || myRole === 'cego') {
+    toast('Sua função não permite acessar a ficha.');
+    return;
+  }
   fichaAberta = !fichaAberta;
   const panel = document.getElementById('ficha-panel');
   const board = document.querySelector('.board');
@@ -2407,7 +2489,7 @@ function toggleFichaPanel() {
     btn.textContent = '📋 Ficha';
     btn.classList.remove('btn-primary');
     btn.classList.add('btn-gold');
-    
+
     // Se for o mestre, ele oculta o botão ao fechar a ficha e limpa a visualização ativa
     if (myRole === 'mestre') {
       btn.style.display = 'none';
@@ -2422,117 +2504,143 @@ function toggleFichaPanel() {
   }
 }
 
-// Receber mensagens da ficha (iframe postMessage)
-window.addEventListener('message', (e) => {
-  if (e.data?.type === 'ficha-update') {
-    const resumo = e.data;
+// ── Mensagens da ficha (iframe via postMessage E polling) ──
+var _fichaMsgProcessed = new Set();
+
+function _handleFichaMsg(data) {
+  if (!data || !data.type) return;
+  var id = data.__seq ? ('seq_' + data.__seq) : (data.type + '_' + Date.now());
+  if (_fichaMsgProcessed.has(id)) return;
+  _fichaMsgProcessed.add(id);
+  if (_fichaMsgProcessed.size > 1000) {
+    var arr = Array.from(_fichaMsgProcessed);
+    _fichaMsgProcessed = new Set(arr.slice(arr.length - 500));
+  }
+
+  if (data.type === 'ficha-update') {
+    var resumo = data;
     localFichaUpdateData = resumo;
-    // Atualizar status de sync se for jogador
-    const statusEl = document.getElementById('ficha-sync-status');
-    if (statusEl && myRole === 'jogador') {
-      statusEl.textContent = '✓ ' + (resumo.charName || '—');
-      statusEl.style.color = '#80c080';
+    var statusEl = document.getElementById('ficha-sync-status');
+    
+    if (statusEl) {
+      if (myRole === 'jogador') {
+        statusEl.textContent = '✓ ' + (resumo.charName || '—');
+        statusEl.style.color = '#80c080';
+      } else if (myRole === 'mestre' && currentMasterFichaId) {
+        statusEl.textContent = '✓ Salvo (' + (resumo.charName || '—') + ')';
+        statusEl.style.color = '#80c080';
+      }
     }
-    // Atualizar token local do jogador para feedback imediato
+    
+    if (myRole === 'mestre' && currentMasterFichaId) {
+      // Atualiza a ficha do mestre no localStorage
+      var fichas = getMasterFichas();
+      var f = fichas.find(function(item) { return item.id === currentMasterFichaId; });
+      if (f) {
+        f.name = resumo.charName || f.name;
+        f.fullData = resumo.fullData;
+        f.pvC = resumo.pvC;
+        f.pvM = resumo.pvM;
+        f.pmC = resumo.pmC;
+        f.pmM = resumo.pmM;
+        saveMasterFichas(fichas);
+        
+        // Atualiza os tokens dessa ficha no board
+        var tokenChanged = false;
+        BOARD.tokens.forEach(function(t) {
+          if (t.masterFichaId === currentMasterFichaId) {
+            t.hp = resumo.pvC;
+            t.hpMax = resumo.pvM;
+            tokenChanged = true;
+          }
+        });
+        if (tokenChanged) boardRender();
+      }
+    }
+
     if (myRole === 'jogador') {
-      let tokenChanged = false;
-      BOARD.tokens.forEach(t => {
+      var tokenChanged = false;
+      BOARD.tokens.forEach(function(t) {
         if (t.controlledBy === myPeerId) {
           t.hp = resumo.pvC;
           t.hpMax = resumo.pvM;
           tokenChanged = true;
         }
       });
-      if (tokenChanged) {
-        boardRender();
-      }
+      if (tokenChanged) boardRender();
     }
-    // Enviar resumo ao Mestre via P2P
     if (myRole === 'jogador') {
+      fichasJogadores[myPeerId] = { playerName: myName, resumo: resumo, ts: Date.now() };
       if (amIHost) {
         receberResumoFicha({ peerId: myPeerId, playerName: myName, resumo: resumo });
       } else if (masterConn) {
-        try {
-          masterConn.send({
-            type: 'ficha-resumo',
-            peerId: myPeerId,
-            playerName: myName,
-            resumo: resumo
-          });
-        } catch(err) {}
+        try { masterConn.send({ type: 'ficha-resumo', peerId: myPeerId, playerName: myName, resumo: resumo }); } catch (err) { }
       }
     }
+    return;
   }
-  if (e.data?.type === 'ficha-ready') {
-    const statusEl = document.getElementById('ficha-sync-status');
-    if (statusEl && myRole === 'jogador') { 
-      statusEl.textContent = '✓ pronta'; 
-      statusEl.style.color = '#80c080'; 
+
+  if (data.type === 'ficha-ready') {
+    var statusEl = document.getElementById('ficha-sync-status');
+    if (statusEl) {
+      if (myRole === 'jogador') {
+        statusEl.textContent = '✓ pronta';
+        statusEl.style.color = '#80c080';
+      }
     }
-    
-    // Se for o mestre visualizando a ficha de um jogador, envia os dados assim que estiver pronta
     if (myRole === 'mestre' && currentViewingPeerId) {
-      const entry = fichasJogadores[currentViewingPeerId];
+      var entry = fichasJogadores[currentViewingPeerId];
       if (entry && entry.resumo && entry.resumo.fullData) {
-        const iframe = document.getElementById('ficha-iframe');
-        iframe.contentWindow?.postMessage({
-          type: 'vtt-load-sheet-data',
-          data: entry.resumo.fullData,
-          readOnly: true
-        }, '*');
+        var iframe = document.getElementById('ficha-iframe');
+        iframe.contentWindow?.postMessage({ type: 'vtt-load-sheet-data', data: entry.resumo.fullData, readOnly: true }, '*');
       }
     }
+    return;
   }
-  if (e.data?.type === 'vtt-send-chat-message') {
+
+  if (data.type === 'vtt-send-chat-message') {
     if (myRole === 'expectador') { toast('Expectadores não podem enviar mensagens da ficha.'); return; }
     if (myRole === 'cego') return;
-    const msgData = {
-      type: e.data.msgType || 'chat',
+    var msgData = {
+      type: data.msgType || 'chat',
       name: myName,
       role: myRole,
-      text: e.data.text,
+      text: data.text,
       time: formatTime(),
       visibility: chatVisibility
     };
     rotearMensagem(msgData);
-    
-    // Adiciona rolagens/comandos que vieram da ficha ao histórico
-    if (e.data.command) {
-      adicionarAoHistorico(e.data.command);
-    }
-    if (e.data.dmgCommand) {
-      adicionarAoHistorico(e.data.dmgCommand);
-    }
+    if (data.command) adicionarAoHistorico(data.command);
+    if (data.dmgCommand) adicionarAoHistorico(data.dmgCommand);
+    detectarERolarIniciativa(data.text);
+    return;
+  }
+}
 
-    // ── Detect initiative rolls from ficha and send to combat tracker ──
-    if (isInitiativeRoll(e.data.text)) {
-      const initTotal = extractInitiativeTotal(e.data.text);
-      if (initTotal !== null) {
-        if (myRole === 'mestre' || amIHost) {
-          // Master rolled initiative for themselves
-          processarIniciativaRoll(myName, initTotal, myPeerId);
-        } else if (masterConn) {
-          const selToken = getSelectedTokenForInit();
-          if (!selToken) {
-            toast('Selecione seu token no mapa para rolar iniciativa.');
-          } else {
-            try {
-              masterConn.send({
-                type: 'solicitar-iniciativa',
-                name: selToken.tokenName,
-                initTotal: initTotal,
-                tokenId: selToken.tokenId
-              });
-            } catch(err) {}
-          }
-        }
+window.addEventListener('message', function(e) { _handleFichaMsg(e.data); });
+
+function _pollFichaMessages() {
+  var iframe = document.getElementById('ficha-iframe');
+  if (!iframe || !iframe.contentWindow) return;
+  try {
+    var raw = iframe.contentWindow.name;
+    if (!raw || raw === 'undefined' || raw === '' || raw.indexOf('[') !== 0) return;
+    var queue = JSON.parse(raw);
+    if (!Array.isArray(queue)) return;
+    for (var i = 0; i < queue.length; i++) {
+      var entry = queue[i];
+      if (entry && entry.msg) {
+        entry.msg.__seq = entry.msg.__seq || (entry.ts || 0);
+        _handleFichaMsg(entry.msg);
       }
     }
-  }
-});
+  } catch(e) {}
+}
+setInterval(_pollFichaMessages, 600);
 
 // Mestre abre a ficha de outro jogador para ler
 function abrirFichaJogador(peerId) {
+  if (myRole === 'expectador' || myRole === 'cego') return;
   const entry = fichasJogadores[peerId];
   if (!entry || !entry.resumo || !entry.resumo.fullData) {
     alert("Dados completos da ficha ainda não foram recebidos deste jogador.");
@@ -2543,7 +2651,7 @@ function abrirFichaJogador(peerId) {
   const board = document.querySelector('.board');
   const btn = document.getElementById('btn-ficha');
   const iframe = document.getElementById('ficha-iframe');
-  
+
   // Mudar título do painel para o nome do jogador/personagem
   const titleEl = document.querySelector('.ficha-panel-title');
   if (titleEl) {
@@ -2567,202 +2675,7 @@ function abrirFichaJogador(peerId) {
     btn.classList.remove('btn-gold');
     btn.style.display = 'inline-flex';
   }
-  
-  fichaAberta = true;
-  currentViewingPeerId = peerId;
-  currentMasterFichaId = null;
 
-  // Carregar a ficha no iframe se ainda não carregou
-  if (!iframe.src || iframe.src === window.location.href) {
-    iframe.src = FICHA_URL;
-  }
-
-  const sendData = () => {
-    iframe.contentWindow?.postMessage({
-      type: 'vtt-load-sheet-data',
-      data: entry.resumo.fullData,
-      readOnly: true
-    }, '*');
-  };
-  if (fichaAberta) {
-    panel.classList.add('active');
-    if (board) board.style.display = 'none';
-    btn.textContent = '🗺 Mapa';
-    btn.classList.add('btn-primary');
-    btn.classList.remove('btn-gold');
-    // Carregar a ficha no iframe se ainda não carregou
-    if (!iframe.src || iframe.src === window.location.href) {
-      iframe.src = FICHA_URL;
-    }
-    // Pedir resumo imediatamente
-    setTimeout(() => iframe.contentWindow?.postMessage({ type: 'vtt-request-resume' }, '*'), 1000);
-  } else {
-    panel.classList.remove('active');
-    if (board) board.style.display = 'flex';
-    btn.textContent = '📋 Ficha';
-    btn.classList.remove('btn-primary');
-    btn.classList.add('btn-gold');
-    
-    // Se for o mestre, ele oculta o botão ao fechar a ficha e limpa a visualização ativa
-    if (myRole === 'mestre') {
-      btn.style.display = 'none';
-      currentViewingPeerId = null;
-      currentMasterFichaId = null;
-    }
-    // Restaurar título original
-    const titleEl = document.querySelector('.ficha-panel-title');
-    if (titleEl) {
-      titleEl.textContent = '📋 Ficha do Personagem';
-    }
-  }
-}
-
-// Receber mensagens da ficha (iframe postMessage)
-window.addEventListener('message', (e) => {
-  if (e.data?.type === 'ficha-update') {
-    const resumo = e.data;
-    localFichaUpdateData = resumo;
-    // Atualizar status de sync se for jogador
-    const statusEl = document.getElementById('ficha-sync-status');
-    if (statusEl && myRole === 'jogador') {
-      statusEl.textContent = '✓ ' + (resumo.charName || '—');
-      statusEl.style.color = '#80c080';
-    }
-    // Atualizar token local do jogador para feedback imediato
-    if (myRole === 'jogador') {
-      let tokenChanged = false;
-      BOARD.tokens.forEach(t => {
-        if (t.controlledBy === myPeerId) {
-          t.hp = resumo.pvC;
-          t.hpMax = resumo.pvM;
-          tokenChanged = true;
-        }
-      });
-      if (tokenChanged) {
-        boardRender();
-      }
-    }
-    // Enviar resumo ao Mestre via P2P
-    if (myRole === 'jogador') {
-      if (amIHost) {
-        receberResumoFicha({ peerId: myPeerId, playerName: myName, resumo: resumo });
-      } else if (masterConn) {
-        try {
-          masterConn.send({
-            type: 'ficha-resumo',
-            peerId: myPeerId,
-            playerName: myName,
-            resumo: resumo
-          });
-        } catch(err) {}
-      }
-    }
-  }
-  if (e.data?.type === 'ficha-ready') {
-    const statusEl = document.getElementById('ficha-sync-status');
-    if (statusEl && myRole === 'jogador') { 
-      statusEl.textContent = '✓ pronta'; 
-      statusEl.style.color = '#80c080'; 
-    }
-    
-    // Se for o mestre visualizando a ficha de um jogador, envia os dados assim que estiver pronta
-    if (myRole === 'mestre' && currentViewingPeerId) {
-      const entry = fichasJogadores[currentViewingPeerId];
-      if (entry && entry.resumo && entry.resumo.fullData) {
-        const iframe = document.getElementById('ficha-iframe');
-        iframe.contentWindow?.postMessage({
-          type: 'vtt-load-sheet-data',
-          data: entry.resumo.fullData,
-          readOnly: true
-        }, '*');
-      }
-    }
-  }
-  if (e.data?.type === 'vtt-send-chat-message') {
-    if (myRole === 'expectador') { toast('Expectadores não podem enviar mensagens da ficha.'); return; }
-    if (myRole === 'cego') return;
-    const msgData = {
-      type: e.data.msgType || 'chat',
-      name: myName,
-      role: myRole,
-      text: e.data.text,
-      time: formatTime(),
-      visibility: chatVisibility
-    };
-    rotearMensagem(msgData);
-    
-    // Adiciona rolagens/comandos que vieram da ficha ao histórico
-    if (e.data.command) {
-      adicionarAoHistorico(e.data.command);
-    }
-    if (e.data.dmgCommand) {
-      adicionarAoHistorico(e.data.dmgCommand);
-    }
-
-    // ── Detect initiative rolls from ficha and send to combat tracker ──
-    if (isInitiativeRoll(e.data.text)) {
-      const initTotal = extractInitiativeTotal(e.data.text);
-      if (initTotal !== null) {
-        if (myRole === 'mestre' || amIHost) {
-          // Master rolled initiative for themselves
-          processarIniciativaRoll(myName, initTotal, myPeerId);
-        } else if (masterConn) {
-          const selToken = getSelectedTokenForInit();
-          if (!selToken) {
-            toast('Selecione seu token no mapa para rolar iniciativa.');
-          } else {
-            try {
-              masterConn.send({
-                type: 'solicitar-iniciativa',
-                name: selToken.tokenName,
-                initTotal: initTotal,
-                tokenId: selToken.tokenId
-              });
-            } catch(err) {}
-          }
-        }
-      }
-    }
-  }
-});
-
-// Mestre abre a ficha de outro jogador para ler
-function abrirFichaJogador(peerId) {
-  const entry = fichasJogadores[peerId];
-  if (!entry || !entry.resumo || !entry.resumo.fullData) {
-    alert("Dados completos da ficha ainda não foram recebidos deste jogador.");
-    return;
-  }
-
-  const panel = document.getElementById('ficha-panel');
-  const board = document.querySelector('.board');
-  const btn = document.getElementById('btn-ficha');
-  const iframe = document.getElementById('ficha-iframe');
-  
-  // Mudar título do painel para o nome do jogador/personagem
-  const titleEl = document.querySelector('.ficha-panel-title');
-  if (titleEl) {
-    titleEl.textContent = `📋 Lendo Ficha: ${entry.resumo.charName || '(sem nome)'} (${entry.playerName})`;
-  }
-
-  // Atualizar status de sync
-  const statusEl = document.getElementById('ficha-sync-status');
-  if (statusEl) {
-    statusEl.textContent = '👁️ Apenas Leitura';
-    statusEl.style.color = '#c9903a';
-  }
-
-  panel.classList.add('active');
-  if (board) board.style.display = 'none';
-
-  // Exibir botão para que o mestre possa fechar / voltar ao mapa
-  if (btn) {
-    btn.textContent = '🗺 Mapa';
-    btn.classList.add('btn-primary');
-    btn.classList.remove('btn-gold');
-    btn.style.display = 'inline-flex';
-  }
-  
   fichaAberta = true;
   currentViewingPeerId = peerId;
   currentMasterFichaId = null;
@@ -2798,7 +2711,8 @@ function criarTokenDaFicha() {
           pmMax: ficha.pmM,
           defense: ficha.defenseTotal,
           imageUrl: ficha.imageUrl || ficha.fullData?.charImage || '',
-          controlledBy: null
+          controlledBy: null,
+          masterFichaId: ficha.id
         });
       } else {
         toast('Ficha do mestre não encontrada.');
@@ -2827,7 +2741,7 @@ function criarTokenDaFicha() {
       let localImg = '';
       try {
         localImg = localStorage.getItem('charImage') || '';
-      } catch (e) {}
+      } catch (e) { }
       const imgUrl = localFichaUpdateData.charImage || localImg;
       if (amIHost) {
         adicionarTokenAutomatico({
@@ -2870,7 +2784,7 @@ function adicionarTokenAutomatico(opts) {
 
   snapshotBoard();
   BOARD.tokens.push({
-    id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
+    id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
     name: opts.name || 'Token',
     hp: opts.hp || 0,
     hpMax: opts.hpMax || opts.hp || 0,
@@ -2881,6 +2795,7 @@ function adicionarTokenAutomatico(opts) {
     color: '#c9903a',
     imageUrl: opts.imageUrl || '',
     controlledBy: opts.controlledBy || null,
+    masterFichaId: opts.masterFichaId || null,
     layer: opts.controlledBy ? 'players' : (BOARD.activeLayer || 'gm'),
     z: (BOARD.activeFloor || 0) * 10,
     visionType: opts.visionType || 'normal',
@@ -2896,6 +2811,54 @@ function adicionarTokenAutomatico(opts) {
   boardRender();
   syncBoardTokensToPlayers();
   toast(`Token de ${opts.name} criado no mapa!`);
+}
+
+function adicionarTokenNaCena(opts, sceneId) {
+  if (sceneId === ACTIVE_SCENE_ID) {
+    adicionarTokenAutomatico(opts);
+    return;
+  }
+  
+  const scene = SCENES.find(s => s.id === sceneId);
+  if (!scene) return;
+  
+  if (!scene.tokens) scene.tokens = [];
+  
+  const cx = BOARD.wrap?.clientWidth / 2 || 400;
+  const cy = BOARD.wrap?.clientHeight / 2 || 400;
+  const gx = Math.max(0, Math.floor((cx - (BOARD.offsetX || 0)) / ((scene.gridSize || 50) * (BOARD.zoom || 1))));
+  const gy = Math.max(0, Math.floor((cy - (BOARD.offsetY || 0)) / ((scene.gridSize || 50) * (BOARD.zoom || 1))));
+  
+  const newToken = {
+    id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
+    name: opts.name || 'Token',
+    hp: opts.hp || 0,
+    hpMax: opts.hpMax || opts.hp || 0,
+    pm: opts.pm || 0,
+    pmMax: opts.pmMax || opts.pm || 0,
+    defense: opts.defense || 0,
+    size: 1,
+    color: '#c9903a',
+    imageUrl: opts.imageUrl || '',
+    controlledBy: opts.controlledBy || null,
+    masterFichaId: opts.masterFichaId || null,
+    layer: opts.controlledBy ? 'players' : 'gm',
+    z: (scene.activeFloor || 0) * 10,
+    visionType: opts.visionType || 'normal',
+    auras: opts.auras || [],
+    borderType: 'solid', borderWidth: 1.5, borderColor: '#000000',
+    shapeType: 'circle', auraRadius: 0,
+    conditions: [],
+    hideName: false,
+    gx: Math.max(0, gx),
+    gy: Math.max(0, gy)
+  };
+  
+  scene.tokens.push(newToken);
+  saveScenesLocally();
+  
+  const filtered = scene.tokens.filter(t => (t.layer || 'players') !== 'gm');
+  broadcast({ type: 'board-tokens', tokens: filtered }, null);
 }
 
 function temControleToken(t) {
@@ -2930,15 +2893,30 @@ function moverTokenPorSeta(key) {
 
   snapshotBoard();
   tokens.forEach(t => {
-    t.gx = Math.max(0, (t.gx || 0) + dx);
-    t.gy = Math.max(0, (t.gy || 0) + dy);
+    if (t.conditions && t.conditions.indexOf('Imóvel') !== -1) return;
+    const newGx = Math.max(0, (t.gx || 0) + dx);
+    const newGy = Math.max(0, (t.gy || 0) + dy);
+    if (_isBlind(t) && (checkMoveBlocked(t, t.gx, t.gy, newGx, newGy) || _checkTokenCollision(t, newGx, newGy))) {
+      _revealBlindBlocker(t, newGx, newGy, t.gx, t.gy);
+      return;
+    }
+    t.gx = newGx;
+    t.gy = newGy;
   });
 
   if (myRole === 'mestre' || amIHost) {
-    boardSave(); boardRender(); syncBoardTokensToPlayers();
+    boardSave();
+    if (emVisaoJogador()) {
+      atualizarFogJogador();
+    } else {
+      boardRender();
+    }
+    syncBoardTokensToPlayers();
   } else if (tokens.length === 1) {
     solicitarMoverToken(tokens[0].id, tokens[0].gx, tokens[0].gy);
   }
+  tokens.forEach(t => setTimeout(() => verificarGatilhosToken(t), 50));
+  setTimeout(atualizarFogJogador, 50);
   setTimeout(atualizarSeguirToken, 50);
 }
 
@@ -2959,33 +2937,27 @@ function preencherFormAuras(auras) {
   const grupos = document.querySelectorAll('#tfAuraList .aura-group');
   grupos.forEach((g, i) => {
     const a = auras[i] || {};
-    g.querySelector('.aura-name').value = a.name || '';
-    g.querySelector('.aura-radius').value = a.radius || '';
-    g.querySelector('.aura-color').value = a.color || '#ff8800';
-    g.querySelector('.aura-opacity').value = a.opacity !== undefined ? Math.round(a.opacity * 100) : 25;
     const activeCb = g.querySelector('.aura-active');
     if (activeCb) activeCb.checked = a.active !== false;
-    g.querySelector('.aura-light').checked = !!a.light;
+    const nameEl = g.querySelector('.aura-name');
+    if (nameEl) nameEl.value = a.name || '';
+    const radiusEl = g.querySelector('.aura-radius');
+    if (radiusEl) radiusEl.value = a.radius || '';
+    const lightCb = g.querySelector('.aura-light');
+    if (lightCb) lightCb.checked = !!a.light;
   });
 }
 
 function lerAurasForm() {
   const auras = [];
   document.querySelectorAll('#tfAuraList .aura-group').forEach(g => {
-    const name = g.querySelector('.aura-name').value.trim();
-    const radius = parseInt(g.querySelector('.aura-radius').value) || 0;
-    if (!name || radius <= 0) return;
-    const rawOp = parseInt(g.querySelector('.aura-opacity').value);
-    const opacity = isNaN(rawOp) ? 0.25 : Math.min(1, Math.max(0, rawOp / 100));
     const activeCb = g.querySelector('.aura-active');
-    auras.push({
-      name,
-      radius,
-      color: g.querySelector('.aura-color').value || '#ff8800',
-      opacity,
-      active: activeCb ? activeCb.checked : true,
-      light: g.querySelector('.aura-light').checked
-    });
+    const active = activeCb ? activeCb.checked : true;
+    const name = (g.querySelector('.aura-name')?.value || '').trim();
+    const radius = parseInt(g.querySelector('.aura-radius')?.value) || 0;
+    const light = !!(g.querySelector('.aura-light')?.checked);
+    // Sempre salvar as duas auras (mesmo sem nome/raio), para manter a posição dos índices
+    auras.push({ active, name, radius, light });
   });
   return auras;
 }
@@ -2995,7 +2967,7 @@ function receberResumoFicha(data) {
   fichasJogadores[data.peerId] = { playerName: data.playerName, resumo: data.resumo, ts: Date.now() };
   renderFichasJogadores();
   combatInitFichaAutocomplete();
-  
+
   // Sincronizar HP do token correspondente no tabuleiro do mestre
   let tokenChanged = false;
   BOARD.tokens.forEach(t => {
@@ -3010,7 +2982,7 @@ function receberResumoFicha(data) {
     boardRender();
     syncBoardTokensToPlayers();
   }
-  
+
   // Se o mestre estiver lendo essa ficha no momento, atualiza em tempo real
   if (myRole === 'mestre' && currentViewingPeerId === data.peerId) {
     const iframe = document.getElementById('ficha-iframe');
@@ -3070,7 +3042,7 @@ function getMasterFichas() {
   try {
     const raw = localStorage.getItem(MASTER_FICHAS_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch(e) { return []; }
+  } catch (e) { return []; }
 }
 
 function saveMasterFichas(fichas) {
@@ -3081,11 +3053,11 @@ function uploadFichaMestre(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     try {
       const data = JSON.parse(e.target.result);
       const fichas = getMasterFichas();
-      const id = 'mf' + Date.now() + Math.floor(Math.random()*9999);
+      const id = 'mf' + Date.now() + Math.floor(Math.random() * 9999);
       const name = data.charName || data.name || 'Personagem';
       const status = data.status || {};
       fichas.push({
@@ -3109,7 +3081,7 @@ function uploadFichaMestre(input) {
       renderMasterFichas();
       combatInitFichaAutocomplete();
       toast('📋 Ficha importada com sucesso!');
-    } catch(error) {
+    } catch (error) {
       alert('Erro ao carregar ficha. Verifique se é um arquivo JSON de ficha válido.');
       console.error(error);
     }
@@ -3223,13 +3195,12 @@ function renderMasterFichas() {
   });
 }
 
-// ── Adaptar switchTab para fichas ──
-const _origSwitchTab = switchTab;
-switchTab = function(name) {
-  ['encontros','combate','fichas','bau','notas'].forEach(t => {
-    document.getElementById('tab-'+t)?.classList.toggle('active', t===name);
-    document.getElementById('content-'+t)?.classList.toggle('active', t===name);
+function switchTab(name) {
+  ['encontros', 'combate', 'fichas', 'bau', 'notas', 'cenas'].forEach(t => {
+    document.getElementById('tab-' + t)?.classList.toggle('active', t === name);
+    document.getElementById('content-' + t)?.classList.toggle('active', t === name);
   });
+  if (name === 'cenas') renderizarListaCenas();
   if (name === 'bau') {
     if (currentBauSubtab === 'magias') {
       if (!magiasInitialized) initMagias();
@@ -3239,7 +3210,7 @@ switchTab = function(name) {
       initBau();
     }
   }
-};
+}
 
 // ── Compêndio: Sub-abas ──
 let currentBauSubtab = 'equip';
@@ -3388,12 +3359,12 @@ function toggleBauFolder(cat) {
 let bestiarioCache = null;
 let bestiarioInitialized = false;
 let bestiarioNdFiltro = '';
-let collapsedBestiarioNds = new Set(['1/4','1/2','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','S','S+']);
+let collapsedBestiarioNds = new Set(['1/4', '1/2', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 'S', 'S+']);
 const bestiarioNdColors = {
-  '1/4':'#8a8a5a','1/2':'#8a8a5a','1':'#6a9a4a','2':'#6a9a4a','3':'#4a8a6a','4':'#4a8a6a',
-  '5':'#4a6a9a','6':'#4a6a9a','7':'#6a4a8a','8':'#6a4a8a','9':'#8a4a6a','10':'#8a4a6a',
-  '11':'#9a4a4a','12':'#9a4a4a','13':'#aa3a3a','14':'#aa3a3a','15':'#ba2a2a','16':'#ba2a2a',
-  '17':'#ca1a1a','18':'#ca1a1a','19':'#da0a0a','20':'#da0a0a','S':'#ff0044','S+':'#ff0044'
+  '1/4': '#8a8a5a', '1/2': '#8a8a5a', '1': '#6a9a4a', '2': '#6a9a4a', '3': '#4a8a6a', '4': '#4a8a6a',
+  '5': '#4a6a9a', '6': '#4a6a9a', '7': '#6a4a8a', '8': '#6a4a8a', '9': '#8a4a6a', '10': '#8a4a6a',
+  '11': '#9a4a4a', '12': '#9a4a4a', '13': '#aa3a3a', '14': '#aa3a3a', '15': '#ba2a2a', '16': '#ba2a2a',
+  '17': '#ca1a1a', '18': '#ca1a1a', '19': '#da0a0a', '20': '#da0a0a', 'S': '#ff0044', 'S+': '#ff0044'
 };
 
 function initBestiario() {
@@ -3472,7 +3443,7 @@ function renderBestiario(criaturas) {
     grupos[nd].push(c);
   });
 
-  const ndOrder = ['1/4','1/2','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','S','S+'];
+  const ndOrder = ['1/4', '1/2', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 'S', 'S+'];
   const sortedNds = Object.keys(grupos).sort((a, b) => {
     const ia = ndOrder.indexOf(a); const ib = ndOrder.indexOf(b);
     return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
@@ -3576,10 +3547,10 @@ function mostrarDetalhesCriatura(nome) {
     html += `<div style="background:var(--parch3);border:1px solid var(--border);border-radius:4px;padding:0.5rem;margin-bottom:0.75rem;font-size:0.85rem;display:flex;gap:0.5rem;flex-wrap:wrap;">`;
     const attr = c.atributos;
     const attrNomes = { for: 'Força', des: 'Destreza', con: 'Constituição', int: 'Inteligência', sab: 'Sabedoria', car: 'Carisma' };
-    ['for','des','con','int','sab','car'].forEach(a => {
+    ['for', 'des', 'con', 'int', 'sab', 'car'].forEach(a => {
       const val = attr[a] !== undefined ? attr[a] : '—';
       const bonus = Math.floor((parseInt(val) - 10) / 2);
-      html += `<div onclick="rolarValorBestiario('${nomeEnc}','${attrNomes[a]}','${bonus>=0?'+':''}${bonus}')" style="text-align:center;min-width:40px;cursor:pointer;"><div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;font-weight:bold;">${a.toUpperCase()}</div><div style="font-weight:bold;color:var(--text);">${escHTML(String(val))}</div></div>`;
+      html += `<div onclick="rolarValorBestiario('${nomeEnc}','${attrNomes[a]}','${bonus >= 0 ? '+' : ''}${bonus}')" style="text-align:center;min-width:40px;cursor:pointer;"><div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;font-weight:bold;">${a.toUpperCase()}</div><div style="font-weight:bold;color:var(--text);">${escHTML(String(val))}</div></div>`;
     });
     html += `</div>`;
   }
@@ -3762,6 +3733,7 @@ let magiasCache = null;
 let magiasInitialized = false;
 let magiaCirculoFiltro = 0;
 let magiaEscolaFiltro = '';
+let magiaTipoFiltro = '';
 
 function initMagias() {
   if (magiasInitialized) return;
@@ -3783,6 +3755,7 @@ function carregarMagias() {
     magiasCache = SPELLS_DB.map(s => ({
       nome: s.n,
       circulo: s.c,
+      tipo: s.t || 'Universal',
       escola: s.e,
       execucao: s.ex,
       alcance: s.a,
@@ -3792,10 +3765,17 @@ function carregarMagias() {
       descricao: s.desc,
       aprimoramentos: s.aprimoramentos || []
     }));
+    // Seção de iluminação
+    // <option value="sunny">Ensolarado (Dia)</option>
+    // <option value="cloudy">Nublado</option>
+    // <option value="twilight">Crepúsculo</option>
+    // <option value="starnight">Noite Estrelada</option>
+    // <option value="darknight">Noite Escura</option>
+    // <option value="cave">Caverna (Escuro Total)</option>
     if (loadingEl) loadingEl.style.display = 'none';
     buscarMagia();
     toast(`📖 ${magiasCache.length} magias carregadas no Grimório!`);
-  } catch(e) {
+  } catch (e) {
     if (loadingEl) loadingEl.style.display = 'none';
     if (resultsEl) resultsEl.innerHTML = `<div style="text-align:center;padding:1rem;color:var(--red-bright);font-style:italic;">Erro ao carregar grimório: ${escHTML(e.message)}</div>`;
     console.error('Erro ao carregar magias:', e);
@@ -3816,6 +3796,13 @@ function setMagiaEscola(btn, escola) {
   buscarMagia();
 }
 
+function setMagiaTipo(btn, tipo) {
+  magiaTipoFiltro = tipo;
+  document.querySelectorAll('#magiasTipoFiltros .bau-cat-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  buscarMagia();
+}
+
 function buscarMagia() {
   const resultsEl = document.getElementById('magiasResults');
   const countEl = document.getElementById('magiasCount');
@@ -3831,10 +3818,14 @@ function buscarMagia() {
   if (magiaEscolaFiltro) {
     filtradas = filtradas.filter(m => (m.escola || '').toLowerCase() === magiaEscolaFiltro.toLowerCase());
   }
+  if (magiaTipoFiltro) {
+    filtradas = filtradas.filter(m => (m.tipo || 'Universal') === magiaTipoFiltro);
+  }
   if (termo) {
     filtradas = filtradas.filter(m =>
       (m.nome || '').toLowerCase().includes(termo) ||
       (m.escola || '').toLowerCase().includes(termo) ||
+      (m.tipo || '').toLowerCase().includes(termo) ||
       (m.descricao || '').toLowerCase().includes(termo)
     );
   }
@@ -3909,12 +3900,17 @@ function renderMagias(magias) {
 
     html += lista.map(m => {
       const cor2 = escolaCores[m.escola] || '#666';
+      const tipoCor2 = m.tipo === 'Arcana' ? '#8a5ab5' : m.tipo === 'Divina' ? '#e8b96a' : '#5a8a8a';
+      const tipoLabel = m.tipo === 'Universal' ? 'U' : m.tipo === 'Arcana' ? 'A' : 'D';
       return `<div onclick="mostrarDetalhesMagia('${escHTML(m.nome)}')" style="display:flex;align-items:center;gap:0.45rem;padding:0.28rem 0.4rem;background:var(--parch3);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'"
-        title="${escHTML((m.descricao || '').substring(0,120))}">
-        <span style="width:18px;height:18px;border-radius:50%;background:${cor2};display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:#fff;flex-shrink:0;">${escHTML((m.escola||'?').substring(0,2).toUpperCase())}</span>
+        title="${escHTML((m.descricao || '').substring(0, 120))}">
+        <span style="width:18px;height:18px;border-radius:50%;background:${cor2};display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:#fff;flex-shrink:0;">${escHTML((m.escola || '?').substring(0, 2).toUpperCase())}</span>
         <div style="flex:1;min-width:0;">
           <div style="font-size:0.72rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHTML(m.nome)}</div>
-          <div style="font-size:0.58rem;color:var(--text-muted);">${escHTML(m.escola)} · ${escHTML(m.execucao)}</div>
+          <div style="font-size:0.58rem;color:var(--text-muted);display:flex;align-items:center;gap:0.3rem;">
+            <span style="background:${tipoCor2};color:#fff;padding:0 0.3rem;border-radius:2px;font-size:0.5rem;font-weight:700;">${tipoLabel}</span>
+            ${escHTML(m.escola)} · ${escHTML(m.execucao)}
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -3947,6 +3943,8 @@ function mostrarDetalhesMagia(nome) {
   html += `<div style="margin-bottom:0.75rem;display:flex;gap:0.4rem;flex-wrap:wrap;">`;
   html += `<span style="background:${cirCor};color:#fff;padding:0.15rem 0.5rem;border-radius:3px;font-family:'Cinzel',serif;font-size:0.8rem;font-weight:bold;">✨ ${escHTML(String(m.circulo))}º Círculo</span>`;
   html += `<span style="background:${cor};color:#fff;padding:0.15rem 0.5rem;border-radius:3px;font-family:'Cinzel',serif;font-size:0.8rem;">${escHTML(m.escola)}</span>`;
+  const tipoCor = m.tipo === 'Arcana' ? '#8a5ab5' : m.tipo === 'Divina' ? '#e8b96a' : '#5a8a8a';
+  html += `<span style="background:${tipoCor};color:#fff;padding:0.15rem 0.5rem;border-radius:3px;font-family:'Cinzel',serif;font-size:0.72rem;">${escHTML(m.tipo || 'Universal')}</span>`;
   html += `</div>`;
 
   // Stats grid
@@ -4128,7 +4126,7 @@ function renderOrigens(origens) {
       const label = b.type === 'skill' ? 'Perícia' : b.type === 'power' ? 'Poder' : 'Especial';
       return `<div style="display:flex;align-items:center;gap:0.35rem;padding:0.2rem 0.35rem;background:var(--parch3);border-radius:3px;border-left:2px solid ${cor};">
         <span style="font-size:0.58rem;background:${cor};color:#fff;padding:0.05rem 0.3rem;border-radius:2px;font-family:'Cinzel',serif;">${label}</span>
-        <span style="font-size:0.7rem;color:var(--text);">${escHTML(b.name)}${b.desc ? ' — <em style="color:var(--text-muted);font-size:0.65rem;">' + escHTML(b.desc.substring(0,80)) + (b.desc.length>80?'…':'') + '</em>' : ''}</span>
+        <span style="font-size:0.7rem;color:var(--text);">${escHTML(b.name)}${b.desc ? ' — <em style="color:var(--text-muted);font-size:0.65rem;">' + escHTML(b.desc.substring(0, 80)) + (b.desc.length > 80 ? '…' : '') + '</em>' : ''}</span>
       </div>`;
     }).join('');
 
@@ -4144,7 +4142,7 @@ function renderOrigens(origens) {
         <i class="bi bi-chevron-${collapsed ? 'right' : 'down'}" style="color:var(--text-muted);font-size:0.72rem;"></i>
       </div>
       ${collapsed ? '' : `<div style="padding:0.4rem 0.45rem;display:flex;flex-direction:column;gap:0.25rem;">
-        ${o.desc ? `<div style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;margin-bottom:0.25rem;font-style:italic;">${escHTML(o.desc.substring(0,200))}${o.desc.length>200?'…':''}</div>` : ''}
+        ${o.desc ? `<div style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;margin-bottom:0.25rem;font-style:italic;">${escHTML(o.desc.substring(0, 200))}${o.desc.length > 200 ? '…' : ''}</div>` : ''}
         ${o.items ? `<div style="font-size:0.68rem;color:var(--gold);margin-bottom:0.2rem;">📦 ${escHTML(o.items)}</div>` : ''}
         <div style="font-size:0.62rem;color:var(--text-muted);font-family:'Cinzel',serif;margin-bottom:0.2rem;">BENEFÍCIOS DISPONÍVEIS</div>
         <div style="display:flex;flex-direction:column;gap:0.18rem;">${benefitList}</div>
@@ -4156,7 +4154,7 @@ function renderOrigens(origens) {
 }
 
 // ─────────────── PODERES DE CLASSE ───────────────
-let collapsedPoderesClasse = new Set(['arcanista','barbaro','bardo','bucaneiro','cacador','cavaleiro','clerigo','druida','frade','guerreiro','inventor','ladino','lutador','nobre','paladino','treinador','origens','distincoes']);
+let collapsedPoderesClasse = new Set(['arcanista', 'barbaro', 'bardo', 'bucaneiro', 'cacador', 'cavaleiro', 'clerigo', 'druida', 'frade', 'guerreiro', 'inventor', 'ladino', 'lutador', 'nobre', 'paladino', 'treinador', 'origens', 'distincoes']);
 
 function togglePoderesClasseFolder(cls) {
   if (collapsedPoderesClasse.has(cls)) collapsedPoderesClasse.delete(cls);
@@ -4219,7 +4217,7 @@ function renderPoderes(poderes) {
 function _renderPoderItem(p, cor) {
   const subCor = subTypeCor[p.subType] || cor;
   const badge = p.subType === 'ability' ? 'Hab.' : p.subType === 'power' ? 'Poder' : '';
-  return `<div onclick="mostrarDetalhesPoder('${escHTML(p.name)}','${escHTML(p.class||'')}')" style="display:flex;align-items:flex-start;gap:0.4rem;padding:0.25rem 0.35rem;background:var(--parch3);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+  return `<div onclick="mostrarDetalhesPoder('${escHTML(p.name)}','${escHTML(p.class || '')}')" style="display:flex;align-items:flex-start;gap:0.4rem;padding:0.25rem 0.35rem;background:var(--parch3);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.12s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
     ${badge ? `<span style="font-size:0.55rem;background:${subCor};color:#fff;padding:0.05rem 0.28rem;border-radius:2px;margin-top:0.15rem;flex-shrink:0;font-family:'Cinzel',serif;">${badge}</span>` : ''}
     <div style="flex:1;min-width:0;">
       <div style="font-size:0.72rem;color:var(--text);font-weight:bold;">${escHTML(p.name)}</div>
@@ -4301,7 +4299,7 @@ function renderDistincoes(distincoes) {
           <span style="font-family:'Cinzel',serif;font-size:0.77rem;font-weight:bold;color:var(--gold);">🏆 ${escHTML(d.name)}</span>
           <span style="font-size:0.58rem;background:${sourceCor};color:#fff;padding:0.05rem 0.3rem;border-radius:2px;">${sourceLabel}</span>
           ${exclusiva}
-          <span style="font-size:0.6rem;color:var(--text-muted);">(${(d.poderes||[]).length} poderes)</span>
+          <span style="font-size:0.6rem;color:var(--text-muted);">(${(d.poderes || []).length} poderes)</span>
         </span>
         <i class="bi bi-chevron-${collapsed ? 'right' : 'down'}" style="color:var(--text-muted);font-size:0.72rem;flex-shrink:0;"></i>
       </div>
@@ -4310,7 +4308,7 @@ function renderDistincoes(distincoes) {
           <div style="font-size:0.68rem;color:var(--gold);font-family:'Cinzel',serif;font-weight:bold;margin-bottom:0.15rem;">⭐ ${escHTML(d.marca.name)}</div>
           <div style="font-size:0.7rem;color:var(--text-muted);line-height:1.4;">${escHTML(d.marca.desc)}</div>
         </div>` : ''}
-        ${d.admissao ? `<div style="font-size:0.68rem;color:var(--text-muted);font-style:italic;line-height:1.4;border-left:2px solid var(--border);padding-left:0.45rem;">${escHTML(d.admissao.substring(0,200))}${d.admissao.length>200?'…':''}</div>` : ''}
+        ${d.admissao ? `<div style="font-size:0.68rem;color:var(--text-muted);font-style:italic;line-height:1.4;border-left:2px solid var(--border);padding-left:0.45rem;">${escHTML(d.admissao.substring(0, 200))}${d.admissao.length > 200 ? '…' : ''}</div>` : ''}
         ${poderesHTML ? `<div style="font-size:0.6rem;color:var(--text-muted);font-family:'Cinzel',serif;margin:0.15rem 0 0.1rem;">PODERES DA DISTINÇÃO</div>
         <div style="display:flex;flex-direction:column;gap:0.15rem;">${poderesHTML}</div>` : ''}
       </div>`}
@@ -4484,10 +4482,10 @@ function mostrarDetalhesItem(itemName) {
   const modalEl = document.getElementById('itemDetailModal');
 
   if (titleEl) titleEl.textContent = item.nome;
-  
+
   if (contentEl) {
     let html = '';
-    
+
     if (item.isSpell) {
       // Tags: Circle, School
       html += `<div style="margin-bottom:0.75rem; display:flex; gap:0.4rem; flex-wrap:wrap; font-family:'Cinzel', serif; font-size:0.85rem;">`;
@@ -4544,7 +4542,7 @@ function mostrarDetalhesItem(itemName) {
       // Item Stats Grid
       let hasStats = false;
       let statsHtml = `<div style="background:var(--parch3); border:1px solid var(--border); border-radius:4px; padding:0.5rem; margin-bottom:0.75rem; font-size:0.9rem; display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap:0.4rem;">`;
-      
+
       if (item.dano) {
         statsHtml += `<div><strong>Dano:</strong> ${escHTML(item.dano)}</div>`;
         hasStats = true;
@@ -4573,9 +4571,9 @@ function mostrarDetalhesItem(itemName) {
         statsHtml += `<div><strong>Alcance:</strong> ${escHTML(item.alcance)}</div>`;
         hasStats = true;
       }
-      
+
       statsHtml += `</div>`;
-      
+
       if (hasStats) {
         html += statsHtml;
       }
@@ -4620,7 +4618,7 @@ function onBestiaryDrop(e) {
   const imgUrl = c.img || '';
 
   BOARD.tokens.push({
-    id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
+    id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
     name: nomeToken, hp, hpMax: hp,
     size: 1, sizeX: 1, sizeY: 1,
     color: cor,
@@ -4730,16 +4728,19 @@ function toggleNotaVisivel(id) {
 // ── Jogadores: receber pergaminhos ──
 function receberPergaminhos(notas) {
   const btn = document.getElementById('notasPlayerBtn');
+  const mobBtn = document.getElementById('mobNotasBtn');
   const panelContent = document.getElementById('notasPlayerContent');
   const panelWrap = document.getElementById('notasPlayerPanel');
   if (!panelContent) return;
   if (!notas || notas.length === 0) {
     if (btn) btn.style.display = 'none';
+    if (mobBtn) mobBtn.style.display = 'none';
     if (panelWrap) panelWrap.style.display = 'none';
     panelContent.innerHTML = '';
     return;
   }
   if (btn) btn.style.display = 'block';
+  if (mobBtn) mobBtn.style.display = '';
   panelContent.innerHTML = notas.map(n => `
     <div style="background:var(--parch3);border:1px solid var(--border);border-radius:4px;padding:0.5rem;">
       <div style="font-family:'Cinzel',serif;font-size:0.7rem;color:var(--gold);margin-bottom:0.3rem;">${escHTML(n.title)}</div>
@@ -4752,124 +4753,6 @@ function toggleNotasPlayer() {
   const panel = document.getElementById('notasPlayerPanel');
   if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
-
-// ── Adaptar entrarNoAmbiente para jogadores verem o botão ficha ──
-const _origEntrarNoAmbiente = entrarNoAmbiente;
-entrarNoAmbiente = function() {
-  _origEntrarNoAmbiente();
-  if (myRole === 'mestre') {
-    initBau();
-  }
-  if (myRole === 'jogador') {
-    document.getElementById('btn-ficha').style.display = 'inline-flex';
-  }
-};
-
-// ── Adaptar configurarConexaoMestre para receber resumos de ficha ──
-const _origConfigMestre = configurarConexaoMestre;
-configurarConexaoMestre = function(conn) {
-  _origConfigMestre(conn);
-  // Patch: conn.on('data') já está configurado, mas precisamos adicionar handler
-  // O original já tem um switch; vamos usar a recepção no broadcast geral
-};
-
-// ── Patch no handler de dados do mestre para receber ficha-resumo ──
-// (sobrescrever o handler de data nas conexões)
-const _origBroadcast = broadcast;
-// Patch na função de recepção P2P do mestre: adicionar case 'ficha-resumo'
-// Isso é feito interceptando o configurarConexaoMestre
-const _origConfigMestreReal = configurarConexaoMestre;
-configurarConexaoMestre = function(conn) {
-  conn.on('open', () => {
-    connections[conn.peer] = conn;
-    conn.on('data', (data) => {
-      if (data.type === 'join') {
-        players[conn.peer] = { name: data.name, role: 'jogador' }; renderPlayers();
-        conn.send({ type: 'room-info', roomTitle, players });
-        broadcast({ type: 'player-joined', peerId: conn.peer, name: data.name }, conn.peer);
-        const jm = { type: 'system', text: data.name + ' entrou na mesa' };
-        addMsg(jm); broadcast({ type: 'chat', ...jm }, null);
-        broadcast({ type: 'players-update', players }, null);
-      } else if (data.type === 'chat' || data.type === 'roll' || data.type === 'gif') {
-        const vis = data.visibility || 'global';
-        if (vis === 'global') { addMsg(data); broadcast(data, conn.peer); }
-        else if (vis === 'togm' || vis === 'blind') { addMsg(data); }
-      } else if (data.type === 'msg-reveal') {
-        broadcast(data.msgData, null); addMsg(data.msgData);
-      } else if (data.type === 'solicitar-iniciativa') {
-        // Player explicitly requests to set their initiative
-        processarIniciativaRoll(data.name || players[conn.peer]?.name || 'Jogador', data.initTotal, conn.peer);
-      } else if (data.type === 'leave') {
-        const n = players[conn.peer]?.name || 'Alguém';
-        delete players[conn.peer]; delete connections[conn.peer]; renderPlayers();
-        const lm = { type: 'system', text: n + ' saiu da mesa' };
-        addMsg(lm); broadcast({ type: 'chat', ...lm }, null);
-        broadcast({ type: 'players-update', players }, null);
-      } else if (data.type === 'ficha-resumo') {
-        receberResumoFicha(data);
-        // Notificar no chat discretamente (apenas uma vez)
-        const key = 'ficha_notif_' + data.peerId;
-        if (!window[key]) {
-          window[key] = true;
-          addMsg({ type: 'system', text: '📋 Ficha de ' + data.playerName + ' recebida.' });
-        }
-      } else if (data.type === 'solicitar-criar-token') {
-        const entry = fichasJogadores[conn.peer];
-        const r = entry?.resumo;
-        adicionarTokenAutomatico({
-          name: data.name,
-          hp: data.hp ?? r?.pvC ?? r?.pvM ?? 0,
-          hpMax: data.hpMax ?? r?.pvM ?? data.hp ?? 0,
-          pm: data.pm ?? r?.pmC ?? r?.pmM ?? 0,
-          pmMax: data.pmMax ?? r?.pmM ?? data.pm ?? 0,
-          defense: data.defense ?? r?.defenseTotal ?? 0,
-          imageUrl: data.imageUrl || r?.charImage || '',
-          controlledBy: conn.peer
-        });
-      } else if (data.type === 'solicitar-mover-token') {
-        const t = BOARD.tokens.find(tk => tk.id === data.tokenId);
-        if (t && t.controlledBy === conn.peer) {
-          if (checkMoveBlocked(t, t.gx, t.gy, data.gx, data.gy)) {
-            // Rejeitar movimento. Enviar atualização de sync para forçar o revert no cliente do jogador.
-            syncBoardTokensToPlayers();
-          } else {
-            t.gx = data.gx;
-            t.gy = data.gy;
-            boardSave();
-            boardRender();
-            syncBoardTokensToPlayers();
-            verificarGatilhosToken(t);
-            setTimeout(atualizarSeguirToken, 50);
-          }
-        }
-      } else if (data.type === 'solicitar-alternar-parede') {
-        const w = BOARD.walls.find(wall => wall.id === data.wallId);
-        if (w) {
-          w.open = !w.open;
-          boardSave();
-          boardRender();
-          syncWallsToPlayers();
-          setTimeout(atualizarFogJogador, 50);
-        }
-      } else if (data.type === 'solicitar-ativar-gatilho') {
-        const t = BOARD.tokens.find(tk => tk.id === data.tokenId);
-        const s = BOARD.shapes.find(sk => sk.id === data.shapeId);
-        if (t && s && t.controlledBy === conn.peer) {
-          aplicarAcaoGatilho(t, s, data.action);
-        }
-      }
-    });
-    conn.on('close', () => {
-      if (players[conn.peer]) {
-        const n = players[conn.peer].name;
-        delete players[conn.peer]; delete connections[conn.peer]; renderPlayers();
-        const lm = { type: 'system', text: n + ' desconectou' };
-        addMsg(lm); broadcast({ type: 'chat', ...lm }, null);
-        broadcast({ type: 'players-update', players }, null);
-      }
-    });
-  });
-};
 
 
 // ══════════════════════════════════════════════════════
@@ -4884,8 +4767,14 @@ const BOARD = {
   offsetX: 0, offsetY: 0, zoom: 1,
   // Grade
   gridOn: true, gridSize: 50,
+  distanceMode: 'square', // euclidean, square, double_diagonal
   // Mapa
   mapImg: null, mapDataUrl: null,
+  mapX: 0, mapY: 0, mapWidth: null, mapHeight: null,
+  mapDragging: false, mapResizing: false,
+  mapDragStartX: 0, mapDragStartY: 0,
+  mapStartX: 0, mapStartY: 0,
+  mapStartWidth: 0, mapStartHeight: 0,
   // Tokens: array de { id, name, hp, hpMax, color, size, gx, gy }
   tokens: [],
   // Paredes: array de { id, x1, y1, x2, y2 } em coords world
@@ -4894,6 +4783,7 @@ const BOARD = {
   shapes: [],
   // Desenho de forma em andamento
   shapeDrawing: false, shapeStartX: 0, shapeStartY: 0, shapeCurX: 0, shapeCurY: 0,
+  shapeFreehandPoints: null,
   shapeColor: '#c9903a',
   // Fog of War: Set de "gx,gy" visíveis (calculado dinamicamente)
   // null = sem fog (mestre); Set = células visíveis (jogador)
@@ -4902,6 +4792,8 @@ const BOARD = {
   fogManual: false,
   // true durante pintura de névoa com mouse arrastando
   fogPainting: false,
+  // Set<string> - células reveladas por colisão de token cego
+  blindRevealed: null,
   fogShape: 'brush', // 'brush' | 'rect'
   fogRectStart: null,
   // Drag
@@ -4935,11 +4827,19 @@ const BOARD = {
   gifInterval: null,
   // Parede selecionada para edição
   selectedWallId: null,
+  wallDraggingLine: false,
+  wallDraggingHandle: null, // 'p1' | 'p2'
+  wallDragStart: null, // { x1, y1, x2, y2 }
+  wallDragMouseStart: null, // { wx, wy }
   // Régua (linha e círculo)
   rulerActive: false,
   rulerMode: 'line', // 'line' | 'circle'
   rulerStartX: 0, rulerStartY: 0,
   rulerEndX: 0, rulerEndY: 0,
+  // Régua com waypoints (caminho)
+  wayRulerActive: false,
+  wayRulerPoints: [], // [{x, y}, ...]
+  wayRulerTempX: 0, wayRulerTempY: 0,
   // Pings (múltiplos simultâneos)
   pings: [],
   pingTimer: null,
@@ -4976,6 +4876,10 @@ function snapshotBoard() {
     gridScaleVal: BOARD.gridScaleVal, gridScaleUnit: BOARD.gridScaleUnit,
     gridType: BOARD.gridType, lightingType: BOARD.lightingType,
     mapDataUrl: BOARD.mapDataUrl,
+    mapX: BOARD.mapX || 0,
+    mapY: BOARD.mapY || 0,
+    mapWidth: BOARD.mapWidth || null,
+    mapHeight: BOARD.mapHeight || null,
     offsetX: BOARD.offsetX, offsetY: BOARD.offsetY, zoom: BOARD.zoom
   };
   if (BOARD.fogManual && BOARD.fogVisible) {
@@ -5013,16 +4917,29 @@ function _restoreBoardState(state) {
   BOARD.gridType = state.gridType; BOARD.lightingType = state.lightingType;
   BOARD.offsetX = state.offsetX; BOARD.offsetY = state.offsetY; BOARD.zoom = state.zoom;
 
+  BOARD.mapX = state.mapX !== undefined ? state.mapX : 0;
+  BOARD.mapY = state.mapY !== undefined ? state.mapY : 0;
+  BOARD.mapWidth = state.mapWidth !== undefined ? state.mapWidth : null;
+  BOARD.mapHeight = state.mapHeight !== undefined ? state.mapHeight : null;
+
   if (state.mapDataUrl) {
     BOARD.mapDataUrl = state.mapDataUrl;
-    const img = new Image();
-    img.onload = () => {
-      BOARD.mapImg = img;
-      if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight);
+    if (BOARD.mapImg && BOARD.mapImg.src === state.mapDataUrl) {
       boardRender();
-    };
-    img.src = state.mapDataUrl;
-  } else { BOARD.mapDataUrl = null; BOARD.mapImg = null; }
+    } else {
+      const img = new Image();
+      img.onload = () => {
+        BOARD.mapImg = img;
+        if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight);
+        boardRender();
+      };
+      img.src = state.mapDataUrl;
+    }
+  } else {
+    BOARD.mapDataUrl = null;
+    BOARD.mapImg = null;
+    boardRender();
+  }
 
   if (state.fogManual && state.fogVisible) {
     BOARD.fogVisible = new Set(state.fogVisible); BOARD.fogManual = true;
@@ -5097,7 +5014,9 @@ function mudarAndar(delta) {
 
 function syncFloorToPlayers() {
   if (myRole !== 'mestre') return;
-  broadcast({ type: 'board-floor', activeFloor: BOARD.activeFloor || 0 }, null);
+  if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+    broadcast({ type: 'board-floor', activeFloor: BOARD.activeFloor || 0 }, null);
+  }
 }
 
 function hasFogVision(gx, gy, floor) {
@@ -5112,13 +5031,11 @@ function verificarGatilhosToken(token) {
   const tokenFloor = getFloorFromZ(token.z);
 
   const sz = token.size || 1;
-  const wx = token.gx * gridSize + sz * gridSize / 2;
-  const wy = token.gy * gridSize + sz * gridSize / 2;
+  const pos = tokenWorldPos(token.gx, token.gy);
+  const wx = pos.x;
+  const wy = pos.y;
 
-  const triggerShape = BOARD.shapes.find(s => {
-    if (getFloorFromZ(s.z) !== tokenFloor) return false;
-    if (!s.triggerType) return false;
-
+  function posicaoDentroForma(s) {
     if (s.kind === 'circle') {
       const cx = (s.x1 + s.x2) / 2;
       const cy = (s.y1 + s.y2) / 2;
@@ -5127,37 +5044,85 @@ function verificarGatilhosToken(token) {
       if (rx === 0 || ry === 0) return false;
       const dx = (wx - cx) / rx;
       const dy = (wy - cy) / ry;
-      return dx*dx + dy*dy <= 1;
+      return dx * dx + dy * dy <= 1;
     } else if (s.kind === 'freehand') {
       return s.points && isPointInPolygon(wx, wy, s.points);
-    } else {
-      const x1 = Math.min(s.x1, s.x2), x2 = Math.max(s.x1, s.x2);
-      const y1 = Math.min(s.y1, s.y2), y2 = Math.max(s.y1, s.y2);
-      return wx >= x1 && wx <= x2 && wy >= y1 && wy <= y2;
     }
-  });
+    const x1 = Math.min(s.x1, s.x2), x2 = Math.max(s.x1, s.x2);
+    const y1 = Math.min(s.y1, s.y2), y2 = Math.max(s.y1, s.y2);
+    return wx >= x1 && wx <= x2 && wy >= y1 && wy <= y2;
+  }
 
-  if (!triggerShape) return;
-  processarGatilho(token, triggerShape);
+  // Gatilho no mesmo andar
+  const triggerShape = BOARD.shapes.find(s =>
+    getFloorFromZ(s.z) === tokenFloor && s.triggerType && posicaoDentroForma(s)
+  );
+  if (triggerShape) {
+    // Tocar som da forma se tiver
+    if (triggerShape.soundId) {
+      const url = getSoundUrlById(triggerShape.soundId);
+      if (url) playSfx(url);
+    }
+    processarGatilho(token, triggerShape);
+    return;
+  }
+
+  // Marcação de escada: se o token pisar no mesmo local de um gatilho de escada
+  // em um andar adjacente, sobe/desce automaticamente em direção ao andar da escada.
+  for (const delta of [-1, 1]) {
+    const adjFloor = tokenFloor + delta;
+    const adjShape = BOARD.shapes.find(s =>
+      getFloorFromZ(s.z) === adjFloor && s.triggerType && posicaoDentroForma(s)
+    );
+    if (adjShape) {
+      // Escadas unidirecionais: só acionam pelo modal (mesmo andar), nunca por adjacência
+      if (adjShape.triggerType === 'stairs-up' || adjShape.triggerType === 'stairs-down') continue;
+      _revelarImagemGatilho(adjShape);
+      if (adjShape.soundId) {
+        const url = getSoundUrlById(adjShape.soundId);
+        if (url) playSfx(url);
+      }
+      // Move o token em direção ao andar onde a escada está
+      token.z = (token.z || 0) + delta * 10;
+      toast(`${delta > 0 ? '🪜' : '🕳'} ${token.name} ${delta > 0 ? 'subiu' : 'desceu'} pela escada.`);
+      finalizarGatilho(token);
+      return;
+    }
+  }
+}
+
+function _revelarImagemGatilho(shape) {
+  if (!shape.triggerImageUrl) return;
+  if (shape.triggered) return;
+  shape.triggered = true;
+  boardSave();
+  syncShapesToPlayers();
+  boardRender();
 }
 
 function processarGatilho(token, shape) {
+  _revelarImagemGatilho(shape);
   const tType = shape.triggerType;
   if (tType === 'stairs-up') {
-    token.z = (token.z || 0) + 10;
-    toast(`🪜 ${token.name} subiu de andar.`);
+    // Armadilha para Cima: automática, mão única, sem retorno
+    const delta = shape.floorDelta || 1;
+    token.z = (token.z || 0) + delta * 10;
+    toast(`💨 ${token.name} foi lançado ${delta} andar(es) para CIMA!`);
     finalizarGatilho(token);
   } else if (tType === 'stairs-down') {
-    token.z = (token.z || 0) - 10;
-    toast(`🕳 ${token.name} desceu de andar.`);
+    // Buraco: automático, mão única, sem retorno
+    const delta = shape.floorDelta || 1;
+    token.z = (token.z || 0) - delta * 10;
+    toast(`🕳 ${token.name} CAIU ${delta} andar(es) no buraco!`);
     finalizarGatilho(token);
   } else if (tType === 'elevator-auto') {
     const target = shape.targetFloor !== undefined ? shape.targetFloor : 0;
     token.z = target * 10;
     toast(`⚡ ${token.name} foi teletransportado para o Andar ${target}.`);
     finalizarGatilho(token);
-  } else if (tType === 'stairs' || tType === 'elevator-manual') {
-    if (myRole === 'mestre') {
+  } else if (tType === 'stairs' || tType === 'stair-up' || tType === 'stair-down' || tType === 'elevator-manual') {
+    // Em modo "visão do jogador", o mestre interage diretamente com os gatilhos
+    if (myRole === 'mestre' && !emVisaoJogador()) {
       const ownerPeer = token.controlledBy;
       if (ownerPeer && ownerPeer !== myPeerId && connections[ownerPeer]) {
         connections[ownerPeer].send({
@@ -5174,12 +5139,52 @@ function processarGatilho(token, shape) {
   }
 }
 
+function animarTransicaoAndar(icone, texto, callback) {
+  const el = document.getElementById('floorTransition');
+  if (!el) { callback(); return; }
+  const iconEl = document.getElementById('floorTransitionIcon');
+  const textEl = document.getElementById('floorTransitionText');
+  if (iconEl) iconEl.textContent = icone;
+  if (textEl) textEl.textContent = texto;
+  el.style.display = 'flex';
+  requestAnimationFrame(() => {
+    el.classList.add('show');
+    setTimeout(() => {
+      callback();
+      setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => { el.style.display = 'none'; }, 300);
+      }, 100);
+    }, 350);
+  });
+}
+
 function finalizarGatilho(token) {
-  boardSave();
-  boardRender();
-  if (myRole === 'mestre') {
-    syncBoardTokensToPlayers();
+  const oldFloor = BOARD.activeFloor;
+  const targetFloor = getFloorFromZ(token.z);
+  if (oldFloor === targetFloor) {
+    boardSave();
+    boardRender();
+    if (myRole === 'mestre') {
+      syncBoardTokensToPlayers();
+    }
+    return;
   }
+  const direcao = targetFloor > oldFloor ? 1 : -1;
+  animarTransicaoAndar(
+    direcao > 0 ? '🪜' : '🕳',
+    direcao > 0 ? `Subindo para o Andar ${targetFloor}...` : `Descendo para o Andar ${targetFloor}...`,
+    () => {
+      BOARD.activeFloor = targetFloor;
+      boardSave();
+      boardRender();
+      if (myRole === 'mestre') {
+        syncBoardTokensToPlayers();
+        syncFloorToPlayers();
+        setTimeout(atualizarFogJogador, 50);
+      }
+    }
+  );
 }
 
 function abrirModalEscolhaGatilho(token, shape) {
@@ -5190,8 +5195,13 @@ function abrirModalEscolhaGatilho(token, shape) {
   const text = document.getElementById('stairModalText');
   const buttons = document.getElementById('stairModalButtons');
 
-  title.textContent = shape.triggerType === 'stairs' ? 'Escada' : 'Elevador';
-  text.textContent = `O token "${token.name}" pisou em um(a) ${shape.triggerType === 'stairs' ? 'escada' : 'elevador'}. O que deseja fazer?`;
+  const nomes = {
+    'stairs': 'Escada', 'stair-up': 'Escada que Sobe', 'stair-down': 'Escada que Desce',
+    'stairs-up': 'Armadilha', 'stairs-down': 'Buraco',
+    'elevator-manual': 'Elevador', 'elevator-auto': 'Elevador Automático'
+  };
+  title.textContent = nomes[shape.triggerType] || 'Gatilho';
+  text.textContent = `O token "${token.name}" pisou em ${title.textContent.toLowerCase()}. O que deseja fazer?`;
   buttons.innerHTML = '';
 
   const currentFloor = getFloorFromZ(token.z);
@@ -5207,6 +5217,26 @@ function abrirModalEscolhaGatilho(token, shape) {
     };
     buttons.appendChild(btnUp);
 
+    const btnDown = document.createElement('button');
+    btnDown.className = 'tool-btn';
+    btnDown.style.padding = '0.5rem';
+    btnDown.textContent = `▼ Descer para Andar ${currentFloor - 1}`;
+    btnDown.onclick = () => {
+      executarAcaoGatilho(token.id, shape.id, 'descer');
+      fecharModalGatilho();
+    };
+    buttons.appendChild(btnDown);
+  } else if (shape.triggerType === 'stair-up') {
+    const btnUp = document.createElement('button');
+    btnUp.className = 'tool-btn';
+    btnUp.style.padding = '0.5rem';
+    btnUp.textContent = `▲ Subir para Andar ${currentFloor + 1}`;
+    btnUp.onclick = () => {
+      executarAcaoGatilho(token.id, shape.id, 'subir');
+      fecharModalGatilho();
+    };
+    buttons.appendChild(btnUp);
+  } else if (shape.triggerType === 'stair-down') {
     const btnDown = document.createElement('button');
     btnDown.className = 'tool-btn';
     btnDown.style.padding = '0.5rem';
@@ -5264,20 +5294,41 @@ function executarAcaoGatilho(tokenId, shapeId, action) {
 }
 
 function aplicarAcaoGatilho(t, s, action) {
+  const oldFloor = BOARD.activeFloor;
   if (action === 'subir') {
     t.z = (t.z || 0) + 10;
-    toast(`🪜 ${t.name} subiu para o Andar ${getFloorFromZ(t.z)}.`);
   } else if (action === 'descer') {
     t.z = (t.z || 0) - 10;
-    toast(`🪜 ${t.name} desceu para o Andar ${getFloorFromZ(t.z)}.`);
   } else if (action === 'teleport') {
     const target = s.targetFloor !== undefined ? s.targetFloor : 0;
     t.z = target * 10;
-    toast(`🛗 ${t.name} usou o elevador para o Andar ${target}.`);
   }
-  boardSave();
-  boardRender();
-  syncBoardTokensToPlayers();
+  const targetFloor = getFloorFromZ(t.z);
+  if (oldFloor === targetFloor) {
+    if (action === 'subir') toast(`🪜 ${t.name} subiu para o Andar ${targetFloor}.`);
+    else if (action === 'descer') toast(`🪜 ${t.name} desceu para o Andar ${targetFloor}.`);
+    else toast(`🛗 ${t.name} usou o elevador para o Andar ${targetFloor}.`);
+    boardSave();
+    boardRender();
+    syncBoardTokensToPlayers();
+    return;
+  }
+  const direcao = targetFloor > oldFloor ? 1 : -1;
+  const icone = action === 'teleport' ? '🛗' : (direcao > 0 ? '🪜' : '🕳');
+  const verbo = action === 'teleport' ? 'Teleportando' : (direcao > 0 ? 'Subindo' : 'Descendo');
+  animarTransicaoAndar(icone, `${verbo} para o Andar ${targetFloor}...`, () => {
+    BOARD.activeFloor = targetFloor;
+    if (action === 'subir') toast(`🪜 ${t.name} subiu para o Andar ${targetFloor}.`);
+    else if (action === 'descer') toast(`🪜 ${t.name} desceu para o Andar ${targetFloor}.`);
+    else toast(`🛗 ${t.name} usou o elevador para o Andar ${targetFloor}.`);
+    boardSave();
+    boardRender();
+    syncBoardTokensToPlayers();
+    if (myRole === 'mestre') {
+      syncFloorToPlayers();
+      setTimeout(atualizarFogJogador, 50);
+    }
+  });
 }
 
 function setShapeTrigger(type) {
@@ -5287,10 +5338,21 @@ function setShapeTrigger(type) {
     if (type === null) {
       delete shape.triggerType;
       delete shape.targetFloor;
+      delete shape.floorDelta;
       toast('Gatilho removido do desenho.');
     } else {
       shape.triggerType = type;
-      if (type === 'elevator-auto' || type === 'elevator-manual') {
+      if (type === 'stairs-up') {
+        const deltaStr = prompt('Quantos andares para SUBIR? (ex: 1, 2, 3):', '1');
+        if (deltaStr === null) { fecharContextMenu(); return; }
+        const deltaNum = parseInt(deltaStr);
+        shape.floorDelta = (isNaN(deltaNum) || deltaNum < 1) ? 1 : deltaNum;
+      } else if (type === 'stairs-down') {
+        const deltaStr = prompt('Quantos andares para DESCER? (ex: 1, 2, 3):', '1');
+        if (deltaStr === null) { fecharContextMenu(); return; }
+        const deltaNum = parseInt(deltaStr);
+        shape.floorDelta = (isNaN(deltaNum) || deltaNum < 1) ? 1 : deltaNum;
+      } else if (type === 'elevator-auto' || type === 'elevator-manual') {
         const floorStr = prompt('Digite o andar de destino para o elevador (ex: 0, 1, 2, -1):', '0');
         if (floorStr === null) { fecharContextMenu(); return; }
         const floorNum = parseInt(floorStr);
@@ -5306,13 +5368,37 @@ function setShapeTrigger(type) {
 }
 
 function setWallTypeAction(type) {
+  if (!BOARD.selectedWallId) return;
+  const w = BOARD.walls.find(wall => wall.id === BOARD.selectedWallId);
+  if (w) {
+    snapshotBoard();
+    w.type = type;
+    if (type === 'door' || type === 'window') {
+      w.open = false;
+    }
+    boardSave();
+    boardRender();
+    syncWallsToPlayers();
+    setTimeout(atualizarFogJogador, 50);
+    const names = {
+      normal: 'Parede Normal',
+      invisible: 'Parede Invisível',
+      door: 'Porta',
+      window: 'Janela'
+    };
+    toast(`🧱 Tipo de parede alterado para: ${names[type] || type}`);
+  }
   fecharContextMenu();
 }
 
 function contextDeleteWall() {
   if (!BOARD.selectedWallId) return;
+  snapshotBoard();
   BOARD.walls = BOARD.walls.filter(w => w.id !== BOARD.selectedWallId);
+  BOARD.selectedWallId = null;
+  _invalidateOutdoorCache();
   boardSave();
+  boardRender();
   syncWallsToPlayers();
   toast('🧱 Parede removida.');
   setTimeout(atualizarFogJogador, 50);
@@ -5329,13 +5415,79 @@ function contextDeleteShape() {
   fecharContextMenu();
 }
 
+let _shapeConfigId = null;
+
+function abrirModalConfigForma(shape) {
+  _shapeConfigId = shape.id;
+  const chk = document.getElementById('shapeHiddenCheck');
+  if (chk) chk.checked = shape.hidden === true;
+  const imgUrl = document.getElementById('shapeTriggerImageUrl');
+  if (imgUrl) imgUrl.value = shape.triggerImageUrl || '';
+  _atualizarPreviewImagemTrigger();
+  // Mostra botão "Rearmar" apenas se a armadilha já foi disparada
+  const btnRearmar = document.getElementById('btnRearmarForma');
+  if (btnRearmar) btnRearmar.style.display = shape.triggered ? '' : 'none';
+  const modal = document.getElementById('shapeConfigModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function salvarConfigForma() {
+  if (!_shapeConfigId) return;
+  const shape = BOARD.shapes.find(s => s.id === _shapeConfigId);
+  if (!shape) return;
+  const chk = document.getElementById('shapeHiddenCheck');
+  shape.hidden = chk ? chk.checked : false;
+  const imgUrl = document.getElementById('shapeTriggerImageUrl');
+  shape.triggerImageUrl = imgUrl ? imgUrl.value.trim() || null : null;
+  boardSave();
+  syncShapesToPlayers();
+  boardRender();
+  fecharModalConfigForma();
+}
+
+function _atualizarPreviewImagemTrigger() {
+  const url = document.getElementById('shapeTriggerImageUrl')?.value?.trim();
+  const preview = document.getElementById('shapeTriggerImagePreview');
+  const img = document.getElementById('shapeTriggerImagePreviewImg');
+  if (!preview || !img) return;
+  if (url) {
+    img.src = url;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function rearmarForma() {
+  if (!_shapeConfigId) return;
+  const shape = BOARD.shapes.find(s => s.id === _shapeConfigId);
+  if (!shape) return;
+  shape.triggered = false;
+  boardSave();
+  syncShapesToPlayers();
+  boardRender();
+  fecharModalConfigForma();
+  toast('🔃 Armadilha rearmada!');
+}
+
+function buscarImagemTrigger() {
+  abrirBuscaUnsplash();
+  // Após selecionar, o usuário copia manualmente a URL
+}
+
+function fecharModalConfigForma() {
+  _shapeConfigId = null;
+  const modal = document.getElementById('shapeConfigModal');
+  if (modal) modal.style.display = 'none';
+}
+
 function converterFormaEmParedes() {
   if (!contextShapeId) return;
   const shape = BOARD.shapes.find(s => s.id === contextShapeId);
   if (!shape) return;
-  
+
   const floorZ = shape.z !== undefined ? shape.z : (BOARD.activeFloor || 0) * 10;
-  
+
   if (shape.kind === 'rect') {
     const x1 = shape.x1, y1 = shape.y1, x2 = shape.x2, y2 = shape.y2;
     const segments = [
@@ -5346,10 +5498,11 @@ function converterFormaEmParedes() {
     ];
     segments.forEach(seg => {
       BOARD.walls.push({
-        id: 'wl' + Date.now() + Math.floor(Math.random()*9999),
+        id: 'wl' + Date.now() + Math.floor(Math.random() * 9999),
         x1: seg.x1, y1: seg.y1, x2: seg.x2, y2: seg.y2,
         z: floorZ,
-        open: false
+        open: false,
+        soundId: null
       });
     });
     toast('🧱 Desenho retangular convertido em 4 paredes!');
@@ -5367,10 +5520,11 @@ function converterFormaEmParedes() {
       const sx2 = cx + rx * Math.cos(a2);
       const sy2 = cy + ry * Math.sin(a2);
       BOARD.walls.push({
-        id: 'wl' + Date.now() + Math.floor(Math.random()*9999),
+        id: 'wl' + Date.now() + Math.floor(Math.random() * 9999),
         x1: sx1, y1: sy1, x2: sx2, y2: sy2,
         z: floorZ,
-        open: false
+        open: false,
+        soundId: null
       });
     }
     toast(`🧱 Desenho circular convertido em ${steps} paredes!`);
@@ -5380,15 +5534,16 @@ function converterFormaEmParedes() {
       const p1 = pts[i];
       const p2 = pts[(i + 1) % pts.length];
       BOARD.walls.push({
-        id: 'wl' + Date.now() + Math.floor(Math.random()*9999),
+        id: 'wl' + Date.now() + Math.floor(Math.random() * 9999),
         x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
         z: floorZ,
-        open: false
+        open: false,
+        soundId: null
       });
     }
     toast(`🧱 Desenho livre convertido em ${pts.length} paredes!`);
   }
-  
+
   BOARD.shapes = BOARD.shapes.filter(s => s.id !== contextShapeId);
   contextShapeId = null;
   fecharContextMenu();
@@ -5403,19 +5558,19 @@ function aplicarNevoaForma(revelar) {
   if (!contextShapeId) return;
   const shape = BOARD.shapes.find(s => s.id === contextShapeId);
   if (!shape) return;
-  
+
   const gx1 = Math.floor(Math.min(shape.x1, shape.x2) / BOARD.gridSize);
   const gy1 = Math.floor(Math.min(shape.y1, shape.y2) / BOARD.gridSize);
   const gx2 = Math.ceil(Math.max(shape.x1, shape.x2) / BOARD.gridSize);
   const gy2 = Math.ceil(Math.max(shape.y1, shape.y2) / BOARD.gridSize);
-  
+
   const floor = getFloorFromZ(shape.z);
   let count = 0;
-  
+
   if (!BOARD.fogVisible) {
     BOARD.fogVisible = new Set();
   }
-  
+
   for (let gx = gx1; gx <= gx2; gx++) {
     for (let gy = gy1; gy <= gy2; gy++) {
       const key = floor === 0 ? `${gx},${gy}` : `${floor}:${gx},${gy}`;
@@ -5424,7 +5579,7 @@ function aplicarNevoaForma(revelar) {
       count++;
     }
   }
-  
+
   contextShapeId = null;
   boardSave();
   boardRender();
@@ -5432,12 +5587,65 @@ function aplicarNevoaForma(revelar) {
   toast(`Névoa ${revelar ? 'revelada' : 'aplicada'} em ${count} células.`);
 }
 
+function getEffectiveVisionRadius(token) {
+  if (token.conditions && token.conditions.indexOf('Cego') !== -1) return 1;
+  const visionType = token.visionType || 'normal';
+  const lightingType = BOARD.lightingType || 'sunny';
+  const baseRange = token.visaoRange || 12;
+
+  // Converter 9m para células de grade (alcance curto da penu mbra/visão no escuro)
+  const scaleVal = BOARD.gridScaleVal || 1.5;
+  const shortRange = Math.round(9 / scaleVal); // tipicamente 6 células a 1,5m/célula
+
+  if (lightingType === 'sunny') {
+    // Luz do dia: todos vêem em alcance máximo
+    return baseRange;
+  }
+
+  if (lightingType === 'twilight' || lightingType === 'cloudy' || lightingType === 'rainy' || lightingType === 'snowy') {
+    // Escuridão leve / nublado / chuva / neve
+    switch (visionType) {
+      case 'penumbra': return shortRange; // Visão na Penumbra: enxerga 9m em escuridão leve
+      case 'escuro':   return shortRange; // Visão no Escuro: também enxerga 9m em escuridão leve
+      default:         return Math.ceil(baseRange * 0.5); // Normal: metade do alcance
+    }
+  }
+
+  if (lightingType === 'starnight') {
+    // Noite Estrelada: luminosidade ambiente sutil. Como twilight mas um pouco mais escuro.
+    switch (visionType) {
+      case 'penumbra': return shortRange;             // Penumbra: enxerga 9m
+      case 'escuro':   return shortRange;             // Visão no Escuro: enxerga 9m
+      default:         return Math.ceil(baseRange * 0.35); // Normal: ~1/3 do alcance
+    }
+  }
+
+  if (lightingType === 'darknight' || lightingType === 'cave') {
+    // Escuridão total
+    switch (visionType) {
+      case 'penumbra': return 0; // Penumbra não enxerga em escuridão total
+      case 'escuro':   return shortRange; // Visão no Escuro: enxerga 9m mesmo em escuridão total
+      default:         return 0; // Normal: não enxerga nada
+    }
+  }
+
+  return baseRange;
+}
+
 function atualizarFogJogador() {
   if (myRole === 'mestre' && BOARD.playerViewTokenId) {
     const token = BOARD.tokens.find(t => t.id === BOARD.playerViewTokenId);
     if (!token) { exitPlayerView(); return; }
-    const radius = token.visaoRange || 12;
+    const radius = getEffectiveVisionRadius(token);
     BOARD.fogVisible = computeVisibility(token, radius);
+    // Sempre adicionar as células do próprio token (visível independente de escuridão)
+    adicionarCelulasPropriasToken(token, BOARD.fogVisible);
+    // Auras com Light de todos os tokens da camada de jogadores também revelam névoa
+    BOARD.tokens.forEach(t => {
+      if (t.type === 'object') return;
+      if ((t.layer || 'players') !== 'players') return;
+      adicionarCelulasAuraLight(t, BOARD.fogVisible);
+    });
     boardRender();
     return;
   }
@@ -5446,18 +5654,70 @@ function atualizarFogJogador() {
     BOARD.fogVisible = null; boardRender(); return;
   }
   const currentFloor = getCurrentFloor();
-  const meusTokens = BOARD.tokens.filter(t => t.controlledBy === myPeerId && getFloorFromZ(t.z) === currentFloor);
+  const meusTokens = BOARD.tokens.filter(t => t.controlledBy === myPeerId && t.type !== 'object' && getFloorFromZ(t.z) === currentFloor);
   if (meusTokens.length === 0) {
     BOARD.fogVisible = new Set();
     boardRender(); return;
   }
   const total = new Set();
   meusTokens.forEach(t => {
-    const radius = t.visaoRange || 12;
+    const radius = getEffectiveVisionRadius(t);
     computeVisibility(t, radius).forEach(k => total.add(k));
+    // Sempre adicionar as células do próprio token (visível independente de escuridão)
+    adicionarCelulasPropriasToken(t, total);
   });
+  // Auras com Light de todos os tokens da camada de jogadores também revelam névoa
+  // (consistente com a camada de iluminação que já ilumina visualmente essas auras)
+  BOARD.tokens.forEach(t => {
+    if (t.type === 'object') return;
+    if (getFloorFromZ(t.z) !== currentFloor) return;
+    if ((t.layer || 'players') !== 'players') return;
+    adicionarCelulasAuraLight(t, total);
+  });
+  // Mesclar células reveladas por colisão de token cego
+  if (BOARD.blindRevealed) BOARD.blindRevealed.forEach(c => total.add(c));
   BOARD.fogVisible = total;
   boardRender();
+}
+
+// Adiciona as células que o token ocupa ao conjunto de células visíveis,
+// garantindo que o próprio token seja sempre visível para seu controlador.
+function adicionarCelulasPropriasToken(token, visibleSet) {
+  const floor = getFloorFromZ(token.z);
+  const spanX = Math.ceil(token.sizeX || token.size || 1);
+  const spanY = Math.ceil(token.sizeY || token.size || 1);
+  for (let dx = 0; dx < spanX; dx++) {
+    for (let dy = 0; dy < spanY; dy++) {
+      const gx = token.gx + dx;
+      const gy = token.gy + dy;
+      const key = floor === 0 ? `${gx},${gy}` : `${floor}:${gx},${gy}`;
+      visibleSet.add(key);
+    }
+  }
+}
+
+// Adiciona as células dentro do raio de auras com Light ativo ao conjunto de células visíveis,
+// permitindo que a iluminação da aura revele o mapa (fog de guerra).
+function adicionarCelulasAuraLight(token, visibleSet) {
+  if (!token.auras || token.auras.length === 0) return;
+  const floor = getFloorFromZ(token.z);
+  const scaleVal = BOARD.gridScaleVal || 1.5;
+  const gx0 = token.gx;
+  const gy0 = token.gy;
+  token.auras.forEach(aura => {
+    if (!aura.light || !aura.radius || aura.radius <= 0) return;
+    const radiusCells = Math.ceil(aura.radius / scaleVal);
+    for (let dgx = -radiusCells; dgx <= radiusCells; dgx++) {
+      for (let dgy = -radiusCells; dgy <= radiusCells; dgy++) {
+        if (dgx * dgx + dgy * dgy > radiusCells * radiusCells) continue;
+        const gx = gx0 + dgx;
+        const gy = gy0 + dgy;
+        if (gx < 0 || gy < 0) continue;
+        const key = floor === 0 ? `${gx},${gy}` : `${floor}:${gx},${gy}`;
+        visibleSet.add(key);
+      }
+    }
+  });
 }
 
 // Desenha a borda de um token em qualquer contexto (canvas principal ou preview).
@@ -5548,19 +5808,69 @@ function tokenShapePath(ctx, px, py, r, shapeType) {
   }
 }
 
+function hexCenter(gx, gy) {
+  const R = BOARD.gridSize / 2;
+  const hexH = Math.sqrt(3) * R;
+  return {
+    x: gx * R * 1.5,
+    y: gy * hexH + ((Math.abs(Math.round(gx)) % 2) ? hexH / 2 : 0)
+  };
+}
+
+function hexGridFromPoint(wx, wy) {
+  const R = BOARD.gridSize / 2;
+  const hexH = Math.sqrt(3) * R;
+  const gxApprox = wx / (R * 1.5);
+  const candidates = [Math.floor(gxApprox), Math.ceil(gxApprox)];
+  let bestGx = 0, bestGy = 0, bestDist = Infinity;
+  for (const cgx of candidates) {
+    const gyApprox = (wy - ((Math.abs(Math.round(cgx)) % 2) ? hexH / 2 : 0)) / hexH;
+    for (const cgy of [Math.floor(gyApprox), Math.ceil(gyApprox)]) {
+      const c = hexCenter(cgx, cgy);
+      const d = Math.hypot(wx - c.x, wy - c.y);
+      if (d < bestDist) {
+        bestDist = d;
+        bestGx = cgx;
+        bestGy = cgy;
+      }
+    }
+  }
+  return { gx: Math.max(0, bestGx), gy: Math.max(0, bestGy) };
+}
+
+function tokenWorldPos(gx, gy) {
+  const gs = BOARD.gridSize;
+  if (BOARD.gridType === 'hex') {
+    return hexCenter(gx, gy);
+  }
+  return { x: gx * gs + gs / 2, y: gy * gs + gs / 2 };
+}
+
 // ── Coordenadas canvas → grade ──
 function canvasToGrid(cx, cy) {
-  const { offsetX, offsetY, zoom, gridSize } = BOARD;
+  const { offsetX, offsetY, zoom, gridSize, gridType } = BOARD;
   const wx = (cx - offsetX) / zoom;
   const wy = (cy - offsetY) / zoom;
+  if (gridType === 'hex') {
+    return hexGridFromPoint(wx, wy);
+  }
   return { gx: Math.floor(wx / gridSize), gy: Math.floor(wy / gridSize) };
 }
 
 function gridToCanvas(gx, gy) {
-  const { offsetX, offsetY, zoom, gridSize } = BOARD;
+  const { offsetX, offsetY, zoom, gridSize, gridType } = BOARD;
+  let wx, wy;
+  if (gridType === 'hex') {
+    const c = hexCenter(gx, gy);
+    wx = c.x;
+    wy = c.y;
+  } else {
+    wx = gx * gridSize;
+    wy = gy * gridSize;
+  }
   return {
-    cx: gx * gridSize * zoom + offsetX,
-    cy: gy * gridSize * zoom + offsetY
+    cx: wx * zoom + offsetX,
+    cy: wy * zoom + offsetY
   };
 }
 
@@ -5577,17 +5887,21 @@ function getTokenAt(cx, cy) {
 
     if ((myRole !== 'mestre' || emVisaoJogador()) && layer === 'gm') continue;
     if (myRole === 'mestre' && !emVisaoJogador() && layer !== activeLayer) continue;
+    if (getFloorFromZ(t.z) !== getCurrentFloor()) continue;
 
-    const sz = (t.size || 1) * gridSize;
-    const px = t.gx * gridSize + sz / 2;
-    const py = t.gy * gridSize + sz / 2;
+    const sizeW = (t.sizeX || t.size || 1) * gridSize;
+    const sizeH = (t.sizeY || t.size || 1) * gridSize;
+    const pos = tokenWorldPos(t.gx, t.gy);
+    const px = pos.x;
+    const py = pos.y;
     if (t.type === 'object') {
-      if (wx >= px - sz / 2 && wx <= px + sz / 2 && wy >= py - sz / 2 && wy <= py + sz / 2) return t;
+      if (wx >= px - sizeW / 2 && wx <= px + sizeW / 2 && wy >= py - sizeH / 2 && wy <= py + sizeH / 2) return t;
       continue;
     }
-    const r = sz * 0.42;
-    const dist = Math.sqrt((wx - px) ** 2 + (wy - py) ** 2);
-    if (dist <= r) return t;
+    const rX = sizeW * 0.42;
+    const rY = sizeH * 0.42;
+    const dist = Math.sqrt(((wx - px) / rX) ** 2 + ((wy - py) / rY) ** 2);
+    if (dist <= 1) return t;
   }
   return null;
 }
@@ -5603,25 +5917,31 @@ function getHandleAt(cx, cy) {
     if (!t) continue;
 
     const rotation = t.rotation || 0;
-    const sz = (t.size || 1) * gridSize;
-    const px = t.gx * gridSize + sz / 2;
-    const py = t.gy * gridSize + sz / 2;
+    const sizeW = (t.sizeX || t.size || 1) * gridSize;
+    const sizeH = (t.sizeY || t.size || 1) * gridSize;
+    const pos = tokenWorldPos(t.gx, t.gy);
+    const px = pos.x;
+    const py = pos.y;
+    const halfW = sizeW / 2;
+    const halfH = sizeH / 2;
 
     if (t.type === 'object') {
-      const half = sz / 2;
+      const half = Math.max(halfW, halfH);
       const rotOff = half + 14 / zoom;
       const rotHX = px + rotOff * Math.sin(rotation);
       const rotHY = py - rotOff * Math.cos(rotation);
       if (Math.hypot(wx - rotHX, wy - rotHY) <= hitR) {
         return { token: t, type: 'rotate' };
       }
-      const rhX = px + half * Math.cos(rotation) - half * Math.sin(rotation);
-      const rhY = py + half * Math.sin(rotation) + half * Math.cos(rotation);
+      const rhX = px + halfW * Math.cos(rotation) - halfH * Math.sin(rotation);
+      const rhY = py + halfW * Math.sin(rotation) + halfH * Math.cos(rotation);
       if (Math.hypot(wx - rhX, wy - rhY) <= hitR) {
         return { token: t, type: 'resize' };
       }
     } else {
-      const r = sz * 0.42;
+      const rX = sizeW * 0.42;
+      const rY = sizeH * 0.42;
+      const r = Math.max(rX, rY);
       const handleDist = r + 22 / zoom;
 
       const rotHX = px + handleDist * Math.sin(rotation);
@@ -5630,8 +5950,8 @@ function getHandleAt(cx, cy) {
         return { token: t, type: 'rotate' };
       }
 
-      const resLocalX = r * 0.85;
-      const resLocalY = r * 0.85;
+      const resLocalX = rX * 0.85;
+      const resLocalY = rY * 0.85;
       const resHX = px + resLocalX * Math.cos(rotation) - resLocalY * Math.sin(rotation);
       const resHY = py + resLocalX * Math.sin(rotation) + resLocalY * Math.cos(rotation);
       if (Math.hypot(wx - resHX, wy - resHY) <= hitR) {
@@ -5665,6 +5985,7 @@ function zoomReset() {
 }
 
 let contextTokenId = null;
+const _triggerImageCache = {};
 
 // ── Eventos mouse/touch ──
 function boardBindEvents() {
@@ -5672,7 +5993,7 @@ function boardBindEvents() {
 
   wrap.addEventListener('mousedown', onBoardMouseDown);
   wrap.addEventListener('mousemove', onBoardMouseMove);
-  wrap.addEventListener('mouseup', onBoardMouseUp);
+  window.addEventListener('mouseup', onBoardMouseUp);
   wrap.addEventListener('mouseleave', onBoardMouseLeave);
   wrap.addEventListener('wheel', onBoardWheel, { passive: false });
 
@@ -5692,10 +6013,47 @@ function boardBindEvents() {
   wrap.addEventListener('dragleave', () => { wrap.classList.remove('drag-over'); });
   wrap.addEventListener('drop', (e) => {
     wrap.classList.remove('drag-over');
-    onBestiaryDrop(e);
+    if (myRole === 'mestre' || amIHost) {
+      onBestiaryDrop(e);
+    }
   });
 
   wrap.addEventListener('mousedown', (e) => { if (e.button !== 2) fecharContextMenu(); });
+}
+
+function triggerBoardPing(wx, wy) {
+  const pingColor = myRole === 'mestre' ? '#ff3333' : '#33ccff';
+  const pingTime = Date.now();
+  
+  if (!BOARD.pings) BOARD.pings = [];
+  BOARD.pings.push({ x: wx, y: wy, time: pingTime, color: pingColor });
+  
+  boardRender();
+  
+  if (!BOARD.pingAnimId) {
+    BOARD.pingAnimId = requestAnimationFrame(pingAnimationTick);
+  }
+  
+  if (myRole === 'mestre') {
+    broadcast({ type: 'board-ping', x: wx, y: wy, time: pingTime, color: pingColor }, null);
+  } else if (masterConn) {
+    masterConn.send({ type: 'board-ping', x: wx, y: wy, time: pingTime, color: pingColor });
+  }
+}
+
+function pingAnimationTick() {
+  const now = Date.now();
+  if (BOARD.pings && BOARD.pings.length > 0) {
+    BOARD.pings = BOARD.pings.filter(p => now - p.time < 1500);
+    boardRender();
+    if (BOARD.pings.length > 0) {
+      BOARD.pingAnimId = requestAnimationFrame(pingAnimationTick);
+    } else {
+      BOARD.pingAnimId = null;
+    }
+  } else {
+    BOARD.pingAnimId = null;
+  }
 }
 
 function getBoardXY(e) {
@@ -5714,9 +6072,18 @@ function onBoardMouseDown(e) {
     return;
   }
   if (e.button !== 0) return;
+
   const { x, y } = getBoardXY(e);
   fecharFormToken();
   fecharContextMenu();
+
+  // Iniciar timer para Ping (segurar botão esquerdo)
+  BOARD.pingStartX = e.clientX;
+  BOARD.pingStartY = e.clientY;
+  BOARD.pingTimer = setTimeout(() => {
+    triggerBoardPing((x - BOARD.offsetX) / BOARD.zoom, (y - BOARD.offsetY) / BOARD.zoom);
+    BOARD.pingTimer = null;
+  }, 600);
 
   if (BOARD.tool === 'pan') {
     BOARD.panning = true;
@@ -5729,19 +6096,67 @@ function onBoardMouseDown(e) {
   if (BOARD.tool === 'wall' && myRole === 'mestre') {
     const wx = (x - BOARD.offsetX) / BOARD.zoom;
     const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    const hitR = 8 / BOARD.zoom;
+
+    // 1. Check if clicking handles of the currently selected wall
+    if (BOARD.selectedWallId) {
+      const selWall = BOARD.walls.find(w => w.id === BOARD.selectedWallId);
+      if (selWall && getFloorFromZ(selWall.z) === getCurrentFloor()) {
+        if (Math.hypot(wx - selWall.x1, wy - selWall.y1) <= hitR) {
+          BOARD.wallDraggingHandle = 'p1';
+          BOARD.wallDragMouseStart = { wx, wy };
+          BOARD.wallDragStart = { x1: selWall.x1, y1: selWall.y1, x2: selWall.x2, y2: selWall.y2 };
+          e.preventDefault();
+          return;
+        }
+        if (Math.hypot(wx - selWall.x2, wy - selWall.y2) <= hitR) {
+          BOARD.wallDraggingHandle = 'p2';
+          BOARD.wallDragMouseStart = { wx, wy };
+          BOARD.wallDragStart = { x1: selWall.x1, y1: selWall.y1, x2: selWall.x2, y2: selWall.y2 };
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
+    // 2. Check if clicking any existing wall on the active floor
+    const nearbyWall = wallAt(wx, wy, hitR);
+    if (nearbyWall) {
+      BOARD.selectedWallId = nearbyWall.id;
+      if (Math.hypot(wx - nearbyWall.x1, wy - nearbyWall.y1) <= hitR) {
+        BOARD.wallDraggingHandle = 'p1';
+      } else if (Math.hypot(wx - nearbyWall.x2, wy - nearbyWall.y2) <= hitR) {
+        BOARD.wallDraggingHandle = 'p2';
+      } else {
+        BOARD.wallDraggingLine = true;
+      }
+      BOARD.wallDragMouseStart = { wx, wy };
+      BOARD.wallDragStart = { x1: nearbyWall.x1, y1: nearbyWall.y1, x2: nearbyWall.x2, y2: nearbyWall.y2 };
+      boardRender();
+      e.preventDefault();
+      return;
+    }
+
+    // 3. Clicked empty space: clear selection and start drawing a new wall
+    BOARD.selectedWallId = null;
     BOARD.wallDrawing = true;
     BOARD.wallStartX = wx; BOARD.wallStartY = wy;
-    BOARD.wallCurX = wx;   BOARD.wallCurY = wy;
+    BOARD.wallCurX = wx; BOARD.wallCurY = wy;
+    boardRender();
     e.preventDefault();
     return;
   }
 
-  if ((BOARD.tool === 'shape-rect' || BOARD.tool === 'shape-circle') && myRole === 'mestre') {
+  if ((BOARD.tool === 'shape-rect' || BOARD.tool === 'shape-circle' || BOARD.tool === 'shape-freehand') && myRole === 'mestre') {
     const wx = (x - BOARD.offsetX) / BOARD.zoom;
     const wy = (y - BOARD.offsetY) / BOARD.zoom;
     BOARD.shapeDrawing = true;
-    BOARD.shapeStartX = wx; BOARD.shapeStartY = wy;
-    BOARD.shapeCurX = wx;   BOARD.shapeCurY = wy;
+    if (BOARD.tool === 'shape-freehand') {
+      BOARD.shapeFreehandPoints = [{ x: wx, y: wy }];
+    } else {
+      BOARD.shapeStartX = wx; BOARD.shapeStartY = wy;
+      BOARD.shapeCurX = wx; BOARD.shapeCurY = wy;
+    }
     e.preventDefault();
     return;
   }
@@ -5752,15 +6167,49 @@ function onBoardMouseDown(e) {
     const gx = Math.floor((x - BOARD.offsetX) / BOARD.zoom / BOARD.gridSize);
     const gy = Math.floor((y - BOARD.offsetY) / BOARD.zoom / BOARD.gridSize);
     if (gx >= 0 && gy >= 0) {
-      pintarFogCelula(gx, gy, BOARD.tool === 'reveal');
       BOARD.fogPainting = true;
       BOARD.fogManual = true;
-      BOARD.lastFogCell = `${gx},${gy}`;
+      if (BOARD.fogShape === 'rect') {
+        BOARD.fogRectStart = { gx, gy };
+        BOARD.fogRectCur = { gx, gy };
+      } else {
+        pintarFogCelula(gx, gy, BOARD.tool === 'reveal');
+        BOARD.lastFogCell = `${gx},${gy}`;
+      }
     }
     return;
   }
 
-  if (BOARD.tool === 'move' && BOARD.selectedTokens.size > 0) {
+  if (BOARD.tool === 'ruler' || BOARD.tool === 'circle-ruler') {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    BOARD.rulerActive = true;
+    BOARD.rulerMode = (BOARD.tool === 'ruler') ? 'line' : 'circle';
+    BOARD.rulerStartX = wx;
+    BOARD.rulerStartY = wy;
+    BOARD.rulerEndX = wx;
+    BOARD.rulerEndY = wy;
+    e.preventDefault();
+    return;
+  }
+
+  if (BOARD.tool === 'way-ruler') {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    if (!BOARD.wayRulerActive) {
+      BOARD.wayRulerActive = true;
+      BOARD.wayRulerPoints = [{ x: wx, y: wy }];
+    } else {
+      BOARD.wayRulerPoints.push({ x: wx, y: wy });
+    }
+    BOARD.wayRulerTempX = wx;
+    BOARD.wayRulerTempY = wy;
+    e.preventDefault();
+    boardRender();
+    return;
+  }
+
+  if ((myRole === 'mestre' || emVisaoJogador()) && BOARD.tool === 'move' && BOARD.selectedTokens.size > 0) {
     const handle = getHandleAt(x, y);
     if (handle) {
       const ht = handle.token;
@@ -5782,6 +6231,11 @@ function onBoardMouseDown(e) {
 
   const token = getTokenAt(x, y);
   if (token) {
+    // Jogadores não podem interagir com objetos
+    if (token.type === 'object' && myRole !== 'mestre' && !emVisaoJogador()) {
+      e.preventDefault();
+      return;
+    }
     if (e.shiftKey) {
       if (BOARD.selectedTokens.has(token.id)) {
         BOARD.selectedTokens.delete(token.id);
@@ -5789,11 +6243,41 @@ function onBoardMouseDown(e) {
         BOARD.selectedTokens.add(token.id);
       }
       boardRender();
+      atualizarVisaoJogadorPorSelecao();
       e.preventDefault();
       return;
     }
     if (!temControleToken(token)) return;
 
+    if (token.conditions) {
+      if (token.conditions.indexOf('Imóvel') !== -1) {
+        toast('🗿 Token imóvel não pode se mover!'); return;
+      }
+      if (token.conditions.indexOf('Inconsciente') !== -1) {
+        toast('💤 Token inconsciente não pode se mover!'); return;
+      }
+      if (token.conditions.indexOf('Petrificado') !== -1) {
+        toast('🪨 Token petrificado não pode se mover!'); return;
+      }
+      if (token.conditions.indexOf('Paralisado') !== -1) {
+        toast('🧊 Token paralisado não pode se mover!'); return;
+      }
+    }
+
+    if (!BOARD.selectedTokens.has(token.id)) {
+      BOARD.selectedTokens.clear();
+      BOARD.selectedTokens.add(token.id);
+      boardRender();
+      atualizarVisaoJogadorPorSelecao();
+    }
+
+    // Tocar som do token/objeto se tiver
+    if (token.soundId) {
+      const url = getSoundUrlById(token.soundId);
+      if (url) playSfx(url);
+    }
+
+    // Apenas o mestre pode arrastar tokens
     const isGroupDrag = BOARD.selectedTokens.has(token.id) && BOARD.selectedTokens.size > 1;
 
     snapshotBoard();
@@ -5801,9 +6285,9 @@ function onBoardMouseDown(e) {
     BOARD.dragStartGx = token.gx;
     BOARD.dragStartGy = token.gy;
     const { offsetX, offsetY, zoom, gridSize } = BOARD;
-    const sz = (token.size || 1) * gridSize;
-    const px = token.gx * gridSize * zoom + offsetX;
-    const py = token.gy * gridSize * zoom + offsetY;
+    const pos2 = tokenWorldPos(token.gx, token.gy);
+    const px = pos2.x * zoom + offsetX;
+    const py = pos2.y * zoom + offsetY;
     BOARD.dragOffX = x - px;
     BOARD.dragOffY = y - py;
     e.preventDefault();
@@ -5817,6 +6301,40 @@ function onBoardMouseDown(e) {
       });
     }
   } else if (BOARD.tool === 'move') {
+    if (BOARD.activeLayer === 'map' && myRole === 'mestre' && BOARD.mapImg) {
+      const wx = (x - BOARD.offsetX) / BOARD.zoom;
+      const wy = (y - BOARD.offsetY) / BOARD.zoom;
+      const mx = BOARD.mapX || 0;
+      const my = BOARD.mapY || 0;
+      const mw = BOARD.mapWidth !== undefined && BOARD.mapWidth !== null ? BOARD.mapWidth : BOARD.mapImg.naturalWidth;
+      const mh = BOARD.mapHeight !== undefined && BOARD.mapHeight !== null ? BOARD.mapHeight : BOARD.mapImg.naturalHeight;
+      const handleRadius = 12 / BOARD.zoom;
+
+      if (Math.hypot(wx - (mx + mw), wy - (my + mh)) <= handleRadius) {
+        snapshotBoard();
+        BOARD.mapResizing = true;
+        BOARD.mapStartX = mx;
+        BOARD.mapStartY = my;
+        BOARD.mapStartWidth = mw;
+        BOARD.mapStartHeight = mh;
+        BOARD.mapDragStartX = wx;
+        BOARD.mapDragStartY = wy;
+        e.preventDefault();
+        return;
+      }
+
+      if (wx >= mx && wx <= mx + mw && wy >= my && wy <= my + mh) {
+        snapshotBoard();
+        BOARD.mapDragging = true;
+        BOARD.mapStartX = mx;
+        BOARD.mapStartY = my;
+        BOARD.mapDragStartX = wx;
+        BOARD.mapDragStartY = wy;
+        e.preventDefault();
+        return;
+      }
+    }
+
     const clickedWall = getWallHandleAt(x, y);
     if (clickedWall) {
       toggleWallState(clickedWall.id);
@@ -5827,6 +6345,7 @@ function onBoardMouseDown(e) {
     if (!e.shiftKey) {
       BOARD.selectedTokens.clear();
       boardRender();
+      atualizarVisaoJogadorPorSelecao();
     }
     BOARD.marquee = { startX: x, startY: y, curX: x, curY: y };
     e.preventDefault();
@@ -5834,7 +6353,64 @@ function onBoardMouseDown(e) {
 }
 
 function onBoardMouseMove(e) {
+  if (BOARD.pingTimer) {
+    const dx = e.clientX - BOARD.pingStartX;
+    const dy = e.clientY - BOARD.pingStartY;
+    if (Math.hypot(dx, dy) > 8) {
+      clearTimeout(BOARD.pingTimer);
+      BOARD.pingTimer = null;
+    }
+  }
+
   const { x, y } = getBoardXY(e);
+
+  if (BOARD.mapDragging) {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    const dx = wx - BOARD.mapDragStartX;
+    const dy = wy - BOARD.mapDragStartY;
+    BOARD.mapX = BOARD.mapStartX + dx;
+    BOARD.mapY = BOARD.mapStartY + dy;
+    boardRender();
+    return;
+  }
+
+  if (BOARD.mapResizing) {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    const dx = wx - BOARD.mapDragStartX;
+    const dy = wy - BOARD.mapDragStartY;
+    let newWidth = BOARD.mapStartWidth + dx;
+    let newHeight = BOARD.mapStartHeight + dy;
+    if (newWidth < 50) newWidth = 50;
+    if (newHeight < 50) newHeight = 50;
+    if (e.shiftKey && BOARD.mapStartWidth > 0) {
+      const ratio = BOARD.mapStartHeight / BOARD.mapStartWidth;
+      newHeight = newWidth * ratio;
+    }
+    BOARD.mapWidth = newWidth;
+    BOARD.mapHeight = newHeight;
+    boardRender();
+    return;
+  }
+
+  if (BOARD.rulerActive) {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    BOARD.rulerEndX = wx;
+    BOARD.rulerEndY = wy;
+    boardRender();
+    return;
+  }
+
+  if (BOARD.wayRulerActive) {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    BOARD.wayRulerTempX = wx;
+    BOARD.wayRulerTempY = wy;
+    boardRender();
+    return;
+  }
 
   if (BOARD.panning) {
     BOARD.offsetX = x - BOARD.panStartX;
@@ -5843,18 +6419,89 @@ function onBoardMouseMove(e) {
   }
 
   if (BOARD.shapeDrawing) {
-    let wx = (x - BOARD.offsetX) / BOARD.zoom;
-    let wy = (y - BOARD.offsetY) / BOARD.zoom;
-    if (e.shiftKey) {
-      const dx = wx - BOARD.shapeStartX;
-      const dy = wy - BOARD.shapeStartY;
-      const side = Math.max(Math.abs(dx), Math.abs(dy));
-      wx = BOARD.shapeStartX + (dx < 0 ? -side : side);
-      wy = BOARD.shapeStartY + (dy < 0 ? -side : side);
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+    if (BOARD.tool === 'shape-freehand') {
+      const lastPt = BOARD.shapeFreehandPoints[BOARD.shapeFreehandPoints.length - 1];
+      const dist = Math.hypot(wx - lastPt.x, wy - lastPt.y);
+      if (dist > 3) {
+        BOARD.shapeFreehandPoints.push({ x: wx, y: wy });
+        boardRender();
+      }
+    } else {
+      let curWx = wx;
+      let curWy = wy;
+      if (e.shiftKey) {
+        const dx = curWx - BOARD.shapeStartX;
+        const dy = curWy - BOARD.shapeStartY;
+        const side = Math.max(Math.abs(dx), Math.abs(dy));
+        curWx = BOARD.shapeStartX + (dx < 0 ? -side : side);
+        curWy = BOARD.shapeStartY + (dy < 0 ? -side : side);
+      }
+      BOARD.shapeCurX = curWx;
+      BOARD.shapeCurY = curWy;
+      boardRender();
     }
-    BOARD.shapeCurX = wx;
-    BOARD.shapeCurY = wy;
-    boardRender(); return;
+    return;
+  }
+
+  if (BOARD.tool === 'wall' && myRole === 'mestre') {
+    const wx = (x - BOARD.offsetX) / BOARD.zoom;
+    const wy = (y - BOARD.offsetY) / BOARD.zoom;
+
+    if (BOARD.wallDraggingHandle && BOARD.selectedWallId) {
+      const w = BOARD.walls.find(wall => wall.id === BOARD.selectedWallId);
+      if (w) {
+        let targetWx = wx;
+        let targetWy = wy;
+
+        if (e.shiftKey) {
+          const gridSize = BOARD.gridSize;
+          targetWx = Math.round(wx / (gridSize / 2)) * (gridSize / 2);
+          targetWy = Math.round(wy / (gridSize / 2)) * (gridSize / 2);
+        }
+
+        if (BOARD.wallDraggingHandle === 'p1') {
+          w.x1 = targetWx;
+          w.y1 = targetWy;
+        } else if (BOARD.wallDraggingHandle === 'p2') {
+          w.x2 = targetWx;
+          w.y2 = targetWy;
+        }
+        boardRender();
+        return;
+      }
+    }
+
+    if (BOARD.wallDraggingLine && BOARD.selectedWallId) {
+      const w = BOARD.walls.find(wall => wall.id === BOARD.selectedWallId);
+      if (w) {
+        const dx = wx - BOARD.wallDragMouseStart.wx;
+        const dy = wy - BOARD.wallDragMouseStart.wy;
+
+        let newX1 = BOARD.wallDragStart.x1 + dx;
+        let newY1 = BOARD.wallDragStart.y1 + dy;
+        let newX2 = BOARD.wallDragStart.x2 + dx;
+        let newY2 = BOARD.wallDragStart.y2 + dy;
+
+        if (e.shiftKey) {
+          const gridSize = BOARD.gridSize;
+          const snapDx = Math.round(dx / (gridSize / 2)) * (gridSize / 2);
+          const snapDy = Math.round(dy / (gridSize / 2)) * (gridSize / 2);
+          newX1 = BOARD.wallDragStart.x1 + snapDx;
+          newY1 = BOARD.wallDragStart.y1 + snapDy;
+          newX2 = BOARD.wallDragStart.x2 + snapDx;
+          newY2 = BOARD.wallDragStart.y2 + snapDy;
+        }
+
+        w.x1 = newX1;
+        w.y1 = newY1;
+        w.x2 = newX2;
+        w.y2 = newY2;
+        boardRender();
+        return;
+      }
+    }
   }
 
   if (BOARD.wallDrawing) {
@@ -5867,10 +6514,17 @@ function onBoardMouseMove(e) {
     const gx = Math.floor((x - BOARD.offsetX) / BOARD.zoom / BOARD.gridSize);
     const gy = Math.floor((y - BOARD.offsetY) / BOARD.zoom / BOARD.gridSize);
     if (gx >= 0 && gy >= 0) {
-      const key = `${gx},${gy}`;
-      if (key !== BOARD.lastFogCell) {
-        pintarFogCelula(gx, gy, BOARD.tool === 'reveal');
-        BOARD.lastFogCell = key;
+      if (BOARD.fogShape === 'rect') {
+        if (!BOARD.fogRectCur || BOARD.fogRectCur.gx !== gx || BOARD.fogRectCur.gy !== gy) {
+          BOARD.fogRectCur = { gx, gy };
+          boardRender();
+        }
+      } else {
+        const key = `${gx},${gy}`;
+        if (key !== BOARD.lastFogCell) {
+          pintarFogCelula(gx, gy, BOARD.tool === 'reveal');
+          BOARD.lastFogCell = key;
+        }
       }
     }
     return;
@@ -5887,14 +6541,24 @@ function onBoardMouseMove(e) {
         const angle = Math.atan2(wx - hd.centerX, -(wy - hd.centerY));
         t.rotation = angle;
       } else if (hd.type === 'resize') {
-        const dist = Math.hypot(wx - hd.centerX, wy - hd.centerY);
-        let newSize;
-        if (t.type === 'object') {
-          newSize = Math.max(0.25, (dist / BOARD.gridSize) * 2 / Math.SQRT2);
+        const dx = Math.abs(wx - hd.centerX);
+        const dy = Math.abs(wy - hd.centerY);
+        if (e.altKey) {
+          // Alt pressionado: redimensiona X e Y independentemente
+          t.sizeX = Math.max(0.25, Math.round((dx / BOARD.gridSize) * 2 * 4) / 4);
+          t.sizeY = Math.max(0.25, Math.round((dy / BOARD.gridSize) * 2 * 4) / 4);
         } else {
-          newSize = Math.max(0.5, (dist / BOARD.gridSize) * 2);
+          const dist = Math.hypot(dx, dy);
+          let newSize;
+          if (t.type === 'object') {
+            newSize = Math.max(0.25, (dist / BOARD.gridSize) * 2 / Math.SQRT2);
+          } else {
+            newSize = Math.max(0.5, (dist / BOARD.gridSize) * 2);
+          }
+          t.size = Math.round(newSize * 4) / 4;
+          delete t.sizeX;
+          delete t.sizeY;
         }
-        t.size = Math.round(newSize * 4) / 4;
       }
       boardRender();
     }
@@ -5910,8 +6574,8 @@ function onBoardMouseMove(e) {
 
   if (BOARD.dragging) {
     const { zoom, gridSize } = BOARD;
+    const sz = (BOARD.dragging.size || 1);
     if (e.altKey) {
-      const sz = (BOARD.dragging.size||1);
       const cx = x - BOARD.dragOffX + sz * gridSize * zoom / 2;
       const cy = y - BOARD.dragOffY + sz * gridSize * zoom / 2;
       const wx = (cx - BOARD.offsetX) / zoom;
@@ -5919,9 +6583,9 @@ function onBoardMouseMove(e) {
       BOARD.dragging.gx = Math.max(0, wx / gridSize - sz / 2);
       BOARD.dragging.gy = Math.max(0, wy / gridSize - sz / 2);
     } else {
-      const { gx, gy } = canvasToGrid(x - BOARD.dragOffX + (BOARD.dragging.size||1)*gridSize*zoom/2, y - BOARD.dragOffY + (BOARD.dragging.size||1)*gridSize*zoom/2);
-      BOARD.dragging.gx = Math.max(0, gx);
-      BOARD.dragging.gy = Math.max(0, gy);
+      const { gx, gy } = canvasToGrid(x - BOARD.dragOffX + sz * gridSize * zoom / 2, y - BOARD.dragOffY + sz * gridSize * zoom / 2);
+      BOARD.dragging.gx = Math.max(0, gx - Math.floor(sz / 2));
+      BOARD.dragging.gy = Math.max(0, gy - Math.floor(sz / 2));
     }
 
     if (BOARD.dragGroup) {
@@ -5938,43 +6602,200 @@ function onBoardMouseMove(e) {
       });
     }
 
-    boardRender();
+    if (emVisaoJogador()) {
+      atualizarFogJogador();
+    } else {
+      boardRender();
+    }
     updateTooltip(BOARD.dragging, x, y);
     return;
   }
 
   const token = getTokenAt(x, y);
   const prevHov = BOARD.hovered;
-  BOARD.hovered = token ? token.id : null;
+  BOARD.hovered = token && !(token.type === 'object' && myRole !== 'mestre' && !emVisaoJogador()) ? token.id : null;
   if (BOARD.hovered !== prevHov) boardRender();
   if (token) {
-    updateTooltip(token, x, y);
+    if (token.type === 'object' && myRole !== 'mestre' && !emVisaoJogador()) {
+      hideTooltip();
+    } else {
+      updateTooltip(token, x, y);
+    }
   } else {
     hideTooltip();
   }
 }
 
+function _isBlind(token) {
+  return token.conditions && token.conditions.indexOf('Cego') !== -1;
+}
+
+function _tokenCells(gx, gy, size) {
+  const floor = getCurrentFloor();
+  const cells = [];
+  const sx = Math.ceil(size || 1);
+  for (let dx = 0; dx < sx; dx++)
+    for (let dy = 0; dy < sx; dy++)
+      cells.push(floor === 0 ? `${gx + dx},${gy + dy}` : `${floor}:${gx + dx},${gy + dy}`);
+  return cells;
+}
+
+function _checkTokenCollision(token, gx, gy) {
+  const sz = token.size || 1;
+  for (const other of BOARD.tokens) {
+    if (other.id === token.id) continue;
+    if (other.hideInBoard) continue;
+    const oSz = other.size || 1;
+    if (gx < other.gx + oSz && gx + sz > other.gx && gy < other.gy + oSz && gy + sz > other.gy)
+      return other;
+  }
+  return null;
+}
+
+function _revealBlindBlocker(token, targetGx, targetGy, fromGx, fromGy) {
+  if (!BOARD.blindRevealed) BOARD.blindRevealed = new Set();
+  const wallBlocked = checkMoveBlocked(token, fromGx, fromGy, targetGx, targetGy);
+  if (wallBlocked)
+    _tokenCells(targetGx, targetGy, token.size || 1).forEach(c => BOARD.blindRevealed.add(c));
+  const hitToken = _checkTokenCollision(token, targetGx, targetGy);
+  if (hitToken)
+    _tokenCells(hitToken.gx, hitToken.gy, hitToken.size || 1).forEach(c => BOARD.blindRevealed.add(c));
+  if (BOARD.fogVisible)
+    BOARD.blindRevealed.forEach(c => BOARD.fogVisible.add(c));
+}
+
+function finalizarArrastoToken() {
+  if (BOARD.dragging) {
+    const token = BOARD.dragging;
+    const isBlind = _isBlind(token);
+    const isGroup = !!BOARD.dragGroup;
+    const targetGx = token.gx;
+    const targetGy = token.gy;
+    const fromGx = BOARD.dragStartGx;
+    const fromGy = BOARD.dragStartGy;
+
+    let blocked = false;
+
+    if (!isGroup && (isBlind || myRole !== 'mestre') && checkMoveBlocked(token, fromGx, fromGy, targetGx, targetGy))
+      blocked = true;
+
+    if (!blocked && isBlind && _checkTokenCollision(token, targetGx, targetGy))
+      blocked = true;
+
+    if (blocked) {
+      token.gx = fromGx;
+      token.gy = fromGy;
+      if (isBlind) _revealBlindBlocker(token, targetGx, targetGy, fromGx, fromGy);
+      else toast('🚫 Movimento bloqueado por uma parede!');
+      boardRender();
+      return;
+    }
+
+    if (myRole === 'mestre' || amIHost) {
+      boardSave();
+      syncBoardTokensToPlayers();
+    } else {
+      solicitarMoverToken(token.id, token.gx, token.gy);
+    }
+    setTimeout(() => verificarGatilhosToken(token), 50);
+    setTimeout(atualizarFogJogador, 50);
+    setTimeout(atualizarSeguirToken, 50);
+  }
+}
+
 function onBoardMouseUp(e) {
+  if (BOARD.pingTimer) {
+    clearTimeout(BOARD.pingTimer);
+    BOARD.pingTimer = null;
+  }
   BOARD.wrap.classList.remove('panning');
   if (BOARD.panning) { BOARD.panning = false; return; }
 
+  if (BOARD.mapDragging || BOARD.mapResizing) {
+    BOARD.mapDragging = false;
+    BOARD.mapResizing = false;
+    if (myRole === 'mestre' || amIHost) {
+      boardSave();
+      syncBoardMapToPlayers();
+    }
+    boardRender();
+    return;
+  }
+
+  if (BOARD.rulerActive) {
+    BOARD.rulerActive = false;
+    boardRender();
+    return;
+  }
+
   if (BOARD.shapeDrawing) {
     BOARD.shapeDrawing = false;
-    const x1 = Math.min(BOARD.shapeStartX, BOARD.shapeCurX);
-    const y1 = Math.min(BOARD.shapeStartY, BOARD.shapeCurY);
-    const x2 = Math.max(BOARD.shapeStartX, BOARD.shapeCurX);
-    const y2 = Math.max(BOARD.shapeStartY, BOARD.shapeCurY);
-    if ((x2 - x1) > 3 && (y2 - y1) > 3) {
-      snapshotBoard();
-      BOARD.shapes.push({
-        id: 'sh' + Date.now() + Math.floor(Math.random()*9999),
-        kind: BOARD.tool === 'shape-circle' ? 'circle' : 'rect',
-        x1, y1, x2, y2,
-        color: BOARD.shapeColor || '#c9903a'
-      });
+    if (BOARD.tool === 'shape-freehand') {
+      const pts = BOARD.shapeFreehandPoints || [];
+      if (pts.length > 2) {
+        snapshotBoard();
+        let minX = pts[0].x, maxX = pts[0].x;
+        let minY = pts[0].y, maxY = pts[0].y;
+        pts.forEach(p => {
+          if (p.x < minX) minX = p.x;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.y > maxY) maxY = p.y;
+        });
+        BOARD.shapes.push({
+          id: 'sh' + Date.now() + Math.floor(Math.random() * 9999),
+          kind: 'freehand',
+          x1: minX, y1: minY,
+          x2: maxX, y2: maxY,
+          points: pts,
+          color: BOARD.shapeColor || '#c9903a',
+          z: (BOARD.activeFloor || 0) * 10,
+          soundId: null,
+          hidden: false,
+          triggerImageUrl: null,
+          triggered: false
+        });
+        boardSave();
+        syncShapesToPlayers();
+        toast('✏ Desenho livre adicionado.');
+      }
+      BOARD.shapeFreehandPoints = null;
+    } else {
+      const x1 = Math.min(BOARD.shapeStartX, BOARD.shapeCurX);
+      const y1 = Math.min(BOARD.shapeStartY, BOARD.shapeCurY);
+      const x2 = Math.max(BOARD.shapeStartX, BOARD.shapeCurX);
+      const y2 = Math.max(BOARD.shapeStartY, BOARD.shapeCurY);
+      if ((x2 - x1) > 3 && (y2 - y1) > 3) {
+        snapshotBoard();
+        BOARD.shapes.push({
+          id: 'sh' + Date.now() + Math.floor(Math.random() * 9999),
+          kind: BOARD.tool === 'shape-circle' ? 'circle' : 'rect',
+          x1, y1, x2, y2,
+          color: BOARD.shapeColor || '#c9903a',
+          z: (BOARD.activeFloor || 0) * 10,
+          soundId: null,
+          hidden: false,
+          triggerImageUrl: null,
+          triggered: false
+        });
+        boardSave();
+        syncShapesToPlayers();
+        toast(BOARD.tool === 'shape-circle' ? '⬤ Círculo adicionado.' : '▭ Retângulo adicionado.');
+      }
+    }
+    boardRender();
+    return;
+  }
+
+  if (BOARD.wallDraggingLine || BOARD.wallDraggingHandle) {
+    BOARD.wallDraggingLine = false;
+    BOARD.wallDraggingHandle = null;
+    BOARD.wallDragStart = null;
+    BOARD.wallDragMouseStart = null;
+    if (myRole === 'mestre') {
       boardSave();
-      syncShapesToPlayers();
-      toast(BOARD.tool === 'shape-circle' ? '⬤ Círculo adicionado.' : '▭ Retângulo adicionado.');
+      syncWallsToPlayers();
+      setTimeout(atualizarFogJogador, 50);
     }
     boardRender();
     return;
@@ -5984,34 +6805,51 @@ function onBoardMouseUp(e) {
     BOARD.wallDrawing = false;
     const dx = BOARD.wallCurX - BOARD.wallStartX;
     const dy = BOARD.wallCurY - BOARD.wallStartY;
-    const len = Math.sqrt(dx*dx + dy*dy);
+    const len = Math.sqrt(dx * dx + dy * dy);
     if (len > 5) {
       snapshotBoard();
       const wType = BOARD.wallType || 'normal';
+      const newWallId = 'w' + Date.now() + Math.floor(Math.random() * 9999);
       BOARD.walls.push({
-        id: 'w' + Date.now() + Math.floor(Math.random()*9999),
+        id: newWallId,
         x1: BOARD.wallStartX, y1: BOARD.wallStartY,
-        x2: BOARD.wallCurX,   y2: BOARD.wallCurY,
+        x2: BOARD.wallCurX, y2: BOARD.wallCurY,
         type: wType,
-        open: false
+        open: false,
+        z: (BOARD.activeFloor || 0) * 10,
+        soundId: null
       });
+      BOARD.selectedWallId = newWallId;
       boardSave();
       syncWallsToPlayers();
-      
-      if (wType === 'normal') toast('🧱 Parede adicionada. Clique direito para remover.');
-      else if (wType === 'invisible') toast('👻 Parede invisível adicionada. Clique direito para remover.');
-      else if (wType === 'door') toast('🚪 Porta adicionada (fechada). Clique nela para abrir/fechar.');
-      else if (wType === 'window') toast('🪟 Janela adicionada (fechada). Clique nela para abrir/fechar.');
+      setTimeout(atualizarFogJogador, 50);
+
+      if (wType === 'normal') toast('🧱 Parede adicionada. Clique direito para editar.');
+      else if (wType === 'invisible') toast('👻 Parede invisível adicionada. Clique direito para editar.');
+      else if (wType === 'door') toast('🚪 Porta adicionada. Clique para abrir/fechar.');
+      else if (wType === 'window') toast('🪟 Janela adicionada. Clique para abrir/fechar.');
     }
     boardRender();
     return;
   }
 
   if (BOARD.fogPainting) {
+    if (BOARD.fogShape === 'rect' && BOARD.fogRectStart && BOARD.fogRectCur) {
+      pintarFogRetangulo(
+        BOARD.fogRectStart.gx,
+        BOARD.fogRectStart.gy,
+        BOARD.fogRectCur.gx,
+        BOARD.fogRectCur.gy,
+        BOARD.tool === 'reveal'
+      );
+    }
     BOARD.fogPainting = false;
     BOARD.lastFogCell = null;
+    BOARD.fogRectStart = null;
+    BOARD.fogRectCur = null;
     boardSave();
     syncFogToPlayers();
+    boardRender();
     return;
   }
 
@@ -6030,27 +6868,11 @@ function onBoardMouseUp(e) {
     BOARD.marquee = null;
     hideSelectionBox();
     boardRender();
+    atualizarVisaoJogadorPorSelecao();
     return;
   }
 
-  if (BOARD.dragging) {
-    const token = BOARD.dragging;
-    if (!BOARD.dragGroup && myRole !== 'mestre' && checkMoveBlocked(token, BOARD.dragStartGx, BOARD.dragStartGy, token.gx, token.gy)) {
-      token.gx = BOARD.dragStartGx;
-      token.gy = BOARD.dragStartGy;
-      boardRender();
-      toast('🚫 Movimento bloqueado por uma parede!');
-    } else {
-      if (myRole === 'mestre' || amIHost) {
-        boardSave();
-        syncBoardTokensToPlayers();
-      } else {
-        solicitarMoverToken(token.id, token.gx, token.gy);
-      }
-      setTimeout(atualizarFogJogador, 50);
-      setTimeout(atualizarSeguirToken, 50);
-    }
-  }
+  finalizarArrastoToken();
   BOARD.dragging = null;
   BOARD.dragGroup = null;
 }
@@ -6058,29 +6880,37 @@ function onBoardMouseUp(e) {
 function onBoardMouseLeave() {
   BOARD.wrap.classList.remove('panning');
   BOARD.panning = false;
-  if (BOARD.shapeDrawing) { BOARD.shapeDrawing = false; boardRender(); return; }
+
+  if (BOARD.mapDragging || BOARD.mapResizing) {
+    BOARD.mapDragging = false;
+    BOARD.mapResizing = false;
+    if (myRole === 'mestre' || amIHost) {
+      boardSave();
+      syncBoardMapToPlayers();
+    }
+    boardRender();
+  }
+  if (BOARD.rulerActive) {
+    BOARD.rulerActive = false;
+    boardRender();
+  }
+  if (BOARD.shapeDrawing) {
+    BOARD.shapeDrawing = false;
+    BOARD.shapeFreehandPoints = null;
+    boardRender();
+    return;
+  }
   if (BOARD.wallDrawing) { BOARD.wallDrawing = false; boardRender(); return; }
   if (BOARD.handleDrag) { BOARD.handleDrag = null; boardRender(); }
   if (BOARD.marquee) { BOARD.marquee = null; hideSelectionBox(); boardRender(); }
-  if (BOARD.dragging) {
-    const token = BOARD.dragging;
-    if (!BOARD.dragGroup && myRole !== 'mestre' && checkMoveBlocked(token, BOARD.dragStartGx, BOARD.dragStartGy, token.gx, token.gy)) {
-      token.gx = BOARD.dragStartGx;
-      token.gy = BOARD.dragStartGy;
-      boardRender();
-      toast('🚫 Movimento bloqueado por uma parede!');
-    } else {
-      if (myRole === 'mestre' || amIHost) {
-        boardSave();
-        syncBoardTokensToPlayers();
-      } else {
-        solicitarMoverToken(token.id, token.gx, token.gy);
-      }
-      setTimeout(atualizarFogJogador, 50);
-      setTimeout(atualizarSeguirToken, 50);
-    }
+  finalizarArrastoToken();
+  if (BOARD.fogPainting) {
+    BOARD.fogPainting = false;
+    BOARD.lastFogCell = null;
+    BOARD.fogRectStart = null;
+    BOARD.fogRectCur = null;
+    boardRender();
   }
-  if (BOARD.fogPainting) { BOARD.fogPainting = false; BOARD.lastFogCell = null; boardRender(); }
   BOARD.dragging = null;
   BOARD.dragGroup = null;
   hideTooltip();
@@ -6088,6 +6918,7 @@ function onBoardMouseLeave() {
 
 function onBoardWheel(e) {
   e.preventDefault();
+  if (BOARD.dragging) return; // Prevent zooming while dragging a token
   fecharContextMenu();
   const { x, y } = getBoardXY(e);
   const delta = e.deltaY > 0 ? -0.08 : 0.08;
@@ -6137,15 +6968,18 @@ function finalizeMarqueeSelection(additive) {
     if ((myRole !== 'mestre' || emVisaoJogador()) && layer === 'gm') return;
     if (myRole === 'mestre' && !emVisaoJogador() && layer !== activeLayer) return;
 
-    const sz = (t.size || 1) * gridSize;
-    const cx = (t.gx * gridSize + sz / 2) * zoom + offsetX;
-    const cy = (t.gy * gridSize + sz / 2) * zoom + offsetY;
-    const r = sz * 0.42 * zoom;
+    const sizeW = (t.sizeX || t.size || 1) * gridSize;
+    const sizeH = (t.sizeY || t.size || 1) * gridSize;
+    const pos3 = tokenWorldPos(t.gx, t.gy);
+    const cx = pos3.x * zoom + offsetX;
+    const cy = pos3.y * zoom + offsetY;
+    const rX = sizeW * 0.42 * zoom;
+    const rY = sizeH * 0.42 * zoom;
 
-    const tokL = cx - r;
-    const tokR = cx + r;
-    const tokT = cy - r;
-    const tokB = cy + r;
+    const tokL = cx - rX;
+    const tokR = cx + rX;
+    const tokT = cy - rY;
+    const tokB = cy + rY;
 
     if (tokR >= selL && tokL <= selR && tokB >= selT && tokT <= selB) {
       BOARD.selectedTokens.add(t.id);
@@ -6154,11 +6988,46 @@ function finalizeMarqueeSelection(additive) {
 }
 
 function onBoardDblClick(e) {
+  // Way-ruler: duplo clique finaliza o caminho
+  if (BOARD.tool === 'way-ruler' && BOARD.wayRulerActive && BOARD.wayRulerPoints.length >= 1) {
+    BOARD.wayRulerActive = false;
+    boardRender();
+    return;
+  }
+
   const { x, y } = getBoardXY(e);
   const token = getTokenAt(x, y);
-  if (token) {
+  if (!token) {
+    // Se não tem token, verifica se clicou em uma forma (só mestre configura)
     if (myRole === 'mestre') {
-      abrirFormTokenEdit(token, x, y);
+      const shape = shapeAt(x, y);
+      if (shape) {
+        abrirModalConfigForma(shape);
+        return;
+      }
+    }
+    return;
+  }
+  if (token.type === 'object' && myRole !== 'mestre' && !emVisaoJogador()) return;
+
+  // Se token veio do bestiário, abre a ficha da criatura
+  if (token.bestiaryName && typeof AMEACAS_DB !== 'undefined') {
+    mostrarDetalhesCriatura(token.bestiaryName);
+    return;
+  }
+
+  // Se token tem ficha do mestre vinculada, abre (somente mestre)
+  if (token.masterFichaId && myRole === 'mestre') {
+    abrirFichaMestre(token.masterFichaId);
+    return;
+  }
+
+  // Se token tem ficha de jogador vinculada, abre
+  if (token.controlledBy) {
+    if (myRole === 'mestre') {
+      if (fichasJogadores[token.controlledBy]) {
+        abrirFichaJogador(token.controlledBy);
+      }
     } else if (temControleToken(token)) {
       toggleFichaPanel();
     }
@@ -6167,51 +7036,106 @@ function onBoardDblClick(e) {
 
 function onBoardContextMenu(e) {
   e.preventDefault();
-  if (myRole !== 'mestre') return;
+
+  // Way-ruler: right-click finaliza o caminho
+  if (BOARD.tool === 'way-ruler' && BOARD.wayRulerActive && BOARD.wayRulerPoints.length >= 1) {
+    BOARD.wayRulerActive = false;
+    boardRender();
+    return;
+  }
+
   const { x, y } = getBoardXY(e);
-  
+  const wx = (x - BOARD.offsetX) / BOARD.zoom;
+  const wy = (y - BOARD.offsetY) / BOARD.zoom;
+
+  const isMestre = (myRole === 'mestre');
+
+  // Formas desenhadas: só o mestre vê o menu; jogador ignora
+  if (isMestre) {
+    const nearbyShape = shapeAt(wx, wy);
+    if (nearbyShape) {
+      abrirShapeContextMenu(e, nearbyShape);
+      return;
+    }
+  }
+
   fecharFormToken();
 
-  if (BOARD.tool === 'shape-rect' || BOARD.tool === 'shape-circle') {
-    const wx = (x - BOARD.offsetX) / BOARD.zoom;
-    const wy = (y - BOARD.offsetY) / BOARD.zoom;
-    const nearby = shapeAt(wx, wy);
-    if (nearby) {
-      snapshotBoard();
-      BOARD.shapes = BOARD.shapes.filter(s => s.id !== nearby.id);
-      boardSave(); syncShapesToPlayers(); boardRender();
-      toast('🗑 Forma removida.');
-      return;
+  // Paredes são só para o mestre
+  if (isMestre) {
+    if (BOARD.tool === 'wall') {
+      const nearbyWall = wallAt(wx, wy, 10 / BOARD.zoom);
+      if (nearbyWall) {
+        BOARD.selectedWallId = nearbyWall.id;
+        boardRender();
+        const menu = document.getElementById('wallContextMenu');
+        if (menu) {
+          menu.style.left = Math.min(e.clientX + 5, window.innerWidth - 200) + 'px';
+          menu.style.top = Math.min(e.clientY + 5, window.innerHeight - 180) + 'px';
+          menu.style.display = 'block';
+        }
+        return;
+      }
     }
   }
-  if (BOARD.tool === 'wall') {
-    const wx = (x - BOARD.offsetX) / BOARD.zoom;
-    const wy = (y - BOARD.offsetY) / BOARD.zoom;
-    const nearby = wallAt(wx, wy, 10 / BOARD.zoom);
-    if (nearby) {
-      snapshotBoard();
-      BOARD.walls = BOARD.walls.filter(w => w.id !== nearby.id);
-      boardSave(); syncWallsToPlayers(); boardRender();
-      toast('🧱 Parede removida.');
-      return;
-    }
-  }
+
   const token = getTokenAt(x, y);
   if (token) {
+    // Jogadores não interagem com objetos (cai no else p/ localizar próprio token)
+    if (token.type === 'object' && !isMestre) {
+      const meuToken = BOARD.tokens.find(t => temControleToken(t));
+      if (meuToken) centralizarEmToken(meuToken);
+      return;
+    }
+
     contextTokenId = token.id;
+    centralizarEmToken(token);
     const isObject = token.type === 'object';
     document.getElementById('ctxCondMenu').style.display = isObject ? 'none' : '';
-    document.getElementById('ctxViewPlayer').style.display = isObject ? 'none' : '';
     if (!isObject) {
       popularCtxCondicoes(token);
     }
     const menu = document.getElementById('tokenContextMenu');
     if (menu) {
-      menu.style.left = Math.min(e.clientX + 5, window.innerWidth - 260) + 'px';
-      menu.style.top = Math.min(e.clientY + 5, window.innerHeight - 180) + 'px';
+      document.getElementById('ctxEditToken').style.display = !isObject ? '' : 'none';
+      document.getElementById('ctxEditObject').style.display = (isMestre && isObject) ? '' : 'none';
+      document.getElementById('ctxVincularFicha').style.display = (isMestre && !isObject) ? '' : 'none';
+      if (isMestre && !isObject) popularCtxVincularFicha(token);
+      document.getElementById('ctxCfgCamada').style.display = isMestre ? '' : 'none';
+      const camadaAtual = token.layer || 'map';
+      document.getElementById('ctxLayerMap').querySelector('i').style.visibility = camadaAtual === 'map' ? 'visible' : 'hidden';
+      document.getElementById('ctxLayerPlayers').querySelector('i').style.visibility = camadaAtual === 'players' ? 'visible' : 'hidden';
+      document.getElementById('ctxLayerGm').querySelector('i').style.visibility = camadaAtual === 'gm' ? 'visible' : 'hidden';
+      document.getElementById('ctxAlturaMenu').style.display = isMestre ? '' : 'none';
+      document.getElementById('ctxCfgApagar').style.display = isMestre ? '' : 'none';
+      if (isMestre) {
+        const lockIcon = document.querySelector('#ctxToggleLock i');
+        const lockText = document.getElementById('ctxToggleLockText');
+        if (lockIcon) lockIcon.className = token.locked ? 'bi bi-unlock' : 'bi bi-lock';
+        if (lockText) lockText.textContent = token.locked ? 'Destravar' : 'Travar';
+        document.getElementById('ctxToggleLock').style.display = '';
+      } else {
+        document.getElementById('ctxToggleLock').style.display = 'none';
+      }
+      document.getElementById('ctxAlignGrid').style.display = isMestre ? '' : 'none';
+
+      const gs = BOARD.gridSize;
+      const sz = (token.size || 1) * gs;
+      const { cx, cy } = gridToCanvas(token.gx, token.gy);
+      const tokScreenX = cx + (sz * BOARD.zoom) / 2;
+      const tokScreenY = cy + (sz * BOARD.zoom) / 2;
+      const wrapRect = BOARD.wrap.getBoundingClientRect();
+      let menuX = wrapRect.left + tokScreenX + 10;
+      let menuY = wrapRect.top + tokScreenY - 20;
+      menuX = Math.min(menuX, window.innerWidth - 260);
+      menuY = Math.min(menuY, window.innerHeight - 180);
+      menuX = Math.max(menuX, 5);
+      menuY = Math.max(menuY, 5);
+      menu.style.left = menuX + 'px';
+      menu.style.top = menuY + 'px';
       menu.style.display = 'block';
     }
-  } else {
+  } else if (isMestre) {
     const menu = document.getElementById('boardContextMenu');
     if (menu) {
       BOARD.ctxMenuBoardX = x;
@@ -6219,6 +7143,11 @@ function onBoardContextMenu(e) {
       menu.style.left = Math.min(e.clientX + 5, window.innerWidth - 200) + 'px';
       menu.style.top = Math.min(e.clientY + 5, window.innerHeight - 100) + 'px';
       menu.style.display = 'block';
+    }
+  } else {
+    const meuToken = BOARD.tokens.find(t => temControleToken(t));
+    if (meuToken) {
+      centralizarEmToken(meuToken);
     }
   }
 }
@@ -6244,6 +7173,7 @@ function centralizarEmToken(token) {
   const ty = token.gy * gs + sz;
   BOARD.offsetX = wrap.clientWidth / 2 - tx * BOARD.zoom;
   BOARD.offsetY = wrap.clientHeight / 2 - ty * BOARD.zoom;
+  BOARD.activeFloor = getFloorFromZ(token.z);
   boardRender();
 }
 
@@ -6265,12 +7195,58 @@ function atualizarSeguirToken() {
   centralizarEmToken(token);
 }
 
+function abrirShapeContextMenu(e, shape) {
+  contextShapeId = shape.id;
+  const menu = document.getElementById('shapeContextMenu');
+  if (menu) {
+    const isMaster = (myRole === 'mestre');
+    const gmItems = menu.querySelectorAll('.gm-only-item');
+    gmItems.forEach(el => {
+      el.style.display = isMaster ? '' : 'none';
+    });
+
+    menu.style.left = Math.min(e.clientX + 5, window.innerWidth - 220) + 'px';
+    menu.style.top = Math.min(e.clientY + 5, window.innerHeight - 200) + 'px';
+    menu.style.display = 'block';
+  }
+}
+
+function contextShapeConfig() {
+  if (!contextShapeId) return;
+  const shape = BOARD.shapes.find(s => s.id === contextShapeId);
+  if (shape) abrirModalConfigForma(shape);
+}
+
+/* ── Mobile ── */
+function toggleMobileMenu() {
+  const overlay = document.getElementById('mobileMenuOverlay');
+  if (!overlay) return;
+  const open = overlay.style.display !== 'flex';
+  overlay.style.display = open ? 'flex' : 'none';
+  overlay.style.alignItems = 'flex-end';
+}
+function fecharMobileMenu() {
+  const overlay = document.getElementById('mobileMenuOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+function abrirDiarioMobile() {
+  // Abre o master panel (se colapsado) e alterna para a aba Encontros
+  const master = document.getElementById('master-panel');
+  if (master && master.classList.contains('collapsed')) {
+    toggleMasterPanel();
+  }
+  switchTab('encontros');
+}
+
+function toggleChatMobile() {
+  toggleChatPanel();
+  fecharMobileMenu();
+}
+
 function fecharContextMenu() {
-  const menu = document.getElementById('tokenContextMenu');
-  if (menu) menu.style.display = 'none';
-  const bMenu = document.getElementById('boardContextMenu');
-  if (bMenu) bMenu.style.display = 'none';
+  document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
   contextTokenId = null;
+  contextShapeId = null;
 }
 
 function abrirConfigGrid() {
@@ -6280,6 +7256,7 @@ function abrirConfigGrid() {
   document.getElementById('gcScaleVal').value = BOARD.gridScaleVal ?? 1.5;
   document.getElementById('gcScaleUnit').value = BOARD.gridScaleUnit || 'm';
   document.getElementById('gcGridType').value = BOARD.gridType || 'square';
+  document.getElementById('gcDistanceMode').value = BOARD.distanceMode || 'square';
   document.getElementById('gcLightingType').value = BOARD.lightingType || 'sunny';
   document.getElementById('gridConfigModal').style.display = 'flex';
 }
@@ -6295,20 +7272,713 @@ function salvarConfigGrid() {
   BOARD.gridScaleVal = parseFloat(document.getElementById('gcScaleVal').value) || 1.5;
   BOARD.gridScaleUnit = document.getElementById('gcScaleUnit').value.trim() || 'm';
   BOARD.gridType = document.getElementById('gcGridType').value || 'square';
+  BOARD.distanceMode = document.getElementById('gcDistanceMode').value || 'square';
   BOARD.lightingType = document.getElementById('gcLightingType').value || 'sunny';
   boardSave(); boardRender();
-  if (myRole === 'mestre') syncBoardToPlayers();
+  if (myRole === 'mestre' && PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) syncBoardToPlayers();
   fecharConfigGrid();
   toast('Grid e mapa configurados!');
+}
+
+// ── Partículas de Clima ──
+var _weatherParticles = [];
+var _weatherAnimId = null;
+var _weatherLastTime = 0;
+var _weatherActive = '';
+// Cache de células já verificadas para evitar recalcular por partícula
+var _outdoorCache = null;
+var _outdoorCacheWalls = null;
+var _outdoorCacheGridSize = 0;
+var _outdoorCacheCount = -1;
+
+function _isOutdoor(wx, wy, walls) {
+  if (!walls || !walls.length) return true;
+
+  // Arredonda para célula do grid para cache
+  var gs = BOARD.gridSize || 50;
+  var cellX = Math.floor(wx / gs);
+  var cellY = Math.floor(wy / gs);
+
+  // Invalida cache se paredes mudaram, foram trocadas ou contagem mudou
+  var wallsSig = walls.length;
+  if (_outdoorCacheWalls !== walls || _outdoorCacheGridSize !== gs || _outdoorCacheCount !== wallsSig) {
+    _outdoorCache = {};
+    _outdoorCacheWalls = walls;
+    _outdoorCacheGridSize = gs;
+    _outdoorCacheCount = wallsSig;
+  }
+
+  var key = cellX + ',' + cellY;
+  if (key in _outdoorCache) return _outdoorCache[key];
+
+  // Ponto central da célula para o teste
+  var cx = (cellX + 0.5) * gs;
+  var cy = (cellY + 0.5) * gs;
+
+  // Dispara 3 raios em direções diferentes — usa votação majoritária para robustez
+  var dirs = [
+    [cx, cy, cx, cy - 99999],   // para cima
+    [cx, cy, cx - 99999, cy],   // para esquerda
+    [cx, cy, cx + 99999, cy + 33333] // diagonal
+  ];
+  var votes = 0;
+  for (var d = 0; d < dirs.length; d++) {
+    var ax = dirs[d][0], ay = dirs[d][1], bx = dirs[d][2], by = dirs[d][3];
+    var crossings = 0;
+    for (var i = 0; i < walls.length; i++) {
+      var w = walls[i];
+      if (_raySegIntersect(ax, ay, bx, by, w.x1, w.y1, w.x2, w.y2)) crossings++;
+    }
+    if (crossings % 2 === 0) votes++; // par = exterior
+  }
+  // Maioria: 2 ou 3 votos = exterior; 0 ou 1 = interior
+  var outdoor = votes >= 2;
+  _outdoorCache[key] = outdoor;
+  return outdoor;
+}
+
+// Ray casting mais preciso — raio semi-infinito de A→B contra segmento C→D
+function _raySegIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+  var rdx = bx - ax, rdy = by - ay;
+  var sdx = dx - cx, sdy = dy - cy;
+  var denom = rdx * sdy - rdy * sdx;
+  if (Math.abs(denom) < 1e-9) return false;
+  var t = ((cx - ax) * sdy - (cy - ay) * sdx) / denom;
+  var u = ((cx - ax) * rdy - (cy - ay) * rdx) / denom;
+  return t > 1e-9 && u > 1e-9 && u < 1 - 1e-9;
+}
+
+// Limpa cache quando paredes mudam
+function _invalidateOutdoorCache() { _outdoorCache = null; _outdoorCacheWalls = null; }
+
+function _initWeatherParticles(type) {
+  _weatherParticles = [];
+  var count = type === 'rainy' ? 150 : 100;
+  var canvas = BOARD.canvas;
+  var W = canvas ? canvas.width : (window.innerWidth || 800);
+  var H = canvas ? canvas.height : (window.innerHeight || 600);
+  for (var i = 0; i < count; i++) {
+    _weatherParticles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      speed: type === 'rainy' ? (4 + Math.random() * 4) : (1 + Math.random() * 2),
+      size: type === 'rainy' ? (1 + Math.random() * 1.5) : (2 + Math.random() * 3),
+      opacity: type === 'rainy' ? (0.3 + Math.random() * 0.4) : (0.5 + Math.random() * 0.4),
+      sway: type === 'snowy' ? (Math.random() * 2) : 0,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function _weatherTick(time) {
+  if (!_weatherActive) return;
+  if (!_lastWeatherTime) _lastWeatherTime = time;
+  var dt = Math.min((time - _lastWeatherTime) / 16.67, 3);
+  _lastWeatherTime = time;
+  var W = BOARD.canvas ? BOARD.canvas.width : window.innerWidth;
+  var H = BOARD.canvas ? BOARD.canvas.height : window.innerHeight;
+  var type = _weatherActive;
+  for (var i = 0; i < _weatherParticles.length; i++) {
+    var p = _weatherParticles[i];
+    p.y += p.speed * dt;
+    if (type === 'snowy') p.x += Math.sin(p.phase + time * 0.001) * p.sway * 0.3 * dt;
+    if (p.y > H + 10) { p.y = -10; p.x = Math.random() * W; }
+    if (p.x > W + 10) p.x = -10;
+    if (p.x < -10) p.x = W + 10;
+  }
+  if (typeof boardRender === 'function') boardRender();
+  _weatherAnimId = requestAnimationFrame(_weatherTick);
+}
+
+function _renderWeather(ctx) {
+  if (!_weatherActive || !_weatherParticles.length) return;
+  var type = _weatherActive;
+  var offsetX = BOARD.offsetX || 0;
+  var offsetY = BOARD.offsetY || 0;
+  var zoom = BOARD.zoom || 1;
+  var walls = BOARD.walls || [];
+  ctx.save();
+  for (var i = 0; i < _weatherParticles.length; i++) {
+    var p = _weatherParticles[i];
+    var wx = (p.x - offsetX) / zoom;
+    var wy = (p.y - offsetY) / zoom;
+    if (!_isOutdoor(wx, wy, walls)) continue;
+    if (type === 'rainy') {
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + 4, p.y + 8);
+      ctx.strokeStyle = 'rgba(150,180,220,' + p.opacity + ')';
+      ctx.lineWidth = p.size;
+      ctx.stroke();
+    } else if (type === 'snowy') {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + p.opacity + ')';
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function setWeather(type) {
+  if (myRole !== 'mestre' && !amIHost) return;
+  snapshotBoard();
+  if (_weatherAnimId) { cancelAnimationFrame(_weatherAnimId); _weatherAnimId = null; }
+  _weatherActive = '';
+  _weatherParticles = [];
+
+  if (type === 'sun') {
+    BOARD.lightingType = 'sunny';
+    toast('☀️ Claro (Sol).');
+  } else if (type === 'rain') {
+    BOARD.lightingType = 'rainy';
+    _weatherActive = 'rainy';
+    _initWeatherParticles('rainy');
+    _lastWeatherTime = 0;
+    _weatherAnimId = requestAnimationFrame(_weatherTick);
+    toast('🌧 Chuva.');
+  } else if (type === 'snow') {
+    BOARD.lightingType = 'snowy';
+    _weatherActive = 'snowy';
+    _initWeatherParticles('snowy');
+    _lastWeatherTime = 0;
+    _weatherAnimId = requestAnimationFrame(_weatherTick);
+    toast('❄️ Neve.');
+  } else if (type === 'night') {
+    BOARD.lightingType = 'starnight';
+    toast('🌙 Noite (estrelada).');
+  }
+
+  // Sincroniza o select com o valor atual
+  const sel = document.getElementById('weatherSelect');
+  if (sel) sel.value = type;
+
+  boardSave();
+  boardRender();
+  if (myRole === 'mestre' && PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) syncBoardToPlayers();
+}
+
+function _syncWeatherSelect() {
+  const sel = document.getElementById('weatherSelect');
+  if (!sel) return;
+  const lt = BOARD.lightingType || 'sunny';
+  if (lt === 'sunny') sel.value = 'sun';
+  else if (lt === 'rainy') sel.value = 'rain';
+  else if (lt === 'snowy') sel.value = 'snow';
+  else if (lt === 'starnight') sel.value = 'night';
+  else sel.value = 'sun';
+}
+
+function _applyWeatherParticles() {
+  var lt = BOARD.lightingType;
+  if (lt === 'rainy' || lt === 'snowy') {
+    var wtype = lt === 'rainy' ? 'rainy' : 'snowy';
+    if (_weatherAnimId) { cancelAnimationFrame(_weatherAnimId); _weatherAnimId = null; }
+    _weatherActive = wtype;
+    setTimeout(function() {
+      if (typeof _initWeatherParticles === 'function') _initWeatherParticles(wtype);
+      _lastWeatherTime = 0;
+      if (typeof _weatherTick === 'function') _weatherAnimId = requestAnimationFrame(_weatherTick);
+    }, 300);
+  } else {
+    if (_weatherAnimId) { cancelAnimationFrame(_weatherAnimId); _weatherAnimId = null; }
+    _weatherActive = '';
+  }
+}
+
+// ──── Animação de Condições ────
+let _condAnimState = {};
+let _condAnimId = null;
+let _condAnimLastTime = 0;
+
+function _initCondDrips(tokenId) {
+  if (!_condAnimState[tokenId]) _condAnimState[tokenId] = {};
+  const st = _condAnimState[tokenId];
+  if (!st.drips) {
+    st.drips = [];
+    for (let i = 0; i < 3; i++) {
+      st.drips.push({
+        x: (Math.random() - 0.5) * 12,
+        y: -Math.random() * 20,
+        speed: 1.5 + Math.random() * 2,
+        size: 2 + Math.random() * 2,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+}
+
+function _initCondNausea(tokenId) {
+  if (!_condAnimState[tokenId]) _condAnimState[tokenId] = {};
+  const st = _condAnimState[tokenId];
+  if (!st.nausea) {
+    st.nausea = [];
+    for (let i = 0; i < 4; i++) {
+      st.nausea.push({
+        x: (Math.random() - 0.5) * 16,
+        y: -Math.random() * 20,
+        speed: 0.8 + Math.random() * 1.2,
+        size: 1.5 + Math.random() * 1.5,
+        wobble: Math.random() * Math.PI * 2
+      });
+    }
+  }
+}
+
+function _initCondZzz(tokenId) {
+  if (!_condAnimState[tokenId]) _condAnimState[tokenId] = {};
+  const st = _condAnimState[tokenId];
+  if (!st.zzz) {
+    st.zzz = [];
+    const labels = ['Z', 'Z', 'z'];
+    for (let i = 0; i < 3; i++) {
+      st.zzz.push({
+        x: (Math.random() - 0.3) * 14,
+        y: -(i * 14) - Math.random() * 6,
+        speed: 0.4 + Math.random() * 0.3,
+        alpha: 0.5 + Math.random() * 0.5,
+        label: labels[i],
+        size: 6 + i * 2
+      });
+    }
+  }
+}
+
+function _tickCondAnims(time) {
+  if (!_condAnimLastTime) _condAnimLastTime = time;
+  const dt = Math.min((time - _condAnimLastTime) / 16.67, 5);
+  _condAnimLastTime = time;
+
+  let hasAnimatedConds = false;
+  const tokens = BOARD.tokens || [];
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (!t.conditions || !t.conditions.length) continue;
+    const conds = t.conditions;
+    const needsAnim = [
+      'Sangrando','Atordoado','Confuso','Inconsciente',
+      'Paralisado','Enjoado','Fascinado','Enredado','Desprevenido',
+      'Em Chamas','Envenenado'
+    ].some(c => conds.indexOf(c) !== -1);
+    if (!needsAnim) continue;
+    hasAnimatedConds = true;
+
+    // ── Sangrando: gotas de sangue caindo
+    if (conds.indexOf('Sangrando') !== -1) {
+      _initCondDrips(t.id);
+      const st = _condAnimState[t.id];
+      if (st.drips) {
+        for (let j = 0; j < st.drips.length; j++) {
+          const d = st.drips[j];
+          d.y += d.speed * dt;
+          if (d.y > 32) {
+            d.y = -5 - Math.random() * 15;
+            d.x = (Math.random() - 0.5) * 12;
+            d.speed = 1.5 + Math.random() * 2;
+          }
+        }
+      }
+    }
+
+    // ── Enjoado: gotas verdes caindo
+    if (conds.indexOf('Enjoado') !== -1) {
+      _initCondNausea(t.id);
+      const st = _condAnimState[t.id];
+      if (st.nausea) {
+        for (let j = 0; j < st.nausea.length; j++) {
+          const d = st.nausea[j];
+          d.y += d.speed * dt;
+          d.wobble += 0.05 * dt;
+          if (d.y > 28) {
+            d.y = -5 - Math.random() * 12;
+            d.x = (Math.random() - 0.5) * 16;
+            d.speed = 0.8 + Math.random() * 1.2;
+          }
+        }
+      }
+    }
+
+    // ── Inconsciente: ZZZ's flutuando
+    if (conds.indexOf('Inconsciente') !== -1) {
+      _initCondZzz(t.id);
+      const st = _condAnimState[t.id];
+      if (st.zzz) {
+        for (let j = 0; j < st.zzz.length; j++) {
+          const z = st.zzz[j];
+          z.y -= z.speed * dt;
+          z.alpha -= 0.003 * dt;
+          if (z.alpha <= 0 || z.y < -50) {
+            z.y = -5 - Math.random() * 5;
+            z.x = (Math.random() - 0.3) * 14;
+            z.alpha = 0.7 + Math.random() * 0.3;
+          }
+        }
+      }
+    }
+  }
+
+  if (hasAnimatedConds) {
+    boardRender();
+    _condAnimId = requestAnimationFrame(_tickCondAnims);
+  } else {
+    _condAnimState = {};
+    _condAnimId = null;
+  }
+}
+
+function _startCondAnims() {
+  if (_condAnimId) return;
+  _condAnimLastTime = 0;
+  _condAnimId = requestAnimationFrame(_tickCondAnims);
+}
+
+function _stopCondAnims() {
+  if (_condAnimId) {
+    cancelAnimationFrame(_condAnimId);
+    _condAnimId = null;
+  }
+  _condAnimState = {};
+}
+
+function _renderCondEffects(ctx, t) {
+  if (!t.conditions || !t.conditions.length) return;
+  const gs = BOARD.gridSize;
+  const sz = (t.size || 1) * gs;
+  const rX = sz / 2;
+  const rY = sz / 2;
+  const pos4 = tokenWorldPos(t.gx, t.gy);
+  const px = pos4.x;
+  const py = pos4.y;
+  const zoom = BOARD.zoom;
+  const now = Date.now();
+
+  // ── Petrificado → overlay cinza granito
+  if (t.conditions.indexOf('Petrificado') !== -1) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.92, rY * 0.92, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(120,120,120,0.45)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(160,160,160,0.5)';
+    ctx.lineWidth = 2 / zoom;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Paralisado → cristais de gelo + brilho azul frio
+  if (t.conditions.indexOf('Paralisado') !== -1) {
+    const icePulse = 0.5 + Math.sin(now * 0.003) * 0.2;
+    ctx.save();
+    // overlay azul gelado
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.88, rY * 0.88, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(100,200,255,' + icePulse * 0.18 + ')';
+    ctx.fill();
+    // anel brilhante
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.92, rY * 0.92, 0, 0, Math.PI * 2);
+    ctx.shadowColor = 'rgba(100,200,255,0.8)';
+    ctx.shadowBlur = 18 / zoom;
+    ctx.strokeStyle = 'rgba(140,220,255,' + icePulse * 0.75 + ')';
+    ctx.lineWidth = 2.5 / zoom;
+    ctx.stroke();
+    // cristais hexagonais
+    const crystalAngles = [0, Math.PI/3, 2*Math.PI/3, Math.PI, 4*Math.PI/3, 5*Math.PI/3];
+    const cr = rX * 0.95;
+    ctx.fillStyle = 'rgba(180,240,255,0.75)';
+    ctx.shadowBlur = 6 / zoom;
+    for (let a = 0; a < crystalAngles.length; a++) {
+      const ang = crystalAngles[a] + now * 0.0005;
+      const cx2 = px + Math.cos(ang) * cr;
+      const cy2 = py + Math.sin(ang) * cr;
+      ctx.save();
+      ctx.translate(cx2, cy2);
+      ctx.rotate(ang + Math.PI / 6);
+      ctx.beginPath();
+      for (let s = 0; s < 6; s++) {
+        const sa = (s / 6) * Math.PI * 2;
+        const sr = 2.5 / zoom;
+        s === 0 ? ctx.moveTo(Math.cos(sa)*sr, Math.sin(sa)*sr)
+                : ctx.lineTo(Math.cos(sa)*sr, Math.sin(sa)*sr);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  // ── Sangrando → gotas de sangue caindo
+  if (t.conditions.indexOf('Sangrando') !== -1) {
+    _startCondAnims();
+    const st = _condAnimState[t.id];
+    if (st && st.drips) {
+      ctx.save();
+      for (let i = 0; i < st.drips.length; i++) {
+        const d = st.drips[i];
+        const dx = px + d.x;
+        const dy = py + rY + d.y;
+        ctx.beginPath();
+        ctx.arc(dx, dy, d.size / zoom, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(180,30,30,0.85)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(dx, dy);
+        ctx.lineTo(dx, dy + d.size * 1.5 / zoom);
+        ctx.strokeStyle = 'rgba(180,30,30,0.5)';
+        ctx.lineWidth = d.size * 0.6 / zoom;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  // ── Enjoado → gotículas verdes caindo
+  if (t.conditions.indexOf('Enjoado') !== -1) {
+    _startCondAnims();
+    const st = _condAnimState[t.id];
+    if (st && st.nausea) {
+      ctx.save();
+      for (let i = 0; i < st.nausea.length; i++) {
+        const d = st.nausea[i];
+        const dx = px + d.x + Math.sin(d.wobble) * 3;
+        const dy = py + rY * 0.5 + d.y;
+        ctx.beginPath();
+        ctx.arc(dx, dy, d.size / zoom, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(100,210,80,0.8)';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  // ── Em Chamas → brilho laranja pulsante
+  if (t.conditions.indexOf('Em Chamas') !== -1) {
+    const pulse = 0.6 + Math.sin(now * 0.005) * 0.2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.8, rY * 0.8, 0, 0, Math.PI * 2);
+    ctx.shadowColor = 'rgba(255,120,0,0.65)';
+    ctx.shadowBlur = 22 / zoom;
+    ctx.fillStyle = 'rgba(255,120,0,' + pulse * 0.15 + ')';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,180,50,' + pulse * 0.55 + ')';
+    ctx.lineWidth = 2.5 / zoom;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Envenenado → brilho verde pulsante
+  if (t.conditions.indexOf('Envenenado') !== -1) {
+    const pulse = 0.5 + Math.sin(now * 0.004) * 0.15;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX * 0.85, rY * 0.85, 0, 0, Math.PI * 2);
+    ctx.shadowColor = 'rgba(0,200,80,0.55)';
+    ctx.shadowBlur = 16 / zoom;
+    ctx.strokeStyle = 'rgba(0,200,80,' + pulse * 0.65 + ')';
+    ctx.lineWidth = 2.5 / zoom;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Atordoado → estrelinhas orbitando
+  if (t.conditions.indexOf('Atordoado') !== -1) {
+    _startCondAnims();
+    const orbit = rX * 1.05;
+    const starCount = 5;
+    const angleOffset = (now * 0.002) % (Math.PI * 2);
+    ctx.save();
+    for (let s = 0; s < starCount; s++) {
+      const ang = angleOffset + (s / starCount) * Math.PI * 2;
+      const sx = px + Math.cos(ang) * orbit;
+      const sy = py - rY * 0.3 + Math.sin(ang) * orbit * 0.4;
+      const starR = 3 / zoom;
+      ctx.beginPath();
+      for (let p = 0; p < 5; p++) {
+        const pa = (p * 4 / 5) * Math.PI - Math.PI / 2;
+        const r = (p % 2 === 0) ? starR : starR * 0.45;
+        p === 0 ? ctx.moveTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r)
+                : ctx.lineTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,235,80,0.9)';
+      ctx.shadowColor = 'rgba(255,230,0,0.8)';
+      ctx.shadowBlur = 8 / zoom;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ── Fascinado → estrelas douradas orbitando (mais suaves, maiores)
+  if (t.conditions.indexOf('Fascinado') !== -1) {
+    _startCondAnims();
+    const orbit = rX * 1.1;
+    const starCount = 6;
+    const angleOffset = (now * 0.0015) % (Math.PI * 2);
+    ctx.save();
+    for (let s = 0; s < starCount; s++) {
+      const ang = angleOffset + (s / starCount) * Math.PI * 2;
+      const sx = px + Math.cos(ang) * orbit;
+      const sy = py + Math.sin(ang) * orbit * 0.35;
+      const sparkle = 0.6 + Math.sin(now * 0.006 + s) * 0.4;
+      const starR = (3.5 + sparkle) / zoom;
+      ctx.beginPath();
+      for (let p = 0; p < 10; p++) {
+        const pa = (p / 10) * Math.PI * 2 - Math.PI / 2;
+        const r = (p % 2 === 0) ? starR : starR * 0.4;
+        p === 0 ? ctx.moveTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r)
+                : ctx.lineTo(sx + Math.cos(pa)*r, sy + Math.sin(pa)*r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = `rgba(255,215,0,${sparkle * 0.9})`;
+      ctx.shadowColor = 'rgba(255,200,0,0.9)';
+      ctx.shadowBlur = 10 / zoom;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ── Confuso → espiral colorida girando
+  if (t.conditions.indexOf('Confuso') !== -1) {
+    _startCondAnims();
+    const spiralAngle = (now * 0.003) % (Math.PI * 2);
+    ctx.save();
+    const spiralColors = ['rgba(255,80,80,0.7)','rgba(80,80,255,0.7)','rgba(80,255,80,0.7)','rgba(255,255,0,0.7)'];
+    for (let arm = 0; arm < 4; arm++) {
+      const baseAng = spiralAngle + (arm / 4) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.strokeStyle = spiralColors[arm];
+      ctx.lineWidth = 2 / zoom;
+      ctx.shadowColor = spiralColors[arm];
+      ctx.shadowBlur = 6 / zoom;
+      for (let step = 0; step <= 20; step++) {
+        const frac = step / 20;
+        const r = rX * 0.2 + frac * rX * 0.7;
+        const a = baseAng + frac * Math.PI * 1.5;
+        const sx = px + Math.cos(a) * r;
+        const sy = py + Math.sin(a) * r;
+        step === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ── Enredado → linhas de teia ao redor do token
+  if (t.conditions.indexOf('Enredado') !== -1) {
+    ctx.save();
+    const webColor = 'rgba(200,200,200,0.55)';
+    ctx.strokeStyle = webColor;
+    ctx.lineWidth = 1 / zoom;
+    // raios
+    const rays = 8;
+    for (let r = 0; r < rays; r++) {
+      const ang = (r / rays) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + Math.cos(ang) * rX * 1.05, py + Math.sin(ang) * rY * 1.05);
+      ctx.stroke();
+    }
+    // anéis concêntricos
+    const rings = 3;
+    for (let ri = 1; ri <= rings; ri++) {
+      const frac = ri / rings;
+      ctx.beginPath();
+      ctx.ellipse(px, py, rX * frac * 0.95, rY * frac * 0.95, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    // curvas transversais da teia
+    for (let r = 0; r < rays; r++) {
+      const a1 = (r / rays) * Math.PI * 2;
+      const a2 = ((r + 1) / rays) * Math.PI * 2;
+      for (let ri = 1; ri <= rings; ri++) {
+        const frac = ri / rings * 0.95;
+        ctx.beginPath();
+        ctx.moveTo(px + Math.cos(a1) * rX * frac, py + Math.sin(a1) * rY * frac);
+        ctx.lineTo(px + Math.cos(a2) * rX * frac, py + Math.sin(a2) * rY * frac);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  // ── Desprevenido → flash branco periódico
+  if (t.conditions.indexOf('Desprevenido') !== -1) {
+    _startCondAnims();
+    const flashCycle = (now * 0.002) % (Math.PI * 2);
+    const flashAlpha = Math.max(0, Math.sin(flashCycle)) * 0.35;
+    if (flashAlpha > 0.01) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(px, py, rX * 0.9, rY * 0.9, 0, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+      ctx.shadowColor = 'rgba(255,255,200,0.9)';
+      ctx.shadowBlur = 20 / zoom;
+      ctx.fill();
+      // borda elétrica
+      ctx.beginPath();
+      ctx.ellipse(px, py, rX * 0.95, rY * 0.95, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,255,100,${flashAlpha * 1.8})`;
+      ctx.lineWidth = 2 / zoom;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // ── Inconsciente → ZZZ's flutuando
+  if (t.conditions.indexOf('Inconsciente') !== -1) {
+    _startCondAnims();
+    const st = _condAnimState[t.id];
+    if (st && st.zzz) {
+      ctx.save();
+      ctx.font = `bold ${Math.max(7, st.zzz[0].size) / zoom}px sans-serif`;
+      for (let z = 0; z < st.zzz.length; z++) {
+        const zz = st.zzz[z];
+        const zx = px + rX * 0.5 + zz.x;
+        const zy = py - rY * 0.6 + zz.y;
+        ctx.globalAlpha = Math.max(0, Math.min(1, zz.alpha));
+        ctx.fillStyle = 'rgba(160,200,255,1)';
+        ctx.shadowColor = 'rgba(100,160,255,0.8)';
+        ctx.shadowBlur = 6 / zoom;
+        ctx.fillText(zz.label, zx, zy);
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+  }
+}
+
+function contextToggleLock() {
+  if (!contextTokenId) return;
+  const token = BOARD.tokens.find(t => t.id === contextTokenId);
+  if (!token) { fecharContextMenu(); return; }
+  snapshotBoard();
+  token.locked = !token.locked;
+  boardSave(); boardRender(); syncBoardTokensToPlayers();
+  toast(token.locked ? `🔒 "${token.name}" travado` : `🔓 "${token.name}" destravado`);
+  fecharContextMenu();
+}
+
+function contextAlignToGrid() {
+  if (!contextTokenId) return;
+  const token = BOARD.tokens.find(t => t.id === contextTokenId);
+  if (!token) { fecharContextMenu(); return; }
+  snapshotBoard();
+  token.gx = 0;
+  token.gy = 0;
+  boardSave(); boardRender(); syncBoardTokensToPlayers();
+  toast(`📐 "${token.name}" alinhado ao centro`);
+  fecharContextMenu();
 }
 
 function contextEditToken() {
   if (!contextTokenId) return;
   const token = BOARD.tokens.find(t => t.id === contextTokenId);
-  if (token) {
-    const { cx, cy } = gridToCanvas(token.gx, token.gy);
-    abrirFormTokenEdit(token, cx, cy);
-  }
+  if (!token) { fecharContextMenu(); return; }
+  if (token.locked) { toast(`🔒 "${token.name}" está travado.`); fecharContextMenu(); return; }
+  const { cx, cy } = gridToCanvas(token.gx, token.gy);
+  abrirFormTokenEdit(token, cx, cy);
   fecharContextMenu();
 }
 
@@ -6333,8 +8003,10 @@ function contextDeleteToken() {
     if (confirm(`Remover token "${token.name}"?`)) {
       snapshotBoard();
       BOARD.tokens = BOARD.tokens.filter(t => t.id !== token.id);
+      BOARD.selectedTokens.delete(token.id);
       if (BOARD.followTokenId === token.id) BOARD.followTokenId = null;
       if (BOARD.playerViewTokenId === token.id) exitPlayerView();
+      atualizarVisaoJogadorPorSelecao();
       boardSave();
       boardRender();
       syncBoardTokensToPlayers();
@@ -6381,24 +8053,455 @@ function contextDescerAndar() {
   }
   fecharContextMenu();
 }
-function contextViewAsPlayer() {
+function contextViewFicha() {
   if (!contextTokenId) return;
-  const token = BOARD.tokens.find(t => t.id === contextTokenId);
-  if (!token) { fecharContextMenu(); return; }
-  if (BOARD.playerViewTokenId === token.id) {
-    exitPlayerView();
-    fecharContextMenu();
+  fecharContextMenu();
+  // Abre a ficha do personagem se o jogador tiver uma ficha vinculada
+  if (myRole !== 'mestre') {
+    toggleFichaPanel();
+  } else {
+    // Mestre: tenta abrir a ficha do jogador dono do token
+    const token = BOARD.tokens.find(t => t.id === contextTokenId);
+    if (token && token.masterFichaId) {
+      abrirFichaMestre(token.masterFichaId);
+    } else if (token && token.controlledBy && fichasJogadores[token.controlledBy]) {
+      abrirFichaJogador(token.controlledBy);
+    } else {
+      toast('Nenhuma ficha vinculada a este token.');
+    }
+  }
+}
+
+function popularCtxVincularFicha(token) {
+  const submenu = document.getElementById('ctxVincularFichaSubmenu');
+  if (!submenu) return;
+  submenu.innerHTML = '';
+
+  // Nenhum Vínculo
+  const itemNenhum = document.createElement('div');
+  itemNenhum.className = 'context-menu-item';
+  const checkNenhum = (!token.masterFichaId && !token.controlledBy) ? '<i class="bi bi-check"></i> ' : '<i class="bi bi-check" style="visibility:hidden"></i> ';
+  itemNenhum.innerHTML = `${checkNenhum}Nenhum Vínculo`;
+  itemNenhum.onclick = () => { vincularFichaAToken(null, null); };
+  submenu.appendChild(itemNenhum);
+
+  // Fichas dos Jogadores
+  if (Object.keys(fichasJogadores).length > 0) {
+    const divJogadores = document.createElement('div');
+    divJogadores.style.fontSize = '0.6rem';
+    divJogadores.style.color = 'var(--gold)';
+    divJogadores.style.padding = '0.3rem 0.5rem 0.1rem';
+    divJogadores.style.fontFamily = "'Cinzel', serif";
+    divJogadores.textContent = 'JOGADORES';
+    submenu.appendChild(divJogadores);
+
+    for (const pid in fichasJogadores) {
+      const f = fichasJogadores[pid];
+      const item = document.createElement('div');
+      item.className = 'context-menu-item';
+      const check = (token.controlledBy === pid) ? '<i class="bi bi-check"></i> ' : '<i class="bi bi-check" style="visibility:hidden"></i> ';
+      item.innerHTML = `${check}${escHTML(f.playerName || 'Jogador')}`;
+      item.onclick = () => { vincularFichaAToken('jogador', pid); };
+      submenu.appendChild(item);
+    }
+  }
+
+  // Fichas do Mestre
+  const fichasMestre = getMasterFichas();
+  if (fichasMestre.length > 0) {
+    const divMestre = document.createElement('div');
+    divMestre.style.fontSize = '0.6rem';
+    divMestre.style.color = 'var(--gold)';
+    divMestre.style.padding = '0.3rem 0.5rem 0.1rem';
+    divMestre.style.fontFamily = "'Cinzel', serif";
+    divMestre.textContent = 'MESTRE';
+    submenu.appendChild(divMestre);
+
+    fichasMestre.forEach(f => {
+      const item = document.createElement('div');
+      item.className = 'context-menu-item';
+      const check = (token.masterFichaId === f.id) ? '<i class="bi bi-check"></i> ' : '<i class="bi bi-check" style="visibility:hidden"></i> ';
+      item.innerHTML = `${check}${escHTML(f.name || 'NPC')}`;
+      item.onclick = () => { vincularFichaAToken('mestre', f.id); };
+      submenu.appendChild(item);
+    });
+  }
+}
+
+function fecharSeletorPericiasToken() {
+  const modal = document.getElementById('seletorPericiasModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function fecharSeletorAtaquesToken() {
+  const modal = document.getElementById('seletorAtaquesModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function atualizarBotoesTokenSelected() {
+  const btnSkills = document.getElementById('token-skills-btn');
+  const btnAttacks = document.getElementById('token-attacks-btn');
+  const btnMagias = document.getElementById('token-magias-btn');
+  if (!btnSkills && !btnAttacks && !btnMagias) return;
+  if (BOARD.selectedTokens.size === 1) {
+    const selId = BOARD.selectedTokens.values().next().value;
+    const token = BOARD.tokens.find(t => t.id === selId);
+    if (token) {
+      const mestreVe = myRole === 'mestre' && (token.masterFichaId || (token.controlledBy && fichasJogadores[token.controlledBy]));
+      const jogadorVe = myRole === 'jogador' && token.controlledBy === myPeerId && localFichaUpdateData;
+      const show = mestreVe || jogadorVe;
+      if (btnSkills) btnSkills.style.display = show ? 'flex' : 'none';
+      if (btnAttacks) btnAttacks.style.display = show ? 'flex' : 'none';
+      if (btnMagias) btnMagias.style.display = show ? 'flex' : 'none';
+      return;
+    }
+  }
+  if (btnSkills) btnSkills.style.display = 'none';
+  if (btnAttacks) btnAttacks.style.display = 'none';
+  if (btnMagias) btnMagias.style.display = 'none';
+}
+
+function resolveFichaToken(token) {
+  let fullData = null;
+  let charName = 'Personagem';
+  if (token.masterFichaId) {
+    const f = getMasterFichas().find(f => f.id === token.masterFichaId);
+    if (f) { fullData = f.fullData; charName = f.name; }
+  } else if (token.controlledBy === myPeerId && localFichaUpdateData) {
+    fullData = localFichaUpdateData.fullData || localFichaUpdateData;
+    charName = localFichaUpdateData.charName || charName;
+  } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
+    fullData = fichasJogadores[token.controlledBy].resumo?.fullData;
+    charName = fichasJogadores[token.controlledBy].playerName;
+  }
+  return { fullData, charName };
+}
+
+function abrirSeletorAtaquesToken() {
+  if (BOARD.selectedTokens.size !== 1) { toast('Selecione exatamente 1 token.'); return; }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) { toast('Token não encontrado.'); return; }
+  const { fullData, charName } = resolveFichaToken(token);
+  if (!fullData) { toast('Este token não está vinculado a nenhuma ficha.'); return; }
+  if (!fullData.attacks || !fullData.attacks.length) { toast('Ficha sem ataques.'); return; }
+  const listEl = document.getElementById('seletorAtaquesList');
+  if (!listEl) { toast('Erro de UI.'); return; }
+  listEl.innerHTML = '';
+  const titleEl = document.getElementById('seletorAtaquesTitle');
+  if (titleEl) titleEl.textContent = 'Ataques (' + charName + ')';
+  const level = parseInt(fullData.charLevel || 1) || 1;
+  const halfLevel = Math.floor(level / 2);
+  const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+  fullData.attacks.forEach(a => {
+    const bonusStr = a.bonus || '0';
+    let attackBonus = parseInt(bonusStr) || 0;
+    if (a.skill && fullData.skills) {
+      const sk = fullData.skills.find(s => s.n === a.skill);
+      if (sk) {
+        let attrVal = parseInt((fullData.attrs && fullData.attrs[sk.a]) || 0) || 0;
+        const trainedBonus = sk.trained ? trainBonus : 0;
+        const skillTotal = halfLevel + attrVal + trainedBonus + (parseInt(sk.other) || 0);
+        attackBonus = Math.max(attackBonus, skillTotal);
+      }
+    }
+    const dmgBase = a.dmg || '1d4';
+    const dmgExtra = a.dmgExtra ? '+' + a.dmgExtra : '';
+    const diceExtra = a.diceExtra || '';
+    let dmgAttrStr = '';
+    if (a.dmgAttr && fullData.attrs) {
+      const attrVal = parseInt(fullData.attrs[a.dmgAttr]) || 0;
+      if (attrVal !== 0) {
+        dmgAttrStr = (attrVal > 0 ? '+' : '') + attrVal;
+      }
+    }
+    const dmgFormula = dmgBase + dmgExtra + diceExtra + dmgAttrStr;
+    const critRange = a.critRange || '20';
+    const btn = document.createElement('button');
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid var(--border)';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.fontWeight = 'bold';
+    btn.style.color = 'var(--text-color)';
+    btn.style.marginBottom = '0.2rem';
+    const leftSpan = document.createElement('span');
+    leftSpan.textContent = a.name;
+    const rightSpan = document.createElement('span');
+    rightSpan.style.fontSize = '0.75rem';
+    rightSpan.style.color = '#ff4d4d';
+    const atkTotal = attackBonus >= 0 ? '+' + attackBonus : attackBonus;
+    rightSpan.textContent = atkTotal + ' | ' + dmgFormula;
+    btn.appendChild(leftSpan);
+    btn.appendChild(rightSpan);
+    btn.onclick = () => {
+      executarMacro('/r ' + a.name + ' (ataque):1d20' + (attackBonus >= 0 ? '+' : '') + attackBonus);
+      if (dmgFormula) executarMacro('/r ' + a.name + ' (dano):' + dmgFormula);
+      fecharSeletorAtaquesToken();
+    };
+    btn.onmouseover = () => btn.style.background = 'var(--parch1)';
+    btn.onmouseout = () => btn.style.background = 'var(--parch3)';
+    listEl.appendChild(btn);
+  });
+  const modal = document.getElementById('seletorAtaquesModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function abrirSeletorPericiasToken() {
+  if (BOARD.selectedTokens.size !== 1) {
+    toast('Selecione exatamente 1 token.');
     return;
   }
-  BOARD.playerViewTokenId = token.id;
-  BOARD.playerViewTokenName = token.name || 'Jogador';
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) {
+    toast('Token não encontrado na board.');
+    return;
+  }
+
+  let fullData = null;
+  let charName = "Personagem";
+
+  if (token.masterFichaId) {
+    const f = getMasterFichas().find(f => f.id === token.masterFichaId);
+    if (f) { 
+      fullData = f.fullData; 
+      charName = f.name; 
+    } else {
+      toast('Ficha do Mestre vinculada não encontrada.');
+      return;
+    }
+  } else if (token.controlledBy === myPeerId && localFichaUpdateData) {
+    // Jogador consultando as próprias perícias
+    fullData = localFichaUpdateData.fullData || localFichaUpdateData;
+    charName = localFichaUpdateData.charName || charName;
+  } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
+    fullData = fichasJogadores[token.controlledBy].resumo?.fullData;
+    charName = fichasJogadores[token.controlledBy].playerName;
+  } else {
+    toast('Este token não está vinculado a nenhuma ficha.');
+    return;
+  }
+
+  if (!fullData) {
+    toast('Ficha não contém dados completos.');
+    return;
+  }
+  if (!fullData.skills) {
+    toast('Ficha sem dados de perícias.');
+    return;
+  }
+
+  const listEl = document.getElementById('seletorPericiasList');
+  if (!listEl) {
+    toast('Erro de UI: seletorPericiasList não encontrado.');
+    return;
+  }
+  listEl.innerHTML = '';
+
+  const titleEl = document.getElementById('seletorPericiasTitle');
+  if (titleEl) titleEl.textContent = `Perícias (${charName})`;
+
+  const level = parseInt(fullData.charLevel || 1) || 1;
+  const halfLevel = Math.floor(level / 2);
+  const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+
+  const TRAINED_ONLY_SKILLS = ["Adestramento", "Atuação", "Conhecimento", "Guerra", "Iniciativa", "Ladinagem", "Misticismo", "Nobreza", "Ofício", "Pilotagem", "Religião"];
+
+  fullData.skills.forEach(s => {
+    let attrVal = parseInt((fullData.attrs && fullData.attrs[s.a]) || 0) || 0;
+    if (fullData.tempMods && fullData.tempMods.globais) {
+       const mod = parseInt(fullData.tempMods.globais[`attr${s.a}`]);
+       if (!isNaN(mod)) attrVal += mod;
+    }
+    const other = parseInt(s.other) || 0;
+    
+    const isTrainedOnly = TRAINED_ONLY_SKILLS.includes(s.n);
+    let total = halfLevel + attrVal + (s.trained ? trainBonus : 0) + other;
+    
+    const penaltySkills = ["Acrobacia", "Furtividade", "Ladinagem"];
+    if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.armor) {
+        const pen = parseInt(fullData.defense.armor.penalty);
+        if (!isNaN(pen)) total -= pen;
+    }
+    if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.shield) {
+        const pen = parseInt(fullData.defense.shield.penalty);
+        if (!isNaN(pen)) total -= pen;
+    }
+    if (s.n === "Furtividade" && fullData.extras && fullData.extras.size) {
+        const sz = parseInt(fullData.extras.size);
+        if (!isNaN(sz)) total += sz;
+    }
+
+    const canRoll = !(isTrainedOnly && !s.trained);
+    const displayTotal = canRoll ? (total >= 0 ? `+${total}` : total) : 'N/A';
+
+    const btn = document.createElement('button');
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid var(--border)';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = canRoll ? 'pointer' : 'not-allowed';
+    btn.style.opacity = canRoll ? '1' : '0.6';
+    btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.fontWeight = 'bold';
+    btn.style.color = 'var(--text-color)';
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = s.n;
+    
+    const valSpan = document.createElement('span');
+    valSpan.textContent = displayTotal;
+    if (canRoll) {
+       valSpan.style.color = (total >= 0 ? '#198754' : '#dc3545');
+    } else {
+       valSpan.style.color = '#777';
+    }
+    
+    btn.appendChild(nameSpan);
+    btn.appendChild(valSpan);
+
+    if (canRoll) {
+      btn.onclick = () => {
+        executarMacro(`/r ${s.n}:1d20${total >= 0 ? '+' : ''}${total}`);
+        fecharSeletorPericiasToken();
+      };
+      btn.onmouseover = () => btn.style.background = 'var(--parch1)';
+      btn.onmouseout = () => btn.style.background = 'var(--parch3)';
+    }
+
+    listEl.appendChild(btn);
+  });
+
+  const modal = document.getElementById('seletorPericiasModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    toast('Modal seletorPericiasModal não encontrado no DOM!');
+  }
+}
+
+// ── Seletor de Magias do Token ──
+function abrirSeletorMagiasToken() {
+  if (BOARD.selectedTokens.size !== 1) { toast('Selecione exatamente 1 token.'); return; }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) { toast('Token não encontrado.'); return; }
+  const { fullData, charName } = resolveFichaToken(token);
+  if (!fullData) { toast('Este token não está vinculado a nenhuma ficha.'); return; }
+  const spellsList = fullData.spells && fullData.spells.list;
+  if (!spellsList || !spellsList.length) { toast('Ficha sem magias.'); return; }
+  const listEl = document.getElementById('seletorMagiasList');
+  if (!listEl) { toast('Erro de UI.'); return; }
+  listEl.innerHTML = '';
+  const titleEl = document.getElementById('seletorMagiasTitle');
+  if (titleEl) titleEl.textContent = 'Magias (' + charName + ')';
+  const circleLabels = { 1: '1º', 2: '2º', 3: '3º', 4: '4º', 5: '5º' };
+  spellsList.forEach(function(sp) {
+    if (!sp || !sp.name) return;
+    var btn = document.createElement('button');
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid var(--border)';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.fontWeight = 'bold';
+    btn.style.color = 'var(--text-color)';
+    btn.style.marginBottom = '0.2rem';
+    var leftSpan = document.createElement('span');
+    leftSpan.textContent = sp.name;
+    var rightSpan = document.createElement('span');
+    rightSpan.style.fontSize = '0.7rem';
+    rightSpan.style.color = '#c77dff';
+    var circLabel = circleLabels[sp.circle] || sp.circle + 'º';
+    rightSpan.textContent = circLabel + ' Círculo · ' + (sp.pm || '—') + ' PM';
+    btn.appendChild(leftSpan);
+    btn.appendChild(rightSpan);
+    btn.onclick = function() {
+      var text = '**Magia:** ' + sp.name + ' (' + circLabel + ' Círculo · ' + (sp.pm || '—') + ' PM)\n';
+      text += '**Escola:** ' + (sp.school || '—') + ' | **Execução:** ' + (sp.exec || '—') + ' | **Alcance:** ' + (sp.range || '—') + ' | **Alvo/Área:** ' + (sp.target || '—') + ' | **Duração:** ' + (sp.dur || '—') + ' | **Resistência:** ' + (sp.res || '—') + '\n';
+      text += '_' + (sp.desc || '') + '_';
+      executarMacro(text);
+      fecharSeletorMagiasToken();
+    };
+    btn.onmouseover = function() { btn.style.background = 'var(--parch1)'; };
+    btn.onmouseout = function() { btn.style.background = 'var(--parch3)'; };
+    listEl.appendChild(btn);
+  });
+  var modal = document.getElementById('seletorMagiasModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function fecharSeletorMagiasToken() {
+  var modal = document.getElementById('seletorMagiasModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function vincularFichaAToken(type, id) {
+  if (!contextTokenId) return;
+  snapshotBoard();
+  const token = BOARD.tokens.find(t => t.id === contextTokenId);
+  if (token) {
+    if (type === 'mestre') {
+      token.masterFichaId = id;
+      token.controlledBy = '';
+    } else if (type === 'jogador') {
+      token.controlledBy = id;
+      token.masterFichaId = null;
+    } else {
+      token.controlledBy = '';
+      token.masterFichaId = null;
+    }
+    boardSave();
+    boardRender();
+    syncBoardTokensToPlayers();
+    toast('Vínculo atualizado.');
+  }
   fecharContextMenu();
-  BOARD.followTokenId = token.id;
-  centralizarEmToken(token);
-  atualizarFogJogador();
-  mostrarBarraVisaoJogador();
-  const btn = document.getElementById('btnSeguirPlayerView');
-  if (btn) { btn.textContent = '🎯 Seguindo'; btn.style.borderColor = '#4caf50'; btn.style.color = '#4caf50'; }
+}
+
+function atualizarVisaoJogadorPorSelecao() {
+  atualizarBotoesTokenSelected();
+  if (myRole !== 'mestre') return;
+  if (BOARD.selectedTokens.size === 1) {
+    const selId = BOARD.selectedTokens.values().next().value;
+    const token = BOARD.tokens.find(t => t.id === selId);
+    if (token) {
+      if (token.type === 'object') {
+        if (BOARD.playerViewTokenId) exitPlayerView();
+        return;
+      }
+      if (BOARD.playerViewTokenId !== token.id) {
+        BOARD.playerViewTokenId = token.id;
+        BOARD.playerViewTokenName = token.name || 'Jogador';
+        BOARD.followTokenId = token.id;
+        atualizarFogJogador();
+        mostrarBarraVisaoJogador();
+        const btn = document.getElementById('btnSeguirPlayerView');
+        if (btn) {
+          btn.textContent = '🎯 Seguindo';
+          btn.style.borderColor = '#4caf50';
+          btn.style.color = '#4caf50';
+        }
+      }
+    } else {
+      if (BOARD.playerViewTokenId) exitPlayerView();
+    }
+  } else {
+    if (BOARD.playerViewTokenId) exitPlayerView();
+  }
 }
 
 function exitPlayerView() {
@@ -6444,6 +8547,32 @@ function popularCtxCondicoes(token) {
   if (!sub) return;
   const ativas = token.conditions || [];
   sub.innerHTML = '';
+
+  // Opção "Remover Todas" no topo (só se houver condições ativas)
+  if (ativas.length > 0) {
+    const remAll = document.createElement('div');
+    remAll.className = 'ctx-cond-item';
+    remAll.style.borderBottom = '1px solid var(--border)';
+    remAll.style.marginBottom = '4px';
+    remAll.style.paddingBottom = '4px';
+    remAll.style.color = '#ff6b6b';
+    remAll.textContent = '🗑 Remover Todas Condições';
+    remAll.onclick = (e) => {
+      e.stopPropagation();
+      snapshotBoard();
+      const t = BOARD.tokens.find(tk => tk.id === contextTokenId);
+      if (!t) return;
+      t.conditions = [];
+      boardSave();
+      boardRender();
+      syncBoardTokensToPlayers();
+      popularCtxCondicoes(t);
+      _syncCondToLinkedSheet(t);
+      fecharContextMenu();
+    };
+    sub.appendChild(remAll);
+  }
+
   CONDITION_LIST.forEach(c => {
     const div = document.createElement('div');
     div.className = 'ctx-cond-item';
@@ -6454,6 +8583,240 @@ function popularCtxCondicoes(token) {
     if (ativas.includes(c)) div.classList.add('active');
     sub.appendChild(div);
   });
+}
+
+// Mapeamento: nomes das condições do board → chaves das condições da ficha
+const COND_BOARD_TO_SHEET = {
+  "Abalado": "abalado", "Agarrado": "agarrado", "Alquebrado": "alquebrado",
+  "Apavorado": "apavorado", "Atordoado": "atordoado", "Caído": "caido",
+  "Cego": "cego", "Confuso": "confuso", "Debilitado": "debilitado",
+  "Desprevenido": "desprevenido", "Doente": "doente", "Em Chamas": "em_chamas",
+  "Enfeitiçado": "enfeitiçado", "Enjoado": "enjoado", "Enredado": "enredado",
+  "Envenenado": "envenenado", "Esmorecido": "esmorecido", "Exausto": "exausto",
+  "Fascinado": "fascinado", "Fatigado": "fatigado", "Fraco": "fraco",
+  "Frustrado": "frustrado", "Imóvel": "imovel", "Inconsciente": "inconsciente",
+  "Indefeso": "indefeso", "Lento": "lento", "Ofuscado": "ofuscado",
+  "Paralisado": "paralisado", "Pasmo": "pasmo", "Petrificado": "petrificacao",
+  "Sangrando": "sangrando", "Surdo": "surdo", "Surpreendido": "surpreendido",
+  "Vulnerável": "vulneravel"
+};
+
+function _syncCondToLinkedSheet(token) {
+  if (!token) return;
+  const sheetCondKeys = (token.conditions || [])
+    .map(c => COND_BOARD_TO_SHEET[c])
+    .filter(k => k);
+
+  // Token vinculado a uma ficha de mestre
+  if (token.masterFichaId) {
+    const fichas = getMasterFichas();
+    const f = fichas.find(item => item.id === token.masterFichaId);
+    if (f && f.fullData) {
+      f.fullData.condicoes = sheetCondKeys;
+      saveMasterFichas(fichas);
+      if (currentMasterFichaId === token.masterFichaId) {
+        const iframe = document.getElementById('ficha-iframe');
+        if (iframe && iframe.contentWindow)
+          iframe.contentWindow.postMessage({ type: 'vtt-set-conditions', condicoes: sheetCondKeys }, '*');
+      }
+    }
+  }
+
+  // Token vinculado ao próprio jogador (ficha aberta)
+  if (token.controlledBy === myPeerId && fichaAberta) {
+    const iframe = document.getElementById('ficha-iframe');
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({ type: 'vtt-set-conditions', condicoes: sheetCondKeys }, '*');
+    }
+    if (localFichaUpdateData && localFichaUpdateData.fullData)
+      localFichaUpdateData.fullData.condicoes = sheetCondKeys;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  EFEITOS DE CONDIÇÕES NO CLIENTE DO JOGADOR
+// ══════════════════════════════════════════════════════
+
+/**
+ * Aplica efeitos visuais/funcionais no cliente do jogador com base nas condições
+ * do token que ele controla. Chamada sempre que tokens são atualizados.
+ */
+function applyPlayerConditionEffects() {
+  if (myRole !== 'jogador' && myRole !== 'mestre') return;
+
+  // Pegar o token controlado pelo jogador atual
+  const meuToken = BOARD.tokens.find(t => t.controlledBy === myPeerId);
+  const conds = (meuToken && meuToken.conditions) ? meuToken.conditions : [];
+
+  // ── Overlay de tela (Cego / Inconsciente / Ofuscado de tela) ──
+  _atualizarOverlayCondicao(conds);
+
+  // ── Surdo: muta o áudio ambiente ──
+  _aplicarSurdo(conds);
+
+  // ── Efeito visual global de Ofuscado na câmera ──
+  _aplicarOfuscadoCanvas(conds);
+}
+
+function _atualizarOverlayCondicao(conds) {
+  let overlay = document.getElementById('condition-screen-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'condition-screen-overlay';
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:9998',
+      'pointer-events:none', 'transition:opacity 0.6s ease',
+      'display:none'
+    ].join(';');
+    document.body.appendChild(overlay);
+  }
+
+  const isCego        = conds.indexOf('Cego') !== -1;
+  const isInconsciente= conds.indexOf('Inconsciente') !== -1;
+  const isPetrificado = conds.indexOf('Petrificado') !== -1;
+  const isOfuscado    = conds.indexOf('Ofuscado') !== -1;
+  const isSangrando   = conds.indexOf('Sangrando') !== -1;
+  const isApavorado   = conds.indexOf('Apavorado') !== -1 || conds.indexOf('Abalado') !== -1;
+  const isConfuso     = conds.indexOf('Confuso') !== -1;
+
+  // Injetar keyframes globais se necessário
+  if (!document.getElementById('cond-keyframes')) {
+    const style = document.createElement('style');
+    style.id = 'cond-keyframes';
+    style.textContent = `
+      @keyframes pulseOfuscado { 0%,100%{opacity:1} 50%{opacity:0.5} }
+      @keyframes pulseSangrando { 0%,100%{box-shadow:inset 0 0 0 rgba(180,0,0,0)} 50%{box-shadow:inset 0 0 80px rgba(180,0,0,0.55)} }
+      @keyframes shakeConfuso { 0%,100%{transform:rotate(0deg)} 20%{transform:rotate(-1.5deg)} 60%{transform:rotate(1.2deg)} }
+      @keyframes vignetteApavorado { 0%,100%{opacity:0.7} 50%{opacity:0.95} }
+    `;
+    document.head.appendChild(style);
+  }
+
+  if (isInconsciente || isPetrificado) {
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:9998',
+      'pointer-events:none',
+      'background:rgba(0,0,0,0.88)',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'flex-direction:column'
+    ].join(';');
+    const label = isInconsciente ? '💤 Inconsciente' : '🪨 Petrificado';
+    overlay.innerHTML = `
+      <div style="color:#aaa;font-family:Cinzel,serif;font-size:2rem;text-shadow:0 0 20px #000;opacity:0.9;">${label}</div>
+      <div style="color:#555;font-family:serif;font-size:0.95rem;margin-top:0.6rem;">aguardando recuperação...</div>
+    `;
+  } else if (isOfuscado) {
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:9998',
+      'pointer-events:none',
+      'background:rgba(255,255,220,0.22)',
+      'backdrop-filter:blur(3px)',
+      '-webkit-backdrop-filter:blur(3px)',
+      'animation:pulseOfuscado 2.5s ease-in-out infinite',
+      'display:block'
+    ].join(';');
+    overlay.innerHTML = '';
+  } else if (isSangrando) {
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:9998',
+      'pointer-events:none',
+      'animation:pulseSangrando 1.4s ease-in-out infinite',
+      'display:block'
+    ].join(';');
+    overlay.innerHTML = '';
+  } else if (isApavorado) {
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:9998',
+      'pointer-events:none',
+      'background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.75) 100%)',
+      'animation:vignetteApavorado 1.8s ease-in-out infinite',
+      'display:block'
+    ].join(';');
+    overlay.innerHTML = '';
+  } else {
+    overlay.style.display = 'none';
+    overlay.innerHTML = '';
+    return;
+  }
+  overlay.style.display = 'block';
+
+  // Efeito de shake no canvas para Confuso (separado, no próprio canvas)
+  const canvas = document.getElementById('boardCanvas');
+  if (canvas) {
+    if (isConfuso) {
+      canvas.style.animation = 'shakeConfuso 0.9s ease-in-out infinite';
+    } else if (canvas.style.animation && canvas.style.animation.includes('shakeConfuso')) {
+      canvas.style.animation = '';
+    }
+  }
+}
+
+let _surdoMuted = false;
+function _aplicarSurdo(conds) {
+  const isSurdo = conds.indexOf('Surdo') !== -1;
+  if (isSurdo && !_surdoMuted) {
+    _surdoMuted = true;
+    if (soundAmbientGain) soundAmbientGain.gain.value = 0;
+    if (soundSfxGain) soundSfxGain.gain.value = 0;
+    // Mostrar indicador
+    _mostrarIndicadorCondicao('surdo-indicator', '🦻 Surdo — áudio mutado', '#663300', '#ffcc88');
+  } else if (!isSurdo && _surdoMuted) {
+    _surdoMuted = false;
+    // Restaurar volumes padrão dos sliders, se existirem
+    const sliderAmbient = document.getElementById('sliderAmbientVol');
+    const sliderSfx = document.getElementById('sliderSfxVol');
+    if (soundAmbientGain) soundAmbientGain.gain.value = sliderAmbient ? parseFloat(sliderAmbient.value) : 0.5;
+    if (soundSfxGain) soundSfxGain.gain.value = sliderSfx ? parseFloat(sliderSfx.value) : 0.8;
+    _removerIndicadorCondicao('surdo-indicator');
+  }
+}
+
+function _aplicarOfuscadoCanvas(conds) {
+  const canvas = document.getElementById('boardCanvas');
+  if (!canvas) return;
+  const isOfuscado = conds.indexOf('Ofuscado') !== -1;
+  const isConfuso  = conds.indexOf('Confuso') !== -1;
+
+  let filter = '';
+  if (isOfuscado) filter = 'brightness(1.35) blur(1.5px) saturate(0.7)';
+  canvas.style.filter = filter;
+
+  if (isConfuso) {
+    canvas.style.animation = 'shakeConfuso 0.9s ease-in-out infinite';
+  } else {
+    if (canvas.style.animation && canvas.style.animation.includes('shakeConfuso')) {
+      canvas.style.animation = '';
+    }
+  }
+}
+
+function _mostrarIndicadorCondicao(id, texto, bgColor, textColor) {
+  let el = document.getElementById(id);
+  if (!el) {
+    el = document.createElement('div');
+    el.id = id;
+    el.style.cssText = [
+      'position:fixed', 'bottom:80px', 'left:50%',
+      'transform:translateX(-50%)',
+      'z-index:9999', 'padding:6px 18px',
+      'border-radius:20px',
+      'font-family:Cinzel,serif', 'font-size:0.82rem',
+      'border:1px solid rgba(255,200,100,0.3)',
+      'pointer-events:none',
+      'transition:opacity 0.4s ease'
+    ].join(';');
+    document.body.appendChild(el);
+  }
+  el.textContent = texto;
+  el.style.background = bgColor;
+  el.style.color = textColor;
+  el.style.display = 'block';
+  el.style.opacity = '1';
+}
+
+function _removerIndicadorCondicao(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.opacity = '0'; setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 500); }
 }
 
 function toggleTokenCondition(tokenId, condition) {
@@ -6471,6 +8834,8 @@ function toggleTokenCondition(tokenId, condition) {
   boardRender();
   syncBoardTokensToPlayers();
   popularCtxCondicoes(t);
+  _syncCondToLinkedSheet(t);
+  applyPlayerConditionEffects();
 }
 
 function onBoardTouchStart(e) {
@@ -6490,6 +8855,7 @@ function onBoardTouchStart(e) {
 function onBoardTouchMove(e) {
   e.preventDefault();
   if (e.touches.length === 2) {
+    if (BOARD.dragging) return; // Prevent zooming while dragging a token
     const dist = Math.hypot(
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
@@ -6519,7 +8885,7 @@ function boardInit() {
   if (!BOARD.canvas) return;
   isBoardInitialized = true;
   boardResize();
-  window.addEventListener('resize', boardResize);
+  window.addEventListener('resize', () => { boardResize(); _ajustarMobile(); });
   boardBindEvents();
   boardRender();
   // Snapshot inicial para undo
@@ -6530,12 +8896,49 @@ function boardResize() {
   const wrap = BOARD.wrap;
   if (!wrap) return;
   const w = wrap.clientWidth, h = wrap.clientHeight;
-  BOARD.canvas.width = w; BOARD.canvas.height = h;
+  const dpr = window.devicePixelRatio || 1;
+  BOARD.canvas.width = w * dpr;
+  BOARD.canvas.height = h * dpr;
+  BOARD.canvas.style.width = w + 'px';
+  BOARD.canvas.style.height = h + 'px';
+  const ctx = BOARD.ctx;
+  if (ctx) ctx.scale(dpr, dpr);
   boardRender();
+}
+
+function _ajustarMobile() {
+  const isMobile = window.innerWidth <= 900;
+  const sidebar = document.getElementById('sidebar');
+  const master = document.getElementById('master-panel');
+  if (isMobile) {
+    if (sidebar && !sidebar.classList.contains('collapsed')) { toggleSidebar(); }
+    if (master && !master.classList.contains('collapsed')) { toggleMasterPanel(); }
+    document.body.dataset.mobile = '1';
+  } else {
+    // Restaura estado do localStorage ao sair do mobile
+    if (sidebar && sidebar.classList.contains('collapsed') && localStorage.getItem('vtt_sidebar_collapsed') !== '1') { toggleSidebar(); }
+    if (master && master.classList.contains('collapsed') && localStorage.getItem('vtt_master_collapsed') !== '1') { toggleMasterPanel(); }
+    document.body.dataset.mobile = '';
+  }
+}
+
+function toggleGrid(checked) {
+  BOARD.gridOn = checked;
+  boardRender();
+  boardSave();
+}
+
+function setGridSize(val) {
+  if (isNaN(val) || val < 20) return;
+  BOARD.gridSize = val;
+  document.getElementById('gridSize').value = val;
+  boardRender();
+  boardSave();
 }
 
 function boardRender() {
   if (myRole === 'cego') return;
+  _syncWeatherSelect();
   const { canvas, ctx, offsetX, offsetY, zoom, gridOn, gridSize, mapImg, tokens, dragging, hovered, gridCols, gridRows, gridType, lightingType } = BOARD;
   if (!ctx) return;
 
@@ -6551,11 +8954,15 @@ function boardRender() {
   // Mapa
   if (mapImg) {
     ctx.globalAlpha = 1;
+    const mx = BOARD.mapX || 0;
+    const my = BOARD.mapY || 0;
+    const mw = BOARD.mapWidth !== undefined && BOARD.mapWidth !== null ? BOARD.mapWidth : mapImg.naturalWidth;
+    const mh = BOARD.mapHeight !== undefined && BOARD.mapHeight !== null ? BOARD.mapHeight : mapImg.naturalHeight;
     if (isGifUrl(mapImg.src)) {
       const frame = getGifFrame(mapImg.src, mapImg.naturalWidth, mapImg.naturalHeight);
-      ctx.drawImage(frame, 0, 0, mapImg.naturalWidth, mapImg.naturalHeight);
+      ctx.drawImage(frame, mx, my, mw, mh);
     } else {
-      ctx.drawImage(mapImg, 0, 0);
+      ctx.drawImage(mapImg, mx, my, mw, mh);
     }
   } else {
     const R = gridSize / 2;
@@ -6569,7 +8976,7 @@ function boardRender() {
 
     // Void background (fora do grid)
     ctx.fillStyle = '#0f0b08';
-    ctx.fillRect(-offsetX/zoom, -offsetY/zoom, W/zoom, H/zoom);
+    ctx.fillRect(-offsetX / zoom, -offsetY / zoom, W / zoom, H / zoom);
 
     // Pergaminho dentro do grid
     ctx.fillStyle = '#1e1610';
@@ -6578,6 +8985,24 @@ function boardRender() {
 
   // Grade
   if (gridOn) drawGrid(ctx, W, H);
+
+  // Andar inferior: renderiza tokens como fundo para que objetos com
+  // transparência (PNG) no andar atual deixem ver o que está abaixo
+  const mainFloor = getCurrentFloor();
+  const lowerFloor = mainFloor - 1;
+  const lowerTokens = tokens.filter(t => {
+    if (getFloorFromZ(t.z) !== lowerFloor) return false;
+    const layer = t.layer || 'players';
+    if (layer === 'gm' && (myRole !== 'mestre' || emVisaoJogador())) return false;
+    return true;
+  });
+  if (lowerTokens.length) {
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    lowerTokens.sort((a, b) => (a.z || 0) - (b.z || 0));
+    lowerTokens.forEach(t => drawToken(ctx, t, false, false));
+    ctx.restore();
+  }
 
   // Formas desenhadas (retângulos/círculos)
   drawShapes(ctx);
@@ -6588,13 +9013,16 @@ function boardRender() {
   // Fog of War (jogadores)
   if (BOARD.fogVisible) drawFog(ctx, W, H);
 
+  // Preview de seleção de retangulo da nevoa
+  drawFogRectPreview(ctx);
+
   // Paredes
   drawWalls(ctx);
 
   // Preview de parede sendo desenhada
   if (BOARD.wallDrawing) drawWallPreview(ctx);
 
-  // Tokens (ordenação por camadas: map < players / gm)
+  // Tokens (ordenação por camadas: players / gm / mapa / objetos)
   const activeFloor = getCurrentFloor();
   const renderTokens = tokens.filter(t => {
     if (getFloorFromZ(t.z) !== activeFloor) return false;
@@ -6604,39 +9032,39 @@ function boardRender() {
   });
 
   renderTokens.sort((a, b) => {
+    const zA = a.z || 0;
+    const zB = b.z || 0;
+    if (zA !== zB) return zA - zB;
     const layerA = a.layer || 'players';
     const layerB = b.layer || 'players';
     if (layerA !== layerB) {
       if (layerA === 'map') return -1;
       if (layerB === 'map') return 1;
-      return 0;
     }
-    const zA = a.z || 0;
-    const zB = b.z || 0;
-    return zA - zB;
+    return 0;
   });
 
   // 1. Desenhar os clones estáticos nas posições iniciais para os tokens sendo arrastados
   renderTokens.forEach(t => {
     const isMainDragging = (BOARD.dragging && t.id === BOARD.dragging.id);
     const isInDragGroup = (BOARD.dragGroup && BOARD.dragGroup[t.id] !== undefined);
-    
+
     if (isMainDragging || isInDragGroup) {
       const startPos = BOARD.dragGroup && BOARD.dragGroup[t.id]
         ? BOARD.dragGroup[t.id]
         : { gx: BOARD.dragStartGx, gy: BOARD.dragStartGy };
-        
+
       if (startPos && startPos.gx !== undefined && startPos.gy !== undefined) {
         const curGx = t.gx;
         const curGy = t.gy;
         t.gx = startPos.gx;
         t.gy = startPos.gy;
-        
+
         ctx.save();
         ctx.globalAlpha = 0.7;
         drawToken(ctx, t, false, false);
         ctx.restore();
-        
+
         t.gx = curGx;
         t.gy = curGy;
       }
@@ -6648,7 +9076,7 @@ function boardRender() {
     const isMainDragging = (BOARD.dragging && t.id === BOARD.dragging.id);
     const isInDragGroup = (BOARD.dragGroup && BOARD.dragGroup[t.id] !== undefined);
     const isDragging = isMainDragging || isInDragGroup;
-    
+
     drawToken(ctx, t, isDragging, t.id === BOARD.hovered);
   });
 
@@ -6657,29 +9085,117 @@ function boardRender() {
     drawTokenMovementPath(ctx, BOARD.dragging);
   }
 
+  // Régua / Medição ativa
+  if (BOARD.rulerActive) {
+    drawRulerPreview(ctx);
+  }
+
+  // Régua com waypoints
+  if (BOARD.wayRulerPoints && BOARD.wayRulerPoints.length > 0) {
+    drawWayRulerPreview(ctx);
+  }
+
+  // Outline and resize handle for GM map edit
+  if (myRole === 'mestre' && BOARD.activeLayer === 'map' && BOARD.tool === 'move' && BOARD.mapImg) {
+    const mx = BOARD.mapX || 0;
+    const my = BOARD.mapY || 0;
+    const mw = BOARD.mapWidth !== undefined && BOARD.mapWidth !== null ? BOARD.mapWidth : BOARD.mapImg.naturalWidth;
+    const mh = BOARD.mapHeight !== undefined && BOARD.mapHeight !== null ? BOARD.mapHeight : BOARD.mapImg.naturalHeight;
+    
+    ctx.save();
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2 / BOARD.zoom;
+    ctx.setLineDash([6 / BOARD.zoom, 4 / BOARD.zoom]);
+    ctx.strokeRect(mx, my, mw, mh);
+    
+    ctx.fillStyle = '#00ff00';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5 / BOARD.zoom;
+    ctx.setLineDash([]);
+    const handleSz = 10 / BOARD.zoom;
+    ctx.beginPath();
+    ctx.arc(mx + mw, my + mh, handleSz, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Desenhar pings ativos
+  if (BOARD.pings && BOARD.pings.length > 0) {
+    const now = Date.now();
+    BOARD.pings.forEach(p => {
+      const elapsed = now - p.time;
+      if (elapsed < 0 || elapsed >= 1500) return;
+      const progress = elapsed / 1500;
+      
+      const maxRadius = 40;
+      const currentRadius = progress * maxRadius;
+      const alpha = 1 - progress;
+      const color = p.color || '#ff3333';
+      
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3 / BOARD.zoom;
+      ctx.globalAlpha = alpha;
+      
+      // Desenha 3 círculos concêntricos expandindo
+      for (let i = 0; i < 3; i++) {
+        const r = currentRadius * (1 - i * 0.25);
+        if (r > 0) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      
+      // Ponto sólido central
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4 / BOARD.zoom, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.restore();
+    });
+  }
+
   ctx.restore(); // Restaura transformações para coordenadas da tela
 
   // Iluminação (twilight, night, sunny - cheia apenas para jogadores; mestre vê tudo)
+  // A camada de escuridão é desenhada em um canvas offscreen para que o
+  // destination-out não apague os pixels dos tokens já renderizados no canvas principal.
   if (lightingType && lightingType !== 'sunny' && (myRole !== 'mestre' || emVisaoJogador())) {
-    ctx.save();
+    const offscreen = document.createElement('canvas');
+    offscreen.width = W;
+    offscreen.height = H;
+    const lctx = offscreen.getContext('2d');
+
     if (lightingType === 'twilight') {
-      ctx.fillStyle = 'rgba(180, 80, 50, 0.18)';
-      ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = 'rgba(40, 10, 80, 0.1)';
-      ctx.fillRect(0, 0, W, H);
+      // Crepuúsculo: tons laranja-ámbar
+      lctx.fillStyle = 'rgba(180, 80, 50, 0.18)';
+      lctx.fillRect(0, 0, W, H);
+      lctx.fillStyle = 'rgba(40, 10, 80, 0.1)';
+      lctx.fillRect(0, 0, W, H);
+    } else if (lightingType === 'starnight') {
+      // Noite Estrelada: azul-índigo com luminosidade ambiente sutil
+      lctx.fillStyle = 'rgba(15, 20, 60, 0.72)';
+      lctx.fillRect(0, 0, W, H);
+      lctx.fillStyle = 'rgba(30, 10, 80, 0.08)';
+      lctx.fillRect(0, 0, W, H);
     } else {
-      ctx.fillStyle = getLightingColor(lightingType);
-      ctx.fillRect(0, 0, W, H);
+      lctx.fillStyle = getLightingColor(lightingType);
+      lctx.fillRect(0, 0, W, H);
     }
 
-    // Remove a escuridão onde há luz
-    ctx.globalCompositeOperation = 'destination-out';
+    // Remove a escuridão onde há luz (operando no canvas offscreen, não no principal)
+    lctx.globalCompositeOperation = 'destination-out';
     tokens.forEach(t => {
       if (getFloorFromZ(t.z) !== activeFloor) return;
       const layer = t.layer || 'players';
       if (layer === 'gm' && (myRole !== 'mestre' || emVisaoJogador())) return;
-      const sz = (t.size || 1);
-      
+      if (t.type === 'object') return;
+      const sizeW = (t.sizeX || t.size || 1) * gridSize;
+      const sizeH = (t.sizeY || t.size || 1) * gridSize;
+
       let tcx, tcy;
       if (BOARD.gridType === 'hex') {
         const R = gridSize / 2;
@@ -6687,37 +9203,29 @@ function boardRender() {
         tcx = t.gx * R * 1.5;
         tcy = t.gy * hexHeight + ((Math.abs(Math.round(t.gx)) % 2) ? hexHeight / 2 : 0);
       } else {
-        tcx = t.gx * gridSize + sz * gridSize / 2;
-        tcy = t.gy * gridSize + sz * gridSize / 2;
+        tcx = t.gx * gridSize + sizeW / 2;
+        tcy = t.gy * gridSize + sizeH / 2;
       }
-      
+
       const sx = tcx * zoom + offsetX;
       const sy = tcy * zoom + offsetY;
 
-      // Jogador sempre vê seus próprios tokens, de acordo com o tipo de visão e a iluminação atual
+      // Jogador vê seus próprios tokens, raio calculado com base no tipo de visão e iluminação.
+      // O próprio token é SEMPRE visível para o controlador (mínimo de 0.8 célula de luz).
       if (t.controlledBy === myPeerId || (emVisaoJogador() && BOARD.playerViewTokenId === t.id)) {
-        const visionType = t.visionType || 'normal';
-        // fatorVisao = quanto do alcance próprio (visaoRange) o token consegue usar sem luz externa
-        let fatorVisao = 1;
-        if (lightingType === 'twilight') {
-          // Penumbra ambiente: visão normal vê pior; penumbra e visão no escuro veem normalmente
-          fatorVisao = (visionType === 'normal') ? 0.5 : 1;
-        } else if (lightingType === 'night') {
-          // Escuridão total: só a visão no escuro funciona sem fonte de luz própria
-          fatorVisao = (visionType === 'escuro') ? 1 : 0;
-        }
-        // Sempre revela um raio mínimo em torno do próprio token (ele sabe onde está)
-        const raioMinPx = Math.max(gridSize * zoom * 0.5, 25);
-        const raioVisaoPx = (t.visaoRange || 4) * gridSize * zoom * fatorVisao;
+        const alcance = getEffectiveVisionRadius(t);
+        // Raio mínimo garante que o próprio token não fique escondido pela escuridão
+        const raioMinPx = Math.max(gridSize * zoom * 0.8, 30);
+        const raioVisaoPx = alcance * gridSize * zoom;
         const raioPx = Math.max(raioVisaoPx, raioMinPx);
-        const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, raioPx);
+        const grad = lctx.createRadialGradient(sx, sy, 0, sx, sy, raioPx);
         grad.addColorStop(0, 'rgba(255,255,255,1)');
         grad.addColorStop(0.6, 'rgba(255,255,255,0.8)');
         grad.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(sx, sy, raioPx, 0, Math.PI * 2);
-        ctx.fill();
+        lctx.fillStyle = grad;
+        lctx.beginPath();
+        lctx.arc(sx, sy, raioPx, 0, Math.PI * 2);
+        lctx.fill();
       }
 
       // Luzes das auras (apenas auras marcadas como fonte de luz)
@@ -6726,19 +9234,21 @@ function boardRender() {
           if (!aura.light) return;
           const auraRadiusPx = (aura.radius || 0) * gridSize * zoom;
           if (auraRadiusPx > 0) {
-            const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, auraRadiusPx);
+            const grad = lctx.createRadialGradient(sx, sy, 0, sx, sy, auraRadiusPx);
             grad.addColorStop(0, 'rgba(255,255,255,1)');
             grad.addColorStop(0.6, 'rgba(255,255,255,0.8)');
             grad.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(sx, sy, auraRadiusPx, 0, Math.PI * 2);
-            ctx.fill();
+            lctx.fillStyle = grad;
+            lctx.beginPath();
+            lctx.arc(sx, sy, auraRadiusPx, 0, Math.PI * 2);
+            lctx.fill();
           }
         });
       }
     });
-    ctx.restore();
+
+  // Compõe a camada de escuridão sobre o canvas principal (source-over padrão)
+    ctx.drawImage(offscreen, 0, 0);
   }
 
   // Loop de animação para suporte a GIFs
@@ -6749,6 +9259,88 @@ function boardRender() {
   } else {
     if (BOARD.gifInterval) { clearInterval(BOARD.gifInterval); BOARD.gifInterval = null; }
   }
+
+  // Visão no Escuro (darkvision): converte a cena para grayscale, mas mantém
+  // as áreas iluminadas por auras com light em cores normais.
+  if (checkDarkvisionGrayscale()) {
+    const dvCanvas = document.createElement('canvas');
+    dvCanvas.width = W;
+    dvCanvas.height = H;
+    const dvCtx = dvCanvas.getContext('2d');
+
+    // Copiar cena atual (já com iluminação/escuridão) para o offscreen
+    dvCtx.drawImage(canvas, 0, 0);
+
+    // Aplicar grayscale + brilho no offscreen
+    dvCtx.filter = 'grayscale(1) brightness(1.1)';
+    dvCtx.drawImage(dvCanvas, 0, 0);
+    dvCtx.filter = 'none';
+
+    // Recortar (destination-out) as áreas iluminadas por auras com light,
+    // para que o canvas principal (cores normais) apareça nessas regiões
+    dvCtx.globalCompositeOperation = 'destination-out';
+    tokens.forEach(t => {
+      if (getFloorFromZ(t.z) !== activeFloor) return;
+      const layer = t.layer || 'players';
+      if (layer === 'gm' && (myRole !== 'mestre' || emVisaoJogador())) return;
+      if (t.type === 'object') return;
+      const sizeW = (t.sizeX || t.size || 1) * gridSize;
+      const sizeH = (t.sizeY || t.size || 1) * gridSize;
+
+      let tcx, tcy;
+      if (BOARD.gridType === 'hex') {
+        const R = gridSize / 2;
+        const hexHeight = Math.sqrt(3) * R;
+        tcx = t.gx * R * 1.5;
+        tcy = t.gy * hexHeight + ((Math.abs(Math.round(t.gx)) % 2) ? hexHeight / 2 : 0);
+      } else {
+        tcx = t.gx * gridSize + sizeW / 2;
+        tcy = t.gy * gridSize + sizeH / 2;
+      }
+      const sx = tcx * zoom + offsetX;
+      const sy = tcy * zoom + offsetY;
+
+      if (t.auras && t.auras.length > 0) {
+        t.auras.forEach(aura => {
+          if (!aura.light) return;
+          const auraRadiusPx = (aura.radius || 0) * gridSize * zoom;
+          if (auraRadiusPx > 0) {
+            dvCtx.beginPath();
+            dvCtx.arc(sx, sy, auraRadiusPx, 0, Math.PI * 2);
+            dvCtx.fillStyle = 'rgba(255,255,255,1)';
+            dvCtx.fill();
+          }
+        });
+      }
+    });
+    dvCtx.globalCompositeOperation = 'source-over';
+
+    // Compor a camada de darkvision (grayscale com buracos) sobre o canvas principal
+    ctx.drawImage(dvCanvas, 0, 0);
+  }
+
+  // Partículas de clima (chuva/neve) — em coordenadas de tela
+  _renderWeather(ctx);
+}
+
+// Verifica se o filtro de preto e branco (darkvision) deve ser ativado.
+// Condição: escuridão total (darknight/cave) + token ativo com visão no escuro (visionType === 'escuro').
+function checkDarkvisionGrayscale() {
+  const lightingType = BOARD.lightingType;
+  if (lightingType !== 'darknight' && lightingType !== 'cave') return false;
+
+  // Mestre simulando visão de um jogador
+  if (emVisaoJogador()) {
+    const token = BOARD.tokens.find(t => t.id === BOARD.playerViewTokenId);
+    return !!(token && token.visionType === 'escuro');
+  }
+
+  // Jogador normal: verificar se algum token controlado tem visão no escuro
+  if (myRole !== 'mestre') {
+    return BOARD.tokens.some(t => t.controlledBy === myPeerId && t.visionType === 'escuro');
+  }
+
+  return false;
 }
 
 function isGifUrl(url) {
@@ -6811,7 +9403,7 @@ function getGifFrame(url, naturalWidth, naturalHeight) {
   try {
     ctx.clearRect(0, 0, entry.w, entry.h);
     ctx.drawImage(entry.img, 0, 0, entry.w, entry.h);
-  } catch(e) {}
+  } catch (e) { }
   return entry.offCanvas;
 }
 
@@ -6839,7 +9431,7 @@ function drawGrid(ctx, W, H) {
   if (gridType === 'hex') {
     const R = gs / 2;
     const hexHeight = Math.sqrt(3) * R;
-    
+
     const startGx = Math.max(0, Math.floor((-offsetX / zoom) / (R * 1.5)) - 1);
     const endGx = Math.min(gridCols || 100, Math.ceil((W - offsetX) / zoom / (R * 1.5)) + 1);
     const startGy = Math.max(0, Math.floor((-offsetY / zoom) / hexHeight) - 1);
@@ -6849,7 +9441,7 @@ function drawGrid(ctx, W, H) {
       for (let gy = startGy; gy < endGy; gy++) {
         const cx = gx * R * 1.5;
         const cy = gy * hexHeight + ((Math.abs(Math.round(gx)) % 2) ? hexHeight / 2 : 0);
-        
+
         ctx.moveTo(cx + R * Math.cos(0), cy + R * Math.sin(0));
         for (let i = 1; i <= 6; i++) {
           const angle = Math.PI / 3 * i;
@@ -6858,18 +9450,20 @@ function drawGrid(ctx, W, H) {
       }
     }
   } else {
-    const startX = ((-offsetX / zoom) % gs + gs) % gs;
-    const startY = ((-offsetY / zoom) % gs + gs) % gs;
-    const endX = W / zoom + gs;
-    const endY = H / zoom + gs;
+    const startGx = Math.ceil((-offsetX / zoom) / gs);
+    const endGx = Math.ceil(((W - offsetX) / zoom) / gs);
+    const startGy = Math.ceil((-offsetY / zoom) / gs);
+    const endGy = Math.ceil(((H - offsetY) / zoom) / gs);
 
-    for (let x = startX - gs - offsetX/zoom; x < endX - offsetX/zoom; x += gs) {
-      ctx.moveTo(x, -offsetY/zoom);
-      ctx.lineTo(x, endY - offsetY/zoom);
+    for (let gx = startGx; gx <= endGx; gx++) {
+      const x = gx * gs;
+      ctx.moveTo(x, -offsetY / zoom);
+      ctx.lineTo(x, (H - offsetY) / zoom);
     }
-    for (let y = startY - gs - offsetY/zoom; y < endY - offsetY/zoom; y += gs) {
-      ctx.moveTo(-offsetX/zoom, y);
-      ctx.lineTo(endX - offsetX/zoom, y);
+    for (let gy = startGy; gy <= endGy; gy++) {
+      const y = gy * gs;
+      ctx.moveTo(-offsetX / zoom, y);
+      ctx.lineTo((W - offsetX) / zoom, y);
     }
   }
   ctx.stroke();
@@ -6885,7 +9479,7 @@ function drawWalls(ctx) {
   walls.forEach(w => {
     if (getFloorFromZ(w.z) !== activeFloor) return;
     const type = w.type || 'normal';
-    
+
     if (type === 'invisible') {
       if (myRole !== 'mestre' || emVisaoJogador()) return;
       ctx.save();
@@ -6911,7 +9505,7 @@ function drawWalls(ctx) {
       ctx.moveTo(w.x1, w.y1);
       ctx.lineTo(w.x2, w.y2);
       ctx.stroke();
-      
+
       ctx.strokeStyle = 'rgba(160,100,40,0.6)';
       ctx.lineWidth = 1.5 / BOARD.zoom;
       ctx.shadowBlur = 0;
@@ -6925,11 +9519,11 @@ function drawWalls(ctx) {
 
     ctx.save();
     ctx.lineCap = 'round';
-    
+
     let baseColor = '#5a3a1a';
     let topColor = 'rgba(160,100,40,0.6)';
     let isDashed = false;
-    
+
     if (type === 'door') {
       if (w.open) {
         baseColor = 'rgba(76, 175, 80, 0.2)';
@@ -6949,7 +9543,7 @@ function drawWalls(ctx) {
         topColor = '#29b6f6';
       }
     }
-    
+
     ctx.strokeStyle = baseColor;
     ctx.lineWidth = 5 / BOARD.zoom;
     if (isDashed) {
@@ -6959,17 +9553,17 @@ function drawWalls(ctx) {
     ctx.moveTo(w.x1, w.y1);
     ctx.lineTo(w.x2, w.y2);
     ctx.stroke();
-    
+
     ctx.strokeStyle = topColor;
     ctx.lineWidth = 2 / BOARD.zoom;
     ctx.beginPath();
     ctx.moveTo(w.x1, w.y1);
     ctx.lineTo(w.x2, w.y2);
     ctx.stroke();
-    
+
     ctx.restore();
   });
-  
+
   walls.forEach(w => {
     if (getFloorFromZ(w.z) !== activeFloor) return;
     const type = w.type || 'normal';
@@ -6977,14 +9571,14 @@ function drawWalls(ctx) {
       const mx = (w.x1 + w.x2) / 2;
       const my = (w.y1 + w.y2) / 2;
       const r = 9 / BOARD.zoom;
-      
+
       ctx.save();
       ctx.beginPath();
       ctx.arc(mx, my, r, 0, Math.PI * 2);
-      
+
       let fillColor = '#ffffff';
       let strokeColor = '#333333';
-      
+
       if (type === 'door') {
         fillColor = w.open ? '#4caf50' : '#f44336';
         strokeColor = w.open ? '#2e7d32' : '#c62828';
@@ -6992,7 +9586,7 @@ function drawWalls(ctx) {
         fillColor = w.open ? '#03a9f4' : '#9e9e9e';
         strokeColor = w.open ? '#0277bd' : '#757575';
       }
-      
+
       ctx.fillStyle = fillColor;
       ctx.strokeStyle = strokeColor;
       ctx.lineWidth = 2 / BOARD.zoom;
@@ -7001,18 +9595,92 @@ function drawWalls(ctx) {
       ctx.fill();
       ctx.shadowBlur = 0;
       ctx.stroke();
-      
+
       ctx.fillStyle = '#ffffff';
       ctx.font = `bold ${Math.max(6, 9 / BOARD.zoom)}px Cinzel, serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const label = w.open ? 'A' : 'F';
       ctx.fillText(label, mx, my + 0.5 / BOARD.zoom);
-      
+
       ctx.restore();
     }
   });
 
+  if (myRole === 'mestre' && BOARD.tool === 'wall' && BOARD.selectedWallId) {
+    const selWall = BOARD.walls.find(w => w.id === BOARD.selectedWallId);
+    if (selWall && getFloorFromZ(selWall.z) === activeFloor) {
+      ctx.save();
+      // Draw highlight glow
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+      ctx.lineWidth = 12 / BOARD.zoom;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(selWall.x1, selWall.y1);
+      ctx.lineTo(selWall.x2, selWall.y2);
+      ctx.stroke();
+
+      // Draw handles
+      const handleR = 6 / BOARD.zoom;
+      ctx.lineWidth = 2 / BOARD.zoom;
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 4 / BOARD.zoom;
+
+      // Point 1 handle
+      ctx.beginPath();
+      ctx.arc(selWall.x1, selWall.y1, handleR, 0, Math.PI * 2);
+      ctx.fillStyle = '#00bfff';
+      ctx.fill();
+      ctx.stroke();
+
+      // Point 2 handle
+      ctx.beginPath();
+      ctx.arc(selWall.x2, selWall.y2, handleR, 0, Math.PI * 2);
+      ctx.fillStyle = '#00bfff';
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  }
+
+  ctx.restore();
+}
+
+function _carregarImagemTrigger(url) {
+  if (_triggerImageCache[url]) return _triggerImageCache[url];
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { if (typeof boardRender === 'function') boardRender(); };
+  img.src = url;
+  _triggerImageCache[url] = img;
+  return img;
+}
+
+function _desenharImagemGatilho(ctx, s) {
+  const img = _carregarImagemTrigger(s.triggerImageUrl);
+  if (!img.complete || img.naturalWidth === 0) return;
+  const x1 = Math.min(s.x1, s.x2), y1 = Math.min(s.y1, s.y2);
+  const x2 = Math.max(s.x1, s.x2), y2 = Math.max(s.y1, s.y2);
+  const w = x2 - x1, h = y2 - y1;
+  if (w === 0 || h === 0) return;
+
+  ctx.save();
+  // Recorta ao formato da forma
+  ctx.beginPath();
+  if (s.kind === 'circle') {
+    const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+    ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
+  } else if (s.kind === 'freehand' && s.points && s.points.length > 0) {
+    ctx.moveTo(s.points[0].x, s.points[0].y);
+    for (let j = 1; j < s.points.length; j++) ctx.lineTo(s.points[j].x, s.points[j].y);
+    ctx.closePath();
+  } else {
+    ctx.rect(x1, y1, w, h);
+  }
+  ctx.clip();
+  ctx.drawImage(img, x1, y1, w, h);
   ctx.restore();
 }
 
@@ -7022,13 +9690,17 @@ function drawShapes(ctx) {
   BOARD.shapes.forEach(s => {
     if (getFloorFromZ(s.z) !== activeFloor) return;
     ctx.save();
-    const fillColor = hexToRgba(s.color || '#c9903a', 0.25);
+    const isHidden = (s.hidden === true) && !s.triggered;
+    // Jogador não vê formas ocultas
+    if (isHidden && myRole !== 'mestre') { ctx.restore(); return; }
+    const fillColor = hexToRgba(s.color || '#c9903a', isHidden ? 0.1 : 0.25);
     const strokeColor = s.color || '#c9903a';
     const w = s.x2 - s.x1;
     const h = s.y2 - s.y1;
     ctx.fillStyle = fillColor;
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2 / BOARD.zoom;
+    if (isHidden) ctx.setLineDash([6 / BOARD.zoom, 4 / BOARD.zoom]);
     if (s.kind === 'circle') {
       const cx = s.x1 + w / 2;
       const cy = s.y1 + h / 2;
@@ -7036,10 +9708,28 @@ function drawShapes(ctx) {
       ctx.ellipse(cx, cy, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
+    } else if (s.kind === 'freehand') {
+      if (s.points && s.points.length > 0) {
+        ctx.beginPath();
+        ctx.moveTo(s.points[0].x, s.points[0].y);
+        for (let j = 1; j < s.points.length; j++) {
+          ctx.lineTo(s.points[j].x, s.points[j].y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
     } else {
       ctx.fillRect(s.x1, s.y1, w, h);
       ctx.strokeRect(s.x1, s.y1, w, h);
     }
+    if (isHidden) ctx.setLineDash([]);
+
+    // Imagem de revelação do gatilho
+    if (s.triggered && s.triggerImageUrl) {
+      _desenharImagemGatilho(ctx, s);
+    }
+
     if (BOARD.selectedShapeId === s.id) {
       ctx.setLineDash([6 / BOARD.zoom, 3 / BOARD.zoom]);
       ctx.strokeStyle = '#00bfff';
@@ -7050,11 +9740,91 @@ function drawShapes(ctx) {
         ctx.beginPath();
         ctx.ellipse(cx, cy, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
         ctx.stroke();
+      } else if (s.kind === 'freehand') {
+        if (s.points && s.points.length > 0) {
+          ctx.beginPath();
+          ctx.moveTo(s.points[0].x, s.points[0].y);
+          for (let j = 1; j < s.points.length; j++) {
+            ctx.lineTo(s.points[j].x, s.points[j].y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
       } else {
         ctx.strokeRect(s.x1, s.y1, w, h);
       }
       ctx.setLineDash([]);
     }
+
+    // Indicador visual de gatilho (escada/elevador) — só o mestre vê
+    if (s.triggerType && myRole === 'mestre') {
+      const cx = (s.x1 + s.x2) / 2;
+      const cy = (s.y1 + s.y2) / 2;
+      const sz = Math.min(Math.abs(w), Math.abs(h)) * 0.35;
+      const iconSize = Math.max(16 / BOARD.zoom, Math.min(sz, 60 / BOARD.zoom));
+
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 1.5 / BOARD.zoom;
+
+      if (s.triggerType === 'stairs-up' || s.triggerType === 'stair-up') {
+        // Triângulo para cima
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - iconSize);
+        ctx.lineTo(cx - iconSize * 0.8, cy + iconSize * 0.4);
+        ctx.lineTo(cx + iconSize * 0.8, cy + iconSize * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold ' + (iconSize * 0.55) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('▲', cx, cy - iconSize * 0.15);
+      } else if (s.triggerType === 'stairs-down' || s.triggerType === 'stair-down') {
+        // Triângulo para baixo
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + iconSize);
+        ctx.lineTo(cx - iconSize * 0.8, cy - iconSize * 0.4);
+        ctx.lineTo(cx + iconSize * 0.8, cy - iconSize * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold ' + (iconSize * 0.55) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('▼', cx, cy + iconSize * 0.15);
+      } else if (s.triggerType === 'stairs') {
+        // Escada bidirecional: dois triângulos
+        const half = iconSize * 0.45;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - iconSize * 0.7);
+        ctx.lineTo(cx - half, cy - half * 0.3);
+        ctx.lineTo(cx + half, cy - half * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + iconSize * 0.7);
+        ctx.lineTo(cx - half, cy + half * 0.3);
+        ctx.lineTo(cx + half, cy + half * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else if (s.triggerType === 'elevator-manual' || s.triggerType === 'elevator-auto') {
+        // Quadrado com "E" para elevador
+        const box = iconSize * 0.7;
+        ctx.fillRect(cx - box, cy - box, box * 2, box * 2);
+        ctx.strokeRect(cx - box, cy - box, box * 2, box * 2);
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold ' + (iconSize * 0.75) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('E', cx, cy);
+      }
+    }
+
     ctx.restore();
   });
 }
@@ -7062,21 +9832,37 @@ function drawShapes(ctx) {
 function drawShapePreview(ctx) {
   const { shapeStartX, shapeStartY, shapeCurX, shapeCurY, shapeColor, tool } = BOARD;
   ctx.save();
-  const x1 = Math.min(shapeStartX, shapeCurX);
-  const y1 = Math.min(shapeStartY, shapeCurY);
-  const w = Math.abs(shapeCurX - shapeStartX);
-  const h = Math.abs(shapeCurY - shapeStartY);
   const color = shapeColor || '#c9903a';
   ctx.fillStyle = hexToRgba(color, 0.2);
   ctx.strokeStyle = color;
   ctx.lineWidth = 2 / BOARD.zoom;
   ctx.setLineDash([8 / BOARD.zoom, 4 / BOARD.zoom]);
   if (tool === 'shape-circle') {
+    const x1 = Math.min(shapeStartX, shapeCurX);
+    const y1 = Math.min(shapeStartY, shapeCurY);
+    const w = Math.abs(shapeCurX - shapeStartX);
+    const h = Math.abs(shapeCurY - shapeStartY);
     ctx.beginPath();
-    ctx.ellipse(x1 + w/2, y1 + h/2, w/2, h/2, 0, 0, Math.PI * 2);
+    ctx.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
+  } else if (tool === 'shape-freehand') {
+    const pts = BOARD.shapeFreehandPoints || [];
+    if (pts.length > 0) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        ctx.lineTo(pts[i].x, pts[i].y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
   } else {
+    const x1 = Math.min(shapeStartX, shapeCurX);
+    const y1 = Math.min(shapeStartY, shapeCurY);
+    const w = Math.abs(shapeCurX - shapeStartX);
+    const h = Math.abs(shapeCurY - shapeStartY);
     ctx.fillRect(x1, y1, w, h);
     ctx.strokeRect(x1, y1, w, h);
   }
@@ -7096,12 +9882,12 @@ function hexToRgba(hex, alpha) {
 function drawWallPreview(ctx) {
   const { wallStartX, wallStartY, wallCurX, wallCurY, wallType } = BOARD;
   ctx.save();
-  
+
   let strokeStyle = 'rgba(232,185,106,0.8)';
   if (wallType === 'invisible') strokeStyle = 'rgba(0, 191, 255, 0.6)';
   else if (wallType === 'door') strokeStyle = 'rgba(211, 47, 47, 0.8)';
   else if (wallType === 'window') strokeStyle = 'rgba(2, 136, 209, 0.8)';
-  
+
   ctx.strokeStyle = strokeStyle;
   ctx.lineWidth = 3 / BOARD.zoom;
   ctx.lineCap = 'round';
@@ -7111,6 +9897,301 @@ function drawWallPreview(ctx) {
   ctx.lineTo(wallCurX, wallCurY);
   ctx.stroke();
   ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawRulerPreview(ctx) {
+  if (!BOARD.rulerActive) return;
+  const { rulerStartX, rulerStartY, rulerEndX, rulerEndY, rulerMode, gridSize, gridScaleVal, gridScaleUnit, zoom } = BOARD;
+  const dx = rulerEndX - rulerStartX;
+  const dy = rulerEndY - rulerStartY;
+  const D = Math.hypot(dx, dy);
+  if (D < 2) return;
+
+  let cells;
+  if (rulerMode === 'circle' || BOARD.gridType === 'hex') {
+    cells = D / gridSize;
+  } else {
+    const gridDx = Math.round(Math.abs(dx) / gridSize);
+    const gridDy = Math.round(Math.abs(dy) / gridSize);
+    if (BOARD.distanceMode === 'euclidean') {
+      cells = D / gridSize;
+    } else if (BOARD.distanceMode === 'double_diagonal') {
+      cells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+    } else {
+      cells = Math.max(gridDx, gridDy);
+    }
+  }
+  
+  const val = cells * gridScaleVal;
+  const formattedText = val.toFixed(1) + ' ' + (gridScaleUnit || 'm');
+
+  ctx.save();
+  ctx.strokeStyle = '#00bfff';
+  ctx.lineWidth = 3 / zoom;
+
+  if (rulerMode === 'circle') {
+    // Circle/Raio Mode
+    ctx.setLineDash([6 / zoom, 4 / zoom]);
+    ctx.fillStyle = 'rgba(0, 191, 255, 0.12)';
+    ctx.beginPath();
+    ctx.arc(rulerStartX, rulerStartY, D, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(rulerStartX, rulerStartY);
+    ctx.lineTo(rulerEndX, rulerEndY);
+    ctx.stroke();
+  } else {
+    // Line Mode
+    ctx.beginPath();
+    ctx.moveTo(rulerStartX, rulerStartY);
+    ctx.lineTo(rulerEndX, rulerEndY);
+    ctx.stroke();
+
+    ctx.fillStyle = '#00bfff';
+    ctx.beginPath();
+    ctx.arc(rulerStartX, rulerStartY, 5 / zoom, 0, Math.PI * 2);
+    ctx.arc(rulerEndX, rulerEndY, 5 / zoom, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const midX = (rulerStartX + rulerEndX) / 2;
+  const midY = (rulerStartY + rulerEndY) / 2;
+
+  ctx.font = `${Math.max(12, 14 / zoom)}px 'Cinzel', sans-serif`;
+  const textWidth = ctx.measureText(formattedText).width;
+  const paddingX = 8 / zoom;
+  const paddingY = 4 / zoom;
+  const bgW = textWidth + paddingX * 2;
+  const bgH = Math.max(16, 20 / zoom);
+
+  ctx.fillStyle = 'rgba(20, 15, 10, 0.85)';
+  ctx.strokeStyle = '#8b6b3e';
+  ctx.lineWidth = 1.5 / zoom;
+  
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(midX - bgW / 2, midY - bgH / 2, bgW, bgH, 4 / zoom);
+  } else {
+    ctx.rect(midX - bgW / 2, midY - bgH / 2, bgW, bgH);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#e8d5a3';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(formattedText, midX, midY);
+
+  ctx.restore();
+}
+
+// ── Régua com Waypoints ──
+function drawWayRulerPreview(ctx) {
+  const pts = BOARD.wayRulerPoints;
+  if (!pts || !pts.length) return;
+  const { gridSize, gridScaleVal, gridScaleUnit, zoom } = BOARD;
+  const col = '#ffaa44';
+
+  ctx.save();
+  ctx.lineWidth = 2 / zoom;
+  ctx.strokeStyle = col;
+  ctx.fillStyle = col;
+  ctx.setLineDash([]);
+
+  // Linhas entre waypoints fixos
+  let totalDist = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i].x - pts[i - 1].x;
+    const dy = pts[i].y - pts[i - 1].y;
+    
+    let cells;
+    if (BOARD.gridType === 'hex') {
+      cells = Math.hypot(dx, dy) / gridSize;
+    } else {
+      const gridDx = Math.round(Math.abs(dx) / gridSize);
+      const gridDy = Math.round(Math.abs(dy) / gridSize);
+      if (BOARD.distanceMode === 'euclidean') {
+        cells = Math.hypot(dx, dy) / gridSize;
+      } else if (BOARD.distanceMode === 'double_diagonal') {
+        cells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+      } else {
+        cells = Math.max(gridDx, gridDy);
+      }
+    }
+    
+    totalDist += cells;
+
+    const val = cells * gridScaleVal;
+    const label = val.toFixed(1) + ' ' + (gridScaleUnit || 'm');
+
+    ctx.beginPath();
+    ctx.moveTo(pts[i - 1].x, pts[i - 1].y);
+    ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke();
+
+    // Label da distância de cada segmento
+    const mx = (pts[i - 1].x + pts[i].x) / 2;
+    const my = (pts[i - 1].y + pts[i].y) / 2;
+    ctx.font = `${Math.max(11, 13 / zoom)}px 'Cinzel', sans-serif`;
+    const tw = ctx.measureText(label).width;
+    const px = 6 / zoom, py = 3 / zoom;
+    const bw = tw + px * 2, bh = Math.max(14, 18 / zoom);
+    ctx.fillStyle = 'rgba(30,20,10,0.8)';
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1 / zoom;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(mx - bw / 2, my - bh / 2, bw, bh, 3 / zoom);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(mx - bw / 2, my - bh / 2, bw, bh);
+      ctx.strokeRect(mx - bw / 2, my - bh / 2, bw, bh);
+    }
+    ctx.fillStyle = col;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, mx, my);
+  }
+
+  // Linha pontilhada para o preview (último ponto → mouse)
+  if (BOARD.wayRulerActive && pts.length > 0) {
+    const lastPt = pts[pts.length - 1];
+    const dx = BOARD.wayRulerTempX - lastPt.x;
+    const dy = BOARD.wayRulerTempY - lastPt.y;
+    
+    ctx.setLineDash([4 / zoom, 4 / zoom]);
+    ctx.strokeStyle = 'rgba(255,170,68,0.5)';
+    ctx.lineWidth = 1.5 / zoom;
+    ctx.beginPath();
+    ctx.moveTo(lastPt.x, lastPt.y);
+    ctx.lineTo(BOARD.wayRulerTempX, BOARD.wayRulerTempY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Label da distância do segmento atual (preview)
+    let tempCells;
+    if (BOARD.gridType === 'hex') {
+      tempCells = Math.hypot(dx, dy) / gridSize;
+    } else {
+      const gridDx = Math.round(Math.abs(dx) / gridSize);
+      const gridDy = Math.round(Math.abs(dy) / gridSize);
+      if (BOARD.distanceMode === 'euclidean') {
+        tempCells = Math.hypot(dx, dy) / gridSize;
+      } else if (BOARD.distanceMode === 'double_diagonal') {
+        tempCells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+      } else {
+        tempCells = Math.max(gridDx, gridDy);
+      }
+    }
+    
+    if (tempCells > 0) {
+      const val = tempCells * gridScaleVal;
+      const label = '+' + val.toFixed(1) + ' ' + (gridScaleUnit || 'm');
+      const mx = (lastPt.x + BOARD.wayRulerTempX) / 2;
+      const my = (lastPt.y + BOARD.wayRulerTempY) / 2;
+      
+      ctx.font = `${Math.max(11, 13 / zoom)}px 'Cinzel', sans-serif`;
+      const tw = ctx.measureText(label).width;
+      const px = 6 / zoom, py = 3 / zoom;
+      const bw = tw + px * 2, bh = Math.max(14, 18 / zoom);
+      ctx.fillStyle = 'rgba(30,20,10,0.6)';
+      ctx.strokeStyle = 'rgba(255,170,68,0.5)';
+      ctx.lineWidth = 1 / zoom;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(mx - bw / 2, my - bh / 2, bw, bh, 3 / zoom);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(mx - bw / 2, my - bh / 2, bw, bh);
+        ctx.strokeRect(mx - bw / 2, my - bh / 2, bw, bh);
+      }
+      ctx.fillStyle = 'rgba(255,170,68,0.8)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, mx, my);
+      
+      // Add temp distance to totalDist for the final label preview
+      totalDist += tempCells;
+    }
+  }
+
+  // Bolinhas nos waypoints
+  for (let i = 0; i < pts.length; i++) {
+    ctx.beginPath();
+    ctx.arc(pts[i].x, pts[i].y, (i === 0 || i === pts.length - 1 && !BOARD.wayRulerActive) ? 5 / zoom : 3.5 / zoom, 0, Math.PI * 2);
+    ctx.fillStyle = i === 0 ? '#44dd88' : (i === pts.length - 1 && !BOARD.wayRulerActive ? '#ff4444' : col);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1 / zoom;
+    ctx.stroke();
+  }
+
+  // Distância total
+  if (totalDist > 0) {
+    const totalVal = totalDist * gridScaleVal;
+    const totalLabel = 'Total: ' + totalVal.toFixed(1) + ' ' + (gridScaleUnit || 'm');
+
+    ctx.font = `bold ${Math.max(13, 16 / zoom)}px 'Cinzel', sans-serif`;
+    const tw = ctx.measureText(totalLabel).width;
+    const px = 10 / zoom, py = 5 / zoom;
+    const bw = tw + px * 2, bh = Math.max(20, 26 / zoom);
+    const cx = pts[0].x + (pts[pts.length - 1].x - pts[0].x) / 2;
+    const cy = pts[0].y + (pts[pts.length - 1].y - pts[0].y) / 2;
+
+    ctx.fillStyle = 'rgba(30,20,10,0.85)';
+    ctx.strokeStyle = '#ffaa44';
+    ctx.lineWidth = 1.5 / zoom;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(cx - bw / 2, cy - bh / 2 - 22 / zoom, bw, bh, 4 / zoom);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(cx - bw / 2, cy - bh / 2 - 22 / zoom, bw, bh);
+      ctx.strokeRect(cx - bw / 2, cy - bh / 2 - 22 / zoom, bw, bh);
+    }
+    ctx.fillStyle = '#ffcc66';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(totalLabel, cx, cy - 22 / zoom);
+  }
+
+  ctx.restore();
+}
+
+function drawFogRectPreview(ctx) {
+  if (!BOARD.fogPainting || BOARD.fogShape !== 'rect' || !BOARD.fogRectStart || !BOARD.fogRectCur) return;
+  const gs = BOARD.gridSize;
+  const gx1 = BOARD.fogRectStart.gx;
+  const gy1 = BOARD.fogRectStart.gy;
+  const gx2 = BOARD.fogRectCur.gx;
+  const gy2 = BOARD.fogRectCur.gy;
+
+  const minX = Math.min(gx1, gx2) * gs;
+  const minY = Math.min(gy1, gy2) * gs;
+  const maxX = (Math.max(gx1, gx2) + 1) * gs;
+  const maxY = (Math.max(gy1, gy2) + 1) * gs;
+  const w = maxX - minX;
+  const h = maxY - minY;
+
+  ctx.save();
+  if (BOARD.tool === 'reveal') {
+    ctx.fillStyle = 'rgba(76, 175, 80, 0.25)'; // Light green tint for reveal
+    ctx.strokeStyle = '#4CAF50';
+  } else {
+    ctx.fillStyle = 'rgba(244, 67, 54, 0.25)'; // Light red tint for fog/hide
+    ctx.strokeStyle = '#F44336';
+  }
+  ctx.fillRect(minX, minY, w, h);
+
+  ctx.lineWidth = 2 / BOARD.zoom;
+  ctx.setLineDash([6 / BOARD.zoom, 4 / BOARD.zoom]);
+  ctx.strokeRect(minX, minY, w, h);
   ctx.restore();
 }
 
@@ -7138,10 +10219,12 @@ function drawFog(ctx, W, H) {
 }
 
 function computeVisibility(token, radius) {
+  // Se radius não fornecido, calcular baseado no tipo de visão e iluminação
   if (radius === undefined) {
-    radius = token.visaoRange || 12;
+    radius = getEffectiveVisionRadius(token);
   }
-  const { gridSize, walls } = BOARD;
+
+  const { gridSize, walls, gridCols, gridRows, lightingType } = BOARD;
   const gs = gridSize;
   const sz = (token.size || 1);
   const ox = token.gx * gs + sz * gs / 2;
@@ -7153,6 +10236,26 @@ function computeVisibility(token, radius) {
   const tokenFloor = getFloorFromZ(token.z);
   const relevantWalls = (walls || []).filter(w => getFloorFromZ(w.z) === tokenFloor);
 
+  // Sem alcance: nenhuma célula visível
+  if (radius <= 0) return visible;
+
+  if (lightingType === 'sunny') {
+    const cols = gridCols || 30;
+    const rows = gridRows || 30;
+    for (let gx = 0; gx < cols; gx++) {
+      for (let gy = 0; gy < rows; gy++) {
+        const tx = gx * gs + gs / 2;
+        const ty = gy * gs + gs / 2;
+        if (!rayHitsWall(ox, oy, tx, ty, relevantWalls)) {
+          const key = tokenFloor === 0 ? `${gx},${gy}` : `${tokenFloor}:${gx},${gy}`;
+          visible.add(key);
+        }
+      }
+    }
+    return visible;
+  }
+
+  // Para todos os outros tipos de iluminação, usar o raio calculado por getEffectiveVisionRadius
   for (let dgx = -radius; dgx <= radius; dgx++) {
     for (let dgy = -radius; dgy <= radius; dgy++) {
       if (dgx * dgx + dgy * dgy > radius * radius) continue;
@@ -7204,6 +10307,21 @@ function checkMoveBlocked(token, fromGx, fromGy, toGx, toGy) {
   return false;
 }
 
+function checkMoveBlockedForScene(token, fromGx, fromGy, toGx, toGy, scene) {
+  const oldWalls = BOARD.walls;
+  const oldGridSize = BOARD.gridSize;
+  
+  BOARD.walls = scene.walls || [];
+  BOARD.gridSize = scene.gridSize || 50;
+  
+  const blocked = checkMoveBlocked(token, fromGx, fromGy, toGx, toGy);
+  
+  BOARD.walls = oldWalls;
+  BOARD.gridSize = oldGridSize;
+  
+  return blocked;
+}
+
 function rayHitsWall(ax, ay, bx, by, walls) {
   for (const w of walls) {
     if (wallBlocksVision(w)) {
@@ -7226,27 +10344,19 @@ function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
 
 function getLightingColor(type) {
   switch (type) {
-    case 'night': return 'rgba(10, 8, 15, 0.9)';
-    case 'twilight': return 'rgba(180, 80, 50, 0.18)';
-    default: return 'transparent';
+    case 'darknight':  return 'rgba(8, 6, 18, 0.92)';     // Noite Escura: quasi-total
+    case 'starnight':  return 'rgba(15, 20, 60, 0.72)';   // Noite Estrelada: azul-índigo com luminosidade sutil
+    case 'twilight':   return 'rgba(180, 80, 50, 0.18)';  // Crepuúsculo: laranja quente
+    case 'cave':       return 'rgba(5, 5, 10, 0.97)';     // Caverna: escuro total
+    case 'cloudy':     return 'rgba(100, 100, 120, 0.12)';// Nublado: cinza leve
+    case 'rainy':      return 'rgba(80, 100, 130, 0.25)'; // Chuva: azul-acinzentado
+    case 'snowy':      return 'rgba(200, 210, 230, 0.20)';// Neve: branco-azulado frio
+    default:           return 'transparent';
   }
 }
 
 function getTokenCenter(t, gx, gy) {
-  const { gridSize, gridType } = BOARD;
-  const sz = (t.size || 1);
-  if (gridType === 'hex') {
-    const R = gridSize / 2;
-    const hexHeight = Math.sqrt(3) * R;
-    return {
-      x: gx * R * 1.5,
-      y: gy * hexHeight + ((Math.abs(Math.round(gx)) % 2) ? hexHeight / 2 : 0)
-    };
-  }
-  return {
-    x: gx * gridSize + (sz * gridSize) / 2,
-    y: gy * gridSize + (sz * gridSize) / 2
-  };
+  return tokenWorldPos(gx, gy);
 }
 
 function drawToken(ctx, t, isDragging, isHovered) {
@@ -7254,29 +10364,54 @@ function drawToken(ctx, t, isDragging, isHovered) {
   if (layer === 'gm' && (myRole !== 'mestre' || emVisaoJogador())) return;
   const isObject = t.type === 'object';
 
-  if (BOARD.fogVisible && !isObject) {
-    const sz = (t.size || 1);
-    const cx = t.gx * BOARD.gridSize + sz * BOARD.gridSize / 2;
-    const cy = t.gy * BOARD.gridSize + sz * BOARD.gridSize / 2;
-    const tgx = Math.floor(cx / BOARD.gridSize);
-    const tgy = Math.floor(cy / BOARD.gridSize);
-    if (!BOARD.fogVisible.has(`${tgx},${tgy}`)) return;
+  // Calcular visibilidade por névoa antes de desenhar
+  let _fogFloor = null, _fogCanSeeAnyway = true;
+  if (BOARD.fogVisible) {
+    _fogFloor = getFloorFromZ(t.z);
+    if (emVisaoJogador()) {
+      _fogCanSeeAnyway = (t.id === BOARD.playerViewTokenId);
+    } else {
+      _fogCanSeeAnyway = temControleToken(t);
+    }
+
+    if (!_fogCanSeeAnyway) {
+      // Verificar se QUALQUER célula que o token ocupa está visível
+      const spanX = (t.sizeX || t.size || 1);
+      const spanY = (t.sizeY || t.size || 1);
+      let isVisible = false;
+      outer:
+      for (let dx = 0; dx < spanX; dx++) {
+        for (let dy = 0; dy < spanY; dy++) {
+          const cellGx = t.gx + dx;
+          const cellGy = t.gy + dy;
+          const key = _fogFloor === 0 ? `${cellGx},${cellGy}` : `${_fogFloor}:${cellGx},${cellGy}`;
+          if (BOARD.fogVisible.has(key)) { isVisible = true; break outer; }
+        }
+      }
+      if (!isVisible) return;
+    }
   }
 
   const isSelected = BOARD.selectedTokens.has(t.id);
   const rotation = t.rotation || 0;
   const { gridSize } = BOARD;
   const gs = gridSize;
-  const sz = (t.size || 1) * gs;
-  const px = t.gx * gs + sz / 2;
-  const py = t.gy * gs + sz / 2;
-  const r = isObject ? sz / 2 : sz * 0.42;
+  const sizeW = (t.sizeX || t.size || 1) * gs;
+  const sizeH = (t.sizeY || t.size || 1) * gs;
+  const pos = tokenWorldPos(t.gx, t.gy);
+  const px = pos.x;
+  const py = pos.y;
+  const rX = isObject ? sizeW / 2 : sizeW * 0.42;
+  const rY = isObject ? sizeH / 2 : sizeH * 0.42;
 
   ctx.save();
 
   if (layer === 'gm') {
     ctx.globalAlpha = 0.5;
   }
+
+  const halfW = rX;
+  const halfH = rY;
 
   if (isObject) {
     if (t.imageUrl) {
@@ -7287,29 +10422,29 @@ function drawToken(ctx, t, isDragging, isHovered) {
         img.onload = () => boardRender();
         tokenImageCache[t.imageUrl] = img;
       }
-      
+
       if (img.complete && img.naturalWidth !== 0) {
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(rotation);
         ctx.translate(-px, -py);
         const drawSrc = isGifUrl(t.imageUrl) ? getGifFrame(t.imageUrl, img.naturalWidth, img.naturalHeight) : img;
-        ctx.drawImage(drawSrc, px - r, py - r, sz, sz);
+        ctx.drawImage(drawSrc, px - halfW, py - halfH, sizeW, sizeH);
         ctx.restore();
       } else {
         ctx.fillStyle = 'rgba(0,0,0,0.15)';
-        ctx.fillRect(px - r, py - r, sz, sz);
+        ctx.fillRect(px - halfW, py - halfH, sizeW, sizeH);
       }
     } else {
       ctx.fillStyle = 'rgba(0,0,0,0.15)';
-      ctx.fillRect(px - r, py - r, sz, sz);
+      ctx.fillRect(px - halfW, py - halfH, sizeW, sizeH);
     }
     ctx.strokeStyle = isDragging ? '#e8b96a' : isHovered ? '#c9903a' : (isSelected ? '#00bfff' : 'rgba(255,255,255,0.2)');
     ctx.lineWidth = (isDragging || isSelected ? 2.5 : 1) / BOARD.zoom;
-    ctx.strokeRect(px - r, py - r, sz, sz);
+    ctx.strokeRect(px - halfW, py - halfH, sizeW, sizeH);
     if (isSelected) {
       const hSize = 7 / BOARD.zoom;
-      const half = sz / 2;
+      const half = Math.max(halfW, halfH);
       const rotOff = half + 14 / BOARD.zoom;
       ctx.save();
       ctx.beginPath();
@@ -7336,14 +10471,117 @@ function drawToken(ctx, t, isDragging, isHovered) {
       ctx.strokeRect(rhX2 - hSize / 2, rhY2 - hSize / 2, hSize, hSize);
       ctx.restore();
     }
+    // Overlay de névoa parcial sobre o objeto: células fora da visão ficam escuras,
+    // células de borda (limítrofes à área visível) ficam com blur para fade suave.
+    if (BOARD.fogVisible && !_fogCanSeeAnyway) {
+      const spanX = Math.ceil(t.sizeX || t.size || 1);
+      const spanY = Math.ceil(t.sizeY || t.size || 1);
+      const floor = _fogFloor;
+      const gs = BOARD.gridSize;
+
+      // Helper para gerar key de névoa
+      const fogKey = (gx, gy) => floor === 0 ? `${gx},${gy}` : `${floor}:${gx},${gy}`;
+
+      // Overlay sem blur (salvo separado do ctx.save anterior)
+      ctx.save();
+      // Clip ao bounding box do objeto para o overlay não vazar
+      ctx.beginPath();
+      ctx.rect(t.gx * gs, t.gy * gs, spanX * gs, spanY * gs);
+      ctx.clip();
+
+      // Primeira passagem: célula sólidas (não visíveis e não na borda)
+      ctx.filter = 'none';
+      for (let dx = 0; dx < spanX; dx++) {
+        for (let dy = 0; dy < spanY; dy++) {
+          const cellGx = t.gx + dx;
+          const cellGy = t.gy + dy;
+          if (BOARD.fogVisible.has(fogKey(cellGx, cellGy))) continue; // já visível
+          // Verificar se é célula de borda (adjacent a uma célula visível)
+          const isBoundary =
+            BOARD.fogVisible.has(fogKey(cellGx - 1, cellGy)) ||
+            BOARD.fogVisible.has(fogKey(cellGx + 1, cellGy)) ||
+            BOARD.fogVisible.has(fogKey(cellGx, cellGy - 1)) ||
+            BOARD.fogVisible.has(fogKey(cellGx, cellGy + 1));
+          if (!isBoundary) {
+            ctx.fillStyle = 'rgba(10,8,6,0.92)';
+            ctx.fillRect(cellGx * gs, cellGy * gs, gs, gs);
+          }
+        }
+      }
+
+      // Segunda passagem: células de borda com blur para fade suave
+      ctx.filter = `blur(${Math.max(4, gs * 0.35)}px)`;
+      for (let dx = 0; dx < spanX; dx++) {
+        for (let dy = 0; dy < spanY; dy++) {
+          const cellGx = t.gx + dx;
+          const cellGy = t.gy + dy;
+          if (BOARD.fogVisible.has(fogKey(cellGx, cellGy))) continue;
+          const isBoundary =
+            BOARD.fogVisible.has(fogKey(cellGx - 1, cellGy)) ||
+            BOARD.fogVisible.has(fogKey(cellGx + 1, cellGy)) ||
+            BOARD.fogVisible.has(fogKey(cellGx, cellGy - 1)) ||
+            BOARD.fogVisible.has(fogKey(cellGx, cellGy + 1));
+          if (isBoundary) {
+            ctx.fillStyle = 'rgba(10,8,6,0.88)';
+            ctx.fillRect(cellGx * gs - gs * 0.5, cellGy * gs - gs * 0.5, gs * 2, gs * 2);
+          }
+        }
+      }
+      ctx.filter = 'none';
+      ctx.restore();
+    }
     ctx.restore();
     return;
+  }
+
+  const tokenR = Math.max(rX, rY);
+
+  // Desenhar auras visuais antes do token
+  if (t.auras && t.auras.length > 0) {
+    const AURA_COLORS = ['#ff8800', '#4488ff'];
+    const scaleVal = BOARD.gridScaleVal || 1.5;
+    t.auras.forEach((aura, idx) => {
+      if (!aura.active || !aura.radius || aura.radius <= 0) return;
+      const auraRadiusCells = aura.radius / scaleVal;
+      const auraRadiusPx = auraRadiusCells * gs;
+      const color = AURA_COLORS[idx] || '#ffffff';
+      const r = parseInt(color.slice(1,3), 16);
+      const g2 = parseInt(color.slice(3,5), 16);
+      const b = parseInt(color.slice(5,7), 16);
+      ctx.save();
+      // Auras com Light ativo: visual mais brilhante com glow
+      if (aura.light) {
+        ctx.shadowColor = `rgba(${r},${g2},${b},0.6)`;
+        ctx.shadowBlur = 25 / BOARD.zoom;
+        ctx.beginPath();
+        ctx.arc(px, py, auraRadiusPx, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r},${g2},${b},0.12)`;
+        ctx.fill();
+        ctx.shadowColor = `rgba(${r},${g2},${b},0.4)`;
+        ctx.shadowBlur = 10 / BOARD.zoom;
+        ctx.strokeStyle = `rgba(255,255,200,0.5)`;
+        ctx.lineWidth = 2 / BOARD.zoom;
+        ctx.setLineDash([]);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(px, py, auraRadiusPx, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r},${g2},${b},0.18)`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(${r},${g2},${b},0.55)`;
+        ctx.lineWidth = 1.5 / BOARD.zoom;
+        ctx.setLineDash([5 / BOARD.zoom, 4 / BOARD.zoom]);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+    });
   }
 
   if (isSelected) {
     ctx.save();
     ctx.beginPath();
-    ctx.arc(px, py, r + 4 / BOARD.zoom, 0, Math.PI * 2);
+    ctx.arc(px, py, tokenR + 4 / BOARD.zoom, 0, Math.PI * 2);
     ctx.strokeStyle = '#00bfff';
     ctx.lineWidth = 2.5 / BOARD.zoom;
     ctx.shadowColor = 'rgba(0, 191, 255, 0.7)';
@@ -7358,7 +10596,7 @@ function drawToken(ctx, t, isDragging, isHovered) {
   }
 
   ctx.beginPath();
-  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.ellipse(px, py, rX, rY, 0, 0, Math.PI * 2);
   ctx.fillStyle = t.color || '#c94040';
   ctx.fill();
 
@@ -7371,7 +10609,7 @@ function drawToken(ctx, t, isDragging, isHovered) {
       img.onload = () => boardRender();
       tokenImageCache[t.imageUrl] = img;
     }
-    
+
     if (img.complete && img.naturalWidth !== 0) {
       ctx.save();
       ctx.translate(px, py);
@@ -7379,7 +10617,7 @@ function drawToken(ctx, t, isDragging, isHovered) {
       ctx.translate(-px, -py);
 
       ctx.beginPath();
-      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.ellipse(px, py, rX, rY, 0, 0, Math.PI * 2);
       ctx.clip();
 
       let imagePosition = t.imagePosition || '50% 50%';
@@ -7402,10 +10640,10 @@ function drawToken(ctx, t, isDragging, isHovered) {
       const w = img.naturalWidth;
       const h = img.naturalHeight;
       const s = Math.min(w, h);
-      
+
       let sx = 0;
       let sy = 0;
-      
+
       if (w > h) {
         sx = (w - h) * posX / 100;
       } else {
@@ -7414,16 +10652,26 @@ function drawToken(ctx, t, isDragging, isHovered) {
 
       if (isGifUrl(t.imageUrl)) {
         const frame = getGifFrame(t.imageUrl, w, h);
-        ctx.drawImage(frame, sx, sy, s, s, px - r, py - r, r * 2, r * 2);
+        ctx.drawImage(frame, sx, sy, s, s, px - tokenR, py - tokenR, tokenR * 2, tokenR * 2);
       } else {
-        ctx.drawImage(img, sx, sy, s, s, px - r, py - r, r * 2, r * 2);
+        ctx.drawImage(img, sx, sy, s, s, px - tokenR, py - tokenR, tokenR * 2, tokenR * 2);
       }
       ctx.restore();
       hasDrawnImage = true;
     }
   }
 
-  ctx.strokeStyle = isDragging ? '#e8b96a' : isHovered ? '#c9903a' : (layer === 'gm' ? '#9040c9' : 'rgba(0,0,0,0.5)');
+  // Ofuscado: overlay branco + blur sobre o token
+  if (t.conditions && t.conditions.indexOf('Ofuscado') !== -1) {
+    ctx.save();
+    ctx.filter = `blur(${Math.max(2, tokenR * 0.18)}px)`;
+    ctx.beginPath();
+    ctx.ellipse(px, py, rX, rY, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,220,0.45)';
+    ctx.fill();
+    ctx.filter = 'none';
+    ctx.restore();
+  }
   ctx.lineWidth = (isDragging ? 2.5 : 1.5) / BOARD.zoom;
   if (layer === 'gm') {
     ctx.setLineDash([4 / BOARD.zoom, 2 / BOARD.zoom]);
@@ -7438,7 +10686,7 @@ function drawToken(ctx, t, isDragging, isHovered) {
     ctx.translate(px, py);
     ctx.rotate(rotation);
     const initial = (t.name || '?')[0].toUpperCase();
-    const fontSize = Math.max(10, r * 0.9);
+    const fontSize = Math.max(10, tokenR * 0.9);
     ctx.font = `bold ${fontSize}px Cinzel, serif`;
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
@@ -7453,8 +10701,8 @@ function drawToken(ctx, t, isDragging, isHovered) {
     ctx.fillStyle = '#e8d9c0';
     ctx.strokeStyle = 'rgba(0,0,0,0.8)';
     ctx.lineWidth = 2.5 / BOARD.zoom;
-    ctx.strokeText(t.name || '', px, py + r + nameFontSize * 0.9);
-    ctx.fillText(t.name || '', px, py + r + nameFontSize * 0.9);
+    ctx.strokeText(t.name || '', px, py + tokenR + nameFontSize * 0.9);
+    ctx.fillText(t.name || '', px, py + tokenR + nameFontSize * 0.9);
 
     if (t.conditions && t.conditions.length) {
       const emojiSize = Math.max(9, gs * 0.18);
@@ -7462,7 +10710,7 @@ function drawToken(ctx, t, isDragging, isHovered) {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       const gap = emojiSize * 0.4;
-      const condStartY = py + r + nameFontSize * 0.9 + emojiSize * 0.6;
+      const condStartY = py + tokenR + nameFontSize * 0.9 + emojiSize * 0.6;
       const visibleConds = t.conditions.slice(0, 6);
       const widths = visibleConds.map(c => ctx.measureText(CONDITION_EMOJI[c] || '?').width);
       const totalW = widths.reduce((a, b) => a + b + gap, -gap);
@@ -7485,10 +10733,10 @@ function drawToken(ctx, t, isDragging, isHovered) {
   }
 
   if (t.hpMax > 0) {
-    const barW = sz * 0.7;
+    const barW = sizeW * 0.7;
     const barH = Math.max(4, gs * 0.1);
     const barX = px - barW / 2;
-    const barY = py - r - barH - 3 / BOARD.zoom;
+    const barY = py - tokenR - barH - 3 / BOARD.zoom;
     const pct = Math.max(0, Math.min(1, t.hp / t.hpMax));
     const hpColor = pct > 0.5 ? '#3a7a42' : pct > 0.25 ? '#8a7a1a' : '#8a2a1a';
 
@@ -7511,7 +10759,7 @@ function drawToken(ctx, t, isDragging, isHovered) {
     ];
     const totalW = stats.length * (circleR * 2) + (stats.length - 1) * gap;
     const startX = px - totalW / 2 + circleR;
-    const topY = t.hpMax > 0 ? (py - r - Math.max(4, gs * 0.1) - 3 / BOARD.zoom) : py - r;
+    const topY = t.hpMax > 0 ? (py - tokenR - Math.max(4, gs * 0.1) - 3 / BOARD.zoom) : py - tokenR;
     const circleY = topY - circleR - gs * 0.1;
     const zoom = BOARD.zoom;
 
@@ -7535,14 +10783,14 @@ function drawToken(ctx, t, isDragging, isHovered) {
 
   if (isSelected) {
     const hSize = 7 / BOARD.zoom;
-    const handleDist = r + 22 / BOARD.zoom;
+    const handleDist = tokenR + 22 / BOARD.zoom;
 
     const rotHX = px + handleDist * Math.sin(rotation);
     const rotHY = py - handleDist * Math.cos(rotation);
 
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(px + r * Math.sin(rotation), py - r * Math.cos(rotation));
+    ctx.moveTo(px + tokenR * Math.sin(rotation), py - tokenR * Math.cos(rotation));
     ctx.lineTo(rotHX, rotHY);
     ctx.strokeStyle = 'rgba(0, 191, 255, 0.6)';
     ctx.lineWidth = 1.5 / BOARD.zoom;
@@ -7555,8 +10803,8 @@ function drawToken(ctx, t, isDragging, isHovered) {
     ctx.strokeRect(rotHX - hSize / 2, rotHY - hSize / 2, hSize, hSize);
     ctx.restore();
 
-    const resLocalX = r * 0.85;
-    const resLocalY = r * 0.85;
+    const resLocalX = tokenR * 0.85;
+    const resLocalY = tokenR * 0.85;
     const resHX = px + resLocalX * Math.cos(rotation) - resLocalY * Math.sin(rotation);
     const resHY = py + resLocalX * Math.sin(rotation) + resLocalY * Math.cos(rotation);
 
@@ -7569,6 +10817,8 @@ function drawToken(ctx, t, isDragging, isHovered) {
     ctx.restore();
   }
 
+  _renderCondEffects(ctx, t);
+
   ctx.restore();
 }
 
@@ -7577,10 +10827,10 @@ function drawTokenMovementPath(ctx, t) {
   const startGx = BOARD.dragStartGx;
   const startGy = BOARD.dragStartGy;
   if (startGx === undefined || startGy === undefined) return;
-  
+
   const start = getTokenCenter(t, startGx, startGy);
   const end = getTokenCenter(t, t.gx, t.gy);
-  
+
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const len = Math.hypot(dx, dy);
@@ -7604,6 +10854,54 @@ function drawTokenMovementPath(ctx, t) {
   ctx.lineTo(end.x - arrowLen * Math.cos(angle - Math.PI / 6), end.y - arrowLen * Math.sin(angle - Math.PI / 6));
   ctx.lineTo(end.x - arrowLen * Math.cos(angle + Math.PI / 6), end.y - arrowLen * Math.sin(angle + Math.PI / 6));
   ctx.fill();
+
+  // Desenhar o badge numérico com a distância percorrida
+  let cells;
+  if (BOARD.gridType === 'hex') {
+    cells = len / BOARD.gridSize;
+  } else {
+    const gridDx = Math.round(Math.abs(dx) / BOARD.gridSize);
+    const gridDy = Math.round(Math.abs(dy) / BOARD.gridSize);
+    if (BOARD.distanceMode === 'euclidean') {
+      cells = len / BOARD.gridSize;
+    } else if (BOARD.distanceMode === 'double_diagonal') {
+      cells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+    } else {
+      cells = Math.max(gridDx, gridDy);
+    }
+  }
+  const val = cells * BOARD.gridScaleVal;
+  const formattedText = val.toFixed(1) + ' ' + (BOARD.gridScaleUnit || 'm');
+
+  const midX = (start.x + end.x) / 2;
+  const midY = (start.y + end.y) / 2;
+
+  ctx.font = `${Math.max(10, 12 / BOARD.zoom)}px 'Cinzel', sans-serif`;
+  const textWidth = ctx.measureText(formattedText).width;
+  const paddingX = 6 / BOARD.zoom;
+  const paddingY = 3 / BOARD.zoom;
+  const bgW = textWidth + paddingX * 2;
+  const bgH = Math.max(14, 18 / BOARD.zoom);
+
+  ctx.fillStyle = 'rgba(20, 15, 10, 0.85)';
+  ctx.strokeStyle = 'rgba(0, 191, 255, 0.8)';
+  ctx.lineWidth = 1.5 / BOARD.zoom;
+  
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(midX - bgW / 2, midY - bgH / 2, bgW, bgH, 4 / BOARD.zoom);
+  } else {
+    ctx.rect(midX - bgW / 2, midY - bgH / 2, bgW, bgH);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(formattedText, midX, midY);
+
+  ctx.restore();
 }
 
 const UNSPLASH_ACCESS_KEY = 'etK-AkXGz5Y57XQUXkiot9ad3oN619Vq4k_oL9sxtZQ';
@@ -7611,6 +10909,439 @@ const PIXABAY_API_KEY = '56232677-4d3f788e61cab49986809d088';
 const PEXELS_API_KEY = 'dLBE0nAJB45cRSbm65Ej1JeLNOI5JAKiR0tw0E7niNk7TMeDE6XurC4X';
 let unsplashSelected = null;
 let currentSearchSource = 'unsplash';
+
+// ──── Sound System ────
+let audioCtx = null;
+let soundMasterGain = null;
+let soundAmbientGain = null;
+let soundSfxGain = null;
+let ambientSource = null;
+let ambientPlaying = false;
+let ambientCurrentUrl = null;
+let ytPlayer = null;
+let ytReady = false;
+let ytPendingUrl = null;
+
+function _extrairYtId(url) {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function _carregarYtApi() {
+  if (window.YT && window.YT.Player) {
+    ytReady = true;
+    if (ytPendingUrl) {
+      let temp = ytPendingUrl;
+      ytPendingUrl = null;
+      _tocarYt(temp);
+    }
+    return;
+  }
+  if (document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+    // Script já solicitado anteriormente; garante que o callback aponte
+    // para a chamada atual mesmo que tenha sido sobrescrito.
+    if (!window.onYouTubeIframeAPIReady) {
+      window.onYouTubeIframeAPIReady = () => {
+        ytReady = true;
+        if (ytPendingUrl) {
+          let temp = ytPendingUrl;
+          ytPendingUrl = null;
+          _tocarYt(temp);
+        }
+      };
+    }
+    return;
+  }
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  tag.async = true;
+  tag.onerror = () => {
+    toast('Não foi possível carregar a API do YouTube (verifique sua conexão ou bloqueador de anúncios).');
+    ytPendingUrl = null;
+  };
+  document.head.appendChild(tag);
+  window.onYouTubeIframeAPIReady = () => {
+    ytReady = true;
+    if (ytPendingUrl) {
+      let temp = ytPendingUrl;
+      ytPendingUrl = null;
+      _tocarYt(temp);
+    }
+  };
+  // Fallback: se a API não responder em 8s (bloqueada por extensão, rede, etc.)
+  setTimeout(() => {
+    if (!ytReady) {
+      toast('A API do YouTube demorou demais para carregar. Verifique sua conexão ou um possível bloqueador de anúncios.');
+      ytPendingUrl = null;
+    }
+  }, 8000);
+}
+
+function _tocarYt(url) {
+  const id = _extrairYtId(url);
+  if (!id) { toast('Link do YouTube inválido. Cole um link de vídeo válido.'); return; }
+  stopAmbient();
+  if (window.YT && window.YT.Player) ytReady = true;
+  if (!ytReady) { ytPendingUrl = url; _carregarYtApi(); return; }
+  ambientCurrentUrl = url;
+  const old = document.getElementById('ytAmbientPlayer');
+  if (old) old.remove();
+  const div = document.createElement('div');
+  div.id = 'ytAmbientPlayer';
+  // Avoid display: none, as it breaks YT Iframe API
+  div.style.position = 'absolute';
+  div.style.left = '-9999px';
+  div.style.width = '1px';
+  div.style.height = '1px';
+  div.style.opacity = '0';
+  document.body.appendChild(div);
+  ytPlayer = new YT.Player('ytAmbientPlayer', {
+    height: '1', width: '1',
+    videoId: id,
+    playerVars: { autoplay: 1, loop: 1, playlist: id, controls: 0, modestbranding: 1, rel: 0, showinfo: 0 },
+    events: {
+      onReady: (e) => {
+        e.target.setVolume((soundAmbientGain ? soundAmbientGain.gain.value : 0.5) * 100);
+        e.target.playVideo();
+        ambientPlaying = true;
+        updateAmbientUI();
+        // Alguns navegadores bloqueiam autoplay com som quando a chamada
+        // não está diretamente atrelada ao clique do usuário (ex: APIs
+        // carregadas de forma assíncrona). Detecta isso e avisa.
+        setTimeout(() => {
+          try {
+            const state = e.target.getPlayerState();
+            // -1 = não iniciado, 2 = pausado: provável bloqueio de autoplay
+            if (state === -1 || state === 2) {
+              toast('O navegador bloqueou a reprodução automática. Clique em ▶ Play novamente para liberar o áudio.');
+            }
+          } catch (err) { /* ignore */ }
+        }, 1500);
+      },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED) { stopAmbient(); }
+      },
+      onError: (e) => {
+        // Códigos: 2=ID inválido, 5=erro HTML5, 100=removido/privado, 101/150=incorporação não permitida
+        const msgs = {
+          2: 'Link do YouTube inválido.',
+          5: 'Erro ao reproduzir esse vídeo no player do YouTube.',
+          100: 'Vídeo não encontrado ou privado.',
+          101: 'O dono do vídeo não permite incorporação (embed) em outros sites.',
+          150: 'O dono do vídeo não permite incorporação (embed) em outros sites.'
+        };
+        toast('YouTube: ' + (msgs[e.data] || 'não foi possível tocar esse vídeo.'));
+        stopAmbient();
+      }
+    }
+  });
+}
+let soundboardData = [];
+let soundSearchResults = [];
+let soundSelectedHit = null;
+let currentPreviewAudio = null;
+const FREESOUND_API_KEY = 'hfGoQwml55fUjtpX6dSy7NxZ8SDwSpKYPYizND9K';
+let freesoundApiKey = localStorage.getItem('vtt_freesound_key') || FREESOUND_API_KEY;
+function salvarFreesoundKey(val) {
+  freesoundApiKey = val.trim();
+  localStorage.setItem('vtt_freesound_key', freesoundApiKey);
+}
+
+function initAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    soundMasterGain = audioCtx.createGain();
+    soundMasterGain.gain.value = 0.7;
+    soundMasterGain.connect(audioCtx.destination);
+    soundAmbientGain = audioCtx.createGain();
+    soundAmbientGain.gain.value = 0.5;
+    soundAmbientGain.connect(soundMasterGain);
+    soundSfxGain = audioCtx.createGain();
+    soundSfxGain.gain.value = 0.8;
+    soundSfxGain.connect(soundMasterGain);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function loadSoundboard() {
+  try { soundboardData = JSON.parse(localStorage.getItem('vtt_soundboard')) || []; }
+  catch (e) { soundboardData = []; }
+}
+
+function saveSoundboard() {
+  localStorage.setItem('vtt_soundboard', JSON.stringify(soundboardData));
+}
+
+function addToSoundboard(audio) {
+  initAudioCtx();
+  const url = audio.previews?.medium || audio.previews?.low || audio.download || '';
+  if (!url) { toast('Áudio sem URL disponível.'); return; }
+  const entry = {
+    id: 'sb' + Date.now() + Math.floor(Math.random() * 9999),
+    name: audio.name || (audio.tags || '').split(',')[0].trim() || 'Som ' + (soundboardData.length + 1),
+    url: url,
+    duration: audio.duration || 0,
+    tags: audio.tags || ''
+  };
+  soundboardData.push(entry);
+  saveSoundboard();
+  renderSoundboard();
+  toast('🔊 Som adicionado à Soundboard!');
+}
+
+function removeFromSoundboard(id) {
+  soundboardData = soundboardData.filter(s => s.id !== id);
+  saveSoundboard();
+  renderSoundboard();
+}
+
+function playSfx(url) {
+  initAudioCtx();
+  if (!url) return;
+  fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+    .then(buf => audioCtx.decodeAudioData(buf))
+    .then(ab => {
+      const source = audioCtx.createBufferSource();
+      source.buffer = ab;
+      source.connect(soundSfxGain);
+      source.start(0);
+    })
+    .catch(() => {
+      // Fallback: reproduzir via Audio element (funciona cross-origin)
+      const a = new Audio(url);
+      a.volume = (soundSfxGain ? soundSfxGain.gain.value : 0.8) * (soundMasterGain ? soundMasterGain.gain.value : 0.7);
+      a.play().catch(() => toast('Erro ao carregar áudio SFX.'));
+    });
+}
+
+function playAmbient(url) {
+  initAudioCtx();
+  if (!url) return;
+  if (ambientPlaying && ambientCurrentUrl === url) { stopAmbient(); return; }
+  // YouTube
+  if (_extrairYtId(url)) {
+    _tocarYt(url);
+    return;
+  }
+  stopAmbient();
+  ambientCurrentUrl = url;
+  fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+    .then(buf => audioCtx.decodeAudioData(buf))
+    .then(ab => {
+      const source = audioCtx.createBufferSource();
+      source.buffer = ab;
+      source.loop = true;
+      source.connect(soundAmbientGain);
+      source.start(0);
+      ambientSource = source;
+      ambientPlaying = true;
+      updateAmbientUI();
+    })
+    .catch(() => {
+      // Fallback: reproduzir via Audio element (funciona cross-origin)
+      const a = new Audio(url);
+      a.loop = true;
+      a.volume = (soundAmbientGain ? soundAmbientGain.gain.value : 0.5) * (soundMasterGain ? soundMasterGain.gain.value : 0.7);
+      a.play().then(() => {
+        ambientSource = { stop: () => { a.pause(); a.currentTime = 0; } };
+        ambientPlaying = true;
+        updateAmbientUI();
+      }).catch(() => toast('Erro ao carregar música ambiente.'));
+    });
+}
+
+function stopAmbient() {
+  if (ytPlayer) {
+    try { ytPlayer.stopVideo(); ytPlayer.destroy(); } catch (e) { /* ignore */ }
+    ytPlayer = null;
+    const el = document.getElementById('ytAmbientPlayer');
+    if (el) el.remove();
+  }
+  if (ambientSource) {
+    try { ambientSource.stop(); } catch (e) { /* ignore */ }
+    ambientSource = null;
+  }
+  ambientPlaying = false;
+  ambientCurrentUrl = null;
+  updateAmbientUI();
+}
+
+function toggleAmbient() {
+  if (ambientPlaying) {
+    stopAmbient();
+  } else {
+    const url = document.getElementById('ambientUrlInput')?.value.trim();
+    if (url) playAmbient(url);
+    else toast('Cole uma URL de áudio ou link do YouTube.');
+  }
+}
+
+function setAmbientFromInput() {
+  const url = document.getElementById('ambientUrlInput')?.value.trim();
+  if (!url) { toast('Cole uma URL de áudio.'); return; }
+  playAmbient(url);
+}
+
+function salvarSomAtual() {
+  const url = document.getElementById('ambientUrlInput')?.value.trim();
+  if (!url) { toast('Nenhuma URL para salvar.'); return; }
+  // Extrai nome do arquivo/URL
+  let nome = url.split('/').pop().split('?')[0].replace(/[_-]/g, ' ') || 'Som ambiente';
+  nome = nome.replace(/\.[^.]+$/, '').substring(0, 40);
+  if (nome.length < 2) nome = 'Som ' + (soundboardData.length + 1);
+  // Verifica se já existe
+  if (soundboardData.some(s => s.url === url)) { toast('Esse som já está na soundboard.'); return; }
+  soundboardData.push({ id: 'sb' + Date.now() + Math.floor(Math.random() * 9999), name: nome, url, duration: 0, tags: '' });
+  saveSoundboard();
+  renderSoundboard();
+  toast('💾 Som salvo na soundboard!');
+}
+
+function carregarMp3Local(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  if (file.size > 50 * 1024 * 1024) { toast('Arquivo muito grande (máx 50MB).'); input.value = ''; return; }
+  const url = URL.createObjectURL(file);
+  const el = document.getElementById('ambientUrlInput');
+  if (el) { el.value = url; el.title = file.name; }
+  toast(`📁 ${file.name} carregado. Clique em Play.`);
+  input.value = '';
+}
+
+function updateAmbientUI() {
+  const btn = document.getElementById('btnAmbientPlay');
+  const status = document.getElementById('ambientStatus');
+  if (btn) btn.textContent = ambientPlaying ? '⏸ Pausar' : '▶ Play';
+  if (status) {
+    const isYt = ambientCurrentUrl && _extrairYtId(ambientCurrentUrl);
+    status.textContent = ambientPlaying ? (isYt ? '▶ YouTube' : 'Tocando') : 'Parado';
+  }
+}
+
+function setMasterVolume(v) {
+  if (soundMasterGain) soundMasterGain.gain.value = parseFloat(v);
+  const lbl = document.getElementById('lblMasterVol');
+  if (lbl) lbl.textContent = Math.round(v * 100) + '%';
+}
+function setSfxVolume(v) {
+  if (soundSfxGain) soundSfxGain.gain.value = parseFloat(v);
+  const lbl = document.getElementById('lblSfxVol');
+  if (lbl) lbl.textContent = Math.round(v * 100) + '%';
+}
+function setAmbientVolume(v) {
+  if (soundAmbientGain) soundAmbientGain.gain.value = parseFloat(v);
+  if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(parseFloat(v) * 100);
+  const lbl = document.getElementById('lblAmbientVol');
+  if (lbl) lbl.textContent = Math.round(v * 100) + '%';
+}
+
+loadSoundboard();
+
+function getSoundUrlById(id) {
+  if (!id) return null;
+  const entry = soundboardData.find(s => s.id === id);
+  return entry ? entry.url : null;
+}
+
+function getSoundNameById(id) {
+  if (!id) return '';
+  const entry = soundboardData.find(s => s.id === id);
+  return entry ? entry.name : '';
+}
+
+function popularSelectorSom(selectId, currentId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Nenhum</option>';
+  soundboardData.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    sel.appendChild(opt);
+  });
+  if (currentId) sel.value = currentId;
+}
+
+function popularMenuSomParede(menuId) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const wallId = BOARD.selectedWallId;
+  const w = wallId ? BOARD.walls.find(wall => wall.id === wallId) : null;
+  const currentSoundId = w ? (w.soundId || '') : '';
+  menu.innerHTML = '';
+  const none = document.createElement('div');
+  none.className = 'context-menu-item';
+  none.textContent = 'Nenhum';
+  none.onclick = function() { setWallSound(''); fecharContextMenu(); };
+  if (!currentSoundId) none.style.color = 'var(--gold)';
+  menu.appendChild(none);
+  soundboardData.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    item.textContent = s.name;
+    item.onclick = function() { setWallSound(s.id); fecharContextMenu(); };
+    if (s.id === currentSoundId) item.style.color = 'var(--gold)';
+    menu.appendChild(item);
+  });
+}
+
+function setWallSound(soundId) {
+  if (!BOARD.selectedWallId) return;
+  const w = BOARD.walls.find(wall => wall.id === BOARD.selectedWallId);
+  if (w) {
+    snapshotBoard();
+    w.soundId = soundId || null;
+    boardSave();
+    boardRender();
+    syncWallsToPlayers();
+    const name = soundId ? getSoundNameById(soundId) : 'nenhum';
+    toast(`🔊 Som da parede: ${name}`);
+  }
+}
+
+function popularMenuSomForma() {
+  const menu = document.getElementById('ctxShapeSomSubmenu');
+  if (!menu) return;
+  const shape = BOARD.shapes.find(s => s.id === contextShapeId);
+  const currentSoundId = shape ? (shape.soundId || '') : '';
+  menu.innerHTML = '';
+  const none = document.createElement('div');
+  none.className = 'context-menu-item';
+  none.textContent = 'Nenhum';
+  none.onclick = function() { setShapeSound(''); fecharContextMenu(); };
+  if (!currentSoundId) none.style.color = 'var(--gold)';
+  menu.appendChild(none);
+  soundboardData.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    item.textContent = s.name;
+    item.onclick = function() { setShapeSound(s.id); fecharContextMenu(); };
+    if (s.id === currentSoundId) item.style.color = 'var(--gold)';
+    menu.appendChild(item);
+  });
+}
+
+function setShapeSound(soundId) {
+  if (!contextShapeId) return;
+  const shape = BOARD.shapes.find(s => s.id === contextShapeId);
+  if (shape) {
+    snapshotBoard();
+    shape.soundId = soundId || null;
+    boardSave();
+    boardRender();
+    syncShapesToPlayers();
+    const name = soundId ? getSoundNameById(soundId) : 'nenhum';
+    toast(`🔊 Som da forma: ${name}`);
+  }
+}
+
+function testarSomFormulario() {
+  const soundId = document.getElementById('tfSom')?.value;
+  if (!soundId) { toast('Selecione um som primeiro.'); return; }
+  const url = getSoundUrlById(soundId);
+  if (url) playSfx(url);
+  else toast('URL do som não encontrada.');
+}
 
 function setSearchSource(source) {
   currentSearchSource = source;
@@ -7632,7 +11363,7 @@ function setSearchSource(source) {
 
   const queryInput = document.getElementById('unsplashQuery');
   const footerSpan = document.querySelector('.unsplash-footer span');
-  
+
   if (source === 'unsplash') {
     if (queryInput) queryInput.placeholder = 'Ex: dragon, warrior, castle...';
     if (footerSpan) footerSpan.innerHTML = 'Fotos por <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>';
@@ -7671,12 +11402,86 @@ function selecionarFotoUnsplash(foto) {
   document.getElementById('unsplashActions').style.display = 'flex';
 }
 
+function precarregarGifSeNecessario(url) {
+  if (isGifUrl(url)) {
+    loadImageWithCORSFallback(url, (img) => {
+      tokenImageCache[url] = img;
+      getGifCanvas(url, img.naturalWidth, img.naturalHeight);
+      boardRender();
+    });
+  }
+}
+
+function criarTokenDeImagem(url, size) {
+  const { x, y } = BOARD.ctxMenuBoardX !== undefined ? { x: BOARD.ctxMenuBoardX, y: BOARD.ctxMenuBoardY } : { x: BOARD.wrap.clientWidth / 2, y: BOARD.wrap.clientHeight / 2 };
+  const { gx, gy } = canvasToGrid(x, y);
+  snapshotBoard();
+  BOARD.tokens.push({
+    id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
+    name: 'Imagem',
+    hp: 0, hpMax: 0, size: size,
+    color: '#c9903a',
+    imageUrl: url, controlledBy: null,
+    borderType: 'solid', borderWidth: 1.5, borderColor: '#000000',
+    shapeType: 'circle', auraRadius: 0,
+    z: 0,
+    layer: 'gm', conditions: [], hideName: false, soundId: null,
+    gx: Math.max(0, gx), gy: Math.max(0, gy)
+  });
+  precarregarGifSeNecessario(url);
+  boardSave(); boardRender(); syncBoardTokensToPlayers();
+  toast(`🎯 Token criado (${size}×${size})!`);
+}
+
+function criarObjetoDeImagem(url, size) {
+  const { x, y } = BOARD.ctxMenuBoardX !== undefined ? { x: BOARD.ctxMenuBoardX, y: BOARD.ctxMenuBoardY } : { x: BOARD.wrap.clientWidth / 2, y: BOARD.wrap.clientHeight / 2 };
+  const { gx, gy } = canvasToGrid(x, y);
+  snapshotBoard();
+  const newId = 'tk' + Date.now() + Math.floor(Math.random() * 9999);
+  const tokenObj = {
+    id: newId,
+    type: 'object',
+    name: 'Objeto',
+    size: size,
+    imageUrl: url,
+    borderType: 'solid', borderWidth: 1.5, borderColor: '#ffffff',
+    layer: 'map',
+    z: 0,
+    conditions: [],
+    hideName: true, soundId: null,
+    gx: Math.max(0, gx), gy: Math.max(0, gy)
+  };
+  BOARD.tokens.push(tokenObj);
+  loadImageWithCORSFallback(url, (img) => {
+    if (img.naturalWidth && img.naturalHeight) {
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      let sx = size, sy = size;
+      if (iw > ih) {
+        sy = Math.max(0.25, size * (ih / iw));
+      } else {
+        sx = Math.max(0.25, size * (iw / ih));
+      }
+      tokenObj.sizeX = Math.round(sx * 4) / 4;
+      tokenObj.sizeY = Math.round(sy * 4) / 4;
+    }
+    precarregarGifSeNecessario(url);
+    boardSave(); boardRender(); syncBoardTokensToPlayers();
+  }, () => {
+    precarregarGifSeNecessario(url);
+    boardSave(); boardRender(); syncBoardTokensToPlayers();
+  });
+  setBoardLayer('map');
+  BOARD.selectedTokens.clear();
+  BOARD.selectedTokens.add(newId);
+  toast(`◻ Objeto criado na camada Mapa! Arraste para posicionar.`);
+}
+
 function usarImgComo(tipo) {
   if (!unsplashSelected) return;
   const url = unsplashSelected.urls.regular;
-  
+
   const formAberto = document.getElementById('tokenForm')?.classList.contains('open');
-  
+
   if (tipo === 'token') {
     if (formAberto) {
       document.getElementById('tfImgUrl').value = url;
@@ -7686,86 +11491,215 @@ function usarImgComo(tipo) {
     } else {
       if (myRole !== 'mestre') { toast('Apenas o Mestre pode criar tokens.'); fecharBuscaUnsplash(); return; }
       fecharBuscaUnsplash();
-      const { x, y } = BOARD.ctxMenuBoardX !== undefined ? { x: BOARD.ctxMenuBoardX, y: BOARD.ctxMenuBoardY } : { x: BOARD.wrap.clientWidth / 2, y: BOARD.wrap.clientHeight / 2 };
-      const { gx, gy } = canvasToGrid(x, y);
-      
-      snapshotBoard();
-      BOARD.tokens.push({
-        id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
-        name: 'Imagem',
-        hp: 0, hpMax: 0, size: 1,
-        color: '#c9903a',
-        imageUrl: url, controlledBy: null,
-        borderType: 'solid', borderWidth: 1.5, borderColor: '#000000',
-        shapeType: 'circle', auraRadius: 0,
-        z: 0,
-        layer: 'gm', conditions: [], hideName: false,
-        gx: Math.max(0, gx), gy: Math.max(0, gy)
-      });
-      // Pré-carrega imagem GIF no DOM para garantir animação se for GIF
-      if (isGifUrl(url)) {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => { getGifCanvas(url, img.naturalWidth, img.naturalHeight); boardRender(); };
-        img.src = url;
-        tokenImageCache[url] = img;
-      }
-      boardSave(); boardRender(); syncBoardTokensToPlayers();
-      toast(`🎯 Token criado (1×1)!`);
+      criarTokenDeImagem(url, 1);
     }
   } else if (tipo === 'objeto') {
     if (myRole !== 'mestre') { toast('Apenas o Mestre pode criar objetos.'); fecharBuscaUnsplash(); return; }
     fecharBuscaUnsplash();
-    const { x, y } = BOARD.ctxMenuBoardX !== undefined ? { x: BOARD.ctxMenuBoardX, y: BOARD.ctxMenuBoardY } : { x: BOARD.wrap.clientWidth / 2, y: BOARD.wrap.clientHeight / 2 };
-    const { gx, gy } = canvasToGrid(x, y);
-    
-    snapshotBoard();
-    BOARD.tokens.push({
-      id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
-      type: 'object',
-      name: 'Objeto',
-      size: 2,
-      imageUrl: url,
-      borderType: 'solid', borderWidth: 1.5, borderColor: '#ffffff',
-      layer: 'map',
-      z: 0,
-      conditions: [],
-      hideName: true,
-      gx: Math.max(0, gx), gy: Math.max(0, gy)
-    });
-    // Pré-carrega imagem GIF no DOM para garantir animação se for GIF
-    if (isGifUrl(url)) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => { getGifCanvas(url, img.naturalWidth, img.naturalHeight); boardRender(); };
-      img.src = url;
-      tokenImageCache[url] = img;
-    }
-    setBoardLayer('map');
-    BOARD.selectedTokens.clear();
-    BOARD.selectedTokens.add(BOARD.tokens[BOARD.tokens.length - 1].id);
-    boardSave(); boardRender(); syncBoardTokensToPlayers();
-    toast(`◻ Objeto criado (2×2) na camada Mapa! Arraste para posicionar.`);
+    criarObjetoDeImagem(url, 2);
   } else if (tipo === 'mapa') {
     if (myRole !== 'mestre') { toast('Apenas o Mestre pode alterar o mapa.'); fecharBuscaUnsplash(); return; }
-    const img = new Image();
-    img.onload = () => {
+    loadImageWithCORSFallback(url, (img) => {
       snapshotBoard();
       BOARD.mapImg = img;
       if (isGifUrl(url)) getGifCanvas(url, img.naturalWidth, img.naturalHeight);
       BOARD.mapDataUrl = url;
+      BOARD.mapX = 0;
+      BOARD.mapY = 0;
+      BOARD.mapWidth = null;
+      BOARD.mapHeight = null;
       boardRender();
-      if (myRole === 'mestre' || amIHost) broadcast({ type: 'board-map', mapUrl: url }, null);
+      if (myRole === 'mestre' || amIHost) syncBoardMapToPlayers();
       fecharBuscaUnsplash();
       toast('🗺 Mapa atualizado!');
-    };
-    img.onerror = () => toast('Erro ao carregar imagem.');
-    img.crossOrigin = 'anonymous';
-    img.src = url;
+    }, () => {
+      toast('Erro ao carregar imagem.');
+    });
   }
-  
+
   BOARD.ctxMenuBoardX = undefined;
   BOARD.ctxMenuBoardY = undefined;
+}
+
+// ──── Sound Search & Soundboard UI ────
+function setSoundTab(tab) {
+  ['sound-tab-buscar', 'sound-tab-soundboard'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('active'); el.style.color = 'var(--text-muted)'; el.style.borderBottomColor = 'transparent'; }
+  });
+  document.getElementById('soundTabBuscar').style.display = tab === 'buscar' ? 'block' : 'none';
+  document.getElementById('soundTabSoundboard').style.display = tab === 'soundboard' ? 'block' : 'none';
+  const activeTab = document.getElementById(tab === 'buscar' ? 'sound-tab-buscar' : 'sound-tab-soundboard');
+  if (activeTab) { activeTab.classList.add('active'); activeTab.style.color = 'var(--gold)'; activeTab.style.borderBottomColor = 'var(--gold)'; }
+  if (tab === 'soundboard') renderSoundboard();
+}
+
+function abrirBuscaAudios() {
+  fecharContextMenu();
+  fecharBuscaUnsplash();
+  document.getElementById('soundModal').style.display = 'flex';
+  document.getElementById('soundQuery').value = '';
+  document.getElementById('soundGrid').innerHTML = '<div class="unsplash-empty">Digite um termo e pressione Enter ou clique em Buscar</div>';
+  document.getElementById('soundActions').style.display = 'none';
+  soundSearchResults = [];
+  soundSelectedHit = null;
+  document.getElementById('soundSelectedName').textContent = '';
+  setSoundTab('buscar');
+  setTimeout(() => document.getElementById('soundQuery').focus(), 100);
+  const savedKeyEl = document.getElementById('freesoundApiKey');
+  if (savedKeyEl) savedKeyEl.value = freesoundApiKey;
+}
+
+function abrirJukebox() {
+  fecharContextMenu();
+  fecharBuscaUnsplash();
+  document.getElementById('soundModal').style.display = 'flex';
+  setSoundTab('soundboard');
+}
+
+function fecharBuscaAudios() {
+  document.getElementById('soundModal').style.display = 'none';
+  stopPreviewAudio();
+}
+
+function formatDuration(seconds) {
+  if (!seconds || seconds <= 0) return '';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return m + ':' + s.toString().padStart(2, '0');
+}
+
+async function executarBuscaAudios() {
+  const q = document.getElementById('soundQuery').value.trim();
+  if (!q) return;
+  const grid = document.getElementById('soundGrid');
+  grid.innerHTML = '<div class="unsplash-empty">Buscando...</div>';
+  document.getElementById('soundActions').style.display = 'none';
+  soundSearchResults = [];
+  soundSelectedHit = null;
+  try {
+    if (!freesoundApiKey) {
+      grid.innerHTML = '<div class="unsplash-empty">Configure sua Freesound API Key para buscar sons.<br><small>Acesse <a href="https://freesound.org/apiv2/apply/" target="_blank" style="color:var(--gold)">freesound.org/apiv2/apply</a> para obter uma gratuitamente.</small></div>';
+      const keyInput = document.getElementById('freesoundApiKey');
+      if (keyInput) keyInput.focus();
+      return;
+    }
+    const res = await fetch(`https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(q)}&fields=id,name,tags,duration,previews&page_size=20&token=${freesoundApiKey}`);
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        grid.innerHTML = '<div class="unsplash-empty">API Key inválida ou expirada. Verifique sua Freesound API Key.</div>';
+      } else {
+        grid.innerHTML = '<div class="unsplash-empty">Erro na busca. Tente novamente.</div>';
+      }
+      return;
+    }
+    const data = await res.json();
+    if (!data.results || !data.results.length) { grid.innerHTML = '<div class="unsplash-empty">Nenhum som encontrado.</div>'; return; }
+    // Normalizar resultados do Freesound para formato compatível
+    soundSearchResults = data.results.map(r => ({
+      id: r.id,
+      name: r.name || 'Som',
+      previews: {
+        medium: r.previews?.['preview-hq-mp3'] || r.previews?.['preview-lq-mp3'] || '',
+        low: r.previews?.['preview-lq-mp3'] || ''
+      },
+      tags: r.name + (r.tags && r.tags.length ? ', ' + r.tags.slice(0, 5).join(', ') : ''),
+      duration: r.duration
+    }));
+    grid.innerHTML = '';
+    soundSearchResults.forEach((hit, idx) => {
+      const div = document.createElement('div');
+      div.className = 'sound-item';
+      const previewUrl = hit.previews?.medium || hit.previews?.low || '';
+      const tags = hit.tags || 'Sem nome';
+      const dur = formatDuration(hit.duration);
+      const firstName = hit.name || tags.split(',')[0].trim() || 'Som';
+      div.innerHTML =
+        '<div class="sound-play-btn" onclick="event.stopPropagation();previewAudio(\'' + previewUrl.replace(/'/g, "\\'") + '\',this)" title="Preview">▶</div>' +
+        '<div class="sound-info">' +
+          '<div class="sound-name">' + escHTML(firstName.substring(0, 30)) + '</div>' +
+          '<div class="sound-tags">' + escHTML(tags.substring(0, 50)) + '</div>' +
+          '<div class="sound-dur">' + dur + '</div>' +
+        '</div>' +
+        '<div class="sound-actions">' +
+          '<button class="btn btn-sm" onclick="event.stopPropagation();addToSoundboard(soundSearchResults[' + idx + '])" title="Adicionar à Soundboard" style="padding:0.15rem 0.35rem;">+</button>' +
+        '</div>';
+      div.onclick = () => selecionarAudioBusca(hit);
+      grid.appendChild(div);
+    });
+  } catch (e) {
+    grid.innerHTML = '<div class="unsplash-empty">Erro de conexão.</div>';
+  }
+}
+
+function selecionarAudioBusca(hit) {
+  soundSelectedHit = hit;
+  const tags = hit.tags || '';
+  document.getElementById('soundSelectedName').textContent = (tags.split(',')[0] || 'Som selecionado').trim();
+  document.getElementById('soundActions').style.display = 'flex';
+  document.getElementById('soundBtnPlayPreview').dataset.url = hit.previews?.medium || hit.previews?.low || hit.download || '';
+}
+
+function tocarPreviewSelecionado() {
+  const url = document.getElementById('soundBtnPlayPreview').dataset.url;
+  if (url) previewAudio(url, null);
+  else toast('Selecione um som primeiro.');
+}
+
+function previewAudio(url, btnEl) {
+  stopPreviewAudio();
+  if (!url) return;
+  const audio = new Audio(url);
+  audio.volume = 0.4;
+  audio.onended = function() { if (btnEl) btnEl.textContent = '▶'; };
+  audio.onerror = function() { toast('Erro ao reproduzir preview.'); };
+  audio.play().then(function() {
+    currentPreviewAudio = audio;
+    if (btnEl) btnEl.textContent = '⏹';
+    document.querySelectorAll('.sound-play-btn').forEach(function(b) { if (b !== btnEl) b.textContent = '▶'; });
+  }).catch(function() { toast('Clique na página para iniciar o áudio.'); });
+}
+
+function stopPreviewAudio() {
+  if (currentPreviewAudio) {
+    try { currentPreviewAudio.pause(); currentPreviewAudio = null; } catch (e) { /* ignore */ }
+  }
+  document.querySelectorAll('.sound-play-btn').forEach(function(b) { b.textContent = '▶'; });
+}
+
+function addSelectedToSoundboard() {
+  if (soundSelectedHit) { addToSoundboard(soundSelectedHit); }
+  else toast('Selecione um som primeiro.');
+}
+
+function tocarSomSoundboard(id) {
+  const entry = soundboardData.find(function(s) { return s.id === id; });
+  if (entry) playSfx(entry.url);
+}
+
+function renderSoundboard() {
+  const container = document.getElementById('soundboardList');
+  const countEl = document.getElementById('sboardCount');
+  if (!container) return;
+  if (!soundboardData || !soundboardData.length) {
+    container.innerHTML = '<div class="sboard-empty">Nenhum som salvo. Busque sons para adicionar!</div>';
+    if (countEl) countEl.textContent = '0';
+    return;
+  }
+  if (countEl) countEl.textContent = soundboardData.length;
+  var html = '';
+  soundboardData.forEach(function(s) {
+    html += '<div class="sboard-item">' +
+      '<button class="sboard-play-btn" onclick="tocarSomSoundboard(\'' + s.id + '\')" title="Tocar uma vez">▶</button>' +
+      '<button class="sboard-play-btn" onclick="playAmbient(\'' + s.url.replace(/'/g, "\\'") + '\')" title="Repetir como música ambiente" style="color:var(--gold);">🔁</button>' +
+      '<div class="sboard-info">' +
+        '<div class="sboard-name">' + escHTML(s.name.substring(0, 28)) + '</div>' +
+        '<div class="sboard-meta">' + (s.duration ? formatDuration(s.duration) : '') + '</div>' +
+      '</div>' +
+      '<button class="btn btn-sm" onclick="removeFromSoundboard(\'' + s.id + '\')" style="font-size:0.6rem;padding:0;width:20px;height:20px;color:var(--red-bright);" title="Remover">✕</button>' +
+    '</div>';
+  });
+  container.innerHTML = html;
 }
 
 // ── Colar URL da Imagem no grid ──
@@ -7785,80 +11719,273 @@ function usarPasteImg(tipo) {
   const url = document.getElementById('pasteImgUrl').value.trim();
   if (!url) { toast('Cole uma URL primeiro.'); return; }
   fecharPasteImagem();
-  const { x, y } = BOARD.ctxMenuBoardX !== undefined ? { x: BOARD.ctxMenuBoardX, y: BOARD.ctxMenuBoardY } : { x: BOARD.wrap.clientWidth / 2, y: BOARD.wrap.clientHeight / 2 };
-  const { gx, gy } = canvasToGrid(x, y);
   if (tipo === 'fundo') {
-    const img = new Image();
-    img.onload = () => {
+    loadImageWithCORSFallback(url, (img) => {
       snapshotBoard();
       BOARD.mapImg = img;
       if (isGifUrl(url)) getGifCanvas(url, img.naturalWidth, img.naturalHeight);
       BOARD.mapDataUrl = url;
+      BOARD.mapX = 0;
+      BOARD.mapY = 0;
+      BOARD.mapWidth = null;
+      BOARD.mapHeight = null;
       boardRender();
-      if (myRole === 'mestre' || amIHost) broadcast({ type: 'board-map', mapUrl: url }, null);
+      if (myRole === 'mestre' || amIHost) syncBoardMapToPlayers();
       toast('🗺 Fundo atualizado!');
-    };
-    img.onerror = () => toast('Erro ao carregar imagem.');
-    img.crossOrigin = 'anonymous';
-    img.src = url;
+    }, () => {
+      toast('Erro ao carregar imagem.');
+    });
   } else if (tipo === 'objeto') {
-    snapshotBoard();
     const s = parseFloat(document.getElementById('pasteImgSize').value) || 2;
-    const newId = 'tk' + Date.now() + Math.floor(Math.random()*9999);
-    BOARD.tokens.push({
-      id: newId,
-      type: 'object',
-      name: 'Objeto',
-      size: s,
-      imageUrl: url,
-      borderType: 'solid', borderWidth: 1.5, borderColor: '#ffffff',
-      layer: 'map',
-      z: 0,
-      conditions: [],
-      hideName: true,
-      gx: Math.max(0, gx), gy: Math.max(0, gy)
-    });
-    // Pré-carrega imagem GIF no DOM para garantir animação
-    if (isGifUrl(url)) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => { getGifCanvas(url, img.naturalWidth, img.naturalHeight); boardRender(); };
-      img.src = url;
-      tokenImageCache[url] = img;
-    }
-    setBoardLayer('map');
-    BOARD.selectedTokens.clear();
-    BOARD.selectedTokens.add(newId);
-    boardSave(); boardRender(); syncBoardTokensToPlayers();
-    toast(`◻ Objeto criado (${s}×${s}) na camada Mapa! Arraste para posicionar.`);
+    criarObjetoDeImagem(url, s);
   } else if (tipo === 'token') {
-    snapshotBoard();
     const s = parseFloat(document.getElementById('pasteImgSize').value) || 1;
-    BOARD.tokens.push({
-      id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
-      name: 'Imagem',
-      hp: 0, hpMax: 0, size: s,
-      color: '#c9903a',
-      imageUrl: url, controlledBy: null,
-      borderType: 'solid', borderWidth: 1.5, borderColor: '#000000',
-      shapeType: 'circle', auraRadius: 0,
-      z: 0,
-      layer: 'gm', conditions: [], hideName: false,
-      gx: Math.max(0, gx), gy: Math.max(0, gy)
-    });
-    // Pré-carrega imagem GIF no DOM para garantir animação se for GIF
-    if (isGifUrl(url)) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => { getGifCanvas(url, img.naturalWidth, img.naturalHeight); boardRender(); };
-      img.src = url;
-      tokenImageCache[url] = img;
-    }
-    boardSave(); boardRender(); syncBoardTokensToPlayers();
-    toast(`🎯 Token criado (${s}×${s})!`);
+    criarTokenDeImagem(url, s);
   }
   BOARD.ctxMenuBoardX = undefined;
   BOARD.ctxMenuBoardY = undefined;
+}
+
+let boardUploadedImageDataUrl = null;
+
+function abrirUploadImagem() {
+  fecharContextMenu();
+  boardUploadedImageDataUrl = null;
+  document.getElementById('uploadImgModal').style.display = 'flex';
+  document.getElementById('uploadImgLabel').textContent = 'Escolha um arquivo do dispositivo...';
+  document.getElementById('boardUploadFileInput').value = '';
+  document.getElementById('btnUploadComoFundo').disabled = true;
+  document.getElementById('btnUploadComoObjeto').disabled = true;
+  document.getElementById('btnUploadComoToken').disabled = true;
+}
+
+function fecharUploadImagem() {
+  document.getElementById('uploadImgModal').style.display = 'none';
+}
+
+function onBoardUploadFileChange(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    boardUploadedImageDataUrl = e.target.result;
+    document.getElementById('uploadImgLabel').textContent = `✓ ${file.name}`;
+    document.getElementById('btnUploadComoFundo').disabled = false;
+    document.getElementById('btnUploadComoObjeto').disabled = false;
+    document.getElementById('btnUploadComoToken').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function usarUploadImg(tipo) {
+  if (myRole !== 'mestre') { toast('Apenas o Mestre pode fazer upload de imagens.'); fecharUploadImagem(); return; }
+  if (!boardUploadedImageDataUrl) { toast('Escolha um arquivo primeiro.'); return; }
+  const dataUrl = boardUploadedImageDataUrl;
+  fecharUploadImagem();
+
+  if (tipo === 'fundo') {
+    loadImageWithCORSFallback(dataUrl, (img) => {
+      snapshotBoard();
+      BOARD.mapImg = img;
+      if (isGifUrl(dataUrl)) getGifCanvas(dataUrl, img.naturalWidth, img.naturalHeight);
+      BOARD.mapDataUrl = dataUrl;
+      BOARD.mapX = 0;
+      BOARD.mapY = 0;
+      BOARD.mapWidth = null;
+      BOARD.mapHeight = null;
+      boardRender();
+      if (myRole === 'mestre' || amIHost) syncBoardMapToPlayers();
+      toast('🗺 Fundo atualizado!');
+    }, () => {
+      toast('Erro ao carregar imagem.');
+    });
+  } else if (tipo === 'objeto') {
+    const s = parseFloat(document.getElementById('uploadImgSize').value) || 2;
+    criarObjetoDeImagem(dataUrl, s);
+  } else if (tipo === 'token') {
+    const s = parseFloat(document.getElementById('uploadImgSize').value) || 1;
+    criarTokenDeImagem(dataUrl, s);
+  }
+  BOARD.ctxMenuBoardX = undefined;
+  BOARD.ctxMenuBoardY = undefined;
+}
+
+function carregarMapa() {
+  if (myRole !== 'mestre') {
+    toast('Apenas o Mestre pode alterar o mapa.');
+    return;
+  }
+  const op = confirm("Deseja carregar o mapa enviando um arquivo do seu computador?\n(Clique em Cancelar se desejar colar uma URL de imagem)");
+  if (op) {
+    document.getElementById('mapaFileInput').click();
+  } else {
+    const url = prompt("Cole a URL da imagem do mapa:");
+    if (url && url.trim()) {
+      carregarMapaDeUrl(url.trim());
+    }
+  }
+}
+
+function onMapaFileChange(input) {
+  if (myRole !== 'mestre') return;
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    carregarMapaDeUrl(e.target.result);
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function carregarMapaDeUrl(url) {
+  if (myRole !== 'mestre') return;
+  loadImageWithCORSFallback(url, (img) => {
+    snapshotBoard();
+    BOARD.mapImg = img;
+    if (isGifUrl(url)) getGifCanvas(url, img.naturalWidth, img.naturalHeight);
+    BOARD.mapDataUrl = url;
+    BOARD.mapX = 0;
+    BOARD.mapY = 0;
+    BOARD.mapWidth = null;
+    BOARD.mapHeight = null;
+    boardRender();
+    if (myRole === 'mestre' || amIHost) {
+      syncBoardMapToPlayers();
+    }
+    boardSave();
+    toast('🗺 Mapa atualizado!');
+  }, () => {
+    toast('Erro ao carregar imagem do mapa.');
+  });
+}
+
+function importarUVTT() {
+  if (myRole !== 'mestre') {
+    toast('Apenas o Mestre pode importar mapas UVTT.');
+    return;
+  }
+  document.getElementById('uvttFileInput').click();
+}
+
+async function onUVTTFile(input) {
+  if (myRole !== 'mestre') return;
+  const file = input.files && input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
+
+    let imageFile = null;
+    let metadataFile = null;
+
+    const files = Object.keys(zip.files);
+    for (const name of files) {
+      const lower = name.toLowerCase();
+      if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp')) {
+        if (!name.startsWith('__') && !lower.includes('thumbnail')) {
+          imageFile = name;
+        }
+      }
+      if (lower === 'dd2vtt.json' || lower.endsWith('/dd2vtt.json') || lower.endsWith('metadata.json') || lower.endsWith('map.json')) {
+        metadataFile = name;
+      }
+    }
+
+    if (!imageFile) {
+      toast('Erro: Nenhuma imagem encontrada no arquivo UVTT.');
+      return;
+    }
+
+    const imageBlob = await zip.files[imageFile].async('blob');
+    const imageUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(imageBlob);
+    });
+
+    let wallsData = null;
+    let pixelsPerGrid = 100;
+    let offsetX = 0, offsetY = 0;
+
+    if (metadataFile) {
+      try {
+        const metadataStr = await zip.files[metadataFile].async('string');
+        const metadata = JSON.parse(metadataStr);
+
+        pixelsPerGrid = metadata.resolution?.pixels_per_grid || 100;
+
+        if (metadata.resolution?.map_origin) {
+          offsetX = metadata.resolution.map_origin.x || 0;
+          offsetY = metadata.resolution.map_origin.y || 0;
+        }
+
+        wallsData = metadata.walls || [];
+
+        if (metadata.portals) {
+          for (const p of metadata.portals) {
+            if (p.x !== undefined && p.y !== undefined && p.x2 !== undefined && p.y2 !== undefined) {
+              wallsData.push({ x: p.x, y: p.y, x2: p.x2, y2: p.y2, type: (p.type === 'door' || p.type === 'window') ? p.type : 'door' });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao ler metadados UVTT:', e);
+      }
+    }
+
+    snapshotBoard();
+
+    loadImageWithCORSFallback(imageUrl, (img) => {
+      BOARD.mapImg = img;
+      BOARD.mapDataUrl = imageUrl;
+      BOARD.mapX = 0;
+      BOARD.mapY = 0;
+      BOARD.mapWidth = null;
+      BOARD.mapHeight = null;
+
+      if (wallsData) {
+        const floorZ = (BOARD.activeFloor || 0) * 10;
+        let wallCount = 0;
+        for (const w of wallsData) {
+          if (w.x !== undefined && w.y !== undefined && w.x2 !== undefined && w.y2 !== undefined) {
+            BOARD.walls.push({
+              id: 'uvtt_wall_' + Date.now() + '_' + wallCount,
+              x1: w.x - offsetX,
+              y1: w.y - offsetY,
+              x2: w.x2 - offsetX,
+              y2: w.y2 - offsetY,
+              type: w.type || 'normal',
+              open: false,
+              z: floorZ,
+              soundId: null
+            });
+            wallCount++;
+          }
+        }
+        toast(`📦 UVTT: ${wallCount} paredes importadas!`);
+      } else {
+        toast('📦 UVTT: Mapa importado (sem paredes no arquivo).');
+      }
+
+      boardRender();
+      if (myRole === 'mestre' || amIHost) {
+        syncBoardMapToPlayers();
+        syncWallsToPlayers();
+      }
+      boardSave();
+    }, () => {
+      toast('Erro ao carregar imagem do UVTT.');
+    });
+  } catch (e) {
+    console.error('Erro ao processar UVTT:', e);
+    toast('Erro ao processar arquivo UVTT.');
+  }
 }
 
 async function executarBuscaImagens() {
@@ -7868,7 +11995,7 @@ async function executarBuscaImagens() {
   grid.innerHTML = '<div class="unsplash-empty">Buscando...</div>';
   document.getElementById('unsplashActions').style.display = 'none';
   unsplashSelected = null;
-  
+
   if (currentSearchSource === 'unsplash') {
     try {
       const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=15&client_id=${UNSPLASH_ACCESS_KEY}`);
@@ -7884,7 +12011,7 @@ async function executarBuscaImagens() {
         div.onclick = () => selecionarFotoUnsplash(foto);
         grid.appendChild(div);
       });
-    } catch(e) {
+    } catch (e) {
       grid.innerHTML = '<div class="unsplash-empty">Erro de conexão.</div>';
     }
   } else if (currentSearchSource === 'pixabay') {
@@ -7916,7 +12043,7 @@ async function executarBuscaImagens() {
         div.onclick = () => selecionarFotoUnsplash(adaptedPhoto);
         grid.appendChild(div);
       });
-    } catch(e) {
+    } catch (e) {
       grid.innerHTML = '<div class="unsplash-empty">Erro de conexão com o Pixabay.</div>';
     }
   } else {
@@ -7952,7 +12079,7 @@ async function executarBuscaImagens() {
         div.onclick = () => selecionarFotoUnsplash(adaptedPhoto);
         grid.appendChild(div);
       });
-    } catch(e) {
+    } catch (e) {
       grid.innerHTML = '<div class="unsplash-empty">Erro de conexão com o Pexels.</div>';
     }
   }
@@ -7980,6 +12107,14 @@ function abrirFormToken(cx, cy, prefillOpts) {
   popularControleSelect('');
   definirImagemToken(prefillOpts?.imageUrl || '');
 
+  popularSelectorSom('tfSom', null);
+
+  // Restaura todos os campos (podem ter sido ocultos pelo jogador antes)
+  ['tfRowControle','tfRowLayer','tfRowVisao','tfRowZ','tfRowAuras','tfRowAuraAlcance','tfRowForma','tfRowSom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+
   const layerSelect = document.getElementById('tfLayer');
   if (layerSelect) {
     layerSelect.value = BOARD.activeLayer || 'players';
@@ -7990,6 +12125,26 @@ function abrirFormToken(cx, cy, prefillOpts) {
   const posYInput = document.getElementById('tfImgPosY');
   if (posXInput) posXInput.value = 50;
   if (posYInput) posYInput.value = 50;
+
+  // Preview da borda
+  ['tfBorderType','tfBorderWidth','tfBorderColor'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = id === 'tfBorderColor' ? '#000000' : (id === 'tfBorderWidth' ? '1.5' : 'solid');
+  });
+  const bw = document.getElementById('tfBorderWidthVal');
+  if (bw) bw.textContent = '1.5';
+  const bType = document.getElementById('tfBorderType');
+  const bWidth = document.getElementById('tfBorderWidth');
+  const bColor = document.getElementById('tfBorderColor');
+  const atualizarPreview = () => {
+    const s = document.getElementById('tfBorderWidthVal');
+    if (s) s.textContent = document.getElementById('tfBorderWidth')?.value || '1.5';
+    _renderBorderPreview();
+  };
+  if (bType) bType.onchange = atualizarPreview;
+  if (bWidth) bWidth.oninput = atualizarPreview;
+  if (bColor) bColor.oninput = atualizarPreview;
+  _renderBorderPreview();
 
   posicionarForm(cx, cy);
   document.getElementById('tokenForm').classList.add('open');
@@ -8005,6 +12160,28 @@ function abrirFormTokenEdit(token, cx, cy) {
   selectTokenColorByValue(token.color || '#c94040');
   popularControleSelect(token.controlledBy || '');
   definirImagemToken(token.imageUrl || '');
+
+  const ehJogador = (myRole !== 'mestre');
+
+  popularSelectorSom('tfSom', token.soundId || '');
+
+  // Mostra todos os campos primeiro, depois esconde os restritos p/ jogador
+  ['tfRowControle','tfRowLayer','tfRowVisao','tfRowZ','tfRowAuras','tfRowAuraAlcance','tfRowForma','tfRowSom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+  if (ehJogador) {
+    ['tfRowControle','tfRowLayer','tfRowVisao','tfRowZ','tfRowAuras','tfRowAuraAlcance','tfRowForma','tfRowSom'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  }
+
+  // Objetos não têm visão
+  if (token.type === 'object') {
+    const el = document.getElementById('tfRowVisao');
+    if (el) el.style.display = 'none';
+  }
 
   const layerSelect = document.getElementById('tfLayer');
   if (layerSelect) {
@@ -8024,11 +12201,73 @@ function abrirFormTokenEdit(token, cx, cy) {
   if (posXInput) posXInput.value = posX;
   if (posYInput) posYInput.value = posY;
 
+  if (token.type === 'object') {
+    const sx = document.getElementById('tfSizeX');
+    const sy = document.getElementById('tfSizeY');
+    if (sx) sx.value = String(token.sizeX || token.size || 1);
+    if (sy) sy.value = String(token.sizeY || token.size || 1);
+    const origX = token.sizeX || token.size || 1;
+    const origY = token.sizeY || token.size || 1;
+    _initSizeProportionLock(origX, origY, sx, sy);
+  } else {
+    _clearSizeProportionLock();
+  }
+
+  // Inicializa preview da borda
+  const setB = (id, prop, fallback) => { const el = document.getElementById(id); if (el) el.value = token[prop] ?? fallback; };
+  setB('tfBorderType', 'borderType', 'solid');
+  setB('tfBorderWidth', 'borderWidth', '1.5');
+  setB('tfBorderColor', 'borderColor', '#000000');
+  const bwSpan = document.getElementById('tfBorderWidthVal');
+  if (bwSpan) bwSpan.textContent = document.getElementById('tfBorderWidth')?.value || '1.5';
+  const atualizarPreview = () => {
+    const s = document.getElementById('tfBorderWidthVal');
+    if (s) s.textContent = document.getElementById('tfBorderWidth')?.value || '1.5';
+    _renderBorderPreview();
+  };
+  const bType = document.getElementById('tfBorderType');
+  const bWidth = document.getElementById('tfBorderWidth');
+  const bColor = document.getElementById('tfBorderColor');
+  if (bType) bType.onchange = atualizarPreview;
+  if (bWidth) bWidth.oninput = atualizarPreview;
+  if (bColor) bColor.oninput = atualizarPreview;
+  _renderBorderPreview();
+
   posicionarForm(cx, cy);
   document.getElementById('tokenForm').classList.add('open');
   document.getElementById('tfName').focus();
   _initTokenPreviewDrag();
   _loadTokenPreviewImage(token.imageUrl || '');
+}
+
+let _sizePropLockX = null;
+let _sizePropLockY = null;
+let _sizePropRatio = 1;
+
+function _clearSizeProportionLock() {
+  if (_sizePropLockX) { _sizePropLockX.oninput = null; _sizePropLockX = null; }
+  if (_sizePropLockY) { _sizePropLockY.oninput = null; _sizePropLockY = null; }
+  _sizePropRatio = 1;
+}
+
+function _initSizeProportionLock(origX, origY, elX, elY) {
+  _clearSizeProportionLock();
+  _sizePropRatio = origY / origX || 1;
+  _sizePropLockX = elX;
+  _sizePropLockY = elY;
+  if (!elX || !elY) return;
+  elX.oninput = function () {
+    const v = parseFloat(this.value);
+    if (!isNaN(v) && v > 0) {
+      elY.value = String(Math.round(v * _sizePropRatio * 4) / 4);
+    }
+  };
+  elY.oninput = function () {
+    const v = parseFloat(this.value);
+    if (!isNaN(v) && v > 0) {
+      elX.value = String(Math.round(v / _sizePropRatio * 4) / 4);
+    }
+  };
 }
 
 function posicionarForm(cx, cy) {
@@ -8049,6 +12288,7 @@ function posicionarForm(cx, cy) {
 function fecharFormToken() {
   document.getElementById('tokenForm')?.classList.remove('open');
   tfEditingId = null;
+  _clearSizeProportionLock();
 }
 
 function selectTokenColor(el) {
@@ -8161,13 +12401,41 @@ function _initTokenPreviewDrag() {
   window.addEventListener('touchend', onEnd);
 }
 
+function _renderBorderPreview() {
+  const canvas = document.getElementById('tfBorderPreview');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const borderType = document.getElementById('tfBorderType')?.value || 'solid';
+  if (borderType === 'none') return;
+
+  const borderWidth = parseFloat(document.getElementById('tfBorderWidth')?.value) || 1.5;
+  const borderColor = document.getElementById('tfBorderColor')?.value || '#000000';
+  const cx = W / 2, cy = H / 2, r = W / 2 - 2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = '#3a2a1c';
+  ctx.fill();
+
+  renderTokenBorder(ctx, cx, cy, r, { borderType, borderWidth, borderColor, shapeType: 'circle', zoom: 1 });
+  ctx.restore();
+}
+
 function _loadTokenPreviewImage(url, cb) {
   if (!url) { tfPreviewImg = null; _renderTokenPreviewCanvas(); if (cb) cb(); return; }
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => { tfPreviewImg = img; _renderTokenPreviewCanvas(); if (cb) cb(); };
-  img.onerror = () => { tfPreviewImg = null; _renderTokenPreviewCanvas(); if (cb) cb(); };
-  img.src = url;
+  loadImageWithCORSFallback(url, (img) => {
+    tfPreviewImg = img;
+    _renderTokenPreviewCanvas();
+    if (cb) cb();
+  }, () => {
+    tfPreviewImg = null;
+    _renderTokenPreviewCanvas();
+    if (cb) cb();
+  });
 }
 
 function definirImagemToken(url) {
@@ -8208,35 +12476,51 @@ function confirmarToken() {
   const name = document.getElementById('tfName').value.trim() || 'Token';
   const hp = parseInt(document.getElementById('tfHP').value) || 0;
   const size = parseInt(document.getElementById('tfSize').value) || 1;
-  const controlledBy = document.getElementById('tfControlledBy').value || null;
+  const ehJogador = (myRole !== 'mestre');
+  const controlledBy = ehJogador ? null : (document.getElementById('tfControlledBy').value || null);
   const imageUrl = tfSelectedImage || '';
   const layer = myRole === 'mestre' ? (document.getElementById('tfLayer')?.value || 'gm') : 'players';
   const posX = parseInt(document.getElementById('tfImgPosX').value) || 50;
   const posY = parseInt(document.getElementById('tfImgPosY').value) || 50;
   const imagePosition = `${posX}% ${posY}%`;
   const hideName = document.getElementById('tfHideName').checked;
-  const z = parseInt(document.getElementById('tfZ').value) || 0;
-  const visionType = document.querySelector('input[name="tfVision"]:checked')?.value || 'normal';
-  const auras = lerAurasForm();
+  const z = !ehJogador ? (parseInt(document.getElementById('tfZ').value) || 0) : 0;
+  const visionType = !ehJogador ? (document.querySelector('input[name="tfVision"]:checked')?.value || 'normal') : 'normal';
+  const auras = !ehJogador ? lerAurasForm() : [];
   const borderType = document.getElementById('tfBorderType')?.value || 'solid';
   const borderWidth = parseFloat(document.getElementById('tfBorderWidth')?.value) || 1.5;
   const borderColor = document.getElementById('tfBorderColor')?.value || 'rgba(0,0,0,0.5)';
-  const shapeType = document.getElementById('tfShapeType')?.value || 'circle';
-  const auraRadius = parseFloat(document.getElementById('tfAuraRadius')?.value) || 0;
-  const auraColor = document.getElementById('tfAuraColor')?.value || 'rgba(66,165,245,0.2)';
+  const shapeType = !ehJogador ? (document.getElementById('tfShapeType')?.value || 'circle') : 'circle';
+  const auraRadius = !ehJogador ? (parseFloat(document.getElementById('tfAuraRadius')?.value) || 0) : 0;
+  const auraColor = !ehJogador ? (document.getElementById('tfAuraColor')?.value || 'rgba(66,165,245,0.2)') : 'rgba(66,165,245,0.2)';
+  const soundId = document.getElementById('tfSom')?.value || null;
 
   if (tfEditingId) {
     const t = BOARD.tokens.find(t => t.id === tfEditingId);
     if (t) {
       t.name = name;
       t.hp = hp; if (hp > t.hpMax) t.hpMax = hp;
-      t.controlledBy = controlledBy;
       t.imageUrl = imageUrl;
-      t.layer = layer;
       t.imagePosition = imagePosition;
       t.hideName = hideName;
-      t.z = z;
-      
+      t.color = tfSelectedColor;
+      t.borderType = borderType;
+      t.borderWidth = borderWidth;
+      t.borderColor = borderColor;
+
+      t.soundId = soundId;
+
+      if (!ehJogador) {
+        t.controlledBy = controlledBy;
+        t.layer = layer;
+        t.z = z;
+        t.visionType = visionType;
+        t.auras = auras;
+        t.shapeType = shapeType;
+        t.auraRadius = auraRadius;
+        t.auraColor = auraColor;
+      }
+
       if (t.type === 'object') {
         const sizeX = parseFloat(document.getElementById('tfSizeX').value);
         const sizeY = parseFloat(document.getElementById('tfSizeY').value);
@@ -8248,15 +12532,6 @@ function confirmarToken() {
         t.sizeX = size;
         t.sizeY = size;
       }
-      t.color = tfSelectedColor;
-      t.visionType = visionType;
-      t.auras = auras;
-      t.borderType = borderType;
-      t.borderWidth = borderWidth;
-      t.borderColor = borderColor;
-      t.shapeType = shapeType;
-      t.auraRadius = auraRadius;
-      t.auraColor = auraColor;
     }
   } else {
     const cx = BOARD.wrap.clientWidth / 2;
@@ -8265,8 +12540,8 @@ function confirmarToken() {
     const bestiaryName = window._bestiaryPendingName || '';
     window._bestiaryPendingName = '';
     BOARD.tokens.push({
-      id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
-      name, hp, hpMax: hp, size, 
+      id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
+      name, hp, hpMax: hp, size,
       sizeX: size, sizeY: size,
       color: tfSelectedColor,
       imageUrl, controlledBy,
@@ -8274,28 +12549,29 @@ function confirmarToken() {
       conditions: [], hideName,
       bestiaryName, visionType, auras,
       borderType, borderWidth, borderColor, shapeType, auraRadius, auraColor,
-      z,
+      z, soundId,
       gx: Math.max(0, gx), gy: Math.max(0, gy)
     });
   }
 
   fecharFormToken();
   boardSave(); boardRender(); syncBoardTokensToPlayers();
+  if (myRole !== 'mestre' || emVisaoJogador()) atualizarFogJogador();
 }
 
 // ── Adicionar token a partir do combate ──
 function tokenDosCombatentes() {
   if (!combatState?.combatants?.length) { toast('Sem combatentes no gerenciador.'); return; }
   snapshotBoard();
-  const CORES = ['#c94040','#4080c9','#40a050','#c9903a','#9040c9','#c0c0c0','#40b0b0','#c940a0'];
+  const CORES = ['#c94040', '#4080c9', '#40a050', '#c9903a', '#9040c9', '#c0c0c0', '#40b0b0', '#c940a0'];
   let adicionados = 0;
   combatState.combatants.forEach((c, i) => {
     const jaExiste = BOARD.tokens.find(t => t.combatId === c.id);
     if (!jaExiste) {
       const { offsetX, offsetY, zoom, gridSize } = BOARD;
       const col = i % 8; const row = Math.floor(i / 8);
-      const startGx = Math.max(0, Math.floor((-offsetX/zoom) / gridSize) + 1 + col * 2);
-      const startGy = Math.max(0, Math.floor((-offsetY/zoom) / gridSize) + 1 + row * 2);
+      const startGx = Math.max(0, Math.floor((-offsetX / zoom) / gridSize) + 1 + col * 2);
+      const startGy = Math.max(0, Math.floor((-offsetY / zoom) / gridSize) + 1 + row * 2);
 
       // Busca enquadramento customizado se houver
       let threatImg = c.imageUrl || '';
@@ -8309,10 +12585,10 @@ function tokenDosCombatentes() {
             threatImgPosition = customImages[cleanName].position || '50% 50%';
           }
         }
-      } catch(e) {}
+      } catch (e) { }
 
       BOARD.tokens.push({
-        id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
+        id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
         combatId: c.id,
         name: c.name, hp: c.hpCur, hpMax: c.hpMax,
         pm: c.mpCur || 0, pmMax: c.mpMax || 0,
@@ -8324,7 +12600,7 @@ function tokenDosCombatentes() {
         borderType: 'solid', borderWidth: 1.5, borderColor: '#000000',
         shapeType: 'circle', auraRadius: 0,
         z: 0,
-      layer: BOARD.activeLayer || 'gm',
+        layer: BOARD.activeLayer || 'gm',
         conditions: [],
         hideName: false,
         gx: startGx, gy: startGy
@@ -8346,7 +12622,7 @@ function adicionarTokenDoCombatente(combatantId) {
   // Busca imagem e enquadramento customizado se houver
   let threatImg = c.imageUrl || '';
   let threatImgPosition = '50% 50%';
-  
+
   if (!threatImg && typeof AMEACAS_DB !== 'undefined') {
     const cleanName = c.name.replace(/\s+\d+$/, '').trim().toLowerCase();
     const threatMatch = AMEACAS_DB.find(t => (t.nome || '').toLowerCase() === cleanName);
@@ -8366,7 +12642,7 @@ function adicionarTokenDoCombatente(combatantId) {
         threatImg = customImages[cleanName];
       }
     }
-  } catch(e) {}
+  } catch (e) { }
 
   // Centraliza na tela
   const { offsetX, offsetY, zoom, gridSize } = BOARD;
@@ -8375,7 +12651,7 @@ function adicionarTokenDoCombatente(combatantId) {
   const { gx, gy } = canvasToGrid(cx, cy);
 
   BOARD.tokens.push({
-    id: 'tk' + Date.now() + Math.floor(Math.random()*9999),
+    id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
     combatId: c.id,
     name: c.name,
     hp: c.hpCur,
@@ -8413,8 +12689,8 @@ function atualizarTokensDoCombate() {
       const c = combatState.combatants.find(c => c.id === t.combatId);
       if (c) {
         if (t.hp !== c.hpCur || t.hpMax !== c.hpMax ||
-            t.pm !== (c.mpCur || 0) || t.pmMax !== (c.mpMax || 0) ||
-            t.defense !== (c.stats?.def || '')) {
+          t.pm !== (c.mpCur || 0) || t.pmMax !== (c.mpMax || 0) ||
+          t.defense !== (c.stats?.def || '')) {
           t.hp = c.hpCur; t.hpMax = c.hpMax;
           t.pm = c.mpCur || 0; t.pmMax = c.mpMax || 0;
           t.defense = c.stats?.def || 0;
@@ -8426,59 +12702,455 @@ function atualizarTokensDoCombate() {
   if (changed) { boardRender(); syncBoardTokensToPlayers(); }
 }
 
-// ── Salvar/Carregar ──
-function boardSave() {
-  try {
-    const state = {
-      tokens: BOARD.tokens,
-      walls: BOARD.walls,
-      shapes: BOARD.shapes,
-      gridSize: BOARD.gridSize,
-      gridOn: BOARD.gridOn,
-      activeFloor: BOARD.activeFloor || 0,
-      gridCols: BOARD.gridCols,
-      gridRows: BOARD.gridRows,
-      gridScaleVal: BOARD.gridScaleVal,
-      gridScaleUnit: BOARD.gridScaleUnit,
-      gridType: BOARD.gridType,
-      lightingType: BOARD.lightingType
-    };
-    if (BOARD.fogManual && BOARD.fogVisible) {
-      state.fogVisible = Array.from(BOARD.fogVisible);
-      state.fogManual = true;
-    }
-    localStorage.setItem('vtt_board_state', JSON.stringify(state));
-  } catch(e) {}
+// ── Salvar/Carregar Cenas ──
+function saveCurrentBoardToActiveScene() {
+  const activeScene = SCENES.find(s => s.id === ACTIVE_SCENE_ID);
+  if (!activeScene) return;
+
+  activeScene.tokens = BOARD.tokens;
+  activeScene.walls = BOARD.walls;
+  activeScene.shapes = BOARD.shapes;
+  activeScene.gridSize = BOARD.gridSize;
+  activeScene.gridOn = BOARD.gridOn;
+  activeScene.activeFloor = BOARD.activeFloor || 0;
+  activeScene.gridCols = BOARD.gridCols;
+  activeScene.gridRows = BOARD.gridRows;
+  activeScene.gridScaleVal = BOARD.gridScaleVal;
+  activeScene.gridScaleUnit = BOARD.gridScaleUnit;
+  activeScene.gridType = BOARD.gridType;
+  activeScene.distanceMode = BOARD.distanceMode;
+  activeScene.lightingType = BOARD.lightingType;
+  activeScene.mapDataUrl = BOARD.mapDataUrl;
+  activeScene.mapX = BOARD.mapX || 0;
+  activeScene.mapY = BOARD.mapY || 0;
+  activeScene.mapWidth = BOARD.mapWidth || null;
+  activeScene.mapHeight = BOARD.mapHeight || null;
+  
+  if (BOARD.fogManual && BOARD.fogVisible) {
+    activeScene.fogVisible = Array.from(BOARD.fogVisible);
+    activeScene.fogManual = true;
+  } else {
+    activeScene.fogVisible = null;
+    activeScene.fogManual = false;
+  }
 }
+
+function saveScenesLocally() {
+  try {
+    localStorage.setItem('vtt_scenes', JSON.stringify(SCENES));
+    localStorage.setItem('vtt_active_scene_id', ACTIVE_SCENE_ID);
+    localStorage.setItem('vtt_players_scene_id', PLAYERS_SCENE_ID);
+  } catch (e) { }
+}
+
+function loadSceneIntoBoard(scene) {
+  // Clear selections
+  if (BOARD.selectedTokens) BOARD.selectedTokens.clear();
+  BOARD.dragging = null;
+  BOARD.hovered = null;
+
+  BOARD.tokens = (scene.tokens || []).map(t => ({
+    ...t,
+    layer: t.layer || 'players',
+    conditions: t.conditions || [],
+    hideName: t.hideName || false,
+    soundId: t.soundId || null
+  }));
+  
+  BOARD.walls = (scene.walls || []).map(w => ({
+    ...w,
+    soundId: w.soundId || null
+  }));
+  
+  BOARD.shapes = (scene.shapes || []).map(sh => ({
+    ...sh,
+    soundId: sh.soundId || null,
+    hidden: sh.hidden === true,
+    triggerImageUrl: sh.triggerImageUrl || null,
+    triggered: sh.triggered === true
+  }));
+  
+  if (scene.gridSize) BOARD.gridSize = scene.gridSize;
+  if (typeof scene.gridOn === 'boolean') BOARD.gridOn = scene.gridOn;
+  if (scene.activeFloor !== undefined) BOARD.activeFloor = scene.activeFloor;
+  if (scene.gridCols !== undefined) BOARD.gridCols = scene.gridCols;
+  if (scene.gridRows !== undefined) BOARD.gridRows = scene.gridRows;
+  if (scene.gridScaleVal !== undefined) BOARD.gridScaleVal = scene.gridScaleVal;
+  if (scene.gridScaleUnit !== undefined) BOARD.gridScaleUnit = scene.gridScaleUnit;
+  if (scene.gridType !== undefined) BOARD.gridType = scene.gridType;
+  if (scene.distanceMode !== undefined) BOARD.distanceMode = scene.distanceMode;
+  if (scene.lightingType !== undefined) {
+    BOARD.lightingType = scene.lightingType;
+    if (typeof _syncWeatherSelect === 'function') _syncWeatherSelect();
+  }
+  
+  if (scene.fogManual && scene.fogVisible) {
+    BOARD.fogVisible = new Set(scene.fogVisible);
+    BOARD.fogManual = true;
+  } else {
+    BOARD.fogVisible = null;
+    BOARD.fogManual = false;
+  }
+  
+  if (scene.mapDataUrl) {
+    BOARD.mapDataUrl = scene.mapDataUrl;
+    BOARD.mapX = scene.mapX !== undefined ? scene.mapX : 0;
+    BOARD.mapY = scene.mapY !== undefined ? scene.mapY : 0;
+    BOARD.mapWidth = scene.mapWidth !== undefined ? scene.mapWidth : null;
+    BOARD.mapHeight = scene.mapHeight !== undefined ? scene.mapHeight : null;
+    
+    const img = new Image();
+    img.onload = () => {
+      BOARD.mapImg = img;
+      if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight);
+      boardRender();
+    };
+    img.src = scene.mapDataUrl;
+  } else {
+    BOARD.mapDataUrl = null;
+    BOARD.mapImg = null;
+    BOARD.mapX = 0;
+    BOARD.mapY = 0;
+    BOARD.mapWidth = null;
+    BOARD.mapHeight = null;
+  }
+  
+  // Auto-iniciar partículas se o clima carregado for chuva/neve
+  if (typeof _applyWeatherParticles === 'function') _applyWeatherParticles();
+}
+
+function boardSave() {
+  if (myRole !== 'mestre' && !amIHost) return;
+  saveCurrentBoardToActiveScene();
+  saveScenesLocally();
+}
+
 function boardLoad() {
   try {
-    const raw = localStorage.getItem('vtt_board_state');
-    if (!raw) return;
-    const s = JSON.parse(raw);
-    if (s.tokens) {
-      BOARD.tokens = s.tokens.map(t => ({
-        ...t,
-        layer: t.layer || 'players',
-        conditions: t.conditions || [],
-        hideName: t.hideName || false
-      }));
+    const rawScenes = localStorage.getItem('vtt_scenes');
+    const rawActiveId = localStorage.getItem('vtt_active_scene_id');
+    const rawPlayersId = localStorage.getItem('vtt_players_scene_id');
+    
+    if (rawScenes) {
+      SCENES = JSON.parse(rawScenes);
+      ACTIVE_SCENE_ID = rawActiveId;
+      PLAYERS_SCENE_ID = rawPlayersId || rawActiveId;
     }
-    if (s.walls) BOARD.walls = s.walls;
-    if (s.shapes) BOARD.shapes = s.shapes;
-    if (s.gridSize) BOARD.gridSize = s.gridSize;
-    if (typeof s.gridOn === 'boolean') BOARD.gridOn = s.gridOn;
-    if (s.activeFloor !== undefined) BOARD.activeFloor = s.activeFloor;
-    if (s.gridCols !== undefined) BOARD.gridCols = s.gridCols;
-    if (s.gridRows !== undefined) BOARD.gridRows = s.gridRows;
-    if (s.gridScaleVal !== undefined) BOARD.gridScaleVal = s.gridScaleVal;
-    if (s.gridScaleUnit !== undefined) BOARD.gridScaleUnit = s.gridScaleUnit;
-    if (s.gridType !== undefined) BOARD.gridType = s.gridType;
-    if (s.lightingType !== undefined) BOARD.lightingType = s.lightingType;
-    if (s.fogManual && s.fogVisible) {
-      BOARD.fogVisible = new Set(s.fogVisible);
-      BOARD.fogManual = true;
+    
+    if (!SCENES || SCENES.length === 0) {
+      // Tenta migrar do estado legado se houver
+      const rawLegacy = localStorage.getItem('vtt_board_state');
+      let legacyState = null;
+      if (rawLegacy) {
+        try { legacyState = JSON.parse(rawLegacy); } catch (e) { }
+      }
+      
+      const defaultScene = {
+        id: 'scene_' + Date.now(),
+        name: 'Cena 1',
+        tokens: legacyState?.tokens || [],
+        walls: legacyState?.walls || [],
+        shapes: legacyState?.shapes || [],
+        gridSize: legacyState?.gridSize || 50,
+        gridOn: legacyState?.gridOn !== undefined ? legacyState.gridOn : true,
+        activeFloor: legacyState?.activeFloor || 0,
+        gridCols: legacyState?.gridCols || 40,
+        gridRows: legacyState?.gridRows || 40,
+        gridScaleVal: legacyState?.gridScaleVal || 1.5,
+        gridScaleUnit: legacyState?.gridScaleUnit || 'm',
+        gridType: legacyState?.gridType || 'square',
+        lightingType: legacyState?.lightingType || 'normal',
+        mapDataUrl: legacyState?.mapDataUrl || null,
+        mapX: legacyState?.mapX || 0,
+        mapY: legacyState?.mapY || 0,
+        mapWidth: legacyState?.mapWidth || null,
+        mapHeight: legacyState?.mapHeight || null,
+        fogManual: legacyState?.fogManual || false,
+        fogVisible: legacyState?.fogVisible || null
+      };
+      
+      SCENES = [defaultScene];
+      ACTIVE_SCENE_ID = defaultScene.id;
+      PLAYERS_SCENE_ID = defaultScene.id;
+      saveScenesLocally();
     }
-  } catch(e) {}
+    
+    const activeScene = SCENES.find(s => s.id === ACTIVE_SCENE_ID) || SCENES[0];
+    ACTIVE_SCENE_ID = activeScene.id;
+    if (!PLAYERS_SCENE_ID) {
+      PLAYERS_SCENE_ID = ACTIVE_SCENE_ID;
+    }
+    
+    loadSceneIntoBoard(activeScene);
+    renderScenesPanel();
+  } catch (e) { }
+}
+
+// ── Funções de Gerenciamento de Cena ──
+function alternarCena(sceneId) {
+  if (myRole !== 'mestre' && !amIHost) return;
+  if (sceneId === ACTIVE_SCENE_ID) return;
+  
+  saveCurrentBoardToActiveScene();
+  ACTIVE_SCENE_ID = sceneId;
+  saveScenesLocally();
+  
+  const newScene = SCENES.find(s => s.id === sceneId);
+  if (newScene) {
+    loadSceneIntoBoard(newScene);
+  }
+  
+  setTimeout(atualizarFogJogador, 100);
+  boardRender();
+  
+  broadcastScenesUpdate();
+  renderScenesPanel();
+  
+  toast(`Cena alterada para: ${newScene ? newScene.name : ''}`);
+}
+
+function criarNovaCena() {
+  if (myRole !== 'mestre' && !amIHost) return;
+  
+  const nome = prompt("Nome da nova cena:", `Cena ${SCENES.length + 1}`);
+  if (nome === null) return;
+  const finalNome = nome.trim() || `Cena ${SCENES.length + 1}`;
+  
+  saveCurrentBoardToActiveScene();
+  
+  const newScene = {
+    id: 'scene_' + Date.now(),
+    name: finalNome,
+    tokens: [],
+    walls: [],
+    shapes: [],
+    gridSize: 50,
+    gridOn: true,
+    activeFloor: 0,
+    gridCols: 40,
+    gridRows: 40,
+    gridScaleVal: 1.5,
+    gridScaleUnit: 'm',
+    gridType: 'square',
+    lightingType: 'normal',
+    mapDataUrl: null,
+    mapX: 0,
+    mapY: 0,
+    mapWidth: null,
+    mapHeight: null,
+    fogManual: false,
+    fogVisible: null
+  };
+  
+  SCENES.push(newScene);
+  ACTIVE_SCENE_ID = newScene.id;
+  
+  saveScenesLocally();
+  loadSceneIntoBoard(newScene);
+  
+  setTimeout(atualizarFogJogador, 100);
+  boardRender();
+  
+  broadcastScenesUpdate();
+  renderScenesPanel();
+  
+  toast(`Cena "${finalNome}" criada!`);
+}
+
+function deletarCena(sceneId, event) {
+  if (event) event.stopPropagation();
+  if (myRole !== 'mestre' && !amIHost) return;
+  if (SCENES.length <= 1) {
+    alert("Você não pode deletar a única cena restante!");
+    return;
+  }
+  
+  const scene = SCENES.find(s => s.id === sceneId);
+  if (!scene) return;
+  
+  if (!confirm(`Tem certeza que deseja deletar a cena "${scene.name}"? Todos os tokens, paredes e mapas dela serão perdidos.`)) {
+    return;
+  }
+  
+  let targetActiveId = ACTIVE_SCENE_ID;
+  if (sceneId === ACTIVE_SCENE_ID) {
+    const remaining = SCENES.filter(s => s.id !== sceneId);
+    targetActiveId = remaining[0].id;
+    loadSceneIntoBoard(remaining[0]);
+  }
+  
+  SCENES = SCENES.filter(s => s.id !== sceneId);
+  ACTIVE_SCENE_ID = targetActiveId;
+  
+  let deletedPlayersScene = (sceneId === PLAYERS_SCENE_ID);
+  if (deletedPlayersScene) {
+    PLAYERS_SCENE_ID = targetActiveId;
+    localStorage.setItem('vtt_players_scene_id', PLAYERS_SCENE_ID);
+  }
+  
+  saveScenesLocally();
+  
+  setTimeout(atualizarFogJogador, 100);
+  boardRender();
+  
+  if (deletedPlayersScene) {
+    syncBoardToPlayers();
+  }
+  broadcastScenesUpdate();
+  renderScenesPanel();
+  
+  toast(`Cena deletada.`);
+}
+
+function renomearCena(sceneId, event) {
+  if (event) event.stopPropagation();
+  if (myRole !== 'mestre' && !amIHost) return;
+  
+  const scene = SCENES.find(s => s.id === sceneId);
+  if (!scene) return;
+  
+  const novoNome = prompt("Novo nome da cena:", scene.name);
+  if (novoNome === null) return;
+  const finalNome = novoNome.trim();
+  if (!finalNome) return;
+  
+  scene.name = finalNome;
+  
+  saveScenesLocally();
+  broadcastScenesUpdate();
+  renderScenesPanel();
+  
+  toast(`Cena renomeada para "${finalNome}"`);
+}
+
+function renderScenesPanel() {
+  const container = document.getElementById('scenesTopList');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  const isMaster = (myRole === 'mestre' || amIHost);
+  
+  const btnCriar = document.getElementById('btn-criar-cena');
+  if (btnCriar) {
+    btnCriar.style.display = isMaster ? 'inline-block' : 'none';
+  }
+  
+  SCENES.forEach(scene => {
+    const isActive = (scene.id === ACTIVE_SCENE_ID);
+    
+    const btn = document.createElement('div');
+    btn.className = `scene-btn ${isActive ? 'active' : ''}`;
+    
+    if (isMaster) {
+      btn.onclick = () => alternarCena(scene.id);
+      btn.oncontextmenu = (e) => abrirSceneContextMenu(e, scene.id);
+    } else {
+      btn.style.cursor = 'default';
+      if (!isActive) {
+        btn.style.opacity = '0.6';
+      }
+    }
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = scene.name;
+    btn.appendChild(nameSpan);
+    
+    if (isMaster && scene.id === PLAYERS_SCENE_ID) {
+      const indicator = document.createElement('span');
+      indicator.className = 'scene-players-indicator';
+      indicator.innerHTML = ' 👥';
+      indicator.title = 'Jogadores estão aqui';
+      btn.appendChild(indicator);
+    }
+    
+    if (isMaster) {
+      const controls = document.createElement('div');
+      controls.className = 'scene-controls';
+      
+      const btnRename = document.createElement('button');
+      btnRename.className = 'scene-action-btn';
+      btnRename.title = 'Renomear Cena';
+      btnRename.innerHTML = '✏️';
+      btnRename.onclick = (e) => renomearCena(scene.id, e);
+      controls.appendChild(btnRename);
+      
+      if (SCENES.length > 1) {
+        const btnDelete = document.createElement('button');
+        btnDelete.className = 'scene-action-btn delete-scene-btn';
+        btnDelete.title = 'Deletar Cena';
+        btnDelete.innerHTML = '✕';
+        btnDelete.onclick = (e) => deletarCena(scene.id, e);
+        controls.appendChild(btnDelete);
+      }
+      
+      btn.appendChild(controls);
+    }
+    
+    container.appendChild(btn);
+  });
+}
+
+function abrirSceneContextMenu(e, sceneId) {
+  e.preventDefault();
+  e.stopPropagation();
+  fecharContextMenu();
+  
+  contextSceneId = sceneId;
+  const menu = document.getElementById('sceneContextMenu');
+  if (menu) {
+    const btnDelete = document.getElementById('ctxDeletarCena');
+    if (btnDelete) {
+      btnDelete.style.display = SCENES.length > 1 ? '' : 'none';
+    }
+    menu.style.left = e.clientX + 'px';
+    menu.style.top = e.clientY + 'px';
+    menu.style.display = 'block';
+    
+    const fechar = (ev) => {
+      if (!menu.contains(ev.target)) {
+        menu.style.display = 'none';
+        document.removeEventListener('click', fechar);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', fechar), 10);
+  }
+}
+
+function puxarJogadoresParaCenaContext() {
+  if (contextSceneId) {
+    puxarJogadores(contextSceneId);
+  }
+  fecharContextMenu();
+}
+
+function renomearCenaContext() {
+  if (contextSceneId) {
+    renomearCena(contextSceneId);
+  }
+  fecharContextMenu();
+}
+
+function deletarCenaContext() {
+  if (contextSceneId) {
+    deletarCena(contextSceneId);
+  }
+  fecharContextMenu();
+}
+
+let contextSceneId = null;
+
+function broadcastScenesUpdate() {
+  if (myRole !== 'mestre' && !amIHost) return;
+  const metadata = getScenesMetadata();
+  broadcast({
+    type: 'scenes-update',
+    scenes: metadata,
+    activeSceneId: PLAYERS_SCENE_ID
+  }, null);
+}
+
+function getScenesMetadata() {
+  return SCENES.map(s => ({ id: s.id, name: s.name }));
 }
 
 // ── Limpar ──
@@ -8486,10 +13158,12 @@ function limparBoard() {
   if (!confirm('Limpar todos os tokens, paredes e o mapa?')) return;
   snapshotBoard();
   BOARD.tokens = []; BOARD.walls = []; BOARD.shapes = []; BOARD.mapImg = null; BOARD.mapDataUrl = null;
+  BOARD.mapX = 0; BOARD.mapY = 0; BOARD.mapWidth = null; BOARD.mapHeight = null;
+  BOARD.selectedWallId = null;
   BOARD.fogVisible = null; BOARD.fogManual = false;
   if (BOARD.animFrameId) { cancelAnimationFrame(BOARD.animFrameId); BOARD.animFrameId = null; }
   if (BOARD.playerViewTokenId) exitPlayerView();
-  boardSave(); boardRender(); syncBoardToPlayers();
+  boardSave(); boardRender(); if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) syncBoardToPlayers();
   toast('Tabuleiro limpo.');
 }
 
@@ -8500,6 +13174,7 @@ function limparParedes() {
   if (!confirm(`Apagar todas as ${currentFloorWalls.length} paredes do Andar ${activeFloor}?`)) return;
   snapshotBoard();
   BOARD.walls = BOARD.walls.filter(w => getFloorFromZ(w.z) !== activeFloor);
+  BOARD.selectedWallId = null;
   boardSave(); syncWallsToPlayers(); boardRender();
   toast(`🧱 Paredes do Andar ${activeFloor} apagadas.`);
 }
@@ -8509,9 +13184,9 @@ function isPointInPolygon(x, y, polygon) {
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const xi = polygon[i].x, yi = polygon[i].y;
     const xj = polygon[j].x, yj = polygon[j].y;
-    
+
     const intersect = ((yi > y) !== (yj > y))
-        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
     if (intersect) inside = !inside;
   }
   return inside;
@@ -8524,6 +13199,7 @@ function shapeAt(wx, wy) {
   for (let i = BOARD.shapes.length - 1; i >= 0; i--) {
     const s = BOARD.shapes[i];
     if (getFloorFromZ(s.z) !== activeFloor) continue;
+    if (s.hidden && myRole !== 'mestre') continue;
     if (s.kind === 'circle') {
       const cx = (s.x1 + s.x2) / 2;
       const cy = (s.y1 + s.y2) / 2;
@@ -8532,7 +13208,7 @@ function shapeAt(wx, wy) {
       if (rx === 0 || ry === 0) continue;
       const dx = (wx - cx) / rx;
       const dy = (wy - cy) / ry;
-      if (dx*dx + dy*dy <= 1) return s;
+      if (dx * dx + dy * dy <= 1) return s;
     } else if (s.kind === 'freehand') {
       if (s.points && isPointInPolygon(wx, wy, s.points)) return s;
     } else {
@@ -8558,10 +13234,10 @@ function wallAt(wx, wy, threshold) {
 
 function distPointSegment(px, py, ax, ay, bx, by) {
   const dx = bx - ax, dy = by - ay;
-  const len2 = dx*dx + dy*dy;
+  const len2 = dx * dx + dy * dy;
   if (len2 === 0) return Math.hypot(px - ax, py - ay);
-  const t = Math.max(0, Math.min(1, ((px-ax)*dx + (py-ay)*dy) / len2));
-  return Math.hypot(px - (ax + t*dx), py - (ay + t*dy));
+  const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
 function getWallHandleAt(cx, cy) {
@@ -8590,17 +13266,23 @@ function toggleWallState(wallId) {
   const w = BOARD.walls.find(wall => wall.id === wallId);
   if (!w) return;
   w.open = !w.open;
-  
+
   boardSave();
   boardRender();
-  
+
   if (myRole === 'mestre') {
     syncWallsToPlayers();
     setTimeout(atualizarFogJogador, 50);
   } else {
     solicitarAlternarParede(wallId);
   }
-  
+
+  // Tocar som da parede se tiver
+  if (w.soundId) {
+    const url = getSoundUrlById(w.soundId);
+    if (url) playSfx(url);
+  }
+
   const stateStr = w.open ? 'aberta' : 'fechada';
   const name = w.type === 'door' ? 'Porta' : 'Janela';
   toast(`${name === 'Porta' ? '🚪' : '🪟'} ${name} agora está ${stateStr}.`);
@@ -8618,30 +13300,49 @@ function solicitarAlternarParede(wallId) {
 // ── Sincronização P2P ──
 function syncBoardTokensToPlayers() {
   if (myRole !== 'mestre') return;
-  const filtered = BOARD.tokens.filter(t => (t.layer || 'players') !== 'gm');
-  broadcast({ type: 'board-tokens', tokens: filtered }, null);
+  if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+    const filtered = BOARD.tokens.filter(t => (t.layer || 'players') !== 'gm');
+    broadcast({ type: 'board-tokens', tokens: filtered }, null);
+  }
 }
 function syncBoardMapToPlayers() {
-  if (myRole !== 'mestre' || !BOARD.mapDataUrl) return;
-  broadcast({ type: 'board-map', mapUrl: BOARD.mapDataUrl }, null);
+  if (myRole !== 'mestre') return;
+  if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+    broadcast({
+      type: 'board-map',
+      mapUrl: BOARD.mapDataUrl || null,
+      mapX: BOARD.mapX || 0,
+      mapY: BOARD.mapY || 0,
+      mapWidth: BOARD.mapWidth || null,
+      mapHeight: BOARD.mapHeight || null
+    }, null);
+  }
 }
 function syncWallsToPlayers() {
   if (myRole !== 'mestre') return;
-  broadcast({ type: 'board-walls', walls: BOARD.walls }, null);
+  if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+    broadcast({ type: 'board-walls', walls: BOARD.walls }, null);
+  }
 }
 function syncShapesToPlayers() {
   if (myRole === 'mestre') {
-    broadcast({ type: 'board-shapes', shapes: BOARD.shapes }, null);
+    if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+      const filtered = BOARD.shapes.filter(s => !s.hidden || s.triggered);
+      broadcast({ type: 'board-shapes', shapes: filtered }, null);
+    }
   } else if (masterConn) {
-    masterConn.send({ type: 'player-shapes', shapes: BOARD.shapes });
+    const filtered = BOARD.shapes.filter(s => !s.hidden || s.triggered);
+    masterConn.send({ type: 'player-shapes', shapes: filtered });
   }
 }
 function syncFogToPlayers() {
   if (myRole !== 'mestre') return;
-  if (BOARD.fogManual && BOARD.fogVisible) {
-    broadcast({ type: 'board-fog', fog: Array.from(BOARD.fogVisible) }, null);
-  } else {
-    broadcast({ type: 'board-fog', fog: null }, null);
+  if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+    if (BOARD.fogManual && BOARD.fogVisible) {
+      broadcast({ type: 'board-fog', fog: Array.from(BOARD.fogVisible) }, null);
+    } else {
+      broadcast({ type: 'board-fog', fog: null }, null);
+    }
   }
 }
 function pintarFogCelula(gx, gy, reveal) {
@@ -8655,8 +13356,8 @@ function pintarFogCelula(gx, gy, reveal) {
 function toggleFogShape() {
   BOARD.fogShape = BOARD.fogShape === 'brush' ? 'rect' : 'brush';
   const btn = document.getElementById('btnFogShape');
-  if (btn) btn.textContent = BOARD.fogShape === 'brush' ? '🖌 Pincel' : '▭ Retângulo';
-  toast(`Modo névoa: ${BOARD.fogShape === 'brush' ? 'Pincel (pintar célula)' : 'Retângulo (arrastar área)'}`);
+  if (btn) btn.textContent = BOARD.fogShape === 'brush' ? '🖌 Pincel' : '⛶ Seleção';
+  toast(`Modo névoa: ${BOARD.fogShape === 'brush' ? 'Pincel (pintar célula)' : 'Seleção (arrastar área)'}`);
 }
 function pintarFogRetangulo(gx1, gy1, gx2, gy2, reveal) {
   if (!BOARD.fogVisible) return;
@@ -8684,7 +13385,7 @@ function recalcularFog() {
       return;
     }
   }
-  const selected = BOARD.tokens.filter(t => BOARD.selectedTokens.has(t.id));
+  const selected = BOARD.tokens.filter(t => BOARD.selectedTokens.has(t.id) && t.type !== 'object');
   if (selected.length > 0) {
     const total = new Set();
     selected.forEach(t => {
@@ -8708,14 +13409,242 @@ function limparFog() {
   boardRender();
   toast('🌫 Névoa removida.');
 }
+function syncBoardToConnection(conn, sceneId) {
+  const scene = SCENES.find(s => s.id === sceneId);
+  if (!scene) return;
+  
+  let tokens = scene.tokens || [];
+  let walls = scene.walls || [];
+  let shapes = scene.shapes || [];
+  let mapUrl = scene.mapDataUrl || null;
+  let mapX = scene.mapX || 0;
+  let mapY = scene.mapY || 0;
+  let mapWidth = scene.mapWidth || null;
+  let mapHeight = scene.mapHeight || null;
+  let fogData = (scene.fogManual && scene.fogVisible) ? Array.from(scene.fogVisible) : null;
+  let activeFloor = scene.activeFloor || 0;
+  let gridSize = scene.gridSize || 50;
+  let gridCols = scene.gridCols || 40;
+  let gridRows = scene.gridRows || 40;
+  let gridScaleVal = scene.gridScaleVal || 1.5;
+  let gridScaleUnit = scene.gridScaleUnit || 'm';
+  let gridType = scene.gridType || 'square';
+  let lightingType = scene.lightingType || 'normal';
+
+  if (sceneId === ACTIVE_SCENE_ID) {
+    const filtered = BOARD.tokens.filter(t => (t.layer || 'players') !== 'gm');
+    fogData = (BOARD.fogManual && BOARD.fogVisible) ? Array.from(BOARD.fogVisible) : null;
+    conn.send({
+      type: 'board-full',
+      tokens: filtered,
+      walls: BOARD.walls,
+      shapes: BOARD.shapes,
+      mapUrl: BOARD.mapDataUrl || null,
+      mapX: BOARD.mapX || 0,
+      mapY: BOARD.mapY || 0,
+      mapWidth: BOARD.mapWidth || null,
+      mapHeight: BOARD.mapHeight || null,
+      fog: fogData,
+      activeFloor: BOARD.activeFloor || 0,
+      gridCols: BOARD.gridCols,
+      gridRows: BOARD.gridRows,
+      gridScaleVal: BOARD.gridScaleVal,
+      gridScaleUnit: BOARD.gridScaleUnit,
+      gridType: BOARD.gridType,
+      distanceMode: BOARD.distanceMode,
+      lightingType: BOARD.lightingType
+    });
+  } else {
+    const filtered = tokens.filter(t => (t.layer || 'players') !== 'gm');
+    conn.send({
+      type: 'board-full',
+      tokens: filtered,
+      walls: walls,
+      shapes: shapes,
+      mapUrl: mapUrl,
+      mapX: mapX,
+      mapY: mapY,
+      mapWidth: mapWidth,
+      mapHeight: mapHeight,
+      fog: fogData,
+      activeFloor: activeFloor,
+      gridCols: gridCols,
+      gridRows: gridRows,
+      gridScaleVal: gridScaleVal,
+      gridScaleUnit: gridScaleUnit,
+      gridType: gridType,
+      distanceMode: scene.distanceMode || BOARD.distanceMode || 'square',
+      lightingType: lightingType
+    });
+  }
+}
+
 function syncBoardToPlayers() {
   if (myRole !== 'mestre') return;
+  PLAYERS_SCENE_ID = ACTIVE_SCENE_ID;
+  localStorage.setItem('vtt_players_scene_id', PLAYERS_SCENE_ID);
+  
   const filtered = BOARD.tokens.filter(t => (t.layer || 'players') !== 'gm');
   const fogData = (BOARD.fogManual && BOARD.fogVisible) ? Array.from(BOARD.fogVisible) : null;
-  broadcast({ type: 'board-full', tokens: filtered, walls: BOARD.walls, shapes: BOARD.shapes, mapUrl: BOARD.mapDataUrl || null, fog: fogData, activeFloor: BOARD.activeFloor || 0, gridCols: BOARD.gridCols, gridRows: BOARD.gridRows, gridScaleVal: BOARD.gridScaleVal, gridScaleUnit: BOARD.gridScaleUnit, gridType: BOARD.gridType, lightingType: BOARD.lightingType }, null);
+  broadcast({
+    type: 'board-full',
+    tokens: filtered,
+    walls: BOARD.walls,
+    shapes: BOARD.shapes,
+    mapUrl: BOARD.mapDataUrl || null,
+    mapX: BOARD.mapX || 0,
+    mapY: BOARD.mapY || 0,
+    mapWidth: BOARD.mapWidth || null,
+    mapHeight: BOARD.mapHeight || null,
+    fog: fogData,
+    activeFloor: BOARD.activeFloor || 0,
+    gridCols: BOARD.gridCols,
+    gridRows: BOARD.gridRows,
+    gridScaleVal: BOARD.gridScaleVal,
+    gridScaleUnit: BOARD.gridScaleUnit,
+    gridType: BOARD.gridType,
+    distanceMode: BOARD.distanceMode,
+    lightingType: BOARD.lightingType
+  }, null);
   const notify = { type: 'combat-sync-notify', text: 'Mestre sincronizou o tabuleiro.' };
   broadcast(notify, null); addMsg(notify);
+  
+  broadcastScenesUpdate();
+  renderScenesPanel();
+  
   toast('📡 Tabuleiro sincronizado!');
+}
+
+function puxarJogadores(sceneId) {
+  if (myRole !== 'mestre' && !amIHost) return;
+  
+  const oldSceneId = PLAYERS_SCENE_ID;
+  
+  // Migrar tokens controlados por jogadores da cena antiga para a nova
+  if (oldSceneId && oldSceneId !== sceneId) {
+    // 1. Extrair tokens de jogadores da cena antiga
+    let playerTokens = [];
+    if (oldSceneId === ACTIVE_SCENE_ID) {
+      // Cena antiga é a ativa no BOARD
+      playerTokens = BOARD.tokens.filter(t => t.controlledBy);
+      BOARD.tokens = BOARD.tokens.filter(t => !t.controlledBy);
+      boardSave();
+    } else {
+      // Cena antiga está salva no array SCENES
+      const oldScene = SCENES.find(s => s.id === oldSceneId);
+      if (oldScene && oldScene.tokens) {
+        playerTokens = oldScene.tokens.filter(t => t.controlledBy);
+        oldScene.tokens = oldScene.tokens.filter(t => !t.controlledBy);
+      }
+    }
+    
+    // 2. Inserir tokens de jogadores na cena destino
+    if (playerTokens.length > 0) {
+      if (sceneId === ACTIVE_SCENE_ID) {
+        // Cena destino é a ativa no BOARD
+        playerTokens.forEach(t => {
+          t.z = (BOARD.activeFloor || 0) * 10;
+          BOARD.tokens.push(t);
+        });
+        boardSave();
+        boardRender();
+      } else {
+        // Cena destino está salva no array SCENES
+        const targetScene = SCENES.find(s => s.id === sceneId);
+        if (targetScene) {
+          if (!targetScene.tokens) targetScene.tokens = [];
+          playerTokens.forEach(t => {
+            t.z = (targetScene.activeFloor || 0) * 10;
+            targetScene.tokens.push(t);
+          });
+        }
+      }
+      saveScenesLocally();
+    }
+  }
+  
+  PLAYERS_SCENE_ID = sceneId;
+  localStorage.setItem('vtt_players_scene_id', PLAYERS_SCENE_ID);
+  
+  syncBoardToPlayersOfScene(sceneId);
+  toast("Jogadores puxados para a cena!");
+}
+
+function syncBoardToPlayersOfScene(sceneId) {
+  if (myRole !== 'mestre') return;
+  
+  const scene = SCENES.find(s => s.id === sceneId);
+  if (!scene) return;
+  
+  let tokens = scene.tokens || [];
+  let walls = scene.walls || [];
+  let shapes = scene.shapes || [];
+  let mapUrl = scene.mapDataUrl || null;
+  let mapX = scene.mapX || 0;
+  let mapY = scene.mapY || 0;
+  let mapWidth = scene.mapWidth || null;
+  let mapHeight = scene.mapHeight || null;
+  let fogData = (scene.fogManual && scene.fogVisible) ? Array.from(scene.fogVisible) : null;
+  let activeFloor = scene.activeFloor || 0;
+  let gridCols = scene.gridCols;
+  let gridRows = scene.gridRows;
+  let gridScaleVal = scene.gridScaleVal;
+  let gridScaleUnit = scene.gridScaleUnit;
+  let gridType = scene.gridType;
+  let lightingType = scene.lightingType;
+
+  if (sceneId === ACTIVE_SCENE_ID) {
+    const filtered = BOARD.tokens.filter(t => (t.layer || 'players') !== 'gm');
+    fogData = (BOARD.fogManual && BOARD.fogVisible) ? Array.from(BOARD.fogVisible) : null;
+    broadcast({
+      type: 'board-full',
+      tokens: filtered,
+      walls: BOARD.walls,
+      shapes: BOARD.shapes,
+      mapUrl: BOARD.mapDataUrl || null,
+      mapX: BOARD.mapX || 0,
+      mapY: BOARD.mapY || 0,
+      mapWidth: BOARD.mapWidth || null,
+      mapHeight: BOARD.mapHeight || null,
+      fog: fogData,
+      activeFloor: BOARD.activeFloor || 0,
+      gridCols: BOARD.gridCols,
+      gridRows: BOARD.gridRows,
+      gridScaleVal: BOARD.gridScaleVal,
+      gridScaleUnit: BOARD.gridScaleUnit,
+      gridType: BOARD.gridType,
+      distanceMode: BOARD.distanceMode,
+      lightingType: BOARD.lightingType
+    }, null);
+  } else {
+    const filtered = tokens.filter(t => (t.layer || 'players') !== 'gm');
+    broadcast({
+      type: 'board-full',
+      tokens: filtered,
+      walls: walls,
+      shapes: shapes,
+      mapUrl: mapUrl,
+      mapX: mapX,
+      mapY: mapY,
+      mapWidth: mapWidth,
+      mapHeight: mapHeight,
+      fog: fogData,
+      activeFloor: activeFloor,
+      gridCols: gridCols,
+      gridRows: gridRows,
+      gridScaleVal: gridScaleVal,
+      gridScaleUnit: gridScaleUnit,
+      gridType: gridType,
+      distanceMode: scene.distanceMode || BOARD.distanceMode || 'square',
+      lightingType: lightingType
+    }, null);
+  }
+  
+  const notify = { type: 'combat-sync-notify', text: 'Mestre sincronizou o tabuleiro.' };
+  broadcast(notify, null); addMsg(notify);
+  
+  broadcastScenesUpdate();
+  renderScenesPanel();
 }
 
 function receberBoardSync(data) {
@@ -8723,13 +13652,28 @@ function receberBoardSync(data) {
   if (data.walls) { BOARD.walls = data.walls; }
   else if (!data.walls) { /* manter as existentes se não vier no payload */ }
   if (data.shapes) BOARD.shapes = data.shapes;
+
+  BOARD.mapX = data.mapX !== undefined ? data.mapX : 0;
+  BOARD.mapY = data.mapY !== undefined ? data.mapY : 0;
+  BOARD.mapWidth = data.mapWidth !== undefined ? data.mapWidth : null;
+  BOARD.mapHeight = data.mapHeight !== undefined ? data.mapHeight : null;
+
   if (data.mapUrl) {
-    const img = new Image();
-    img.onload = () => { BOARD.mapImg = img; if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight); boardRender(); };
-    img.src = data.mapUrl;
     BOARD.mapDataUrl = data.mapUrl;
+    if (BOARD.mapImg && BOARD.mapImg.src === data.mapUrl) {
+      boardRender();
+    } else {
+      const img = new Image();
+      img.onload = () => {
+        BOARD.mapImg = img;
+        if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight);
+        boardRender();
+      };
+      img.src = data.mapUrl;
+    }
   } else if (data.mapUrl === null) {
-    BOARD.mapImg = null; BOARD.mapDataUrl = null;
+    BOARD.mapImg = null;
+    BOARD.mapDataUrl = null;
   }
   if (data.fog) BOARD.fogVisible = new Set(data.fog);
   else if (data.fog === null) BOARD.fogVisible = null;
@@ -8739,9 +13683,11 @@ function receberBoardSync(data) {
   if (data.gridScaleVal !== undefined) BOARD.gridScaleVal = data.gridScaleVal;
   if (data.gridScaleUnit !== undefined) BOARD.gridScaleUnit = data.gridScaleUnit;
   if (data.gridType !== undefined) BOARD.gridType = data.gridType;
-  if (data.lightingType !== undefined) BOARD.lightingType = data.lightingType;
+  if (data.lightingType !== undefined) { BOARD.lightingType = data.lightingType; _syncWeatherSelect(); _applyWeatherParticles(); }
+  if (data.distanceMode !== undefined) BOARD.distanceMode = data.distanceMode;
   setTimeout(atualizarFogJogador, 50);
   boardRender();
+  setTimeout(applyPlayerConditionEffects, 80);
 }
 
 // ── Botão do combate "→ Tabuleiro" ──
@@ -8766,11 +13712,15 @@ function boardSetupRole() {
   if (tbSection) tbSection.style.display = 'flex';
 
   // Ferramentas exclusivas do mestre
-  const masterOnlyTools = ['toolWall', 'btnLimparParedes', 'wallTypeSelect', 'toolFog', 'toolReveal', 'shapeColorPicker'];
+  const masterOnlyTools = ['toolWall', 'btnLimparParedes', 'toolFog', 'toolReveal', 'shapeColorPicker'];
   masterOnlyTools.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isMaster ? '' : 'none';
   });
+
+  // Clima exclusivo do mestre
+  const weatherRow = document.querySelector('.tool-row-weather');
+  if (weatherRow) weatherRow.style.display = isMaster ? '' : 'none';
 
   // Ações exclusivas do mestre
   const actionsGroup = document.getElementById('actionsGroup');
@@ -8808,113 +13758,17 @@ function setBoardLayer(layer) {
 }
 
 
-// ── Sync tokens ao avançar turno ──
-const _origCombatNextTurn = combatNextTurn;
-combatNextTurn = function() {
-  _origCombatNextTurn();
-  if (myRole === 'mestre') setTimeout(atualizarTokensDoCombate, 50);
-};
-const _origCombatPrevTurn = combatPrevTurn;
-combatPrevTurn = function() {
-  _origCombatPrevTurn();
-  if (myRole === 'mestre') setTimeout(atualizarTokensDoCombate, 50);
-};
-
 // ── Init ──
-// Chamar boardInit quando a sala for aberta
-const _origEntrarNoAmbienteBoard = entrarNoAmbiente;
-entrarNoAmbiente = function() {
-  _origEntrarNoAmbienteBoard();
-  boardLoad();
-  boardInit();
-  boardSetupRole();
-  if (myRole === 'mestre') initBoardCombatButton();
-  if (myRole === 'jogador') {
-    document.getElementById('master-panel').style.display = 'flex';
-    ['encontros','combate','fichas','notas'].forEach(t => {
-      const btn = document.getElementById('tab-'+t);
-      if (btn) btn.style.display = 'none';
-    });
-    const bestBtn = document.getElementById('bau-subtab-bestiary');
-    if (bestBtn) bestBtn.style.display = 'none';
-    currentBauSubtab = 'equip';
-    switchTab('bau');
-    switchBauSubtab('equip');
-  }
-  // Calcula fog inicial para jogadores
-  setTimeout(atualizarFogJogador, 300);
-};
-
-// Patch P2P: receber dados de tabuleiro nos jogadores
-const _origMasterConnData = null; // já foi sobrescrito — patch direto no handler do masterConn
-// Interceptar mensagens P2P recebidas (jogador)
-const _origEntrarSala = entrarSala;
-entrarSala = function() {
-  _origEntrarSala();
-  // O patch do masterConn.on('data') é feito via closure abaixo
-};
-
-// Patch global de recepção para jogador — adicionar board-* ao handler
-// Usamos uma abordagem de queue de patches
-const _boardPatchQueue = [];
-function applyBoardPatches() {
-  if (!masterConn) { setTimeout(applyBoardPatches, 500); return; }
-  const origOnData = masterConn._events?.data?.[0] || masterConn._events?.data;
-  if (!origOnData) {
-    masterConn.on('data', (data) => {
-      if (data.type === 'board-tokens') { BOARD.tokens = data.tokens.map(t => ({ ...t, conditions: t.conditions || [], hideName: t.hideName || false })); setTimeout(atualizarFogJogador, 50); boardRender(); }
-      else if (data.type === 'board-walls') { BOARD.walls = data.walls; setTimeout(atualizarFogJogador, 50); boardRender(); }
-      else if (data.type === 'board-shapes') { BOARD.shapes = data.shapes; boardRender(); }
-      else if (data.type === 'board-ping') { BOARD.pings.push({ x: data.x, y: data.y, time: data.time }); boardRender(); }
-      else if (data.type === 'player-targets') { BOARD.playerTargets[data.peerId] = data.targets; boardRender(); }
-      else if (data.type === 'board-fog') { BOARD.fogVisible = data.fog ? new Set(data.fog) : null; boardRender(); }
-      else if (data.type === 'board-map') {
-        const img = new Image();
-        img.onload = () => { BOARD.mapImg = img; if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight); boardRender(); };
-        img.src = data.mapUrl;
-      }
-      else if (data.type === 'board-grid-settings') {
-        if (data.gridCols !== undefined) BOARD.gridCols = data.gridCols;
-        if (data.gridRows !== undefined) BOARD.gridRows = data.gridRows;
-        if (data.gridScaleVal !== undefined) BOARD.gridScaleVal = data.gridScaleVal;
-        if (data.gridScaleUnit !== undefined) BOARD.gridScaleUnit = data.gridScaleUnit;
-        if (data.gridType !== undefined) BOARD.gridType = data.gridType;
-        if (data.lightingType !== undefined) BOARD.lightingType = data.lightingType;
-        boardRender();
-      }
-      else if (data.type === 'board-floor') {
-        BOARD.activeFloor = data.activeFloor;
-        setTimeout(atualizarFogJogador, 50);
-        boardRender();
-      }
-      else if (data.type === 'trigger-prompt') {
-        const t = BOARD.tokens.find(tk => tk.id === data.tokenId);
-        const s = BOARD.shapes.find(sk => sk.id === data.shapeId);
-        if (t && s) abrirModalEscolhaGatilho(t, s);
-      }
-      else if (data.type === 'board-full') receberBoardSync(data);
-    });
-  }
-}
-
-// Hack limpo: interceptar broadcast para também tratar board no lado do jogador
-// via o handler já existente no masterConn
-// Abordagem mais limpa: embutir no handler do masterConn dentro do entrarSala
-// Patch feito diretamente na closure do masterConn.on('data') existente:
-// Como esse handler já está definido hardcoded no entrarSala original,
-// vamos sobrescrever entrarSala completamente com suporte a board
-
-const _entrarSalaOrigFull = entrarSala;
-entrarSala = function() {
+function entrarSala() {
   const name = document.getElementById('player-name').value.trim();
   let code = document.getElementById('room-code').value.trim();
-  if (!name) { setLobbyStatus('join','Como você se chama?',true); return; }
+  if (!name) { setLobbyStatus('join', 'Como você se chama?', true); return; }
   const match = code.match(/[?&]sala=([A-Z0-9]{8})/);
   if (match) code = match[1];
-  code = code.replace(/[^A-Z0-9]/gi,'').toUpperCase().slice(0,8);
-  if (code.length !== 8) { setLobbyStatus('join','Código inválido.',true); return; }
+  code = code.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 8);
+  if (code.length !== 8) { setLobbyStatus('join', 'Código inválido.', true); return; }
   myName = name; myRole = 'jogador'; roomId = code;
-  setLobbyStatus('join','Buscando a mesa...');
+  setLobbyStatus('join', 'Buscando a mesa...');
   peer = new Peer(undefined, { debug: 0 });
   peer.on('open', (id) => {
     myPeerId = id;
@@ -8936,20 +13790,51 @@ entrarSala = function() {
           }
           renderPlayers();
         }
+        else if (data.type === 'scenes-update') {
+          SCENES = data.scenes;
+          ACTIVE_SCENE_ID = data.activeSceneId;
+          renderScenesPanel();
+        }
         else if (data.type === 'chat' || data.type === 'roll' || data.type === 'gif') addMsg(data);
         else if (data.type === 'combat-sync') receberSyncCombate(data.state);
         else if (data.type === 'combat-sync-notify') addMsg(data);
         // BOARD
-        else if (data.type === 'board-tokens') { BOARD.tokens = data.tokens.map(t => ({ ...t, conditions: t.conditions || [], hideName: t.hideName || false })); setTimeout(atualizarFogJogador, 50); boardRender(); }
+        else if (data.type === 'board-tokens') { BOARD.tokens = data.tokens.map(t => ({ ...t, conditions: t.conditions || [], hideName: t.hideName || false })); setTimeout(atualizarFogJogador, 50); boardRender(); setTimeout(applyPlayerConditionEffects, 80); }
         else if (data.type === 'board-walls') { BOARD.walls = data.walls; setTimeout(atualizarFogJogador, 50); boardRender(); }
-      else if (data.type === 'board-shapes') { BOARD.shapes = data.shapes; boardRender(); }
-        else if (data.type === 'board-ping') { BOARD.pings.push({ x: data.x, y: data.y, time: data.time }); boardRender(); }
+        else if (data.type === 'board-shapes') { BOARD.shapes = data.shapes; boardRender(); }
+        else if (data.type === 'board-ping') {
+          if (!BOARD.pings) BOARD.pings = [];
+          BOARD.pings.push({ x: data.x, y: data.y, time: data.time, color: data.color || '#ff3333' });
+          boardRender();
+          if (!BOARD.pingAnimId) {
+            BOARD.pingAnimId = requestAnimationFrame(pingAnimationTick);
+          }
+        }
         else if (data.type === 'player-targets') { BOARD.playerTargets[data.peerId] = data.targets; boardRender(); }
         else if (data.type === 'board-fog') { BOARD.fogVisible = data.fog ? new Set(data.fog) : null; boardRender(); }
         else if (data.type === 'board-map') {
-          const img = new Image();
-          img.onload = () => { BOARD.mapImg = img; if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight); boardRender(); };
-          img.src = data.mapUrl;
+          BOARD.mapX = data.mapX !== undefined ? data.mapX : 0;
+          BOARD.mapY = data.mapY !== undefined ? data.mapY : 0;
+          BOARD.mapWidth = data.mapWidth !== undefined ? data.mapWidth : null;
+          BOARD.mapHeight = data.mapHeight !== undefined ? data.mapHeight : null;
+          if (data.mapUrl) {
+            BOARD.mapDataUrl = data.mapUrl;
+            if (BOARD.mapImg && BOARD.mapImg.src === data.mapUrl) {
+              boardRender();
+            } else {
+              const img = new Image();
+              img.onload = () => {
+                BOARD.mapImg = img;
+                if (isGifUrl(img.src)) getGifCanvas(img.src, img.naturalWidth, img.naturalHeight);
+                boardRender();
+              };
+              img.src = data.mapUrl;
+            }
+          } else {
+            BOARD.mapImg = null;
+            BOARD.mapDataUrl = null;
+            boardRender();
+          }
         }
         else if (data.type === 'board-floor') {
           BOARD.activeFloor = data.activeFloor;
@@ -8967,7 +13852,7 @@ entrarSala = function() {
           if (data.gridScaleVal !== undefined) BOARD.gridScaleVal = data.gridScaleVal;
           if (data.gridScaleUnit !== undefined) BOARD.gridScaleUnit = data.gridScaleUnit;
           if (data.gridType !== undefined) BOARD.gridType = data.gridType;
-          if (data.lightingType !== undefined) BOARD.lightingType = data.lightingType;
+          if (data.lightingType !== undefined) { BOARD.lightingType = data.lightingType; _syncWeatherSelect(); _applyWeatherParticles(); }
           boardRender();
         }
         else if (data.type === 'board-full') receberBoardSync(data);
@@ -8982,65 +13867,129 @@ entrarSala = function() {
       });
       masterConn.on('close', () => addMsg({ type: 'system', text: 'Conexão com o Mestre perdida.' }));
     });
-    masterConn.on('error', () => setLobbyStatus('join','Não foi possível conectar.',true));
+    masterConn.on('error', () => setLobbyStatus('join', 'Não foi possível conectar.', true));
   });
-  peer.on('error', (e) => setLobbyStatus('join','Erro: '+(e.type||e.message),true));
-};
+  peer.on('error', (e) => setLobbyStatus('join', 'Erro: ' + (e.type || e.message), true));
+}
 
 
 // ──── Estado das Macros ────
 let vttMacros = [];
+let macroPage = 0;
 
 function carregarMacros() {
   const raw = localStorage.getItem('t20_vtt_macros');
   if (raw) {
     try {
-      vttMacros = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      vttMacros = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       vttMacros = [];
     }
   } else {
     vttMacros = [];
   }
+  while (vttMacros.length < 10) vttMacros.push(null);
+  macroPage = 0;
   renderizarMacros();
 }
 
 function salvarMacros() {
-  localStorage.setItem('t20_vtt_macros', JSON.stringify(vttMacros));
+  // Trim trailing nulls to keep storage lean
+  let trimmed = [...vttMacros];
+  while (trimmed.length > 10 && trimmed[trimmed.length - 1] === null) trimmed.pop();
+  localStorage.setItem('t20_vtt_macros', JSON.stringify(trimmed));
   renderizarMacros();
+}
+
+function macroPagePrev() {
+  if (macroPage > 0) { macroPage--; renderizarMacros(); }
+}
+
+function macroPageNext() {
+  const totalPages = Math.max(1, Math.ceil(vttMacros.length / 10));
+  if (macroPage < totalPages - 1) { macroPage++; renderizarMacros(); }
+}
+
+function macroAddSlot() {
+  vttMacros.push(null);
+  // Navigate to the page containing the new slot
+  macroPage = Math.floor((vttMacros.length - 1) / 10);
+  renderizarMacros();
+  abrirConfigMacros(vttMacros.length - 1);
 }
 
 function renderizarMacros() {
   const btnList = document.getElementById('macro-buttons-list');
-  const modalList = document.getElementById('macro-list-container');
   if (!btnList) return;
 
-  // 1. Barra Flutuante
+  const totalPages = Math.max(1, Math.ceil(vttMacros.length / 10));
+  if (macroPage >= totalPages) macroPage = totalPages - 1;
+
+  // Update nav state
+  const prevBtn = document.getElementById('macro-prev');
+  const nextBtn = document.getElementById('macro-next');
+  const pageInd = document.getElementById('macro-page-indicator');
+  if (prevBtn) prevBtn.style.opacity = macroPage > 0 ? '1' : '0.3';
+  if (nextBtn) nextBtn.style.opacity = macroPage < totalPages - 1 ? '1' : '0.3';
+  if (pageInd) pageInd.textContent = (macroPage + 1) + '/' + totalPages;
+
   btnList.innerHTML = '';
-  vttMacros.forEach(m => {
+  const start = macroPage * 10;
+  const end = Math.min(start + 10, vttMacros.length);
+  for (let i = start; i < end; i++) {
+    const m = vttMacros[i];
     const btn = document.createElement('button');
     btn.className = 'macro-btn';
-    btn.innerHTML = `<i class="bi bi-play-fill"></i> ${escHTML(m.name)}`;
-    btn.title = `Executar: ${m.command}`;
-    btn.onclick = () => executarMacro(m.command);
-    btnList.appendChild(btn);
-  });
+    
+    btn.style.width = '42px';
+    btn.style.height = '42px';
+    btn.style.display = 'flex';
+    btn.style.flexDirection = 'column';
+    btn.style.alignItems = 'center';
+    btn.style.justifyContent = 'center';
+    btn.style.padding = '0';
+    btn.style.position = 'relative';
+    btn.style.overflow = 'hidden';
 
-  // 2. Lista no Modal
-  if (modalList) {
-    if (vttMacros.length === 0) {
-      modalList.innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;padding:0.5rem;text-align:center;">Nenhuma macro configurada.</div>';
+    // Slot number (actual index + 1, but last of page shows 0 for page 0)
+    const slotNum = (i + 1).toString();
+    const numEl = document.createElement('span');
+    numEl.textContent = slotNum;
+    numEl.style.position = 'absolute';
+    numEl.style.top = '2px';
+    numEl.style.left = '4px';
+    numEl.style.fontSize = '0.65rem';
+    numEl.style.opacity = '0.6';
+    numEl.style.fontWeight = 'bold';
+    btn.appendChild(numEl);
+
+    if (m && m.name && m.command) {
+      btn.title = `${m.name}\n${m.command}\n(Botão direito para editar)`;
+      btn.onclick = () => executarMacro(m.command);
+      btn.oncontextmenu = (e) => {
+        e.preventDefault();
+        abrirConfigMacros(i);
+      };
+      
+      const icon = document.createElement('i');
+      icon.className = 'bi bi-play-fill';
+      icon.style.fontSize = '1.2rem';
+      
+      const label = document.createElement('span');
+      label.textContent = m.name.substring(0, 5);
+      label.style.fontSize = '0.55rem';
+      label.style.marginTop = '-2px';
+      
+      btn.appendChild(icon);
+      btn.appendChild(label);
     } else {
-      modalList.innerHTML = vttMacros.map((m, i) => `
-        <div class="macro-item-row">
-          <div class="macro-item-info">
-            <span class="macro-item-name">${escHTML(m.name)}</span>
-            <span class="macro-item-cmd" title="${escHTML(m.command)}">${escHTML(m.command)}</span>
-          </div>
-          <button class="btn btn-sm btn-outline-danger" onclick="removerMacro(${i})" style="padding:0.1rem 0.4rem;font-size:0.7rem;"><i class="bi bi-trash"></i></button>
-        </div>
-      `).join('');
+      btn.title = 'Slot Vazio (Clique para adicionar macro)';
+      btn.style.background = 'rgba(0,0,0,0.1)';
+      btn.style.borderStyle = 'dashed';
+      btn.onclick = () => abrirConfigMacros(i);
     }
+    btnList.appendChild(btn);
   }
 }
 
@@ -9048,25 +13997,54 @@ function executarMacro(cmd) {
   if (myRole === 'expectador') { toast('Expectadores não podem executar macros.'); return; }
   if (myRole === 'cego') return;
   const text = cmd.trim(); if (!text) return;
+  
+  let rollerName = myName;
+  if (typeof BOARD !== 'undefined' && BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+    const tokenId = BOARD.selectedTokens.values().next().value;
+    const token = BOARD.tokens.find(t => t.id === tokenId);
+    if (token && token.name) {
+      rollerName = token.name;
+    }
+  }
+
   let msgData;
   if (text.toLowerCase().startsWith('/r ')) {
     const res = processarRolagem(text, chatVisibility !== 'global');
-    if (res) msgData = { type: 'roll', name: myName, role: myRole, text: res, time: formatTime(), visibility: chatVisibility };
+    if (res) msgData = { type: 'roll', name: rollerName, role: myRole, text: res, time: formatTime(), visibility: chatVisibility };
     else {
       if (chatVisibility !== 'blind') addMsg({ type: 'system', text: 'Sintaxe: /r 2d6 ou /r d20+3' });
       return;
     }
   } else {
-    msgData = { type: 'chat', name: myName, role: myRole, text, time: formatTime(), visibility: chatVisibility };
+    msgData = { type: 'chat', name: rollerName, role: myRole, text, time: formatTime(), visibility: chatVisibility };
   }
   rotearMensagem(msgData);
 }
 
-function abrirConfigMacros() {
+function abrirConfigMacros(index) {
   const modal = document.getElementById('macroConfigModal');
+  const nameInp = document.getElementById('macro-new-name');
+  const cmdInp = document.getElementById('macro-new-command');
+  const idxInp = document.getElementById('macro-edit-index');
+  const title = document.getElementById('macro-modal-title');
+  const delBtn = document.getElementById('macro-delete-btn');
+
   if (modal) {
+    title.textContent = `Configurar Macro (#${index + 1})`;
+    idxInp.value = index;
+    
+    const m = vttMacros[index];
+    if (m && m.name && m.command) {
+      nameInp.value = m.name;
+      cmdInp.value = m.command;
+      if (delBtn) delBtn.style.display = 'block';
+    } else {
+      nameInp.value = '';
+      cmdInp.value = '';
+      if (delBtn) delBtn.style.display = 'none';
+    }
+    
     modal.classList.add('open');
-    renderizarMacros();
   }
 }
 
@@ -9075,30 +14053,59 @@ function fecharConfigMacros() {
   if (modal) modal.classList.remove('open');
 }
 
-function adicionarMacro() {
+function salvarEdicaoMacro() {
   const nameInp = document.getElementById('macro-new-name');
   const cmdInp = document.getElementById('macro-new-command');
-  if (!nameInp || !cmdInp) return;
+  const idxInp = document.getElementById('macro-edit-index');
+  
+  if (!nameInp || !cmdInp || !idxInp) return;
 
   const name = nameInp.value.trim();
   const command = cmdInp.value.trim();
+  const index = parseInt(idxInp.value);
 
   if (!name) { alert('Digite um nome para a macro.'); return; }
   if (!command) { alert('Digite um comando ou mensagem para a macro.'); return; }
 
-  vttMacros.push({ name, command });
+  vttMacros[index] = { name, command };
   salvarMacros();
-
-  // Limpa inputs
-  nameInp.value = '';
-  cmdInp.value = '';
-  mostrarToast('Macro adicionada!', 'sucesso');
+  fecharConfigMacros();
+  mostrarToast('Macro salva com sucesso!', 'sucesso');
 }
 
-function removerMacro(index) {
-  if (confirm('Deseja excluir esta macro?')) {
-    vttMacros.splice(index, 1);
+function limparMacroSlot() {
+  const idxInp = document.getElementById('macro-edit-index');
+  if (!idxInp) return;
+  const index = parseInt(idxInp.value);
+  if (confirm('Deseja remover esta macro do slot?')) {
+    vttMacros[index] = null;
     salvarMacros();
+    fecharConfigMacros();
+    mostrarToast('Macro removida!', 'sucesso');
+  }
+}
+
+// ── Recolher/Expandir Barra de Macros ──
+function toggleMacroBar() {
+  const content = document.getElementById('macro-collapsible-content');
+  const btn = document.getElementById('macro-collapse-toggle');
+  if (!content || !btn) return;
+  const isCollapsed = content.style.display === 'none';
+  content.style.display = isCollapsed ? 'flex' : 'none';
+  btn.textContent = isCollapsed ? '❮' : '❯';
+  btn.title = isCollapsed ? 'Recolher barra de macros' : 'Expandir barra de macros';
+  localStorage.setItem('t20_macro_bar_collapsed', isCollapsed ? '0' : '1');
+}
+
+function _initMacroBarCollapse() {
+  const content = document.getElementById('macro-collapsible-content');
+  const btn = document.getElementById('macro-collapse-toggle');
+  if (!content || !btn) return;
+  const collapsed = localStorage.getItem('t20_macro_bar_collapsed') === '1';
+  if (collapsed) {
+    content.style.display = 'none';
+    btn.textContent = '❯';
+    btn.title = 'Expandir barra de macros';
   }
 }
 
@@ -9130,49 +14137,37 @@ function toggleLocalRole() {
   toast(`Visualização alterada para: ${myRole === 'mestre' ? 'Mestre' : 'Jogador'}`);
 }
 
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const btnFloating = document.getElementById('btn-sidebar-expand-floating');
-  if (!sidebar) return;
-  sidebar.classList.toggle('collapsed');
-  const isCollapsed = sidebar.classList.contains('collapsed');
-  localStorage.setItem('vtt_sidebar_collapsed', isCollapsed ? '1' : '0');
+function togglePanelColapsavel(panel, btnFloatingId, storageKey) {
+  const btnFloating = document.getElementById(btnFloatingId);
+  if (!panel) return;
+  const isMobile = window.innerWidth <= 900;
+  panel.classList.toggle('collapsed');
+  const isCollapsed = panel.classList.contains('collapsed');
+  if (!isMobile) {
+    localStorage.setItem(storageKey, isCollapsed ? '1' : '0');
+  }
   if (btnFloating) {
     btnFloating.style.display = isCollapsed ? 'flex' : 'none';
+    // No mobile, mantém o botão visível para fechar o painel
+    if (isMobile) btnFloating.style.display = 'flex';
   }
-  setTimeout(() => {
-    if (typeof boardResize === 'function') boardResize();
-  }, 260);
+  if (!isMobile) {
+    setTimeout(() => {
+      if (typeof boardResize === 'function') boardResize();
+    }, 260);
+  }
+}
+
+function toggleSidebar() {
+  togglePanelColapsavel(document.getElementById('sidebar'), 'btn-sidebar-expand-floating', 'vtt_sidebar_collapsed');
 }
 
 function toggleMasterPanel() {
-  const panel = document.getElementById('master-panel');
-  const btnFloating = document.getElementById('btn-master-expand-floating');
-  if (!panel) return;
-  panel.classList.toggle('collapsed');
-  const isCollapsed = panel.classList.contains('collapsed');
-  localStorage.setItem('vtt_master_collapsed', isCollapsed ? '1' : '0');
-  if (btnFloating) {
-    btnFloating.style.display = isCollapsed ? 'flex' : 'none';
-  }
-  setTimeout(() => {
-    if (typeof boardResize === 'function') boardResize();
-  }, 260);
+  togglePanelColapsavel(document.getElementById('master-panel'), 'btn-master-expand-floating', 'vtt_master_collapsed');
 }
 
 function toggleChatPanel() {
-  const panel = document.querySelector('.chat-panel');
-  const btnFloating = document.getElementById('btn-chat-expand-floating');
-  if (!panel) return;
-  panel.classList.toggle('collapsed');
-  const isCollapsed = panel.classList.contains('collapsed');
-  localStorage.setItem('vtt_chat_collapsed', isCollapsed ? '1' : '0');
-  if (btnFloating) {
-    btnFloating.style.display = isCollapsed ? 'flex' : 'none';
-  }
-  setTimeout(() => {
-    if (typeof boardResize === 'function') boardResize();
-  }, 260);
+  togglePanelColapsavel(document.querySelector('.chat-panel'), 'btn-chat-expand-floating', 'vtt_chat_collapsed');
 }
 
 // ── Painel colapsável de Aventureiros ──
@@ -9244,7 +14239,7 @@ function aplicarRoleVisual() {
   if (b) {
     const label = myRole === 'mestre' ? 'Mestre' : myRole === 'expectador' ? 'Expectador' : myRole === 'cego' ? 'Cego' : 'Jogador';
     b.textContent = label;
-    b.className = 'role-badge role-' + myRole;
+    b.className = 'tag-role tag-' + myRole;
     b.title = amIHost ? 'Clique para alternar entre Mestre e Jogador' : 'Sua função na mesa';
   }
   // Painéis de mestre
@@ -9253,16 +14248,28 @@ function aplicarRoleVisual() {
     document.getElementById('master-panel').style.display = 'flex';
     document.getElementById('btn-convidar').style.display = amIHost ? '' : 'none';
     document.getElementById('btn-ficha').style.display = 'none';
+    const btnExp = document.getElementById('btn-exportar-mesa');
+    if (btnExp) btnExp.style.display = '';
+    const btnImp = document.getElementById('btn-importar-mesa');
+    if (btnImp) btnImp.style.display = '';
     if (amIHost) initBau();
   } else {
     document.getElementById('invite-area').style.display = 'none';
     document.getElementById('master-panel').style.display = 'none';
     document.getElementById('btn-convidar').style.display = 'none';
-    document.getElementById('btn-ficha').style.display = 'inline-flex';
+    const podeAbrirFicha = myRole !== 'expectador' && myRole !== 'cego';
+    document.getElementById('btn-ficha').style.display = podeAbrirFicha ? 'inline-flex' : 'none';
+    const mobBtn = document.querySelector('.mob-ficha-btn');
+    if (mobBtn) mobBtn.style.display = podeAbrirFicha ? '' : 'none';
+    const btnExp = document.getElementById('btn-exportar-mesa');
+    if (btnExp) btnExp.style.display = 'none';
+    const btnImp = document.getElementById('btn-importar-mesa');
+    if (btnImp) btnImp.style.display = 'none';
   }
   boardSetupRole();
   aplicarCegoVisual();
   atualizarFogJogador();
+  renderScenesPanel();
   boardRender();
 }
 
@@ -9292,38 +14299,41 @@ function aplicarCegoVisual() {
 
 // Auto-preencher código da URL + inicializações
 
-(function() {
-  const params=new URLSearchParams(window.location.search);
-  const sala=params.get('sala');
-  if(sala){
-    document.getElementById('room-code').value=sala;
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const sala = params.get('sala');
+  if (sala) {
+    document.getElementById('room-code').value = sala;
     document.getElementById('player-name').focus();
     // Mostrar toast após curto delay
-    setTimeout(()=>toast('Código preenchido! Digite seu nome e entre.', 3500),500);
+    setTimeout(() => toast('Código preenchido! Digite seu nome e entre.', 3500), 500);
   }
   // Inicializa as macros
   carregarMacros();
+  _initMacroBarCollapse();
   // Inicializa o editor de imagens
   initImageEditor();
 
-  // Inicialização do estado recolhido dos painéis
-  if (localStorage.getItem('vtt_sidebar_collapsed') === '1') {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) sidebar.classList.add('collapsed');
-    const btn = document.getElementById('btn-sidebar-expand-floating');
-    if (btn) btn.style.display = 'flex';
-  }
-  if (localStorage.getItem('vtt_master_collapsed') === '1') {
-    const panel = document.getElementById('master-panel');
-    if (panel) panel.classList.add('collapsed');
-    const btn = document.getElementById('btn-master-expand-floating');
-    if (btn) btn.style.display = 'flex';
-  }
-  if (localStorage.getItem('vtt_chat_collapsed') === '1') {
-    const panel = document.querySelector('.chat-panel');
-    if (panel) panel.classList.add('collapsed');
-    const btn = document.getElementById('btn-chat-expand-floating');
-    if (btn) btn.style.display = 'flex';
+  // Inicialização do estado recolhido dos painéis (só em desktop)
+  if (window.innerWidth > 900) {
+    if (localStorage.getItem('vtt_sidebar_collapsed') === '1') {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) sidebar.classList.add('collapsed');
+      const btn = document.getElementById('btn-sidebar-expand-floating');
+      if (btn) btn.style.display = 'flex';
+    }
+    if (localStorage.getItem('vtt_master_collapsed') === '1') {
+      const panel = document.getElementById('master-panel');
+      if (panel) panel.classList.add('collapsed');
+      const btn = document.getElementById('btn-master-expand-floating');
+      if (btn) btn.style.display = 'flex';
+    }
+    if (localStorage.getItem('vtt_chat_collapsed') === '1') {
+      const panel = document.querySelector('.chat-panel');
+      if (panel) panel.classList.add('collapsed');
+      const btn = document.getElementById('btn-chat-expand-floating');
+      if (btn) btn.style.display = 'flex';
+    }
   }
   if (localStorage.getItem('vtt_players_panel_open') === '1') {
     const list = document.getElementById('playersTopList');
@@ -9335,10 +14345,22 @@ function aplicarCegoVisual() {
     if (typeof boardResize === 'function') boardResize();
   }, 500);
   // Atalhos globais
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && BOARD.playerViewTokenId) {
-      exitPlayerView();
-      return;
+  let tokenClipboard = null;
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (BOARD.playerViewTokenId || BOARD.selectedTokens.size > 0) {
+        BOARD.selectedTokens.clear();
+        exitPlayerView();
+        boardRender();
+        return;
+      }
+      if (BOARD.wayRulerActive || BOARD.wayRulerPoints.length > 0) {
+        BOARD.wayRulerActive = false;
+        BOARD.wayRulerPoints = [];
+        boardRender();
+        return;
+      }
     }
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
       e.preventDefault();
@@ -9350,7 +14372,42 @@ function aplicarCegoVisual() {
       redoBoard();
       return;
     }
-    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+    // Ctrl+C: copiar token/objeto selecionado (só mestre)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && (myRole === 'mestre')) {
+      if (BOARD.selectedTokens.size > 0) {
+        e.preventDefault();
+        const srcId = BOARD.selectedTokens.values().next().value;
+        const src = BOARD.tokens.find(t => t.id === srcId);
+        if (src) {
+          tokenClipboard = JSON.parse(JSON.stringify(src));
+          delete tokenClipboard.id;
+          tokenClipboard.name = (src.name || 'Token') + ' (cópia)';
+          toast(`📋 "${src.name}" copiado`);
+        }
+      }
+      return;
+    }
+    // Ctrl+V: colar token/objeto copiado (só mestre)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v' && (myRole === 'mestre')) {
+      if (tokenClipboard) {
+        e.preventDefault();
+        snapshotBoard();
+        const newId = 'tk' + Date.now() + Math.floor(Math.random() * 9999);
+        const paste = JSON.parse(JSON.stringify(tokenClipboard));
+        paste.id = newId;
+        paste.gx = (paste.gx || 0) + 2;
+        paste.gy = (paste.gy || 0) + 2;
+        BOARD.tokens.push(paste);
+        BOARD.selectedTokens.clear();
+        BOARD.selectedTokens.add(newId);
+        boardSave();
+        boardRender();
+        syncBoardTokensToPlayers();
+        toast(`📋 "${paste.name}" colado`);
+      }
+      return;
+    }
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
       const ativo = document.activeElement;
       if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
       e.preventDefault();
@@ -9437,10 +14494,10 @@ function abrirEditorImagem(url, target) {
   editorState.undoStack = [];
   editorState.redoStack = [];
   editorState.backupCanvas = null;
-  
+
   document.getElementById('imageEditorModal').style.display = 'flex';
   document.getElementById('btnEditorApplyToken').style.display = (target === 'token') ? 'inline-block' : 'none';
-  
+
   const applyObjectBtn = document.getElementById('btnEditorApplyObject');
   if (applyObjectBtn) {
     if (target === 'edit-object') {
@@ -9451,32 +14508,28 @@ function abrirEditorImagem(url, target) {
       applyObjectBtn.style.display = (target === 'token') ? 'none' : 'inline-block';
     }
   }
-  
+
   document.getElementById('btnEditorApplyMap').style.display = (target === 'map' || target === 'general') ? 'inline-block' : 'none';
-  
+
   resetFiltersStateAndUI();
   setEditorTab('crop');
   setEditorCropRatio('free');
-  
+
   const welcome = document.getElementById('editorWelcome');
   const canvasContainer = document.getElementById('editorCanvasContainer');
-  
+
   if (url) {
     welcome.style.display = 'none';
     canvasContainer.style.display = 'inline-block';
-    
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
+
+    loadImageWithCORSFallback(url, (img) => {
       setupEditorWithImage(img);
-    };
-    img.onerror = () => {
+    }, () => {
       toast('Erro ao carregar imagem no editor.');
       welcome.style.display = 'flex';
       canvasContainer.style.display = 'none';
       editorState.imageLoaded = false;
-    };
-    img.src = url;
+    });
   } else {
     welcome.style.display = 'flex';
     canvasContainer.style.display = 'none';
@@ -9504,25 +14557,25 @@ function abrirEditorImagemGeral() {
 function setupEditorWithImage(img) {
   const canvas = document.getElementById('editorCanvas');
   const overlay = document.getElementById('editorOverlayCanvas');
-  
+
   editorState.canvas = canvas;
   editorState.ctx = canvas.getContext('2d');
   editorState.overlayCanvas = overlay;
   editorState.overlayCtx = overlay.getContext('2d');
-  
+
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
-  
+
   editorState.ctx.clearRect(0, 0, canvas.width, canvas.height);
   editorState.ctx.drawImage(img, 0, 0);
-  
+
   editorState.imageLoaded = true;
   document.getElementById('editorWelcome').style.display = 'none';
   document.getElementById('editorCanvasContainer').style.display = 'inline-block';
-  
+
   resizeOverlayCanvas();
   resetEditorCropBox();
-  
+
   pushToUndoStack();
   drawOverlay();
 }
@@ -9541,9 +14594,9 @@ window.addEventListener('resize', () => {
   if (editorState.active && editorState.imageLoaded) {
     const oldW = editorState.overlayCanvas.width;
     const oldH = editorState.overlayCanvas.height;
-    
+
     resizeOverlayCanvas();
-    
+
     if (oldW > 0 && oldH > 0) {
       const scaleX = editorState.overlayCanvas.width / oldW;
       const scaleY = editorState.overlayCanvas.height / oldH;
@@ -9560,68 +14613,68 @@ function drawOverlay() {
   const overlay = editorState.overlayCanvas;
   const ctx = editorState.overlayCtx;
   if (!overlay || !ctx) return;
-  
+
   ctx.clearRect(0, 0, overlay.width, overlay.height);
-  
+
   if (editorState.mode === 'crop') {
     const box = editorState.cropBox;
-    
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, overlay.width, box.y);
     ctx.fillRect(0, box.y + box.h, overlay.width, overlay.height - (box.y + box.h));
     ctx.fillRect(0, box.y, box.x, box.h);
     ctx.fillRect(box.x + box.w, box.y, overlay.width - (box.x + box.w), box.h);
-    
+
     ctx.strokeStyle = '#c9903a';
     ctx.lineWidth = 2;
-    
+
     if (editorState.cropRatio === 'circle') {
       ctx.save();
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
-      ctx.arc(box.x + box.w/2, box.y + box.h/2, Math.min(box.w, box.h)/2, 0, Math.PI*2);
+      ctx.arc(box.x + box.w / 2, box.y + box.h / 2, Math.min(box.w, box.h) / 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
-      
+
       ctx.beginPath();
-      ctx.arc(box.x + box.w/2, box.y + box.h/2, Math.min(box.w, box.h)/2, 0, Math.PI*2);
+      ctx.arc(box.x + box.w / 2, box.y + box.h / 2, Math.min(box.w, box.h) / 2, 0, Math.PI * 2);
       ctx.stroke();
-      
+
       ctx.strokeStyle = 'rgba(201, 144, 58, 0.4)';
       ctx.lineWidth = 1;
       ctx.strokeRect(box.x, box.y, box.w, box.h);
     } else {
       ctx.strokeRect(box.x, box.y, box.w, box.h);
     }
-    
+
     const handleSize = 8;
     ctx.fillStyle = '#e8b96a';
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 1.5;
-    
+
     const corners = [
       { x: box.x, y: box.y },
       { x: box.x + box.w, y: box.y },
       { x: box.x + box.w, y: box.y + box.h },
       { x: box.x, y: box.y + box.h }
     ];
-    
+
     corners.forEach(c => {
-      ctx.fillRect(c.x - handleSize/2, c.y - handleSize/2, handleSize, handleSize);
-      ctx.strokeRect(c.x - handleSize/2, c.y - handleSize/2, handleSize, handleSize);
+      ctx.fillRect(c.x - handleSize / 2, c.y - handleSize / 2, handleSize, handleSize);
+      ctx.strokeRect(c.x - handleSize / 2, c.y - handleSize / 2, handleSize, handleSize);
     });
   } else if (editorState.mode === 'brush' && editorState.brushCursorPos) {
     const pos = editorState.brushCursorPos;
     const clientBrushRadius = editorState.brushSize * (overlay.width / editorState.canvas.width) / 2;
-    
+
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, Math.max(1, clientBrushRadius), 0, Math.PI*2);
+    ctx.arc(pos.x, pos.y, Math.max(1, clientBrushRadius), 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.lineWidth = 1.5;
     ctx.stroke();
-    
+
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, Math.max(1, clientBrushRadius), 0, Math.PI*2);
+    ctx.arc(pos.x, pos.y, Math.max(1, clientBrushRadius), 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.lineWidth = 0.5;
     ctx.stroke();
@@ -9640,7 +14693,7 @@ function setEditorCropRatio(ratio) {
 function resetEditorCropBox() {
   const overlay = editorState.overlayCanvas;
   if (!overlay) return;
-  
+
   if (editorState.cropRatio === 'free') {
     editorState.cropBox = {
       x: overlay.width * 0.05,
@@ -9664,19 +14717,19 @@ function setEditorTab(tab) {
   document.getElementById('tabEditorCrop').classList.toggle('active', tab === 'crop');
   document.getElementById('tabEditorColor').classList.toggle('active', tab === 'color');
   document.getElementById('tabEditorBrush').classList.toggle('active', tab === 'brush');
-  
+
   document.getElementById('editorContentCrop').classList.toggle('active', tab === 'crop');
   document.getElementById('editorContentColor').classList.toggle('active', tab === 'color');
   document.getElementById('editorContentBrush').classList.toggle('active', tab === 'brush');
-  
+
   if (tab !== 'color' && editorState.backupCanvas) {
     applyFilters();
   }
-  
+
   if (tab !== 'brush') {
     editorState.brushCursorPos = null;
   }
-  
+
   drawOverlay();
 }
 
@@ -9684,13 +14737,13 @@ function handleCropStart(mx, my) {
   const box = editorState.cropBox;
   const handleSize = 14;
   let active = null;
-  
+
   if (Math.hypot(mx - box.x, my - box.y) < handleSize) active = 'nw';
   else if (Math.hypot(mx - (box.x + box.w), my - box.y) < handleSize) active = 'ne';
   else if (Math.hypot(mx - (box.x + box.w), my - (box.y + box.h)) < handleSize) active = 'se';
   else if (Math.hypot(mx - box.x, my - (box.y + box.h)) < handleSize) active = 'sw';
   else if (mx >= box.x && mx <= box.x + box.w && my >= box.y && my <= box.y + box.h) active = 'move';
-  
+
   if (active) {
     editorState.activeHandle = active;
     editorState.dragStart = { x: mx, y: my, box: { ...box } };
@@ -9705,9 +14758,9 @@ function handleCropMove(mx, my) {
   const startBox = editorState.dragStart.box;
   const handle = editorState.activeHandle;
   const minSize = editorState.cropMinSize;
-  
+
   let newBox = { ...editorState.cropBox };
-  
+
   if (handle === 'move') {
     newBox.x = Math.max(0, Math.min(oCanvas.width - startBox.w, startBox.x + dx));
     newBox.y = Math.max(0, Math.min(oCanvas.height - startBox.h, startBox.y + dy));
@@ -9729,7 +14782,7 @@ function handleCropMove(mx, my) {
       newBox.w = startBox.x + startBox.w - newBox.x;
       newBox.h = Math.max(minSize, Math.min(oCanvas.height - startBox.y, startBox.h + dy));
     }
-    
+
     if (editorState.cropRatio === '1:1' || editorState.cropRatio === 'circle') {
       const size = Math.min(newBox.w, newBox.h);
       if (handle === 'nw') {
@@ -9744,7 +14797,7 @@ function handleCropMove(mx, my) {
       newBox.h = size;
     }
   }
-  
+
   editorState.cropBox = newBox;
   drawOverlay();
 }
@@ -9753,11 +14806,11 @@ function handleBrushStart(mx, my) {
   const scale = editorState.canvas.width / editorState.overlayCanvas.width;
   const imgX = mx * scale;
   const imgY = my * scale;
-  
+
   editorState.isDrawing = true;
   editorState.lastX = imgX;
   editorState.lastY = imgY;
-  
+
   pushToUndoStack();
   drawBrushStroke(imgX, imgY, imgX, imgY);
 }
@@ -9766,13 +14819,13 @@ function handleBrushMove(mx, my) {
   const scale = editorState.canvas.width / editorState.overlayCanvas.width;
   const imgX = mx * scale;
   const imgY = my * scale;
-  
+
   if (editorState.isDrawing) {
     drawBrushStroke(editorState.lastX, editorState.lastY, imgX, imgY);
     editorState.lastX = imgX;
     editorState.lastY = imgY;
   }
-  
+
   editorState.brushCursorPos = { x: mx, y: my };
   drawOverlay();
 }
@@ -9786,7 +14839,7 @@ function drawBrushStroke(x1, y1, x2, y2) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.lineWidth = editorState.brushSize;
-  
+
   if (editorState.brushMode === 'erase') {
     ctx.globalCompositeOperation = 'destination-out';
     ctx.strokeStyle = 'rgba(0,0,0,1)';
@@ -9802,38 +14855,38 @@ function applyCrop() {
   const canvas = editorState.canvas;
   const overlay = editorState.overlayCanvas;
   if (!canvas || !overlay || !editorState.imageLoaded) return;
-  
+
   const scale = canvas.width / overlay.width;
   const box = editorState.cropBox;
   const ix = box.x * scale;
   const iy = box.y * scale;
   const iw = box.w * scale;
   const ih = box.h * scale;
-  
+
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = iw;
   tempCanvas.height = ih;
   const tempCtx = tempCanvas.getContext('2d');
-  
+
   if (editorState.cropRatio === 'circle') {
     tempCtx.beginPath();
     tempCtx.arc(iw / 2, ih / 2, Math.min(iw, ih) / 2, 0, Math.PI * 2);
     tempCtx.clip();
   }
-  
+
   tempCtx.drawImage(canvas, ix, iy, iw, ih, 0, 0, iw, ih);
-  
+
   canvas.width = iw;
   canvas.height = ih;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, iw, ih);
   ctx.drawImage(tempCanvas, 0, 0);
-  
+
   resizeOverlayCanvas();
   resetEditorCropBox();
   pushToUndoStack();
   drawOverlay();
-  
+
   toast('Imagem recortada!');
 }
 
@@ -9841,7 +14894,7 @@ function updateEditorFilters() {
   const canvas = editorState.canvas;
   const ctx = editorState.ctx;
   if (!canvas || !ctx || !editorState.imageLoaded) return;
-  
+
   if (!editorState.backupCanvas) {
     editorState.backupCanvas = document.createElement('canvas');
     editorState.backupCanvas.width = canvas.width;
@@ -9849,21 +14902,21 @@ function updateEditorFilters() {
     const bCtx = editorState.backupCanvas.getContext('2d');
     bCtx.drawImage(canvas, 0, 0);
   }
-  
+
   const brightness = document.getElementById('slideBrightness').value;
   const contrast = document.getElementById('slideContrast').value;
   const saturation = document.getElementById('slideSaturation').value;
   const hue = document.getElementById('slideHue').value;
   const grayscale = document.getElementById('slideGrayscale').value;
   const invert = document.getElementById('slideInvert').value;
-  
+
   document.getElementById('valBrightness').textContent = brightness + '%';
   document.getElementById('valContrast').textContent = contrast + '%';
   document.getElementById('valSaturation').textContent = saturation + '%';
   document.getElementById('valHue').textContent = hue + '°';
   document.getElementById('valGrayscale').textContent = grayscale + '%';
   document.getElementById('valInvert').textContent = invert + '%';
-  
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
   ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) hue-rotate(${hue}deg) grayscale(${grayscale}%) invert(${invert}%)`;
@@ -9878,21 +14931,25 @@ function applyFilters() {
   toast('Filtros aplicados!');
 }
 
-function resetFilters() {
+function resetFilterSlidersUI() {
   document.getElementById('slideBrightness').value = 100;
   document.getElementById('slideContrast').value = 100;
   document.getElementById('slideSaturation').value = 100;
   document.getElementById('slideHue').value = 0;
   document.getElementById('slideGrayscale').value = 0;
   document.getElementById('slideInvert').value = 0;
-  
+
   document.getElementById('valBrightness').textContent = '100%';
   document.getElementById('valContrast').textContent = '100%';
   document.getElementById('valSaturation').textContent = '100%';
   document.getElementById('valHue').textContent = '0°';
   document.getElementById('valGrayscale').textContent = '0%';
   document.getElementById('valInvert').textContent = '0%';
-  
+}
+
+function resetFilters() {
+  resetFilterSlidersUI();
+
   if (editorState.backupCanvas) {
     const canvas = editorState.canvas;
     const ctx = editorState.ctx;
@@ -9904,20 +14961,7 @@ function resetFilters() {
 }
 
 function resetFiltersStateAndUI() {
-  document.getElementById('slideBrightness').value = 100;
-  document.getElementById('slideContrast').value = 100;
-  document.getElementById('slideSaturation').value = 100;
-  document.getElementById('slideHue').value = 0;
-  document.getElementById('slideGrayscale').value = 0;
-  document.getElementById('slideInvert').value = 0;
-  
-  document.getElementById('valBrightness').textContent = '100%';
-  document.getElementById('valContrast').textContent = '100%';
-  document.getElementById('valSaturation').textContent = '100%';
-  document.getElementById('valHue').textContent = '0°';
-  document.getElementById('valGrayscale').textContent = '0%';
-  document.getElementById('valInvert').textContent = '0%';
-  
+  resetFilterSlidersUI();
   editorState.backupCanvas = null;
 }
 
@@ -9943,7 +14987,7 @@ function sampleEyedropperColor(mx, my) {
   const scale = editorState.canvas.width / editorState.overlayCanvas.width;
   const ix = Math.floor(mx * scale);
   const iy = Math.floor(my * scale);
-  
+
   if (ix >= 0 && ix < editorState.canvas.width && iy >= 0 && iy < editorState.canvas.height) {
     const imgData = editorState.ctx.getImageData(ix, iy, 1, 1).data;
     if (imgData[3] > 0) {
@@ -9977,7 +15021,7 @@ function promptEditorUrl() {
 function handleEditorFileLoad(input) {
   const file = input.files && input.files[0];
   if (!file) return;
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
     carregarImagemEditor(e.target.result);
@@ -9993,7 +15037,7 @@ function handleEditorFileDrop(e) {
     toast('Por favor, arraste apenas arquivos de imagem.');
     return;
   }
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
     carregarImagemEditor(e.target.result);
@@ -10006,20 +15050,16 @@ function carregarImagemEditor(url) {
   const canvasContainer = document.getElementById('editorCanvasContainer');
   welcome.style.display = 'none';
   canvasContainer.style.display = 'inline-block';
-  
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
+
+  loadImageWithCORSFallback(url, (img) => {
     setupEditorWithImage(img);
-  };
-  img.onerror = () => {
+  }, () => {
     toast('Erro ao carregar imagem selecionada.');
     if (!editorState.imageLoaded) {
       welcome.style.display = 'flex';
       canvasContainer.style.display = 'none';
     }
-  };
-  img.src = url;
+  });
 }
 
 function pushToUndoStack() {
@@ -10042,7 +15082,7 @@ function editorUndo() {
   if (editorState.undoStack.length <= 1) return;
   const current = editorState.undoStack.pop();
   editorState.redoStack.push(current);
-  
+
   const previous = editorState.undoStack[editorState.undoStack.length - 1];
   restoreEditorState(previous);
 }
@@ -10095,10 +15135,10 @@ function fecharEditorImagem() {
 function editorExportToken() {
   if (!editorState.imageLoaded) return;
   if (editorState.backupCanvas) applyFilters();
-  
+
   const dataUrl = editorState.canvas.toDataURL();
   definirImagemToken(dataUrl);
-  
+
   document.getElementById('imageEditorModal').style.display = 'none';
   editorState.active = false;
   toast('Imagem editada aplicada ao Token!');
@@ -10107,20 +15147,24 @@ function editorExportToken() {
 function editorExportMap() {
   if (!editorState.imageLoaded) return;
   if (editorState.backupCanvas) applyFilters();
-  
+
   const dataUrl = editorState.canvas.toDataURL();
-  
+
   const img = new Image();
   img.onload = () => {
     snapshotBoard();
     BOARD.mapImg = img;
     BOARD.mapDataUrl = dataUrl;
+    BOARD.mapX = 0;
+    BOARD.mapY = 0;
+    BOARD.mapWidth = null;
+    BOARD.mapHeight = null;
     boardRender();
-    
+
     if (myRole === 'mestre' || amIHost) {
-      broadcast({ type: 'board-map', mapUrl: dataUrl }, null);
+      syncBoardMapToPlayers();
     }
-    
+
     document.getElementById('imageEditorModal').style.display = 'none';
     editorState.active = false;
     toast('Imagem editada aplicada como Mapa!');
@@ -10131,7 +15175,7 @@ function editorExportMap() {
 function editorExportDownload() {
   if (!editorState.imageLoaded) return;
   if (editorState.backupCanvas) applyFilters();
-  
+
   const dataUrl = editorState.canvas.toDataURL();
   const link = document.createElement('a');
   link.download = 'imagem_editada_' + Date.now() + '.png';
@@ -10145,7 +15189,7 @@ function editorExportDownload() {
 function initImageEditorEvents() {
   const overlay = document.getElementById('editorOverlayCanvas');
   if (!overlay) return;
-  
+
   function getMousePos(e) {
     const rect = overlay.getBoundingClientRect();
     if (e.touches && e.touches.length > 0) {
@@ -10159,7 +15203,7 @@ function initImageEditorEvents() {
       y: e.clientY - rect.top
     };
   }
-  
+
   overlay.addEventListener('mousedown', (e) => {
     if (!editorState.imageLoaded) return;
     const pos = getMousePos(e);
@@ -10173,7 +15217,7 @@ function initImageEditorEvents() {
       handleBrushStart(pos.x, pos.y);
     }
   });
-  
+
   overlay.addEventListener('mousemove', (e) => {
     if (!editorState.imageLoaded) return;
     const pos = getMousePos(e);
@@ -10183,7 +15227,7 @@ function initImageEditorEvents() {
       handleBrushMove(pos.x, pos.y);
     }
   });
-  
+
   const endHandler = () => {
     if (editorState.mode === 'crop') {
       editorState.activeHandle = null;
@@ -10191,7 +15235,7 @@ function initImageEditorEvents() {
       editorState.isDrawing = false;
     }
   };
-  
+
   overlay.addEventListener('mouseup', endHandler);
   overlay.addEventListener('mouseleave', () => {
     endHandler();
@@ -10200,7 +15244,7 @@ function initImageEditorEvents() {
       drawOverlay();
     }
   });
-  
+
   overlay.addEventListener('touchstart', (e) => {
     if (!editorState.imageLoaded) return;
     e.preventDefault();
@@ -10213,7 +15257,7 @@ function initImageEditorEvents() {
       handleBrushStart(pos.x, pos.y);
     }
   }, { passive: false });
-  
+
   overlay.addEventListener('touchmove', (e) => {
     if (!editorState.imageLoaded) return;
     e.preventDefault();
@@ -10224,7 +15268,7 @@ function initImageEditorEvents() {
       handleBrushMove(pos.x, pos.y);
     }
   }, { passive: false });
-  
+
   overlay.addEventListener('touchend', endHandler);
 }
 
@@ -10238,18 +15282,29 @@ function initImageEditor() {
 function editorExportObject() {
   if (!editorState.imageLoaded) return;
   if (editorState.backupCanvas) applyFilters();
-  
+
   const dataUrl = editorState.canvas.toDataURL();
-  
+
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     tokenImageCache[dataUrl] = img;
-    
+
     if (editorState.target === 'edit-object') {
       const token = BOARD.tokens.find(t => t.id === editorState.editingObjectId);
       if (token) {
         token.imageUrl = dataUrl;
+        const iw = img.naturalWidth || canvas.width;
+        const ih = img.naturalHeight || canvas.height;
+        const oldMax = Math.max(token.sizeX || token.size || 1, token.sizeY || token.size || 1);
+        if (iw > ih) {
+          token.sizeX = oldMax;
+          token.sizeY = Math.max(0.25, Math.round(oldMax * ih / iw * 4) / 4);
+        } else {
+          token.sizeY = oldMax;
+          token.sizeX = Math.max(0.25, Math.round(oldMax * iw / ih * 4) / 4);
+        }
+        token.size = Math.max(token.sizeX, token.sizeY);
         boardSave();
         boardRender();
         syncBoardTokensToPlayers();
@@ -10261,12 +15316,12 @@ function editorExportObject() {
       editorState.active = false;
       return;
     }
-    
+
     const cx = BOARD.wrap.clientWidth / 2;
     const cy = BOARD.wrap.clientHeight / 2;
     const { gx, gy } = canvasToGrid(cx, cy);
     const s = 2; // tamanho padrão em grid cells
-    
+
     let sizeX = s, sizeY = s;
     if (img.naturalWidth && img.naturalHeight) {
       const iw = img.naturalWidth, ih = img.naturalHeight;
@@ -10276,9 +15331,9 @@ function editorExportObject() {
         sizeX = s * (iw / ih);
       }
     }
-    
-    const newId = 'tk' + Date.now() + Math.floor(Math.random()*9999);
-    
+
+    const newId = 'tk' + Date.now() + Math.floor(Math.random() * 9999);
+
     BOARD.tokens.push({
       id: newId,
       type: 'object',
@@ -10294,14 +15349,14 @@ function editorExportObject() {
       hideName: true,
       gx: Math.max(0, gx), gy: Math.max(0, gy)
     });
-    
+
     setBoardLayer('map');
     BOARD.selectedTokens.clear();
     BOARD.selectedTokens.add(newId);
     boardSave();
     boardRender();
     syncBoardTokensToPlayers();
-    
+
     document.getElementById('imageEditorModal').style.display = 'none';
     editorState.active = false;
     toast(`◻ Objeto criado (${s}×${s}) na camada Mapa! Arraste para posicionar.`);
@@ -10312,10 +15367,520 @@ function editorExportObject() {
 function contextEditObject() {
   if (!contextTokenId) return;
   const token = BOARD.tokens.find(t => t.id === contextTokenId);
-  if (token) {
-    editorState.editingObjectId = token.id;
-    abrirEditorImagem(token.imageUrl || '', 'edit-object');
-  }
+  if (!token) { fecharContextMenu(); return; }
+  if (token.locked) { toast(`🔒 "${token.name}" está travado.`); fecharContextMenu(); return; }
+  editorState.editingObjectId = token.id;
+  abrirEditorImagem(token.imageUrl || '', 'edit-object');
   fecharContextMenu();
 }
 
+// ── Tooltip ──
+function updateTooltip(token, x, y) {
+  const tooltip = document.getElementById('tokenTooltip');
+  if (!tooltip) return;
+
+  const isMestre = (myRole === 'mestre');
+  const hasControl = temControleToken(token);
+  const showInfo = !token.hideName || isMestre || hasControl;
+
+  let name = token.name || 'Token';
+  if (token.hideName && !isMestre && !hasControl) {
+    name = 'Desconhecido';
+  } else if (token.hideName && isMestre) {
+    name += ' (Oculto)';
+  }
+
+  let content = `<strong>${name}</strong>`;
+
+  if (showInfo && token.type !== 'object') {
+    if (token.hp !== undefined && token.hpMax !== undefined && token.hpMax > 0) {
+      content += `<br>PV: ${token.hp}/${token.hpMax}`;
+    }
+    if (token.pm !== undefined && token.pmMax !== undefined && token.pmMax > 0) {
+      content += `<br>PM: ${token.pm}/${token.pmMax}`;
+    }
+    if (token.defense) {
+      content += `<br>Defesa: ${token.defense}`;
+    }
+    if (token.conditions && token.conditions.length > 0) {
+      const emojis = token.conditions.map(c => {
+        const emoji = (typeof CONDITION_EMOJI !== 'undefined' && CONDITION_EMOJI[c]) ? CONDITION_EMOJI[c] : '';
+        return emoji ? `${emoji} ${c}` : c;
+      });
+      content += `<br>Condições: ${emojis.join(', ')}`;
+    }
+  }
+
+  tooltip.innerHTML = content;
+  tooltip.style.display = 'block';
+
+  // Position
+  const rect = BOARD.wrap.getBoundingClientRect();
+  const vx = rect.left + x + 15;
+  const vy = rect.top + y + 15;
+
+  tooltip.style.left = vx + 'px';
+  tooltip.style.top = vy + 'px';
+
+  // Prevent overflowing the viewport
+  const tooltipRect = tooltip.getBoundingClientRect();
+  if (vx + tooltipRect.width > window.innerWidth) {
+    tooltip.style.left = (rect.left + x - tooltipRect.width - 15) + 'px';
+  }
+  if (vy + tooltipRect.height > window.innerHeight) {
+    tooltip.style.top = (rect.top + y - tooltipRect.height - 15) + 'px';
+  }
+}
+
+function hideTooltip() {
+  const tooltip = document.getElementById('tokenTooltip');
+  if (tooltip) {
+    tooltip.style.display = 'none';
+  }
+}
+
+// ── Salvar / Importar Estado da Mesa via JSON ──
+function exportarMesa() {
+  if (myRole !== 'mestre') {
+    toast('Apenas o Mestre pode exportar a mesa.');
+    return;
+  }
+  try {
+    saveCurrentBoardToActiveScene();
+    
+    const state = {
+      scenes: SCENES,
+      activeSceneId: ACTIVE_SCENE_ID,
+      playersSceneId: PLAYERS_SCENE_ID,
+      exportVersion: 2
+    };
+
+    const dataStr = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const exportFileDefaultName = 'mesa_' + (roomTitle || 'vtt').replace(/\s+/g, '_').toLowerCase() + '_' + Date.now() + '.json';
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', url);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
+
+    toast('Mesa exportada com sucesso!');
+  } catch (e) {
+    toast('Erro ao exportar mesa: ' + e.message);
+  }
+}
+
+function importarMesa(event) {
+  if (myRole !== 'mestre') {
+    toast('Apenas o Mestre pode importar uma mesa.');
+    return;
+  }
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const s = JSON.parse(e.target.result);
+
+      if (!s) {
+        toast('Arquivo JSON inválido para restauração da mesa.');
+        return;
+      }
+
+      if (!confirm('Isso irá substituir todas as cenas e o tabuleiro atual. Deseja prosseguir?')) {
+        event.target.value = '';
+        return;
+      }
+
+      snapshotBoard();
+
+      // Check if it is a multi-scene export (exportVersion >= 2 or s.scenes exists)
+      if (s.scenes && Array.isArray(s.scenes) && s.activeSceneId) {
+        SCENES = s.scenes;
+        ACTIVE_SCENE_ID = s.activeSceneId;
+        PLAYERS_SCENE_ID = s.playersSceneId || s.activeSceneId;
+      } else {
+        // Fallback para arquivos legados de cena única
+        if (s.tokens === undefined && s.walls === undefined && s.mapDataUrl === undefined) {
+          toast('Arquivo JSON inválido para restauração da mesa.');
+          return;
+        }
+
+        const oldScene = {
+          id: 'scene_' + Date.now(),
+          name: 'Cena Restaurada',
+          tokens: s.tokens || [],
+          walls: s.walls || [],
+          shapes: s.shapes || [],
+          gridSize: s.gridSize || 50,
+          gridOn: typeof s.gridOn === 'boolean' ? s.gridOn : true,
+          activeFloor: s.activeFloor || 0,
+          gridCols: s.gridCols || 40,
+          gridRows: s.gridRows || 40,
+          gridScaleVal: s.gridScaleVal || 1.5,
+          gridScaleUnit: s.gridScaleUnit || 'm',
+          gridType: s.gridType || 'square',
+          lightingType: s.lightingType || 'normal',
+          mapDataUrl: s.mapDataUrl || null,
+          mapX: s.mapX || 0,
+          mapY: s.mapY || 0,
+          mapWidth: s.mapWidth || null,
+          mapHeight: s.mapHeight || null,
+          fogManual: s.fogManual || false,
+          fogVisible: s.fogVisible || null
+        };
+        SCENES = [oldScene];
+        ACTIVE_SCENE_ID = oldScene.id;
+        PLAYERS_SCENE_ID = oldScene.id;
+      }
+
+      saveScenesLocally();
+      
+      const activeScene = SCENES.find(sc => sc.id === ACTIVE_SCENE_ID) || SCENES[0];
+      ACTIVE_SCENE_ID = activeScene.id;
+      loadSceneIntoBoard(activeScene);
+
+      setTimeout(atualizarFogJogador, 100);
+      boardRender();
+
+      if (myRole === 'mestre' || amIHost) {
+        syncBoardToPlayers();
+
+        broadcastScenesUpdate();
+        renderScenesPanel();
+      }
+
+      toast('Mesa restaurada com sucesso!');
+    } catch (err) {
+      toast('Erro ao importar arquivo JSON: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── Alternar Ferramentas do Tabuleiro ──
+function setTool(toolName) {
+  BOARD.tool = toolName;
+
+  // Atualiza a classe active nos botões da barra de ferramentas
+  const toolButtons = [
+    { name: 'move', id: 'toolMove' }, { name: 'move', id: 'mobToolMove' },
+    { name: 'pan', id: 'toolPan' }, { name: 'pan', id: 'mobToolPan' },
+    { name: 'wall', id: 'toolWall' }, { name: 'wall', id: 'mobToolWall' },
+    { name: 'fog', id: 'toolFog' }, { name: 'fog', id: 'mobToolFog' },
+    { name: 'reveal', id: 'toolReveal' }, { name: 'reveal', id: 'mobToolReveal' },
+    { name: 'shape-rect', id: 'toolShapeRect' }, { name: 'shape-rect', id: 'mobToolRect' },
+    { name: 'shape-circle', id: 'toolShapeCircle' }, { name: 'shape-circle', id: 'mobToolCircle' },
+    { name: 'shape-freehand', id: 'toolShapeFreehand' }, { name: 'shape-freehand', id: 'mobToolFreehand' },
+    { name: 'ruler', id: 'toolRuler' }, { name: 'ruler', id: 'mobToolRuler' },
+    { name: 'circle-ruler', id: 'toolCircleRuler' }, { name: 'circle-ruler', id: 'mobToolCircleRuler' },
+    { name: 'way-ruler', id: 'toolWayRuler' }, { name: 'way-ruler', id: 'mobToolWayRuler' }
+  ];
+
+  toolButtons.forEach(btn => {
+    const el = document.getElementById(btn.id);
+    if (el) {
+      if (btn.name === toolName) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    }
+  });
+
+  // Ajusta a classe de cursor no wrap do canvas
+  const wrap = BOARD.wrap;
+  if (wrap) {
+    wrap.className = 'board-canvas-wrap';
+    wrap.classList.add('tool-' + toolName);
+  }
+
+  // Cancela qualquer desenho ou pintura ativa ao trocar de ferramenta
+  BOARD.wallDrawing = false;
+  BOARD.shapeDrawing = false;
+  BOARD.fogPainting = false;
+  BOARD.panning = false;
+  BOARD.dragging = null;
+  BOARD.dragGroup = null;
+  BOARD.handleDrag = null;
+  if (BOARD.marquee) { BOARD.marquee = null; hideSelectionBox(); }
+  BOARD.selectedTokens.clear();
+  BOARD.selectedWallId = null;
+  BOARD.wayRulerActive = false;
+  BOARD.wayRulerPoints = [];
+  atualizarVisaoJogadorPorSelecao();
+
+  // Seletor de tipo de parede: só aparece com a ferramenta parede ativa
+  const wallSelect = document.getElementById('wallTypeSelect');
+  if (wallSelect) {
+    wallSelect.style.display = (toolName === 'wall' && myRole === 'mestre') ? '' : 'none';
+  }
+
+  // Seletor de modo de distância: aparece para régua e caminho
+  const distanceModeSelect = document.getElementById('distanceModeSelect');
+  if (distanceModeSelect) {
+    distanceModeSelect.style.display = (toolName === 'ruler' || toolName === 'way-ruler') ? '' : 'none';
+  }
+
+  boardRender();
+}
+
+function setDistanceMode(mode) {
+  BOARD.distanceMode = mode;
+  const gcDist = document.getElementById('gcDistanceMode');
+  if (gcDist) gcDist.value = mode;
+  const distSel = document.getElementById('distanceModeSelect');
+  if (distSel) distSel.value = mode;
+  saveCurrentBoardToActiveScene();
+  if (myRole === 'mestre') syncBoardToPlayers();
+  boardRender();
+}
+// ══════════════════════════════════════════════════════════
+// GERENCIADOR DE MÚLTIPLAS CENAS
+// ══════════════════════════════════════════════════════════
+const CENAS_KEY = 'vtt_cenas_v1';
+let cenaAtualId = null;
+
+function _getCenas() {
+  try { return JSON.parse(localStorage.getItem(CENAS_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function _setCenas(arr) {
+  try { localStorage.setItem(CENAS_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+
+function _capturarEstadoAtual() {
+  const state = {
+    tokens: JSON.parse(JSON.stringify(BOARD.tokens)),
+    walls: JSON.parse(JSON.stringify(BOARD.walls)),
+    shapes: JSON.parse(JSON.stringify(BOARD.shapes)),
+    gridSize: BOARD.gridSize,
+    gridOn: BOARD.gridOn,
+    activeFloor: BOARD.activeFloor || 0,
+    gridCols: BOARD.gridCols,
+    gridRows: BOARD.gridRows,
+    gridScaleVal: BOARD.gridScaleVal,
+    gridScaleUnit: BOARD.gridScaleUnit,
+    gridType: BOARD.gridType,
+    lightingType: BOARD.lightingType,
+    distanceMode: BOARD.distanceMode,
+    mapDataUrl: BOARD.mapDataUrl,
+    mapX: BOARD.mapX || 0,
+    mapY: BOARD.mapY || 0,
+    mapWidth: BOARD.mapWidth || null,
+    mapHeight: BOARD.mapHeight || null
+  };
+  if (BOARD.fogManual && BOARD.fogVisible) {
+    state.fogVisible = Array.from(BOARD.fogVisible);
+    state.fogManual = true;
+  }
+  return state;
+}
+
+function _capturarThumb() {
+  try {
+    const src = document.getElementById('board-canvas');
+    if (!src) return null;
+    const tmp = document.createElement('canvas');
+    tmp.width = 120; tmp.height = 80;
+    tmp.getContext('2d').drawImage(src, 0, 0, 120, 80);
+    return tmp.toDataURL('image/jpeg', 0.5);
+  } catch(e) { return null; }
+}
+
+function salvarCenaAtual() {
+  if (myRole !== 'mestre') { toast('Apenas o Mestre pode gerenciar cenas.'); return; }
+  const input = document.getElementById('cena-nome-input');
+  const nome = (input?.value || '').trim() ||
+    ('Cena ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}));
+
+  const cenas = _getCenas();
+
+  // Se há uma cena ativa, oferece sobrescrever
+  if (cenaAtualId) {
+    const idx = cenas.findIndex(c => c.id === cenaAtualId);
+    if (idx !== -1) {
+      cenas[idx].nome = nome;
+      cenas[idx].state = _capturarEstadoAtual();
+      cenas[idx].thumb = _capturarThumb();
+      cenas[idx].atualizado = Date.now();
+      _setCenas(cenas);
+      if (input) input.value = '';
+      toast(`Cena "${nome}" atualizada!`);
+      renderizarListaCenas();
+      return;
+    }
+  }
+
+  // Nova cena
+  const id = 'cena_' + Date.now();
+  cenas.push({ id, nome, state: _capturarEstadoAtual(), thumb: _capturarThumb(),
+    criado: Date.now(), atualizado: Date.now() });
+  _setCenas(cenas);
+  cenaAtualId = id;
+  if (input) input.value = '';
+  toast(`Cena "${nome}" salva!`);
+  renderizarListaCenas();
+}
+
+function carregarCena(id) {
+  if (myRole !== 'mestre') { toast('Apenas o Mestre pode trocar de cena.'); return; }
+  const cenas = _getCenas();
+  const cena = cenas.find(c => c.id === id);
+  if (!cena) { toast('Cena não encontrada.'); return; }
+
+  if (!confirm(`Carregar "${cena.nome}"? O estado atual será perdido (salve antes se quiser guardar).`)) return;
+  snapshotBoard();
+
+  const s = cena.state;
+  BOARD.tokens  = (s.tokens  || []).map(t => ({...t, layer: t.layer||'players', conditions: t.conditions||[], hideName: t.hideName||false, soundId: t.soundId||null}));
+  BOARD.walls   = (s.walls   || []).map(w => ({...w, soundId: w.soundId||null}));
+  BOARD.shapes  = (s.shapes  || []).map(sh => ({...sh, soundId: sh.soundId||null, hidden: sh.hidden===true, triggerImageUrl: sh.triggerImageUrl||null, triggered: sh.triggered===true}));
+
+  if (s.gridSize)  BOARD.gridSize  = s.gridSize;
+  if (typeof s.gridOn === 'boolean') BOARD.gridOn = s.gridOn;
+  if (s.activeFloor !== undefined) BOARD.activeFloor = s.activeFloor;
+  if (s.gridCols   !== undefined)  BOARD.gridCols   = s.gridCols;
+  if (s.gridRows   !== undefined)  BOARD.gridRows   = s.gridRows;
+  if (s.gridScaleVal  !== undefined) BOARD.gridScaleVal  = s.gridScaleVal;
+  if (s.gridScaleUnit !== undefined) BOARD.gridScaleUnit = s.gridScaleUnit;
+  if (s.gridType   !== undefined)  BOARD.gridType   = s.gridType;
+  if (s.lightingType !== undefined) { BOARD.lightingType = s.lightingType; _syncWeatherSelect?.(); }
+
+  if (s.fogManual && s.fogVisible) {
+    BOARD.fogVisible = new Set(s.fogVisible); BOARD.fogManual = true;
+  } else { BOARD.fogVisible = null; BOARD.fogManual = false; }
+
+  BOARD.mapX = s.mapX ?? 0; BOARD.mapY = s.mapY ?? 0;
+  BOARD.mapWidth = s.mapWidth ?? null; BOARD.mapHeight = s.mapHeight ?? null;
+
+  const afterLoad = () => {
+    boardRender();
+    syncBoardMapToPlayers();
+    syncBoardTokensToPlayers();
+    syncWallsToPlayers?.();
+    syncShapesToPlayers?.();
+    syncFogToPlayers?.();
+  };
+
+  if (s.mapDataUrl) {
+    BOARD.mapDataUrl = s.mapDataUrl;
+    const img = new Image();
+    img.onload = () => {
+      BOARD.mapImg = img;
+      if (typeof isGifUrl === 'function' && isGifUrl(img.src)) getGifCanvas?.(img.src, img.naturalWidth, img.naturalHeight);
+      afterLoad();
+    };
+    img.src = s.mapDataUrl;
+  } else {
+    BOARD.mapDataUrl = null; BOARD.mapImg = null;
+    afterLoad();
+  }
+
+  cenaAtualId = id;
+  boardSave();
+  toast(`Cena "${cena.nome}" carregada!`);
+  renderizarListaCenas();
+}
+
+function renomearCena(id) {
+  const cenas = _getCenas();
+  const cena  = cenas.find(c => c.id === id);
+  if (!cena) return;
+  const novo = prompt('Novo nome:', cena.nome);
+  if (!novo?.trim()) return;
+  cena.nome = novo.trim();
+  _setCenas(cenas);
+  renderizarListaCenas();
+  toast(`Cena renomeada para "${cena.nome}".`);
+}
+
+function excluirCena(id) {
+  const cenas = _getCenas();
+  const cena  = cenas.find(c => c.id === id);
+  if (!cena) return;
+  if (!confirm(`Excluir "${cena.nome}"? Esta ação não pode ser desfeita.`)) return;
+  _setCenas(cenas.filter(c => c.id !== id));
+  if (cenaAtualId === id) cenaAtualId = null;
+  renderizarListaCenas();
+  toast(`Cena "${cena.nome}" excluída.`);
+}
+
+function _sobreescreverCena(id) {
+  if (myRole !== 'mestre') return;
+  const cenas = _getCenas();
+  const idx   = cenas.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  if (!confirm(`Sobrescrever "${cenas[idx].nome}" com o estado atual?`)) return;
+  cenas[idx].state = _capturarEstadoAtual();
+  cenas[idx].thumb = _capturarThumb();
+  cenas[idx].atualizado = Date.now();
+  _setCenas(cenas);
+  cenaAtualId = id;
+  toast(`Cena "${cenas[idx].nome}" sobrescrita!`);
+  renderizarListaCenas();
+}
+
+function renderizarListaCenas() {
+  const lista = document.getElementById('cenas-lista');
+  const vazio = document.getElementById('cenas-empty');
+  if (!lista) return;
+  const cenas = _getCenas();
+  lista.innerHTML = '';
+
+  if (cenas.length === 0) {
+    if (vazio) vazio.style.display = 'block';
+    return;
+  }
+  if (vazio) vazio.style.display = 'none';
+
+  cenas.forEach(cena => {
+    const card = document.createElement('div');
+    card.className = 'cena-card' + (cena.id === cenaAtualId ? ' active-scene' : '');
+
+    if (cena.thumb) {
+      const img = document.createElement('img');
+      img.src = cena.thumb; img.className = 'cena-thumb';
+      img.title = `Carregar "${cena.nome}"`; img.onclick = () => carregarCena(cena.id);
+      card.appendChild(img);
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'cena-thumb-placeholder'; ph.textContent = '🗺';
+      ph.title = `Carregar "${cena.nome}"`; ph.onclick = () => carregarCena(cena.id);
+      card.appendChild(ph);
+    }
+
+    const span = document.createElement('span');
+    span.className = 'cena-card-name'; span.textContent = cena.nome;
+    span.title = 'Clique para carregar'; span.onclick = () => carregarCena(cena.id);
+    card.appendChild(span);
+
+    const actions = document.createElement('div');
+    actions.className = 'cena-card-actions';
+
+    [
+      ['🔄', 'Sobrescrever com estado atual', e => { e.stopPropagation(); _sobreescreverCena(cena.id); }],
+      ['✏️', 'Renomear',                       e => { e.stopPropagation(); renomearCena(cena.id); }],
+      ['🗑',  'Excluir',                         e => { e.stopPropagation(); excluirCena(cena.id); }],
+    ].forEach(([txt, title, fn]) => {
+      const b = document.createElement('button');
+      b.className = 'btn btn-sm'; b.textContent = txt; b.title = title;
+      b.style.cssText = 'padding:0.1rem 0.3rem;' + (txt==='🗑' ? 'color:var(--danger,#e74c3c);' : '');
+      b.onclick = fn;
+      actions.appendChild(b);
+    });
+
+    card.appendChild(actions);
+    lista.appendChild(card);
+  });
+}
+// ══════════════════════════════════════════════════════════

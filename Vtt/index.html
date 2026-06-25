@@ -73,21 +73,28 @@
       <button class="btn btn-sm" id="btn-importar-mesa" onclick="document.getElementById('importar-mesa-file').click()" title="Resgatar Mesa (Importar JSON)" style="display:none; padding: 0.18rem 0.55rem; font-size: 0.75rem;">📂 Resgatar</button>
       <button class="btn btn-sm btn-gold" onclick="abrirJukebox()" title="Jukebox — soundboard e música ambiente" style="padding: 0.18rem 0.55rem; font-size: 0.75rem;">🎵 Jukebox</button>
       <input type="file" id="importar-mesa-file" accept=".json" style="display:none;" onchange="importarMesa(event)">
-      <span class="role-badge" id="role-badge" onclick="toggleLocalRole()" style="cursor: pointer;" title="Clique para alternar entre Mestre e Jogador">—</span>
       <button class="btn btn-sm" onclick="convidarJogador()" id="btn-convidar">Convidar</button>
       <button class="btn btn-sm btn-gold" onclick="toggleFichaPanel()" id="btn-ficha" style="display:none;">📋 Ficha</button>
       <button class="btn btn-sm" style="color:var(--text-muted);" onclick="sairSala()">Sair</button>
     </div>
   </div>
 
-  <!-- Painel de Aventureiros colapsável no topo -->
+  <!-- Painel de Aventureiros no topo -->
   <div class="players-top-panel" id="playersTopPanel">
-    <div class="players-top-bar" onclick="togglePlayersPanel()">
+    <div class="players-top-wrapper">
       <span class="players-top-title">Aventureiros</span>
       <span class="players-top-count" id="playersTopCount">0</span>
-      <span class="players-top-arrow" id="playersTopArrow">▼</span>
+      <div class="players-top-list" id="playersTopList"></div>
     </div>
-    <div class="players-top-list" id="playersTopList"></div>
+  </div>
+
+  <!-- Painel de Cenas no topo -->
+  <div class="scenes-top-panel" id="scenesTopPanel">
+    <div class="scenes-top-wrapper">
+      <span class="scenes-top-title">Cenas</span>
+      <div class="scenes-top-list" id="scenesTopList"></div>
+      <button class="btn btn-sm btn-gold" id="btn-criar-cena" onclick="criarNovaCena()" title="Criar Nova Cena" style="display: none; padding: 0.15rem 0.5rem; font-size: 0.65rem; font-family: 'Cinzel', serif;">+ Nova Cena</button>
+    </div>
   </div>
 
   <!-- Floating Panel Expand Buttons -->
@@ -157,7 +164,7 @@
               <option value="square" selected>🔲 Dist. por Quadrados</option>
               <option value="double_diagonal">✖ Diagonais x2</option>
             </select>
-            <input type="color" id="shapeColorPicker" value="#c9903a" onchange="setShapeColor(this.value)" title="Cor da forma" style="display:none; width:100%; height:1.8rem; margin-top:0.2rem; padding:1px; border:1px solid var(--border); border-radius:3px; background:var(--parch3); cursor:pointer;">
+            <input type="color" id="shapeColorPicker" value="#c9903a" onchange="setShapeColor(this.value)" title="Cor da forma" style="width:100%; height:1.8rem; margin-top:0.2rem; padding:1px; border:1px solid var(--border); border-radius:3px; background:var(--parch3); cursor:pointer;">
           </div>
 
 
@@ -280,6 +287,7 @@
           <button class="panel-tab" onclick="switchTab('fichas')" id="tab-fichas">📋 Fichas</button>
           <button class="panel-tab" onclick="switchTab('bau')" id="tab-bau">📚 Compêndio</button>
           <button class="panel-tab" onclick="switchTab('notas')" id="tab-notas">📜 Notas</button>
+          <button class="panel-tab" onclick="switchTab('cenas')" id="tab-cenas">🗺 Cenas</button>
         </div>
 
         <!-- TAB: ENCONTROS -->
@@ -576,6 +584,20 @@
           <div id="notasList" style="display:flex;flex-direction:column;gap:0.35rem;"></div>
         </div>
 
+        <!-- TAB: CENAS -->
+        <div class="panel-content" id="content-cenas">
+          <div class="enc-section">
+            <span class="enc-label">🗺 Gerenciador de Cenas</span>
+            <div style="display:flex;gap:0.4rem;margin-bottom:0.6rem;">
+              <input type="text" id="cena-nome-input" placeholder="Nome da cena…"
+                style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0.25rem 0.5rem;font-size:0.78rem;" />
+              <button class="btn btn-sm btn-gold" onclick="salvarCenaAtual()" title="Salvar cena atual">💾 Salvar</button>
+            </div>
+            <div id="cenas-lista" style="display:flex;flex-direction:column;gap:0.35rem;"></div>
+            <div id="cenas-empty" style="text-align:center;padding:1rem;color:var(--text-muted);font-style:italic;font-size:0.8rem;">Nenhuma cena salva ainda.</div>
+          </div>
+        </div><!-- /content-cenas -->
+
       </div><!-- /master-panel -->
 
       <!-- Chat -->
@@ -617,6 +639,18 @@
             <button class="ds-btn" data-faces="12" onclick="abrirDialogDados(12)">d12</button>
             <button class="ds-btn" data-faces="20" onclick="abrirDialogDados(20)">d20</button>
             <button class="ds-btn" data-faces="100" onclick="abrirDialogDados(100)">d100</button>
+          </div>
+
+          <!-- Diálogo de rolagem de dados da magia -->
+          <div id="spellDiceDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4998;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogRolagemMagia()">
+            <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #9966ff;border-radius:12px;padding:24px;min-width:300px;max-width:400px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+              <div id="sddTitle" style="font-size:1.1rem;margin-bottom:12px;text-align:center;font-weight:700;color:#d4bfff;">🪄 Magia</div>
+              <div id="sddSpellName" style="font-size:0.85rem;margin-bottom:12px;text-align:center;color:#c77dff;font-style:italic;"></div>
+              <div id="sddSegments" style="max-height:280px;overflow-y:auto;margin-bottom:12px;"></div>
+              <div style="display:flex;gap:10px;justify-content:center;">
+                <button onclick="fecharDialogRolagemMagia()" style="background:#555;border:none;color:#ccc;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Fechar</button>
+              </div>
+            </div>
           </div>
 
           <!-- Diálogo de rolagem rápida -->
@@ -1120,6 +1154,10 @@
     <i class="bi bi-heart-pulse-fill"></i> Condições
     <div class="context-submenu" id="ctxCondSubmenu"></div>
   </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item" id="ctxTargetToggle" onclick="contextToggleTarget()">
+    <i class="bi bi-crosshair"></i> <span id="ctxTargetText">Marcar Alvo</span>
+  </div>
   <div class="context-menu-divider" id="ctxDiv1"></div>
   <div class="context-menu-item has-submenu" id="ctxAlturaMenu">
     <i class="bi bi-bar-chart-steps"></i> Altura
@@ -1205,6 +1243,21 @@
     <i class="bi bi-eye-slash-fill"></i> Cego
   </div>
 </div>
+
+<!-- Scene Context Menu (função do mestre) -->
+<div id="sceneContextMenu" class="context-menu" style="display:none; position:fixed; z-index:1000;">
+  <div class="context-menu-item" onclick="puxarJogadoresParaCenaContext()">
+    <i class="bi bi-people-fill"></i> Puxar jogadores
+  </div>
+  <div class="context-menu-divider"></div>
+  <div class="context-menu-item" onclick="renomearCenaContext()">
+    <i class="bi bi-pencil-fill"></i> Renomear
+  </div>
+  <div class="context-menu-item" id="ctxDeletarCena" onclick="deletarCenaContext()">
+    <i class="bi bi-trash-fill"></i> Deletar
+  </div>
+</div>
+
 
 <!-- Modal de colar imagem -->
 <div id="pasteImgModal" class="unsplash-overlay" style="display:none;">
@@ -1413,32 +1466,29 @@
   <div class="context-menu-item gm-only-item" onclick="converterFormaEmParedes()">
     <i class="bi bi-bricks"></i> Transformar em Parede
   </div>
-  <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stairs')">
-    <i class="bi bi-ladder"></i> Escada (sobe/desce)
-  </div>
-  <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stair-up')">
-    <i class="bi bi-arrow-up-short"></i> Escada que Sobe
-  </div>
-  <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stair-down')">
-    <i class="bi bi-arrow-down-short"></i> Escada que Desce
-  </div>
-  <div class="context-menu-divider"></div>
-  <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stairs-up')">
-    <i class="bi bi-triangle-fill"></i> Armadilha para Cima
-  </div>
-  <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stairs-down')">
-    <i class="bi bi-circle-fill"></i> Buraco
-  </div>
-  <div class="context-menu-divider"></div>
-  <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('elevator-manual')">
-    <i class="bi bi-box-arrow-up"></i> Transformar em Elevador
-  </div>
   <div class="context-menu-item gm-only-item" onclick="contextShapeConfig()">
     <i class="bi bi-gear"></i> Configurar
+  </div>
+  <div class="context-menu-divider gm-only-item"></div>
+  <div class="context-menu-item gm-only-item has-submenu" id="ctxShapeAltura">
+    <i class="bi bi-bar-chart-steps"></i> Altura
+    <div class="context-submenu">
+      <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stairs')"><i class="bi bi-ladder"></i> Escadas</div>
+      <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stair-up')"><i class="bi bi-arrow-up-short"></i> Escada que Sobe</div>
+      <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stair-down')"><i class="bi bi-arrow-down-short"></i> Escada que Desce</div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stairs-up')"><i class="bi bi-triangle-fill"></i> Armadilha pra Cima</div>
+      <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('stairs-down')"><i class="bi bi-circle-fill"></i> Buraco</div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item gm-only-item" onclick="setShapeTrigger('elevator-manual')"><i class="bi bi-box-arrow-up"></i> Elevador</div>
+    </div>
   </div>
   <div class="context-menu-item gm-only-item has-submenu" id="ctxShapeSom" onmouseenter="popularMenuSomForma()">
     <i class="bi bi-music-note-beamed"></i> Som
     <div class="context-submenu" id="ctxShapeSomSubmenu"></div>
+  </div>
+  <div class="context-menu-item gm-only-item" onclick="abrirModalCondTriggerForma()">
+    <i class="bi bi-shield-exclamation"></i> Condição
   </div>
   <div class="context-menu-divider gm-only-item"></div>
   <div class="context-menu-item text-danger" onclick="contextDeleteShape()">
@@ -1519,6 +1569,36 @@
       <button class="tool-btn" onclick="salvarConfigForma()" style="padding:0.4rem 1.2rem;">OK</button>
       <button class="tool-btn" onclick="rearmarForma()" id="btnRearmarForma" style="padding:0.4rem 1.2rem; display:none;">🔃 Rearmar</button>
       <button class="tool-btn danger" onclick="fecharModalConfigForma()" style="padding:0.4rem 1.2rem;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Condição para Formas -->
+<div id="shapeCondModal" class="modal-overlay" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.65); align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div class="parchment-modal" style="width:360px; padding:1.8rem; background:var(--parch2); border:2px solid var(--border-bright); border-radius:6px; box-shadow:0 10px 30px rgba(0,0,0,0.7); color:var(--text); font-family:'Cinzel', serif;">
+    <h3 style="margin-bottom:1.2rem; font-size:1.2rem; border-bottom:1px solid rgba(139,107,62,0.3); padding-bottom:0.5rem; color:var(--gold-bright); text-align:center;">Condição da Forma</h3>
+    <div style="font-family:'Crimson Text', serif; font-size:0.95rem;">
+      <label style="display:block; margin-bottom:0.3rem;">Condição:</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3rem; max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:3px; padding:0.3rem; background:var(--parch3);" id="shapeCondList"></div>
+      <hr style="border:none;border-top:1px solid rgba(107,77,42,0.3);margin:0.8rem 0;">
+      <label style="display:block; margin-bottom:0.3rem;">Modo de ativação:</label>
+      <div style="display:flex; gap:0.6rem;">
+        <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer; padding:0.3rem 0.6rem; border:1px solid var(--border); border-radius:3px; flex:1; background:var(--parch3);">
+          <input type="radio" name="shapeCondMode" value="once" checked style="accent-color:var(--gold);"> Uma vez
+        </label>
+        <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer; padding:0.3rem 0.6rem; border:1px solid var(--border); border-radius:3px; flex:1; background:var(--parch3);">
+          <input type="radio" name="shapeCondMode" value="continuous" style="accent-color:var(--gold);"> Contínua
+        </label>
+      </div>
+      <p style="font-size:0.72rem; color:var(--text-dim); font-style:italic; margin-top:0.4rem;">
+        Uma vez: ativa no primeiro token que entrar e é gasta.<br>
+        Contínua: ativa enquanto o token estiver dentro da área.
+      </p>
+    </div>
+    <div style="display:flex; gap:0.6rem; margin-top:1.5rem; justify-content:center;">
+      <button class="tool-btn" onclick="salvarCondTriggerForma()" style="padding:0.4rem 1.2rem;">OK</button>
+      <button class="tool-btn danger" onclick="removerCondTriggerForma()" id="btnRemoverCondForma" style="padding:0.4rem 1.2rem;">Remover</button>
+      <button class="tool-btn danger" onclick="fecharModalCondForma()" style="padding:0.4rem 1.2rem;">Cancelar</button>
     </div>
   </div>
 </div>

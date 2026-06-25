@@ -15520,6 +15520,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(updateCalculations, 100);
       }
     }
+    if (e.data?.type === 'vtt-set-conditions') {
+      const condicoes = e.data.condicoes || [];
+      document.querySelectorAll('.cond-check').forEach(c => c.checked = false);
+      condicoes.forEach(key => {
+        const chk = document.getElementById(`cond-${key}`);
+        if (chk) chk.checked = true;
+      });
+      updateCalculations();
+      saveData();
+    }
   });
   // Monkey-patch saveData para enviar update após salvar
   document.addEventListener('DOMContentLoaded', () => {
