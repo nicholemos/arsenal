@@ -31,6 +31,10 @@
       --font-body: 'Segoe UI', sans-serif;
       --radius-lg: 16px;
       --radius-md: 10px;
+
+      /* Botões sem imagens */
+      --card-btn-text-gradient: linear-gradient(135deg, #ff4d4d, #ffffff);
+      --card-btn-text-shadow: 0 2px 12px var(--gold-glow);
     }
 
     .theme-dark {
@@ -48,6 +52,10 @@
       --gold-glow: rgba(201, 147, 58, 0.3);
       --glass-bg: rgba(17, 19, 30, 0.75);
       --glass-backdrop: blur(12px);
+
+      /* Botões sem imagens */
+      --card-btn-text-gradient: linear-gradient(135deg, var(--gold-primary), #ffffff);
+      --card-btn-text-shadow: 0 2px 12px var(--gold-glow);
     }
 
     .theme-classic {
@@ -65,6 +73,10 @@
       --gold-glow: rgba(231, 76, 60, 0.2);
       --glass-bg: rgba(255, 255, 255, 0.92);
       --glass-backdrop: blur(8px);
+
+      /* Botões sem imagens: gradiente escuro de alto contraste (vermelho escuro para vermelho médio) */
+      --card-btn-text-gradient: linear-gradient(135deg, var(--gold-secondary), var(--gold-primary));
+      --card-btn-text-shadow: none;
     }
 
     body.theme-classic {
@@ -82,7 +94,14 @@
 
     .theme-classic .header-title {
       color: #ecf0f1 !important;
-      text-shadow: none !important;
+      -webkit-text-fill-color: #ecf0f1 !important;
+      background: none !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .theme-classic .header-subtitle {
+      color: rgba(255, 255, 255, 0.75) !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
     }
 
     .theme-classic .header-home-btn {
@@ -315,10 +334,10 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       font-family: var(--font-heading);
-      background: linear-gradient(135deg, var(--gold-primary), #ffffff);
+      background: var(--card-btn-text-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-shadow: 0 2px 12px var(--gold-glow);
+      text-shadow: var(--card-btn-text-shadow);
     }
 
     .card-btn span {
@@ -728,7 +747,7 @@
     <div class="grid">
       <a href="STR/index.html" class="card-btn">
         <img src="images/STR.png" alt="Ícone de STR" class="card-icon">
-        <span>Supremo Tribunal Regreiro</span>
+        <span>Regras Adicionais</span>
       </a>
       <a href="libertacao/index.html" class="card-btn">
         <img src="images/npc.png" alt="Ícone de NPCs" class="card-icon">
