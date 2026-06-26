@@ -12423,6 +12423,43 @@ const powersData = [
         desc: "Recebe +3 PV por patamar e pode comer até dois pratos especiais por dia, acumulando seus benefícios (bônus iguais não se acumulam)."
     },
 
+    {
+        name: "Presente de Wynlla",
+        type: "magic",
+        category: "Geral",
+        source: "Atlas",
+        req: "lançar magia arcana. Especial: Para nativos de Wynlla, este poder é parte da lista de poderes das seguintes origens: Acólito, Aristocrata, Artesão, Artista, Assistente de Laboratório, Curandeiro, Estudioso, Guarda, Marujo, Membro de Guilda, Mercador, Minerador, Soldado, Trabalho",
+        desc: "Escolha uma magia arcana de 1° círculo que você saiba lançar. Quanto lança esta magia, o custo total de seus aprimoramentos é reduzido em -1 PM. Quando em Wynlla, o efeito se torna reduzir o custo de aprimoramentos de suas magias arcanas no valor de seu atributo chave. Estes efeitos são cumulativos com reducão de custo básico da magia."
+    },
+
+    // ========================================================================
+    // PODERES GERAIS: DRAGÃO BRASIL
+    // ========================================================================
+    {
+        name: "Certificado de Conclusão",
+        type: "destiny",
+        category: "Geral",
+        source: "dragaobrasil",
+        req: "Especial: Estudar por um mês na Caravana das Três Chamas. Só pode ser aprendido dessa maneira.",
+        desc: "Você recebe +1 PM e escolhe uma magia entre: <i>Alarme</i>, <i>Aviso</i>, <i>Criar Elementos</i> ou <i>Luz</i> (atributo Inteligência, sem aprimoramentos). Se aprender novamente a magia depois, ela custa –1 PM e permite aplicar aprimoramentos normalmente."
+    },
+    {
+        name: "Percepção de Masmorra",
+        type: "conceded",
+        category: "Hyninn",
+        source: "dragaobrasil",
+        req: "Devoto de Hyninn",
+        desc: "Uma vez por cena, você tem sucesso automático em testes de Investigação para encontrar armadilhas realizados no subterrâneo ou dentro de uma masmorra."
+    },
+    {
+        name: "Previdência da Vigília",
+        type: "destiny",
+        category: "Geral",
+        source: "dragaobrasil",
+        req: "Especial: Contribuir com a Vigília das Segundas Chances ou realizar juramento para Thyatis.",
+        desc: "Você recebe o poder Dom da Imortalidade, mas só pode usá-lo na primeira vez que morrer na campanha."
+    },
+
 ];
 
 
