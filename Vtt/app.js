@@ -94,8 +94,18 @@ function formatChatText(s) {
   let escaped = escHTML(s);
   escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   escaped = escaped.replace(/_(.*?)_/g, '<em>$1</em>');
+  escaped = escaped.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px;" loading="lazy">');
   escaped = escaped.replace(/\n/g, '<br>');
   return escaped;
+}
+
+function descComImagem(desc, img) {
+  var text = desc || '';
+  if (img) {
+    if (text) text += '\n';
+    text += '![Imagem](' + img + ')';
+  }
+  return text;
 }
 
 function addMsg(data) {
@@ -8557,6 +8567,268 @@ function fecharSeletorPericiasToken() {
   if (modal) modal.style.display = 'none';
 }
 
+var _editarPericiaData = null;
+var _editarPericiaOptionsIdx = 0;
+
+function adicionarOpcaoPericia(descVal) {
+  var container = document.getElementById('editarPericiaOpcoes');
+  if (!container) return;
+  var idx = _editarPericiaOptionsIdx++;
+  var div = document.createElement('div');
+  div.id = 'editarPericiaOpcao_' + idx;
+  div.style.display = 'flex';
+  div.style.gap = '4px';
+  div.style.alignItems = 'stretch';
+  div.innerHTML = '<input id="editarPericiaOpcaoDesc_' + idx + '" type="text" placeholder="Descrição da opção" style="flex-grow:1;padding:0.3rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:\'Cinzel\',serif;font-size:0.75rem;box-sizing:border-box;" value="' + (descVal || '') + '">' +
+    '<button onclick="this.parentElement.remove()" style="width:28px;border:1px solid #dc3545;background:#f8d7da;color:#721c24;border-radius:4px;cursor:pointer;font-size:0.8rem;display:flex;justify-content:center;align-items:center;">✕</button>';
+  container.appendChild(div);
+}
+
+function abrirDialogEditarPericia(item, items, cacheKey, btn) {
+  document.getElementById('editarPericiaNome').value = item.name || '';
+  document.getElementById('editarPericiaDesc').value = item.desc || '';
+  document.getElementById('editarPericiaImg').value = item.img || '';
+  document.getElementById('editarPericiaVantagem').value = String(item.rollMode || 0);
+  _editarPericiaData = { item: item, items: items, cacheKey: cacheKey, btn: btn };
+  var container = document.getElementById('editarPericiaOpcoes');
+  container.innerHTML = '';
+  _editarPericiaOptionsIdx = 0;
+  if (item.options && item.options.length) {
+    item.options.forEach(function(o) {
+      adicionarOpcaoPericia(o.desc);
+    });
+  }
+  document.getElementById('editarPericiaDialog').style.display = 'flex';
+}
+
+function fecharDialogEditarPericia() {
+  document.getElementById('editarPericiaDialog').style.display = 'none';
+  _editarPericiaData = null;
+}
+
+function salvarDialogEditarPericia() {
+  if (!_editarPericiaData) return;
+  var d = _editarPericiaData;
+  var item = d.item;
+  var nome = document.getElementById('editarPericiaNome').value.trim();
+
+  if (nome) item.name = nome;
+  var desc = document.getElementById('editarPericiaDesc').value.trim();
+  if (desc) item.desc = desc;
+  else delete item.desc;
+  var img = document.getElementById('editarPericiaImg').value.trim();
+  if (img) item.img = img;
+  else delete item.img;
+  var rollMode = parseInt(document.getElementById('editarPericiaVantagem').value) || 0;
+  if (rollMode) item.rollMode = rollMode;
+  else delete item.rollMode;
+
+  var options = [];
+  var container = document.getElementById('editarPericiaOpcoes');
+  if (container) {
+    var children = container.children;
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var descInput = child.querySelector('input[id^="editarPericiaOpcaoDesc_"]');
+      if (descInput && descInput.value.trim()) {
+        options.push({ desc: descInput.value.trim() });
+      }
+    }
+  }
+  if (options.length) item.options = options;
+  else delete item.options;
+
+  localStorage.setItem(d.cacheKey, JSON.stringify(d.items));
+
+  var nameSpan = d.btn.children[0];
+  if (nameSpan) nameSpan.textContent = item.name;
+
+  fecharDialogEditarPericia();
+}
+
+var _selecionarOpcaoPericiaData = null;
+
+function abrirDialogSelecionarOpcaoPericia(item) {
+  var titleEl = document.getElementById('selecionarOpcaoPericiaTitle');
+  if (titleEl) titleEl.textContent = '⚡ ' + item.name;
+  var listEl = document.getElementById('selecionarOpcaoPericiaList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  _selecionarOpcaoPericiaData = { item: item };
+
+  var opcoes = [];
+  if (item.desc) {
+    opcoes.push({ desc: item.desc, _base: true });
+  }
+  (item.options || []).forEach(function(o) { opcoes.push(o); });
+
+  opcoes.forEach(function(opcao, idx) {
+    var row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.flexDirection = 'column';
+    row.style.background = 'rgba(184,134,11,0.1)';
+    row.style.border = '1px solid var(--gold)';
+    row.style.borderRadius = '6px';
+    row.style.padding = '0.5rem 0.8rem';
+    row.style.cursor = 'pointer';
+    row.style.fontFamily = "'Cinzel', serif";
+
+    var descEl = document.createElement('div');
+    descEl.style.fontSize = '0.75rem';
+    descEl.style.color = '#e8d5a3';
+    descEl.style.lineHeight = '1.3';
+    descEl.textContent = opcao.desc;
+
+    row.appendChild(descEl);
+
+    if (opcao._base) {
+      var baseLabel = document.createElement('div');
+      baseLabel.style.fontSize = '0.65rem';
+      baseLabel.style.color = '#b8860b';
+      baseLabel.style.marginTop = '4px';
+      baseLabel.textContent = 'Base';
+      row.appendChild(baseLabel);
+    }
+
+    row.onmouseover = function() { row.style.background = 'rgba(184,134,11,0.25)'; };
+    row.onmouseout = function() { row.style.background = 'rgba(184,134,11,0.1)'; };
+
+    row.onclick = function() {
+      var text = '**Perícia:** ' + item.name + '\n';
+      text += '_' + descComImagem(opcao.desc, item.img) + '_';
+      var rollerName = myName;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        var tkId = BOARD.selectedTokens.values().next().value;
+        var tk = BOARD.tokens.find(function(t) { return t.id === tkId; });
+        if (tk && tk.name) rollerName = tk.name;
+      }
+      fecharDialogSelecionarOpcaoPericia();
+      fecharSeletorPericiasToken();
+      rotearMensagem({ type: 'text', name: rollerName, role: myRole, text: text, time: formatTime(), visibility: chatVisibility });
+      if (item.canRoll) {
+        var vant = parseInt(item.rollMode) || 0;
+        if (vant !== 0) {
+          var r1 = Math.floor(Math.random() * 20) + 1;
+          var r2 = Math.floor(Math.random() * 20) + 1;
+          var chosen = vant === 1 ? Math.max(r1, r2) : Math.min(r1, r2);
+          var totalRoll = chosen + item.total;
+          var advLabel = vant === 1 ? ' (vantagem)' : ' (desvantagem)';
+          var bonusStr = item.total >= 0 ? '+' + item.total : item.total;
+          var rollText = item.name + ': 2d20' + advLabel + bonusStr + ' → **' + totalRoll + '** [' + r1 + ', ' + r2 + ']';
+          rotearMensagem({ type: 'roll', name: rollerName, role: myRole, text: rollText, time: formatTime(), visibility: chatVisibility });
+          if (chatVisibility === 'global') {
+            rolarDados3d(20, 2, [r1, r2], chosen + item.total, item.total, item.name + ': ');
+          }
+        } else {
+          executarMacro('/r ' + item.name + ':1d20' + (item.total >= 0 ? '+' : '') + item.total);
+        }
+      }
+    };
+
+    listEl.appendChild(row);
+  });
+
+  document.getElementById('selecionarOpcaoPericiaDialog').style.display = 'flex';
+}
+
+function fecharDialogSelecionarOpcaoPericia() {
+  document.getElementById('selecionarOpcaoPericiaDialog').style.display = 'none';
+  _selecionarOpcaoPericiaData = null;
+}
+
+var _editarAtaqueData = null;
+
+function abrirDialogEditarAtaque(item, items, cacheKey, btn, pmSpan, rightSpan) {
+  document.getElementById('editarAtaqueNome').value = item.name || '';
+  document.getElementById('editarAtaquePM').value = item.pm || '';
+  document.getElementById('editarAtaqueBonus').value = item.attackBonus !== undefined ? item.attackBonus : '';
+  document.getElementById('editarAtaqueDmgBase').value = item.dmg || item.dmgFormula || '';
+  document.getElementById('editarAtaqueDmgExtra').value = item.dmgExtra || '';
+  document.getElementById('editarAtaqueDiceExtra').value = item.diceExtra || '';
+  document.getElementById('editarAtaqueDmgAttr').value = item.dmgAttr || '';
+  document.getElementById('editarAtaqueDesc').value = item.desc || '';
+  document.getElementById('editarAtaqueImg').value = item.img || '';
+  document.getElementById('editarAtaqueCritRange').value = item.critRange || '';
+  document.getElementById('editarAtaqueCritMult').value = item.critMult || '';
+  document.getElementById('editarAtaqueVantagem').value = String(item.rollMode || 0);
+  _editarAtaqueData = { item: item, items: items, cacheKey: cacheKey, btn: btn, pmSpan: pmSpan, rightSpan: rightSpan };
+  document.getElementById('editarAtaqueDialog').style.display = 'flex';
+}
+
+function fecharDialogEditarAtaque() {
+  document.getElementById('editarAtaqueDialog').style.display = 'none';
+  _editarAtaqueData = null;
+}
+
+function salvarDialogEditarAtaque() {
+  if (!_editarAtaqueData) return;
+  var d = _editarAtaqueData;
+  var item = d.item;
+  var nome = document.getElementById('editarAtaqueNome').value.trim();
+  var pm = document.getElementById('editarAtaquePM').value.trim();
+  var bonus = document.getElementById('editarAtaqueBonus').value.trim();
+  var dmgBase = document.getElementById('editarAtaqueDmgBase').value.trim();
+  var dmgExtra = document.getElementById('editarAtaqueDmgExtra').value.trim();
+  var diceExtra = document.getElementById('editarAtaqueDiceExtra').value.trim();
+  var dmgAttr = document.getElementById('editarAtaqueDmgAttr').value.trim();
+  var desc = document.getElementById('editarAtaqueDesc').value.trim();
+
+  if (nome) item.name = nome;
+  if (pm) item.pm = pm;
+  else delete item.pm;
+  if (bonus) item.attackBonus = parseInt(bonus) || 0;
+  if (dmgBase) {
+    item.dmg = dmgBase;
+    var extraParts = [];
+    if (dmgExtra) extraParts.push(dmgExtra);
+    if (diceExtra) extraParts.push(diceExtra);
+    var attrStr = dmgAttr ? (dmgAttr.startsWith('+') || dmgAttr.startsWith('-') ? dmgAttr : '+' + dmgAttr) : '';
+    if (attrStr) extraParts.push(attrStr);
+    item.dmgFormula = dmgBase + (extraParts.length ? '+' + extraParts.join('+') : '');
+    item.dmgExtra = dmgExtra || undefined;
+    item.diceExtra = diceExtra || undefined;
+    item.dmgAttr = dmgAttr || undefined;
+  } else {
+    delete item.dmg;
+    delete item.dmgExtra;
+    delete item.diceExtra;
+    delete item.dmgAttr;
+  }
+  if (desc) item.desc = desc;
+  else delete item.desc;
+  var img = document.getElementById('editarAtaqueImg').value.trim();
+  if (img) item.img = img;
+  else delete item.img;
+  var critRange = document.getElementById('editarAtaqueCritRange').value.trim();
+  var critMult = document.getElementById('editarAtaqueCritMult').value.trim();
+  if (critRange) item.critRange = critRange;
+  else delete item.critRange;
+  if (critMult) item.critMult = critMult;
+  else delete item.critMult;
+  var rollMode = parseInt(document.getElementById('editarAtaqueVantagem').value) || 0;
+  if (rollMode) item.rollMode = rollMode;
+  else delete item.rollMode;
+
+  localStorage.setItem(d.cacheKey, JSON.stringify(d.items));
+
+  var leftSpan = d.btn.children[0];
+  if (leftSpan) leftSpan.textContent = item.name;
+
+  if (item.pm) {
+    d.pmSpan.textContent = '[' + item.pm + ' PM]';
+    d.pmSpan.style.display = '';
+    d.pmSpan.style.color = '#ff4d4d';
+  } else {
+    d.pmSpan.style.display = 'none';
+  }
+
+  var atkTotal = item.attackBonus >= 0 ? '+' + item.attackBonus : item.attackBonus;
+  var critStr = item.critRange && item.critMult ? ' | ' + item.critRange + '/x' + item.critMult : '';
+  d.rightSpan.textContent = atkTotal + ' | ' + item.dmgFormula + critStr;
+
+  fecharDialogEditarAtaque();
+}
+
 function fecharSeletorAtaquesToken() {
   const modal = document.getElementById('seletorAtaquesModal');
   if (modal) modal.style.display = 'none';
@@ -8566,7 +8838,8 @@ function atualizarBotoesTokenSelected() {
   const btnSkills = document.getElementById('token-skills-btn');
   const btnAttacks = document.getElementById('token-attacks-btn');
   const btnMagias = document.getElementById('token-magias-btn');
-  if (!btnSkills && !btnAttacks && !btnMagias) return;
+  const btnPowers = document.getElementById('token-powers-btn');
+  if (!btnSkills && !btnAttacks && !btnMagias && !btnPowers) return;
   if (BOARD.selectedTokens.size === 1) {
     const selId = BOARD.selectedTokens.values().next().value;
     const token = BOARD.tokens.find(t => t.id === selId);
@@ -8577,12 +8850,66 @@ function atualizarBotoesTokenSelected() {
       if (btnSkills) btnSkills.style.display = show ? 'flex' : 'none';
       if (btnAttacks) btnAttacks.style.display = show ? 'flex' : 'none';
       if (btnMagias) btnMagias.style.display = show ? 'flex' : 'none';
+      if (btnPowers) btnPowers.style.display = show ? 'flex' : 'none';
       return;
     }
   }
   if (btnSkills) btnSkills.style.display = 'none';
   if (btnAttacks) btnAttacks.style.display = 'none';
   if (btnMagias) btnMagias.style.display = 'none';
+  if (btnPowers) btnPowers.style.display = 'none';
+}
+
+// State variables for VTT selectors locks
+var locksState = {
+  attacks: localStorage.getItem('vtt_lock_attacks') === 'true',
+  skills: localStorage.getItem('vtt_lock_skills') === 'true',
+  spells: localStorage.getItem('vtt_lock_spells') === 'true',
+  powers: localStorage.getItem('vtt_lock_powers') === 'true'
+};
+
+function toggleLock(type) {
+  locksState[type] = !locksState[type];
+  localStorage.setItem('vtt_lock_' + type, locksState[type]);
+  atualizarIconeCadeado(type);
+  
+  if (type === 'attacks') {
+    const modal = document.getElementById('seletorAtaquesModal');
+    if (modal && modal.style.display === 'flex') abrirSeletorAtaquesToken(true);
+  } else if (type === 'skills') {
+    const modal = document.getElementById('seletorPericiasModal');
+    if (modal && modal.style.display === 'flex') abrirSeletorPericiasToken(true);
+  } else if (type === 'spells') {
+    const modal = document.getElementById('seletorMagiasModal');
+    if (modal && modal.style.display === 'flex') abrirSeletorMagiasToken(true);
+  } else if (type === 'powers') {
+    const modal = document.getElementById('seletorPoderesModal');
+    if (modal && modal.style.display === 'flex') abrirSeletorPoderesToken(true);
+  }
+  
+  toast((locksState[type] ? '🔒 Atualização travada' : '🔓 Atualização destravada') + ' para este modal.');
+}
+
+function atualizarIconeCadeado(type) {
+  var btnId = 'lock-' + type + '-btn';
+  var btn = document.getElementById(btnId);
+  if (btn) {
+    btn.innerHTML = locksState[type] ? '🔒' : '🔓';
+    btn.title = locksState[type] ? 'Bloqueado (Clique para desbloquear sincronização com a ficha)' : 'Desbloqueado (Clique para bloquear sincronização com a ficha)';
+  }
+}
+
+function initLocks() {
+  atualizarIconeCadeado('attacks');
+  atualizarIconeCadeado('skills');
+  atualizarIconeCadeado('spells');
+  atualizarIconeCadeado('powers');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLocks);
+} else {
+  initLocks();
 }
 
 function _carregarFichaLocal() {
@@ -8880,47 +9207,125 @@ function resolveFichaToken(token) {
   return { fullData, charName };
 }
 
-function abrirSeletorAtaquesToken() {
+function adicionarNovoAtaque() {
   if (BOARD.selectedTokens.size !== 1) { toast('Selecione exatamente 1 token.'); return; }
   const selId = BOARD.selectedTokens.values().next().value;
   const token = BOARD.tokens.find(t => t.id === selId);
   if (!token) { toast('Token não encontrado.'); return; }
+  const { charName } = resolveFichaToken(token);
+  const cacheKey = 'vtt_cache_' + charName + '_attacks';
+  var items = [];
+  try {
+    var cached = localStorage.getItem(cacheKey);
+    if (cached) items = JSON.parse(cached);
+  } catch (e) {}
+  if (!Array.isArray(items)) items = [];
+  items.push({ name: 'Novo Ataque', attackBonus: 0, dmgFormula: '1d4', dmg: '1d4', pm: '', desc: '', options: [] });
+  localStorage.setItem(cacheKey, JSON.stringify(items));
+  abrirSeletorAtaquesToken(true);
+}
+
+function abrirSeletorAtaquesToken(isLockToggle) {
+  if (BOARD.selectedTokens.size !== 1) { 
+    if (!isLockToggle) toast('Selecione exatamente 1 token.'); 
+    return; 
+  }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) { 
+    if (!isLockToggle) toast('Token não encontrado.'); 
+    return; 
+  }
   const { fullData, charName } = resolveFichaToken(token);
-  if (!fullData) { toast('Este token não está vinculado a nenhuma ficha.'); return; }
-  if (!fullData.attacks || !fullData.attacks.length) { toast('Ficha sem ataques.'); return; }
+  
   const listEl = document.getElementById('seletorAtaquesList');
   if (!listEl) { toast('Erro de UI.'); return; }
   listEl.innerHTML = '';
+  
   const titleEl = document.getElementById('seletorAtaquesTitle');
   if (titleEl) titleEl.textContent = 'Ataques (' + charName + ')';
-  const level = parseInt(fullData.charLevel || 1) || 1;
-  const halfLevel = Math.floor(level / 2);
-  const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
-  fullData.attacks.forEach(a => {
-    const bonusStr = a.bonus || '0';
-    let attackBonus = parseInt(bonusStr) || 0;
-    if (a.skill && fullData.skills) {
-      const sk = fullData.skills.find(s => s.n === a.skill);
-      if (sk) {
-        let attrVal = parseInt((fullData.attrs && fullData.attrs[sk.a]) || 0) || 0;
-        const trainedBonus = sk.trained ? trainBonus : 0;
-        const skillTotal = halfLevel + attrVal + trainedBonus + (parseInt(sk.other) || 0);
-        attackBonus = Math.max(attackBonus, skillTotal);
+
+  let items = [];
+  const cacheKey = 'vtt_cache_' + charName + '_attacks';
+
+  if (locksState.attacks) {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        items = JSON.parse(cached);
+      } catch (e) {
+        console.error('Erro ao ler cache de ataques:', e);
       }
     }
-    const dmgBase = a.dmg || '1d4';
-    const dmgExtra = a.dmgExtra ? '+' + a.dmgExtra : '';
-    const diceExtra = a.diceExtra || '';
-    let dmgAttrStr = '';
-    if (a.dmgAttr && fullData.attrs) {
-      const attrVal = parseInt(fullData.attrs[a.dmgAttr]) || 0;
-      if (attrVal !== 0) {
-        dmgAttrStr = (attrVal > 0 ? '+' : '') + attrVal;
-      }
+  }
+
+  if (!items || !items.length) {
+    if (!fullData) { 
+      if (!isLockToggle) toast('Este token não está vinculado a nenhuma ficha.'); 
+      return; 
     }
-    const dmgFormula = dmgBase + dmgExtra + diceExtra + dmgAttrStr;
-    const critRange = a.critRange || '20';
+    if (!fullData.attacks || !fullData.attacks.length) { 
+      if (!isLockToggle) toast('Ficha sem ataques.'); 
+      return; 
+    }
+
+    const level = parseInt(fullData.charLevel || 1) || 1;
+    const halfLevel = Math.floor(level / 2);
+    const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+
+    fullData.attacks.forEach(a => {
+      const bonusStr = a.bonus || '0';
+      let attackBonus = parseInt(bonusStr) || 0;
+      if (a.skill && fullData.skills) {
+        const sk = fullData.skills.find(s => s.n === a.skill);
+        if (sk) {
+          let attrVal = parseInt((fullData.attrs && fullData.attrs[sk.a]) || 0) || 0;
+          const trainedBonus = sk.trained ? trainBonus : 0;
+          const skillTotal = halfLevel + attrVal + trainedBonus + (parseInt(sk.other) || 0);
+          attackBonus = Math.max(attackBonus, skillTotal);
+        }
+      }
+      const dmgBase = a.dmg || '1d4';
+      const dmgExtraRaw = a.dmgExtra || '';
+      const diceExtraRaw = a.diceExtra || '';
+      const dmgExtra = dmgExtraRaw ? '+' + dmgExtraRaw : '';
+      const diceExtra = diceExtraRaw ? '+' + diceExtraRaw : '';
+      let dmgAttrStr = '';
+      let dmgAttrVal = '';
+      if (a.dmgAttr && fullData.attrs) {
+        const attrVal = parseInt(fullData.attrs[a.dmgAttr]) || 0;
+        if (attrVal !== 0) {
+          dmgAttrStr = (attrVal > 0 ? '+' : '') + attrVal;
+          dmgAttrVal = String(attrVal);
+        }
+      }
+      const dmgFormula = dmgBase + dmgExtra + diceExtra + dmgAttrStr;
+      
+      items.push({
+        name: a.name,
+        attackBonus: attackBonus,
+        dmg: dmgBase,
+        dmgExtra: dmgExtraRaw || undefined,
+        diceExtra: diceExtraRaw || undefined,
+        dmgAttr: dmgAttrVal || undefined,
+        dmgFormula: dmgFormula,
+        critRange: a.critRange || undefined,
+        critMult: a.crit || undefined
+      });
+    });
+
+    localStorage.setItem(cacheKey, JSON.stringify(items));
+  }
+
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'stretch';
+    row.style.gap = '0.3rem';
+    row.style.marginBottom = '0.2rem';
+
     const btn = document.createElement('button');
+    btn.style.flexGrow = '1';
     btn.style.display = 'flex';
     btn.style.justifyContent = 'space-between';
     btn.style.alignItems = 'center';
@@ -8932,83 +9337,195 @@ function abrirSeletorAtaquesToken() {
     btn.style.fontFamily = "'Cinzel', serif";
     btn.style.fontWeight = 'bold';
     btn.style.color = 'var(--text-color)';
-    btn.style.marginBottom = '0.2rem';
+
     const leftSpan = document.createElement('span');
-    leftSpan.textContent = a.name;
+    leftSpan.textContent = item.name;
+
+    const pmSpan = document.createElement('span');
+    pmSpan.style.fontSize = '0.75rem';
+    pmSpan.style.fontWeight = 'normal';
+    pmSpan.style.marginLeft = '0.5rem';
+    if (item.pm) {
+      pmSpan.textContent = '[' + item.pm + ' PM]';
+      pmSpan.style.color = '#ff4d4d';
+    } else {
+      pmSpan.style.display = 'none';
+    }
+
     const rightSpan = document.createElement('span');
     rightSpan.style.fontSize = '0.75rem';
     rightSpan.style.color = '#ff4d4d';
-    const atkTotal = attackBonus >= 0 ? '+' + attackBonus : attackBonus;
-    rightSpan.textContent = atkTotal + ' | ' + dmgFormula;
+    const atkTotal = item.attackBonus >= 0 ? '+' + item.attackBonus : item.attackBonus;
+    const critStr = item.critRange && item.critMult ? ' | ' + item.critRange + '/x' + item.critMult : '';
+    rightSpan.textContent = atkTotal + ' | ' + item.dmgFormula + critStr;
+
     btn.appendChild(leftSpan);
+    btn.appendChild(pmSpan);
     btn.appendChild(rightSpan);
+
     btn.onclick = () => {
       var targetStr = _getTargetChatPrefix();
-      var atkLabel = a.name;
+      var atkLabel = item.name;
       var targetIds = [];
       if (targetStr) {
-        atkLabel = a.name + ' → ' + targetStr.replace('🎯 ', '').trim();
+        atkLabel = item.name + ' → ' + targetStr.replace('🎯 ', '').trim();
         if (BOARD.targetedTokens) BOARD.targetedTokens.forEach(function(id) { targetIds.push(id); });
       }
-      executarMacro('/r ' + atkLabel + ' (ataque):1d20' + (attackBonus >= 0 ? '+' : '') + attackBonus);
-      if (dmgFormula) {
-        var dmgMsg = _buildDmgMessage(atkLabel + ' (dano):' + dmgFormula, targetIds);
-        rotearMensagem(dmgMsg);
+      if (item.desc) {
+        var descText = '**' + item.name + ':** _' + descComImagem(item.desc, item.img) + '_';
+        rotearMensagem({ type: 'text', name: myName, role: myRole, text: descText, time: formatTime(), visibility: chatVisibility });
       }
+
+      // ── Rolagem unificada (estilo ficha) ──
+      var rollMode = item.rollMode || 0;
+      var d20, d20b, atkDiceLabel, textExtra;
+      if (rollMode === 1) {
+        var r1 = Math.floor(Math.random() * 20) + 1;
+        var r2 = Math.floor(Math.random() * 20) + 1;
+        d20 = Math.max(r1, r2); d20b = r1 === d20 ? r2 : r1;
+        atkDiceLabel = '2d20 (vantagem)';
+        textExtra = ' [' + r1 + ', ' + r2 + ']';
+      } else if (rollMode === -1) {
+        var r1 = Math.floor(Math.random() * 20) + 1;
+        var r2 = Math.floor(Math.random() * 20) + 1;
+        d20 = Math.min(r1, r2); d20b = r1 === d20 ? r2 : r1;
+        atkDiceLabel = '2d20 (desvantagem)';
+        textExtra = ' [' + r1 + ', ' + r2 + ']';
+      } else {
+        d20 = Math.floor(Math.random() * 20) + 1;
+        atkDiceLabel = '1d20';
+        textExtra = '';
+      }
+      var atkTotalVal = d20 + item.attackBonus;
+      var critRange = parseInt(item.critRange) || 20;
+      var critMult = parseInt((item.critMult || '').toString().replace('x', '')) || 2;
+      var isCrit = d20 >= critRange;
+
+      // Monta texto do ataque
+      var bonusStr = item.attackBonus >= 0 ? '+' + item.attackBonus : '' + item.attackBonus;
+      var text = '**⚔️ Ataque com ' + item.name + '**\n';
+      if (targetStr) text += '**Alvo:** ' + targetStr.replace('🎯 ', '').trim() + '\n';
+      text += '**Teste:** ' + atkDiceLabel + bonusStr + ' → **' + atkTotalVal + '**' + textExtra;
+      if (isCrit) text += ' **(CRÍTICO!)**';
+      text += '\n';
+
+      // Rolagem de dano
+      if (item.dmgFormula) {
+        var dmgFormula = item.dmgFormula;
+        if (isCrit && critMult > 1) {
+          var critBase = item.dmg || item.dmgFormula;
+          var critBaseMult = critBase.split('+').map(function(p) {
+            var t = p.trim();
+            if (/^\d*d\d+/i.test(t)) {
+              var m = t.match(/^(\d*)d(\d+)/i);
+              return (parseInt(m[1] || 1) * critMult) + 'd' + m[2];
+            }
+            if (/^\d+$/.test(t)) return parseInt(t) * critMult;
+            return t;
+          }).join('+');
+          if (item.dmg && item.dmgFormula) {
+            dmgFormula = item.dmgFormula.replace(item.dmg, critBaseMult);
+          } else {
+            dmgFormula = critBaseMult;
+          }
+        }
+        var dmgResult = _rollDmgFormula(dmgFormula);
+        var dmgTotal = parseInt(dmgResult) || 0;
+        text += '**Dano:** **' + dmgTotal + '**';
+        if (isCrit && critMult > 1) text += ' _(crítico x' + critMult + ')_';
+        text += ' (Fórmula: ' + dmgFormula + ') [' + dmgResult + ']\n';
+      }
+
+      // Rolar dados 3D (se visibilidade global)
+      if (chatVisibility === 'global') {
+        if (rollMode !== 0 && d20b !== undefined) {
+          rolarDados3d(20, 2, [r1, r2], d20 + item.attackBonus, item.attackBonus, '⚔️ ' + item.name + ': ');
+        } else {
+          rolarDados3d(20, 1, [d20], atkTotalVal, item.attackBonus, '⚔️ ' + item.name + ': ');
+        }
+      }
+
+      var rollerName = myName;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        var tkId = BOARD.selectedTokens.values().next().value;
+        var tk = BOARD.tokens.find(function(t) { return t.id === tkId; });
+        if (tk && tk.name) rollerName = tk.name;
+      }
+
+      var dmgTotalFinal = (typeof dmgTotal !== 'undefined') ? dmgTotal : 0;
+
+      rotearMensagem({ type: 'damage', name: rollerName, role: myRole, text: text, time: formatTime(), visibility: chatVisibility, targetIds: targetIds, dmgTotal: dmgTotalFinal });
       fecharSeletorAtaquesToken();
     };
+
     btn.onmouseover = () => btn.style.background = 'var(--parch1)';
     btn.onmouseout = () => btn.style.background = 'var(--parch3)';
-    listEl.appendChild(btn);
+
+    const editBtn = document.createElement('button');
+    editBtn.innerHTML = '⚙️';
+    editBtn.title = 'Editar ataque';
+    editBtn.style.width = '32px';
+    editBtn.style.border = '1px solid #6c757d';
+    editBtn.style.background = '#e2e3e5';
+    editBtn.style.color = '#383d41';
+    editBtn.style.borderRadius = '4px';
+    editBtn.style.cursor = 'pointer';
+    editBtn.style.display = 'flex';
+    editBtn.style.justifyContent = 'center';
+    editBtn.style.alignItems = 'center';
+    editBtn.style.fontSize = '0.9rem';
+
+    editBtn.onclick = () => {
+      abrirDialogEditarAtaque(item, items, cacheKey, btn, pmSpan, rightSpan);
+    };
+    editBtn.onmouseover = () => editBtn.style.background = '#c8c9cb';
+    editBtn.onmouseout = () => editBtn.style.background = '#e2e3e5';
+
+    const delBtn = document.createElement('button');
+    delBtn.innerHTML = '🗑️';
+    delBtn.title = 'Remover atalho';
+    delBtn.style.width = '32px';
+    delBtn.style.border = '1px solid #dc3545';
+    delBtn.style.background = '#f8d7da';
+    delBtn.style.color = '#721c24';
+    delBtn.style.borderRadius = '4px';
+    delBtn.style.cursor = 'pointer';
+    delBtn.style.display = 'flex';
+    delBtn.style.justifyContent = 'center';
+    delBtn.style.alignItems = 'center';
+    delBtn.style.fontSize = '0.9rem';
+
+    delBtn.onclick = () => {
+      row.remove();
+      items = items.filter(x => x.name !== item.name || x.dmgFormula !== item.dmgFormula);
+      localStorage.setItem(cacheKey, JSON.stringify(items));
+    };
+    delBtn.onmouseover = () => delBtn.style.background = '#f5c6cb';
+    delBtn.onmouseout = () => delBtn.style.background = '#f8d7da';
+
+    row.appendChild(btn);
+    row.appendChild(editBtn);
+    row.appendChild(delBtn);
+    listEl.appendChild(row);
   });
+
   const modal = document.getElementById('seletorAtaquesModal');
   if (modal) modal.style.display = 'flex';
 }
 
-function abrirSeletorPericiasToken() {
+function abrirSeletorPericiasToken(isLockToggle) {
   if (BOARD.selectedTokens.size !== 1) {
-    toast('Selecione exatamente 1 token.');
+    if (!isLockToggle) toast('Selecione exatamente 1 token.');
     return;
   }
   const selId = BOARD.selectedTokens.values().next().value;
   const token = BOARD.tokens.find(t => t.id === selId);
   if (!token) {
-    toast('Token não encontrado na board.');
+    if (!isLockToggle) toast('Token não encontrado na board.');
     return;
   }
 
-  let fullData = null;
-  let charName = "Personagem";
-
-  if (token.masterFichaId) {
-    const f = getMasterFichas().find(f => f.id === token.masterFichaId);
-    if (f) { 
-      fullData = f.fullData; 
-      charName = f.name; 
-    } else {
-      toast('Ficha do Mestre vinculada não encontrada.');
-      return;
-    }
-  } else if (token.controlledBy === myPeerId && localFichaUpdateData) {
-    // Jogador consultando as próprias perícias
-    fullData = localFichaUpdateData.fullData || localFichaUpdateData;
-    charName = localFichaUpdateData.charName || charName;
-  } else if (token.controlledBy && fichasJogadores[token.controlledBy]) {
-    fullData = fichasJogadores[token.controlledBy].resumo?.fullData;
-    charName = fichasJogadores[token.controlledBy].playerName;
-  } else {
-    toast('Este token não está vinculado a nenhuma ficha.');
-    return;
-  }
-
-  if (!fullData) {
-    toast('Ficha não contém dados completos.');
-    return;
-  }
-  if (!fullData.skills) {
-    toast('Ficha sem dados de perícias.');
-    return;
-  }
+  const { fullData, charName } = resolveFichaToken(token);
 
   const listEl = document.getElementById('seletorPericiasList');
   if (!listEl) {
@@ -9020,41 +9537,83 @@ function abrirSeletorPericiasToken() {
   const titleEl = document.getElementById('seletorPericiasTitle');
   if (titleEl) titleEl.textContent = `Perícias (${charName})`;
 
-  const level = parseInt(fullData.charLevel || 1) || 1;
-  const halfLevel = Math.floor(level / 2);
-  const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+  let items = [];
+  const cacheKey = 'vtt_cache_' + charName + '_skills';
 
-  const TRAINED_ONLY_SKILLS = ["Adestramento", "Atuação", "Conhecimento", "Guerra", "Iniciativa", "Ladinagem", "Misticismo", "Nobreza", "Ofício", "Pilotagem", "Religião"];
+  if (locksState.skills) {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        items = JSON.parse(cached);
+      } catch (e) {
+        console.error('Erro ao ler cache de perícias:', e);
+      }
+    }
+  }
 
-  fullData.skills.forEach(s => {
-    let attrVal = parseInt((fullData.attrs && fullData.attrs[s.a]) || 0) || 0;
-    if (fullData.tempMods && fullData.tempMods.globais) {
-       const mod = parseInt(fullData.tempMods.globais[`attr${s.a}`]);
-       if (!isNaN(mod)) attrVal += mod;
+  if (!items || !items.length) {
+    if (!fullData) {
+      if (!isLockToggle) toast('Este token não está vinculado a nenhuma ficha.');
+      return;
     }
-    const other = parseInt(s.other) || 0;
-    
-    const isTrainedOnly = TRAINED_ONLY_SKILLS.includes(s.n);
-    let total = halfLevel + attrVal + (s.trained ? trainBonus : 0) + other;
-    
-    const penaltySkills = ["Acrobacia", "Furtividade", "Ladinagem"];
-    if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.armor) {
-        const pen = parseInt(fullData.defense.armor.penalty);
-        if (!isNaN(pen)) total -= pen;
-    }
-    if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.shield) {
-        const pen = parseInt(fullData.defense.shield.penalty);
-        if (!isNaN(pen)) total -= pen;
-    }
-    if (s.n === "Furtividade" && fullData.extras && fullData.extras.size) {
-        const sz = parseInt(fullData.extras.size);
-        if (!isNaN(sz)) total += sz;
+    if (!fullData.skills) {
+      if (!isLockToggle) toast('Ficha sem dados de perícias.');
+      return;
     }
 
-    const canRoll = !(isTrainedOnly && !s.trained);
-    const displayTotal = canRoll ? (total >= 0 ? `+${total}` : total) : 'N/A';
+    const level = parseInt(fullData.charLevel || 1) || 1;
+    const halfLevel = Math.floor(level / 2);
+    const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+    const TRAINED_ONLY_SKILLS = ["Adestramento", "Atuação", "Conhecimento", "Guerra", "Iniciativa", "Ladinagem", "Misticismo", "Nobreza", "Ofício", "Pilotagem", "Religião"];
+
+    fullData.skills.forEach(s => {
+      let attrVal = parseInt((fullData.attrs && fullData.attrs[s.a]) || 0) || 0;
+      if (fullData.tempMods && fullData.tempMods.globais) {
+         const mod = parseInt(fullData.tempMods.globais[`attr${s.a}`]);
+         if (!isNaN(mod)) attrVal += mod;
+      }
+      const other = parseInt(s.other) || 0;
+      
+      const isTrainedOnly = TRAINED_ONLY_SKILLS.includes(s.n);
+      let total = halfLevel + attrVal + (s.trained ? trainBonus : 0) + other;
+      
+      const penaltySkills = ["Acrobacia", "Furtividade", "Ladinagem"];
+      if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.armor) {
+          const pen = parseInt(fullData.defense.armor.penalty);
+          if (!isNaN(pen)) total -= pen;
+      }
+      if (penaltySkills.includes(s.n) && fullData.defense && fullData.defense.shield) {
+          const pen = parseInt(fullData.defense.shield.penalty);
+          if (!isNaN(pen)) total -= pen;
+      }
+      if (s.n === "Furtividade" && fullData.extras && fullData.extras.size) {
+          const sz = parseInt(fullData.extras.size);
+          if (!isNaN(sz)) total += sz;
+      }
+
+      const canRoll = !(isTrainedOnly && !s.trained);
+      const displayTotal = canRoll ? (total >= 0 ? `+${total}` : total) : 'N/A';
+
+      items.push({
+        name: s.n,
+        total: total,
+        canRoll: canRoll,
+        displayTotal: displayTotal
+      });
+    });
+
+    localStorage.setItem(cacheKey, JSON.stringify(items));
+  }
+
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'stretch';
+    row.style.gap = '0.3rem';
+    row.style.marginBottom = '0.2rem';
 
     const btn = document.createElement('button');
+    btn.style.flexGrow = '1';
     btn.style.display = 'flex';
     btn.style.justifyContent = 'space-between';
     btn.style.alignItems = 'center';
@@ -9062,19 +9621,19 @@ function abrirSeletorPericiasToken() {
     btn.style.background = 'var(--parch3)';
     btn.style.border = '1px solid var(--border)';
     btn.style.borderRadius = '4px';
-    btn.style.cursor = canRoll ? 'pointer' : 'not-allowed';
-    btn.style.opacity = canRoll ? '1' : '0.6';
+    btn.style.cursor = item.canRoll ? 'pointer' : 'not-allowed';
+    btn.style.opacity = item.canRoll ? '1' : '0.6';
     btn.style.fontFamily = "'Cinzel', serif";
     btn.style.fontWeight = 'bold';
     btn.style.color = 'var(--text-color)';
     
     const nameSpan = document.createElement('span');
-    nameSpan.textContent = s.n;
+    nameSpan.textContent = item.name;
     
     const valSpan = document.createElement('span');
-    valSpan.textContent = displayTotal;
-    if (canRoll) {
-       valSpan.style.color = (total >= 0 ? '#198754' : '#dc3545');
+    valSpan.textContent = item.displayTotal;
+    if (item.canRoll) {
+       valSpan.style.color = (item.total >= 0 ? '#198754' : '#dc3545');
     } else {
        valSpan.style.color = '#777';
     }
@@ -9082,16 +9641,88 @@ function abrirSeletorPericiasToken() {
     btn.appendChild(nameSpan);
     btn.appendChild(valSpan);
 
-    if (canRoll) {
-      btn.onclick = () => {
-        executarMacro(`/r ${s.n}:1d20${total >= 0 ? '+' : ''}${total}`);
-        fecharSeletorPericiasToken();
-      };
+    btn.onclick = () => {
+      if (item.options && item.options.length) {
+        abrirDialogSelecionarOpcaoPericia(item);
+        return;
+      }
+      if (item.canRoll) {
+        var rollerName = myName;
+        if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+          var tkId = BOARD.selectedTokens.values().next().value;
+          var tk = BOARD.tokens.find(function(t) { return t.id === tkId; });
+          if (tk && tk.name) rollerName = tk.name;
+        }
+        var vant = parseInt(item.rollMode) || 0;
+        if (vant !== 0) {
+          var r1 = Math.floor(Math.random() * 20) + 1;
+          var r2 = Math.floor(Math.random() * 20) + 1;
+          var chosen = vant === 1 ? Math.max(r1, r2) : Math.min(r1, r2);
+          var totalRoll = chosen + item.total;
+          var advLabel = vant === 1 ? ' (vantagem)' : ' (desvantagem)';
+          var bonusStr = item.total >= 0 ? '+' + item.total : item.total;
+          var text = item.name + ': 2d20' + advLabel + bonusStr + ' → **' + totalRoll + '** [' + r1 + ', ' + r2 + ']';
+          rotearMensagem({ type: 'roll', name: rollerName, role: myRole, text: text, time: formatTime(), visibility: chatVisibility });
+          if (chatVisibility === 'global') {
+            rolarDados3d(20, 2, [r1, r2], chosen + item.total, item.total, item.name + ': ');
+          }
+        } else {
+          executarMacro('/r ' + item.name + ':1d20' + (item.total >= 0 ? '+' : '') + item.total);
+        }
+      }
+      fecharSeletorPericiasToken();
+    };
+    if (item.canRoll) {
       btn.onmouseover = () => btn.style.background = 'var(--parch1)';
       btn.onmouseout = () => btn.style.background = 'var(--parch3)';
     }
 
-    listEl.appendChild(btn);
+    const editBtn = document.createElement('button');
+    editBtn.innerHTML = '⚙️';
+    editBtn.title = 'Editar perícia';
+    editBtn.style.width = '32px';
+    editBtn.style.border = '1px solid #6c757d';
+    editBtn.style.background = '#e2e3e5';
+    editBtn.style.color = '#383d41';
+    editBtn.style.borderRadius = '4px';
+    editBtn.style.cursor = 'pointer';
+    editBtn.style.display = 'flex';
+    editBtn.style.justifyContent = 'center';
+    editBtn.style.alignItems = 'center';
+    editBtn.style.fontSize = '0.9rem';
+
+    editBtn.onclick = () => {
+      abrirDialogEditarPericia(item, items, cacheKey, btn);
+    };
+    editBtn.onmouseover = () => editBtn.style.background = '#c8c9cb';
+    editBtn.onmouseout = () => editBtn.style.background = '#e2e3e5';
+
+    const delBtn = document.createElement('button');
+    delBtn.innerHTML = '🗑️';
+    delBtn.title = 'Remover atalho';
+    delBtn.style.width = '32px';
+    delBtn.style.border = '1px solid #dc3545';
+    delBtn.style.background = '#f8d7da';
+    delBtn.style.color = '#721c24';
+    delBtn.style.borderRadius = '4px';
+    delBtn.style.cursor = 'pointer';
+    delBtn.style.display = 'flex';
+    delBtn.style.justifyContent = 'center';
+    delBtn.style.alignItems = 'center';
+    delBtn.style.fontSize = '0.9rem';
+
+    delBtn.onclick = () => {
+      row.remove();
+      items = items.filter(x => x.name !== item.name);
+      localStorage.setItem(cacheKey, JSON.stringify(items));
+    };
+    delBtn.onmouseover = () => delBtn.style.background = '#f5c6cb';
+    delBtn.onmouseout = () => delBtn.style.background = '#f8d7da';
+
+    row.appendChild(btn);
+    row.appendChild(editBtn);
+    row.appendChild(delBtn);
+    listEl.appendChild(row);
   });
 
   const modal = document.getElementById('seletorPericiasModal');
@@ -9102,25 +9733,82 @@ function abrirSeletorPericiasToken() {
   }
 }
 
-// ── Seletor de Magias do Token ──
-function abrirSeletorMagiasToken() {
-  if (BOARD.selectedTokens.size !== 1) { toast('Selecione exatamente 1 token.'); return; }
+function abrirSeletorMagiasToken(isLockToggle) {
+  if (BOARD.selectedTokens.size !== 1) { 
+    if (!isLockToggle) toast('Selecione exatamente 1 token.'); 
+    return; 
+  }
   const selId = BOARD.selectedTokens.values().next().value;
   const token = BOARD.tokens.find(t => t.id === selId);
-  if (!token) { toast('Token não encontrado.'); return; }
+  if (!token) { 
+    if (!isLockToggle) toast('Token não encontrado.'); 
+    return; 
+  }
   const { fullData, charName } = resolveFichaToken(token);
-  if (!fullData) { toast('Este token não está vinculado a nenhuma ficha.'); return; }
-  const spellsList = fullData.spells && fullData.spells.list;
-  if (!spellsList || !spellsList.length) { toast('Ficha sem magias.'); return; }
+
   const listEl = document.getElementById('seletorMagiasList');
   if (!listEl) { toast('Erro de UI.'); return; }
   listEl.innerHTML = '';
+
   const titleEl = document.getElementById('seletorMagiasTitle');
   if (titleEl) titleEl.textContent = 'Magias (' + charName + ')';
-  const circleLabels = { 1: '1º', 2: '2º', 3: '3º', 4: '4º', 5: '5º' };
-  spellsList.forEach(function(sp) {
-    if (!sp || !sp.name) return;
+
+  let items = [];
+  const cacheKey = 'vtt_cache_' + charName + '_spells';
+
+  if (locksState.spells) {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        items = JSON.parse(cached);
+      } catch (e) {
+        console.error('Erro ao ler cache de magias:', e);
+      }
+    }
+  }
+
+  if (!items || !items.length) {
+    if (!fullData) { 
+      if (!isLockToggle) toast('Este token não está vinculado a nenhuma ficha.'); 
+      return; 
+    }
+    const spellsList = fullData.spells && fullData.spells.list;
+    if (!spellsList || !spellsList.length) { 
+      if (!isLockToggle) toast('Ficha sem magias.'); 
+      return; 
+    }
+
+    const circleLabels = { 1: '1º', 2: '2º', 3: '3º', 4: '4º', 5: '5º' };
+    spellsList.forEach(function(sp) {
+      if (!sp || !sp.name) return;
+      const circLabel = circleLabels[sp.circle] || sp.circle + 'º';
+      items.push({
+        name: sp.name,
+        circle: sp.circle,
+        circLabel: circLabel,
+        pm: sp.pm || '—',
+        school: sp.school || '—',
+        exec: sp.exec || '—',
+        range: sp.range || '—',
+        target: sp.target || '—',
+        dur: sp.dur || '—',
+        res: sp.res || '—',
+        desc: sp.desc || ''
+      });
+    });
+
+    localStorage.setItem(cacheKey, JSON.stringify(items));
+  }
+
+  items.forEach(function(item) {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'stretch';
+    row.style.gap = '0.3rem';
+    row.style.marginBottom = '0.2rem';
+
     var btn = document.createElement('button');
+    btn.style.flexGrow = '1';
     btn.style.display = 'flex';
     btn.style.justifyContent = 'space-between';
     btn.style.alignItems = 'center';
@@ -9132,26 +9820,28 @@ function abrirSeletorMagiasToken() {
     btn.style.fontFamily = "'Cinzel', serif";
     btn.style.fontWeight = 'bold';
     btn.style.color = 'var(--text-color)';
-    btn.style.marginBottom = '0.2rem';
+
     var leftSpan = document.createElement('span');
-    leftSpan.textContent = sp.name;
+    leftSpan.textContent = item.name;
+
     var rightSpan = document.createElement('span');
     rightSpan.style.fontSize = '0.7rem';
     rightSpan.style.color = '#c77dff';
-    var circLabel = circleLabels[sp.circle] || sp.circle + 'º';
-    rightSpan.textContent = circLabel + ' Círculo · ' + (sp.pm || '—') + ' PM';
+    rightSpan.textContent = item.circLabel + ' Círculo · ' + item.pm + ' PM';
+
     btn.appendChild(leftSpan);
     btn.appendChild(rightSpan);
+
     btn.onclick = function() {
       var targetStr = _getTargetChatPrefix();
       var targetIds = [];
       if (targetStr && BOARD.targetedTokens) {
         BOARD.targetedTokens.forEach(function(id) { targetIds.push(id); });
       }
-      var text = '**Magia:** ' + sp.name + ' (' + circLabel + ' Círculo · ' + (sp.pm || '—') + ' PM)\n';
+      var text = '**Magia:** ' + item.name + ' (' + item.circLabel + ' Círculo · ' + item.pm + ' PM)\n';
       if (targetStr) text += '**Alvo(s):** ' + targetStr.replace('🎯 ', '') + '\n';
-      text += '**Escola:** ' + (sp.school || '—') + ' | **Execução:** ' + (sp.exec || '—') + ' | **Alcance:** ' + (sp.range || '—') + ' | **Alvo/Área:** ' + (sp.target || '—') + ' | **Duração:** ' + (sp.dur || '—') + ' | **Resistência:** ' + (sp.res || '—') + '\n';
-      text += '_' + (sp.desc || '') + '_';
+      text += '**Escola:** ' + item.school + ' | **Execução:** ' + item.exec + ' | **Alcance:** ' + item.range + ' | **Alvo/Área:** ' + item.target + ' | **Duração:** ' + item.dur + ' | **Resistência:** ' + item.res + '\n';
+      text += '_' + descComImagem(item.desc, item.img) + '_';
       var rollerName = myName;
       var sourceTokenId = null;
       if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
@@ -9163,14 +9853,62 @@ function abrirSeletorMagiasToken() {
       fecharSeletorMagiasToken();
       rotearMensagem({ type: 'spell', name: rollerName, role: myRole, text: text, time: formatTime(), visibility: chatVisibility });
       setTimeout(function() {
-        var pmVal = parseInt(sp.pm) || 0;
-        abrirDialogRolagemMagia(sp.name, sp.desc || '', rollerName, targetIds, pmVal, sourceTokenId);
+        var pmVal = parseInt(item.pm) || 0;
+        abrirDialogRolagemMagia(item.name, item.desc, rollerName, targetIds, pmVal, sourceTokenId);
       }, 100);
     };
+
     btn.onmouseover = function() { btn.style.background = 'var(--parch1)'; };
     btn.onmouseout = function() { btn.style.background = 'var(--parch3)'; };
-    listEl.appendChild(btn);
+
+    const editBtn = document.createElement('button');
+    editBtn.innerHTML = '⚙️';
+    editBtn.title = 'Editar magia';
+    editBtn.style.width = '32px';
+    editBtn.style.border = '1px solid #6c757d';
+    editBtn.style.background = '#e2e3e5';
+    editBtn.style.color = '#383d41';
+    editBtn.style.borderRadius = '4px';
+    editBtn.style.cursor = 'pointer';
+    editBtn.style.display = 'flex';
+    editBtn.style.justifyContent = 'center';
+    editBtn.style.alignItems = 'center';
+    editBtn.style.fontSize = '0.9rem';
+
+    editBtn.onclick = () => {
+      abrirDialogEditarMagia(item, items, cacheKey, btn, rightSpan);
+    };
+    editBtn.onmouseover = () => editBtn.style.background = '#c8c9cb';
+    editBtn.onmouseout = () => editBtn.style.background = '#e2e3e5';
+
+    const delBtn = document.createElement('button');
+    delBtn.innerHTML = '🗑️';
+    delBtn.title = 'Remover atalho';
+    delBtn.style.width = '32px';
+    delBtn.style.border = '1px solid #dc3545';
+    delBtn.style.background = '#f8d7da';
+    delBtn.style.color = '#721c24';
+    delBtn.style.borderRadius = '4px';
+    delBtn.style.cursor = 'pointer';
+    delBtn.style.display = 'flex';
+    delBtn.style.justifyContent = 'center';
+    delBtn.style.alignItems = 'center';
+    delBtn.style.fontSize = '0.9rem';
+
+    delBtn.onclick = () => {
+      row.remove();
+      items = items.filter(x => x.name !== item.name);
+      localStorage.setItem(cacheKey, JSON.stringify(items));
+    };
+    delBtn.onmouseover = () => delBtn.style.background = '#f5c6cb';
+    delBtn.onmouseout = () => delBtn.style.background = '#f8d7da';
+
+    row.appendChild(btn);
+    row.appendChild(editBtn);
+    row.appendChild(delBtn);
+    listEl.appendChild(row);
   });
+
   var modal = document.getElementById('seletorMagiasModal');
   if (modal) modal.style.display = 'flex';
 }
@@ -9178,6 +9916,388 @@ function abrirSeletorMagiasToken() {
 function fecharSeletorMagiasToken() {
   var modal = document.getElementById('seletorMagiasModal');
   if (modal) modal.style.display = 'none';
+}
+
+var _editarMagiaData = null;
+
+function abrirDialogEditarMagia(item, items, cacheKey, btn, rightSpan) {
+  document.getElementById('editarMagiaNome').value = item.name || '';
+  document.getElementById('editarMagiaPM').value = item.pm || '';
+  document.getElementById('editarMagiaDesc').value = item.desc || '';
+  document.getElementById('editarMagiaImg').value = item.img || '';
+  _editarMagiaData = { item: item, items: items, cacheKey: cacheKey, btn: btn, rightSpan: rightSpan };
+  document.getElementById('editarMagiaDialog').style.display = 'flex';
+}
+
+function fecharDialogEditarMagia() {
+  document.getElementById('editarMagiaDialog').style.display = 'none';
+  _editarMagiaData = null;
+}
+
+function salvarDialogEditarMagia() {
+  if (!_editarMagiaData) return;
+  var d = _editarMagiaData;
+  var item = d.item;
+  var nome = document.getElementById('editarMagiaNome').value.trim();
+  var pm = document.getElementById('editarMagiaPM').value.trim();
+  var desc = document.getElementById('editarMagiaDesc').value.trim();
+
+  if (nome) item.name = nome;
+  if (pm) item.pm = pm;
+  else item.pm = '—';
+  item.desc = desc;
+  var img = document.getElementById('editarMagiaImg').value.trim();
+  if (img) item.img = img;
+  else delete item.img;
+
+  localStorage.setItem(d.cacheKey, JSON.stringify(d.items));
+
+  var leftSpan = d.btn.children[0];
+  if (leftSpan) leftSpan.textContent = item.name;
+
+  d.rightSpan.textContent = item.circLabel + ' Círculo · ' + item.pm + ' PM';
+
+  fecharDialogEditarMagia();
+}
+
+function abrirSeletorPoderesToken(isLockToggle) {
+  if (BOARD.selectedTokens.size !== 1) { 
+    if (!isLockToggle) toast('Selecione exatamente 1 token.'); 
+    return; 
+  }
+  const selId = BOARD.selectedTokens.values().next().value;
+  const token = BOARD.tokens.find(t => t.id === selId);
+  if (!token) { 
+    if (!isLockToggle) toast('Token não encontrado.'); 
+    return; 
+  }
+  const { fullData, charName } = resolveFichaToken(token);
+
+  const listEl = document.getElementById('seletorPoderesList');
+  if (!listEl) { toast('Erro de UI.'); return; }
+  listEl.innerHTML = '';
+
+  const titleEl = document.getElementById('seletorPoderesTitle');
+  if (titleEl) titleEl.textContent = 'Poderes (' + charName + ')';
+
+  let items = [];
+  const cacheKey = 'vtt_cache_' + charName + '_powers';
+
+  if (locksState.powers) {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        items = JSON.parse(cached);
+      } catch (e) {
+        console.error('Erro ao ler cache de poderes/habilidades:', e);
+      }
+    }
+  }
+
+  if (!items || !items.length) {
+    if (!fullData) { 
+      if (!isLockToggle) toast('Este token não está vinculado a nenhuma ficha.'); 
+      return; 
+    }
+    const raceAb = fullData.raceAbilities || [];
+    const classAb = fullData.classAbilities || [];
+    if (!raceAb.length && !classAb.length) { 
+      if (!isLockToggle) toast('Ficha sem habilidades ou poderes.'); 
+      return; 
+    }
+
+    raceAb.forEach(function(ab) {
+      if (ab && ab.name) items.push({ name: ab.name, desc: ab.desc, type: 'Raça' });
+    });
+    classAb.forEach(function(ab) {
+      if (ab && ab.name) items.push({ name: ab.name, desc: ab.desc, type: 'Classe/Poder' });
+    });
+
+    localStorage.setItem(cacheKey, JSON.stringify(items));
+  }
+
+  items.forEach(function(item) {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'stretch';
+    row.style.gap = '0.3rem';
+    row.style.marginBottom = '0.2rem';
+
+    var btn = document.createElement('button');
+    btn.style.flexGrow = '1';
+    btn.style.display = 'flex';
+    btn.style.justifyContent = 'space-between';
+    btn.style.alignItems = 'center';
+    btn.style.padding = '0.5rem 0.8rem';
+    btn.style.background = 'var(--parch3)';
+    btn.style.border = '1px solid var(--border)';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = "'Cinzel', serif";
+    btn.style.fontWeight = 'bold';
+    btn.style.color = 'var(--text-color)';
+
+    var leftSpan = document.createElement('span');
+    leftSpan.textContent = item.name;
+
+    var pmSpan = document.createElement('span');
+    pmSpan.style.fontSize = '0.75rem';
+    pmSpan.style.fontWeight = 'normal';
+    pmSpan.style.marginLeft = '0.5rem';
+    if (item.pm) {
+      pmSpan.textContent = '[' + item.pm + ' PM]';
+      pmSpan.style.color = '#2ecc71';
+    } else {
+      pmSpan.style.display = 'none';
+    }
+
+    var rightSpan = document.createElement('span');
+    rightSpan.style.fontSize = '0.7rem';
+    rightSpan.style.color = '#2ecc71';
+    rightSpan.textContent = item.type;
+
+    btn.appendChild(leftSpan);
+    btn.appendChild(pmSpan);
+    btn.appendChild(rightSpan);
+
+    btn.onclick = function() {
+      if (item.options && item.options.length) {
+        abrirDialogSelecionarOpcaoPoder(item);
+        return;
+      }
+      var text = '**Poder/Habilidade:** ' + item.name + ' (' + item.type + ')\n';
+      if (item.pm) text += '**Custo:** ' + item.pm + ' PM\n';
+      text += '_' + descComImagem(item.desc, item.img) + '_';
+
+      var rollerName = myName;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        var tkId = BOARD.selectedTokens.values().next().value;
+        var tk = BOARD.tokens.find(function(t) { return t.id === tkId; });
+        if (tk && tk.name) rollerName = tk.name;
+      }
+
+      fecharSeletorPoderesToken();
+      rotearMensagem({ type: 'ability', name: rollerName, role: myRole, text: text, time: formatTime(), visibility: chatVisibility });
+    };
+
+    btn.onmouseover = function() { btn.style.background = 'var(--parch1)'; };
+    btn.onmouseout = function() { btn.style.background = 'var(--parch3)'; };
+
+    const editBtn = document.createElement('button');
+    editBtn.innerHTML = '⚙️';
+    editBtn.title = 'Editar poder';
+    editBtn.style.width = '32px';
+    editBtn.style.border = '1px solid #6c757d';
+    editBtn.style.background = '#e2e3e5';
+    editBtn.style.color = '#383d41';
+    editBtn.style.borderRadius = '4px';
+    editBtn.style.cursor = 'pointer';
+    editBtn.style.display = 'flex';
+    editBtn.style.justifyContent = 'center';
+    editBtn.style.alignItems = 'center';
+    editBtn.style.fontSize = '0.9rem';
+
+    editBtn.onclick = () => {
+      abrirDialogEditarPoder(item, items, cacheKey, btn, pmSpan);
+    };
+    editBtn.onmouseover = () => editBtn.style.background = '#c8c9cb';
+    editBtn.onmouseout = () => editBtn.style.background = '#e2e3e5';
+
+    const delBtn = document.createElement('button');
+    delBtn.innerHTML = '🗑️';
+    delBtn.title = 'Remover atalho';
+    delBtn.style.width = '32px';
+    delBtn.style.border = '1px solid #dc3545';
+    delBtn.style.background = '#f8d7da';
+    delBtn.style.color = '#721c24';
+    delBtn.style.borderRadius = '4px';
+    delBtn.style.cursor = 'pointer';
+    delBtn.style.display = 'flex';
+    delBtn.style.justifyContent = 'center';
+    delBtn.style.alignItems = 'center';
+    delBtn.style.fontSize = '0.9rem';
+
+    delBtn.onclick = () => {
+      row.remove();
+      items = items.filter(x => x.name !== item.name || x.type !== item.type);
+      localStorage.setItem(cacheKey, JSON.stringify(items));
+    };
+    delBtn.onmouseover = () => delBtn.style.background = '#f5c6cb';
+    delBtn.onmouseout = () => delBtn.style.background = '#f8d7da';
+
+    row.appendChild(btn);
+    row.appendChild(editBtn);
+    row.appendChild(delBtn);
+    listEl.appendChild(row);
+  });
+
+  var modal = document.getElementById('seletorPoderesModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function fecharSeletorPoderesToken() {
+  var modal = document.getElementById('seletorPoderesModal');
+  if (modal) modal.style.display = 'none';
+}
+
+var _editarPoderData = null;
+var _editarPoderOptionsIdx = 0;
+
+function adicionarOpcaoPoder(descVal, pmVal) {
+  var container = document.getElementById('editarPoderOpcoes');
+  if (!container) return;
+  var idx = _editarPoderOptionsIdx++;
+  var div = document.createElement('div');
+  div.id = 'editarPoderOpcao_' + idx;
+  div.style.display = 'flex';
+  div.style.gap = '4px';
+  div.style.alignItems = 'stretch';
+  div.innerHTML = '<input id="editarPoderOpcaoDesc_' + idx + '" type="text" placeholder="Descrição da opção" style="flex-grow:1;padding:0.3rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:\'Cinzel\',serif;font-size:0.75rem;box-sizing:border-box;" value="' + (descVal || '') + '">' +
+    '<input id="editarPoderOpcaoPM_' + idx + '" type="text" placeholder="PM" style="width:50px;padding:0.3rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:\'Cinzel\',serif;font-size:0.75rem;box-sizing:border-box;text-align:center;" value="' + (pmVal || '') + '">' +
+    '<button onclick="this.parentElement.remove()" style="width:28px;border:1px solid #dc3545;background:#f8d7da;color:#721c24;border-radius:4px;cursor:pointer;font-size:0.8rem;display:flex;justify-content:center;align-items:center;">✕</button>';
+  container.appendChild(div);
+}
+
+function abrirDialogEditarPoder(item, items, cacheKey, btn, pmSpan) {
+  document.getElementById('editarPoderNome').value = item.name || '';
+  document.getElementById('editarPoderPM').value = item.pm || '';
+  document.getElementById('editarPoderDesc').value = item.desc || '';
+  document.getElementById('editarPoderImg').value = item.img || '';
+  _editarPoderData = { item: item, items: items, cacheKey: cacheKey, btn: btn, pmSpan: pmSpan };
+  var container = document.getElementById('editarPoderOpcoes');
+  container.innerHTML = '';
+  _editarPoderOptionsIdx = 0;
+  if (item.options && item.options.length) {
+    item.options.forEach(function(o) {
+      adicionarOpcaoPoder(o.desc, o.pm);
+    });
+  }
+  document.getElementById('editarPoderDialog').style.display = 'flex';
+}
+
+function fecharDialogEditarPoder() {
+  document.getElementById('editarPoderDialog').style.display = 'none';
+  _editarPoderData = null;
+}
+
+function salvarDialogEditarPoder() {
+  if (!_editarPoderData) return;
+  var d = _editarPoderData;
+  var item = d.item;
+  var nome = document.getElementById('editarPoderNome').value.trim();
+  var pm = document.getElementById('editarPoderPM').value.trim();
+  var desc = document.getElementById('editarPoderDesc').value.trim();
+
+  if (nome) item.name = nome;
+  if (pm) item.pm = pm;
+  else delete item.pm;
+  item.desc = desc;
+  var img = document.getElementById('editarPoderImg').value.trim();
+  if (img) item.img = img;
+  else delete item.img;
+
+  var options = [];
+  var container = document.getElementById('editarPoderOpcoes');
+  if (container) {
+    var children = container.children;
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      var descInput = child.querySelector('input[id^="editarPoderOpcaoDesc_"]');
+      var pmInput = child.querySelector('input[id^="editarPoderOpcaoPM_"]');
+      if (descInput && descInput.value.trim()) {
+        options.push({ desc: descInput.value.trim(), pm: pmInput ? pmInput.value.trim() : '' });
+      }
+    }
+  }
+  if (options.length) item.options = options;
+  else delete item.options;
+
+  localStorage.setItem(d.cacheKey, JSON.stringify(d.items));
+
+  var leftSpan = d.btn.children[0];
+  if (leftSpan) leftSpan.textContent = item.name;
+
+  if (item.pm) {
+    d.pmSpan.textContent = '[' + item.pm + ' PM]';
+    d.pmSpan.style.display = '';
+    d.pmSpan.style.color = '#2ecc71';
+  } else {
+    d.pmSpan.style.display = 'none';
+  }
+
+  fecharDialogEditarPoder();
+}
+
+var _selecionarOpcaoPoderData = null;
+
+function abrirDialogSelecionarOpcaoPoder(item) {
+  var titleEl = document.getElementById('selecionarOpcaoPoderTitle');
+  if (titleEl) titleEl.textContent = '⚡ ' + item.name;
+  var listEl = document.getElementById('selecionarOpcaoPoderList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  _selecionarOpcaoPoderData = { item: item };
+
+  var opcoes = [];
+  if (item.desc) {
+    opcoes.push({ desc: item.desc, pm: item.pm || '', _base: true });
+  }
+  (item.options || []).forEach(function(o) { opcoes.push(o); });
+  opcoes.forEach(function(opcao, idx) {
+    var row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.flexDirection = 'column';
+    row.style.background = 'rgba(46,204,113,0.1)';
+    row.style.border = '1px solid #2ecc71';
+    row.style.borderRadius = '6px';
+    row.style.padding = '0.5rem 0.8rem';
+    row.style.cursor = 'pointer';
+    row.style.fontFamily = "'Cinzel', serif";
+
+    var descEl = document.createElement('div');
+    descEl.style.fontSize = '0.75rem';
+    descEl.style.color = '#e8d5a3';
+    descEl.style.lineHeight = '1.3';
+    descEl.textContent = opcao.desc;
+
+    var pmEl = document.createElement('div');
+    pmEl.style.fontSize = '0.65rem';
+    pmEl.style.color = '#2ecc71';
+    pmEl.style.marginTop = '4px';
+    pmEl.textContent = opcao._base ? (opcao.pm ? 'Base · ' + opcao.pm + ' PM' : 'Base') : (opcao.pm ? '+ ' + opcao.pm + ' PM' : 'Sem custo');
+
+    row.appendChild(descEl);
+    row.appendChild(pmEl);
+
+    row.onmouseover = function() { row.style.background = 'rgba(46,204,113,0.25)'; };
+    row.onmouseout = function() { row.style.background = 'rgba(46,204,113,0.1)'; };
+
+    row.onclick = function() {
+      var text = '**Poder/Habilidade:** ' + item.name + ' (' + (item.type || '') + ')\n';
+      if (opcao.pm) text += '**Custo:** ' + opcao.pm + ' PM\n';
+      text += '_' + descComImagem(opcao.desc, item.img) + '_';
+
+      var rollerName = myName;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        var tkId = BOARD.selectedTokens.values().next().value;
+        var tk = BOARD.tokens.find(function(t) { return t.id === tkId; });
+        if (tk && tk.name) rollerName = tk.name;
+      }
+
+      fecharDialogSelecionarOpcaoPoder();
+      fecharSeletorPoderesToken();
+      rotearMensagem({ type: 'ability', name: rollerName, role: myRole, text: text, time: formatTime(), visibility: chatVisibility });
+    };
+
+    listEl.appendChild(row);
+  });
+
+  document.getElementById('selecionarOpcaoPoderDialog').style.display = 'flex';
+}
+
+function fecharDialogSelecionarOpcaoPoder() {
+  document.getElementById('selecionarOpcaoPoderDialog').style.display = 'none';
+  _selecionarOpcaoPoderData = null;
 }
 
 function vincularFichaAToken(type, id) {
@@ -11545,7 +12665,7 @@ function drawToken(ctx, t, isDragging, isHovered) {
     const stats = [
       { v: t.hp ?? 0, m: t.hpMax, label: 'PV', color: t.hpMax > 0 ? (t.hp / t.hpMax > 0.5 ? '#3a7a42' : t.hp / t.hpMax > 0.25 ? '#8a7a1a' : '#8a2a1a') : '#3a7a42' },
       { v: t.pm ?? 0, m: t.pmMax, label: 'PM', color: '#2a5a8a' },
-      { v: parseInt(String(t.defense ?? 0)) || 0, label: 'DEF', color: '#c9903a' }
+      { v: parseInt(String(t.defense ?? 0)) || 0, m: t.defenseMax, label: 'DEF', color: '#c9903a' }
     ];
     const totalW = stats.length * (circleR * 2) + (stats.length - 1) * gap;
     const startX = px - totalW / 2 + circleR;
@@ -12904,6 +14024,12 @@ function abrirFormToken(cx, cy, prefillOpts) {
   document.getElementById('tfTitle').textContent = 'Novo Token';
   document.getElementById('tfName').value = prefillOpts?.name || '';
   document.getElementById('tfHP').value = prefillOpts?.hp ?? '';
+  const hpInit = prefillOpts?.hp ?? '';
+  document.getElementById('tfHPMax').value = hpInit;
+  document.getElementById('tfPM').value = '';
+  document.getElementById('tfPMMax').value = '';
+  document.getElementById('tfDefesa').value = '';
+  document.getElementById('tfDefesaMax').value = '';
   document.getElementById('tfSize').value = '1';
   selectTokenColorByValue('#c94040');
   popularControleSelect('');
@@ -12957,7 +14083,12 @@ function abrirFormTokenEdit(token, cx, cy) {
   tfEditingId = token.id;
   document.getElementById('tfTitle').textContent = 'Editar Token';
   document.getElementById('tfName').value = token.name;
-  document.getElementById('tfHP').value = token.hp || '';
+  document.getElementById('tfHP').value = token.hp ?? '';
+  document.getElementById('tfHPMax').value = token.hpMax ?? '';
+  document.getElementById('tfPM').value = token.pm ?? '';
+  document.getElementById('tfPMMax').value = token.pmMax ?? '';
+  document.getElementById('tfDefesa').value = token.defense ?? '';
+  document.getElementById('tfDefesaMax').value = token.defenseMax ?? '';
   document.getElementById('tfSize').value = String(token.size || 1);
   selectTokenColorByValue(token.color || '#c94040');
   popularControleSelect(token.controlledBy || '');
@@ -13277,6 +14408,11 @@ function confirmarToken() {
   snapshotBoard();
   const name = document.getElementById('tfName').value.trim() || 'Token';
   const hp = parseInt(document.getElementById('tfHP').value) || 0;
+  const hpMax = parseInt(document.getElementById('tfHPMax').value) || 0;
+  const pm = parseInt(document.getElementById('tfPM').value) || 0;
+  const pmMax = parseInt(document.getElementById('tfPMMax').value) || 0;
+  const defesa = parseInt(document.getElementById('tfDefesa').value) || 0;
+  const defesaMax = parseInt(document.getElementById('tfDefesaMax').value) || 0;
   const size = parseInt(document.getElementById('tfSize').value) || 1;
   const ehJogador = (myRole !== 'mestre');
   const controlledBy = ehJogador ? null : (document.getElementById('tfControlledBy').value || null);
@@ -13301,7 +14437,9 @@ function confirmarToken() {
     const t = BOARD.tokens.find(t => t.id === tfEditingId);
     if (t) {
       t.name = name;
-      t.hp = hp; if (hp > t.hpMax) t.hpMax = hp;
+      t.hp = hp; t.hpMax = hpMax;
+      t.pm = pm; t.pmMax = pmMax;
+      t.defense = defesa; t.defenseMax = defesaMax;
       t.imageUrl = imageUrl;
       t.imagePosition = imagePosition;
       t.hideName = hideName;
@@ -13343,7 +14481,7 @@ function confirmarToken() {
     window._bestiaryPendingName = '';
     BOARD.tokens.push({
       id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
-      name, hp, hpMax: hp, size,
+      name, hp, hpMax, pm, pmMax, defense: defesa, defenseMax: defesaMax, size,
       sizeX: size, sizeY: size,
       color: tfSelectedColor,
       imageUrl, controlledBy,
@@ -16236,6 +17374,7 @@ function updateTooltip(token, x, y) {
     }
     if (token.defense) {
       content += `<br>Defesa: ${token.defense}`;
+      if (token.defenseMax) content += `/${token.defenseMax}`;
     }
     if (token.conditions && token.conditions.length > 0) {
       const emojis = token.conditions.map(c => {
@@ -16245,6 +17384,8 @@ function updateTooltip(token, x, y) {
       content += `<br>Condições: ${emojis.join(', ')}`;
     }
   }
+
+  content += `<br><span style="font-size:0.6rem;opacity:0.5;">T — marcar / alvo</span>`;
 
   tooltip.innerHTML = content;
   tooltip.style.display = 'block';

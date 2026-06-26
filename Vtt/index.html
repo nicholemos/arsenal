@@ -715,6 +715,10 @@
             <i class="bi bi-stars" style="font-size:1.2rem; margin-top:-2px;"></i>
             <span style="font-size:0.5rem; font-weight:bold;">MAGIAS</span>
           </button>
+          <button id="token-powers-btn" class="macro-btn" style="display:none; width:42px; height:42px; background:#198754; color:#fff; border:2px solid #146c43; flex-direction:column; justify-content:center; align-items:center;" title="Exibir Poder do Token" onclick="abrirSeletorPoderesToken()">
+            <i class="bi bi-shield-shaded" style="font-size:1.2rem; margin-top:-2px;"></i>
+            <span style="font-size:0.5rem; font-weight:bold;">PODERES</span>
+          </button>
         </div>
         <div style="display:flex; gap:0.5rem; align-items:center; pointer-events:auto;">
           <div id="macro-nav" style="display:flex; gap:0.15rem; align-items:center; pointer-events:auto;">
@@ -788,7 +792,9 @@
   <input type="text" id="tfName" placeholder="Nome do token..." maxlength="30">
   <div class="tf-row">
     <label>PV</label>
-    <input type="number" id="tfHP" placeholder="—" min="0">
+    <input type="number" id="tfHP" placeholder="Atual" min="0" style="flex:1;width:50px;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;">
+    <span style="color:var(--text-dim);font-size:0.7rem;padding:0 0.15rem;">/</span>
+    <input type="number" id="tfHPMax" placeholder="Total" min="0" style="flex:1;width:50px;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;">
     <label id="tfSizeLabel" style="margin-left:0.3rem;">Tam</label>
     <select id="tfSize" style="background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;flex:1;">
       <option value="1">1×1</option>
@@ -802,6 +808,18 @@
     <input type="number" id="tfSizeX" placeholder="Ex: 1" step="0.25" min="0.25" style="width: 55px; padding: 0.28rem 0.4rem; font-size: 0.82rem; text-align: center; background:var(--parch3); border:1px solid var(--border); color:var(--text); border-radius:3px; outline:none; flex:1;">
     <label style="margin-left:0.3rem;">Alt (Y)</label>
     <input type="number" id="tfSizeY" placeholder="Ex: 1" step="0.25" min="0.25" style="width: 55px; padding: 0.28rem 0.4rem; font-size: 0.82rem; text-align: center; background:var(--parch3); border:1px solid var(--border); color:var(--text); border-radius:3px; outline:none; flex:1;">
+  </div>
+  <div class="tf-row">
+    <label>PM</label>
+    <input type="number" id="tfPM" placeholder="Atual" min="0" style="flex:1;width:50px;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;">
+    <span style="color:var(--text-dim);font-size:0.7rem;padding:0 0.15rem;">/</span>
+    <input type="number" id="tfPMMax" placeholder="Total" min="0" style="flex:1;width:50px;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;">
+  </div>
+  <div class="tf-row">
+    <label>DEF</label>
+    <input type="number" id="tfDefesa" placeholder="Atual" min="0" style="flex:1;width:50px;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;">
+    <span style="color:var(--text-dim);font-size:0.7rem;padding:0 0.15rem;">/</span>
+    <input type="number" id="tfDefesaMax" placeholder="Total" min="0" style="flex:1;width:50px;background:var(--parch3);border:1px solid var(--border);color:var(--text);font-size:0.82rem;padding:0.28rem 0.4rem;border-radius:3px;outline:none;">
   </div>
 
   <!-- Imagem do token -->
@@ -1693,6 +1711,7 @@
   <div id="seletorPericiasModal" class="modal" style="display:none;" onclick="if(event.target===this) fecharSeletorPericiasToken()">
     <div class="modal-content" style="max-width:350px; padding:0; border:2px solid var(--gold); border-radius:8px; background:var(--parch2); overflow:hidden;">
       <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid var(--gold); position:relative;">
+        <button id="lock-skills-btn" onclick="toggleLock('skills')" style="position:absolute;top:50%;left:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Bloquear/Desbloquear atualização da ficha">🔓</button>
         <h3 style="margin:0; font-family:'Cinzel', serif; color:var(--gold); font-size:1.1rem;" id="seletorPericiasTitle">Perícias</h3>
         <button onclick="fecharSeletorPericiasToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
       </div>
@@ -1701,11 +1720,63 @@
     </div>
   </div>
 
+  <!-- Modal: Editar Perícia -->
+  <div id="editarPericiaDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4999;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogEditarPericia()">
+    <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid var(--gold);border-radius:12px;padding:24px;min-width:320px;max-width:420px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+      <div style="font-size:1.1rem;margin-bottom:16px;text-align:center;font-weight:700;color:var(--gold);">✏️ Editar Perícia</div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Nome</label>
+        <input id="editarPericiaNome" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Descrição base</label>
+        <textarea id="editarPericiaDesc" rows="2" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;resize:vertical;"></textarea>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Imagem (URL)</label>
+        <input id="editarPericiaImg" type="text" style="width:100%;padding:0.3rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.75rem;box-sizing:border-box;" placeholder="https://...">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Rolagem</label>
+        <select id="editarPericiaVantagem" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+          <option value="0">Normal</option>
+          <option value="1">Vantagem</option>
+          <option value="-1">Desvantagem</option>
+        </select>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label style="font-size:0.75rem;color:#a0a0a0;">Opções (+ descrições)</label>
+          <button onclick="adicionarOpcaoPericia()" style="background:transparent;border:1px solid var(--gold);color:var(--gold);padding:2px 10px;border-radius:4px;cursor:pointer;font-size:0.7rem;font-family:'Cinzel',serif;">+ Adicionar</button>
+        </div>
+        <div id="editarPericiaOpcoes" style="display:flex;flex-direction:column;gap:6px;">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="salvarDialogEditarPericia()" style="background:#b8860b;border:none;color:white;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Salvar</button>
+        <button onclick="fecharDialogEditarPericia()" style="background:#555;border:none;color:#ccc;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Selecionar Opção da Perícia -->
+  <div id="selecionarOpcaoPericiaDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4998;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogSelecionarOpcaoPericia()">
+    <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid var(--gold);border-radius:12px;padding:24px;min-width:300px;max-width:420px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+      <div style="font-size:1.1rem;margin-bottom:12px;text-align:center;font-weight:700;color:var(--gold);" id="selecionarOpcaoPericiaTitle">⚡ Perícia</div>
+      <div id="selecionarOpcaoPericiaList" style="max-height:300px;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:6px;"></div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="fecharDialogSelecionarOpcaoPericia()" style="background:#555;border:none;color:#ccc;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Seletor de Ataques do Token -->
   <div id="seletorAtaquesModal" class="modal" style="display:none;" onclick="if(event.target===this) fecharSeletorAtaquesToken()">
     <div class="modal-content" style="max-width:420px; padding:0; border:2px solid #8b0000; border-radius:8px; background:var(--parch2); overflow:hidden;">
       <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #8b0000; position:relative;">
+        <button id="lock-attacks-btn" onclick="toggleLock('attacks')" style="position:absolute;top:50%;left:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Bloquear/Desbloquear atualização da ficha">🔓</button>
         <h3 style="margin:0; font-family:'Cinzel', serif; color:#ff4d4d; font-size:1.1rem;" id="seletorAtaquesTitle">Ataques</h3>
+        <button onclick="adicionarNovoAtaque()" style="position:absolute;top:50%;right:2.2rem;transform:translateY(-50%);background:none;border:none;color:#ff4d4d;font-size:1.1rem;cursor:pointer;line-height:1;" title="Criar novo ataque">➕</button>
         <button onclick="fecharSeletorAtaquesToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
       </div>
       <div id="seletorAtaquesList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">
@@ -1714,14 +1785,168 @@
     </div>
   </div>
 
+  <!-- Modal: Editar Ataque -->
+  <div id="editarAtaqueDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4999;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogEditarAtaque()">
+    <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #ff4d4d;border-radius:12px;padding:24px;min-width:320px;max-width:420px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+      <div style="font-size:1.1rem;margin-bottom:16px;text-align:center;font-weight:700;color:#ff4d4d;">✏️ Editar Ataque</div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Nome</label>
+        <input id="editarAtaqueNome" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Custo em PM</label>
+        <input id="editarAtaquePM" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Bônus de ataque (ex: +5)</label>
+        <input id="editarAtaqueBonus" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Dado base de dano (multiplicado no crítico, ex: 1d8)</label>
+        <input id="editarAtaqueDmgBase" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;">
+        <div style="flex:1;">
+          <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Dano extra (fixo, ex: 4)</label>
+          <input id="editarAtaqueDmgExtra" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Dados adicionais (ex: 1d6)</label>
+          <input id="editarAtaqueDiceExtra" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Atributo (ex: +3)</label>
+          <input id="editarAtaqueDmgAttr" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;">
+        <div style="flex:1;">
+          <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Margem de ameaça (ex: 19-20)</label>
+          <input id="editarAtaqueCritRange" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Multiplicador (ex: x2)</label>
+          <input id="editarAtaqueCritMult" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;"> Rolagem</label>
+          <select id="editarAtaqueVantagem" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.75rem;box-sizing:border-box;">
+            <option value="0">Normal</option>
+            <option value="1">Vantagem</option>
+            <option value="-1">Desvantagem</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Descrição (opcional)</label>
+        <textarea id="editarAtaqueDesc" rows="2" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;resize:vertical;"></textarea>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Imagem (URL)</label>
+        <input id="editarAtaqueImg" type="text" style="width:100%;padding:0.3rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.75rem;box-sizing:border-box;" placeholder="https://...">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="salvarDialogEditarAtaque()" style="background:#8b0000;border:none;color:white;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Salvar</button>
+        <button onclick="fecharDialogEditarAtaque()" style="background:#555;border:none;color:#ccc;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Seletor de Magias do Token -->
   <div id="seletorMagiasModal" class="modal" style="display:none;" onclick="if(event.target===this) fecharSeletorMagiasToken()">
     <div class="modal-content" style="max-width:480px; padding:0; border:2px solid #7b2d8e; border-radius:8px; background:var(--parch2); overflow:hidden;">
       <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #7b2d8e; position:relative;">
+        <button id="lock-spells-btn" onclick="toggleLock('spells')" style="position:absolute;top:50%;left:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Bloquear/Desbloquear atualização da ficha">🔓</button>
         <h3 style="margin:0; font-family:'Cinzel', serif; color:#c77dff; font-size:1.1rem;" id="seletorMagiasTitle">Magias</h3>
         <button onclick="fecharSeletorMagiasToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
       </div>
       <div id="seletorMagiasList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Magia -->
+  <div id="editarMagiaDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4999;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogEditarMagia()">
+    <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #c77dff;border-radius:12px;padding:24px;min-width:320px;max-width:420px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+      <div style="font-size:1.1rem;margin-bottom:16px;text-align:center;font-weight:700;color:#c77dff;">✏️ Editar Magia</div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Nome</label>
+        <input id="editarMagiaNome" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Custo em PM</label>
+        <input id="editarMagiaPM" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Descrição</label>
+        <textarea id="editarMagiaDesc" rows="3" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;resize:vertical;"></textarea>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Imagem (URL)</label>
+        <input id="editarMagiaImg" type="text" style="width:100%;padding:0.3rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.75rem;box-sizing:border-box;" placeholder="https://...">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="salvarDialogEditarMagia()" style="background:#7b2d8e;border:none;color:white;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Salvar</button>
+        <button onclick="fecharDialogEditarMagia()" style="background:#555;border:none;color:#ccc;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Seletor de Poderes do Token -->
+  <div id="seletorPoderesModal" class="modal" style="display:none;" onclick="if(event.target===this) fecharSeletorPoderesToken()">
+    <div class="modal-content" style="max-width:480px; padding:0; border:2px solid #146c43; border-radius:8px; background:var(--parch2); overflow:hidden;">
+      <div style="background:rgba(0,0,0,0.8); padding:0.8rem; text-align:center; border-bottom:1px solid #146c43; position:relative;">
+        <button id="lock-powers-btn" onclick="toggleLock('powers')" style="position:absolute;top:50%;left:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Bloquear/Desbloquear atualização da ficha">🔓</button>
+        <h3 style="margin:0; font-family:'Cinzel', serif; color:#2ecc71; font-size:1.1rem;" id="seletorPoderesTitle">Poderes</h3>
+        <button onclick="fecharSeletorPoderesToken()" style="position:absolute;top:50%;right:0.6rem;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;line-height:1;" title="Fechar">✕</button>
+      </div>
+      <div id="seletorPoderesList" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.3rem; max-height:60vh; overflow-y:auto; overflow-x:hidden;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Editar Poder -->
+  <div id="editarPoderDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4999;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogEditarPoder()">
+    <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #2ecc71;border-radius:12px;padding:24px;min-width:320px;max-width:420px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+      <div style="font-size:1.1rem;margin-bottom:16px;text-align:center;font-weight:700;color:#2ecc71;">✏️ Editar Poder</div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Nome</label>
+        <input id="editarPoderNome" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Custo em PM</label>
+        <input id="editarPoderPM" type="text" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Descrição base</label>
+        <textarea id="editarPoderDesc" rows="2" style="width:100%;padding:0.4rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.8rem;box-sizing:border-box;resize:vertical;"></textarea>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:0.75rem;color:#a0a0a0;display:block;margin-bottom:4px;">Imagem (URL)</label>
+        <input id="editarPoderImg" type="text" style="width:100%;padding:0.3rem;border:1px solid #444;border-radius:4px;background:#1a1a1a;color:#e8d5a3;font-family:'Cinzel',serif;font-size:0.75rem;box-sizing:border-box;" placeholder="https://...">
+      </div>
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label style="font-size:0.75rem;color:#a0a0a0;">Opções (+ descrições)</label>
+          <button onclick="adicionarOpcaoPoder()" style="background:transparent;border:1px solid #2ecc71;color:#2ecc71;padding:2px 10px;border-radius:4px;cursor:pointer;font-size:0.7rem;font-family:'Cinzel',serif;">+ Adicionar</button>
+        </div>
+        <div id="editarPoderOpcoes" style="display:flex;flex-direction:column;gap:6px;">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="salvarDialogEditarPoder()" style="background:#146c43;border:none;color:white;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Salvar</button>
+        <button onclick="fecharDialogEditarPoder()" style="background:#555;border:none;color:#ccc;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Selecionar Opção do Poder -->
+  <div id="selecionarOpcaoPoderDialog" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:4998;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;" onclick="if(event.target===this)fecharDialogSelecionarOpcaoPoder()">
+    <div style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #2ecc71;border-radius:12px;padding:24px;min-width:300px;max-width:420px;font-family:'Cinzel',serif;color:#e8d5a3;box-shadow:0 0 40px rgba(0,0,0,0.5);">
+      <div style="font-size:1.1rem;margin-bottom:12px;text-align:center;font-weight:700;color:#2ecc71;" id="selecionarOpcaoPoderTitle">⚡ Poder</div>
+      <div id="selecionarOpcaoPoderList" style="max-height:300px;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:6px;"></div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="fecharDialogSelecionarOpcaoPoder()" style="background:#555;border:none;color:#ccc;padding:6px 20px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;">Cancelar</button>
       </div>
     </div>
   </div>
