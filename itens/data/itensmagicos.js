@@ -2208,8 +2208,6 @@ const itensMagicosData = {
             imagem: "data/img/tormenta.webp"
         },
         {
-        },
-        {
             nome: "Ossos Dracônicos Deus dos Dragões",
             preco: "T$ 90.000",
             espacos: "1",
