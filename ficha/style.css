@@ -3084,18 +3084,18 @@ body.theme-dark {
 
 /* 3. Classic Theme Overrides (Original STR / T20 JdA style) */
 .theme-classic {
-  --t20-red: #e74c3c;
-  --t20-red-dark: #c0392b;
-  --ouro: #2c3e50;
-  --ouro-glow: rgba(44, 62, 80, 0.15);
-  --bg-principal: #f0ece4;
-  --bg-card: rgba(255, 255, 255, 0.95);
-  --bg-card-solid: #ffffff;
-  --borda-card: #b0b8c8;
-  --borda-card-hover: #2c3e50;
+  --t20-red: #c0392b;
+  --t20-red-dark: #8b1a1a;
+  --ouro: #c9933a;
+  --ouro-glow: rgba(201, 147, 58, 0.15);
+  --bg-principal: #f5eedc;
+  --bg-card: rgba(253, 251, 247, 0.95);
+  --bg-card-solid: #fdfbf7;
+  --borda-card: #c5bba8;
+  --borda-card-hover: #8e7a5c;
   --texto-principal: #2c3e50;
-  --texto-secundario: #4a5568;
-  --text-muted: #7f8c8d;
+  --texto-secundario: #5d5245;
+  --text-muted: #7d7265;
 }
 
 .theme-classic body,
@@ -3115,12 +3115,13 @@ body.theme-classic {
 }
 
 .theme-classic .btn-outline-warning {
-  color: #e74c3c !important;
-  border-color: #e74c3c !important;
+  color: #a07226 !important;
+  border-color: #a07226 !important;
 }
 .theme-classic .btn-outline-warning:hover {
-  background-color: #e74c3c !important;
+  background-color: #a07226 !important;
   color: #fff !important;
+  border-color: #a07226 !important;
 }
 
 .theme-classic .btn-outline-danger {
@@ -3130,25 +3131,27 @@ body.theme-classic {
 .theme-classic .btn-outline-danger:hover {
   background-color: #c0392b !important;
   color: #fff !important;
+  border-color: #c0392b !important;
 }
 
 .theme-classic .btn-outline-secondary {
-  color: #4a5568 !important;
-  border-color: #b0b8c8 !important;
+  color: #5d5245 !important;
+  border-color: #c5bba8 !important;
 }
 .theme-classic .btn-outline-secondary:hover {
-  background-color: #2c3e50 !important;
+  background-color: #8e7a5c !important;
   color: #fff !important;
-  border-color: #2c3e50 !important;
+  border-color: #8e7a5c !important;
 }
 
 .theme-classic .btn-outline-primary {
-  color: #2980b9 !important;
-  border-color: #2980b9 !important;
+  color: #2c3e50 !important;
+  border-color: #2c3e50 !important;
 }
 .theme-classic .btn-outline-primary:hover {
-  background-color: #2980b9 !important;
+  background-color: #2c3e50 !important;
   color: #fff !important;
+  border-color: #2c3e50 !important;
 }
 
 .theme-classic .text-danger,
@@ -3170,10 +3173,16 @@ body.theme-classic {
 .theme-classic .t20-section-title,
 .theme-classic .t20-status-label,
 .theme-classic .t20-mini-label {
-  background-color: #2c3e50 !important;
-  color: #ecf0f1 !important;
-  border: 1px solid #1a252f !important;
+  background-color: #fdfbf7 !important;
+  color: #c0392b !important;
+  border: 1px solid #c5bba8 !important;
   text-shadow: none !important;
+}
+
+/* Caso especial para "PONTOS DE MANA" que usa cores azuis inline */
+.theme-classic .t20-section-title[style*="color: #0d6efd"],
+.theme-classic .t20-mini-label[style*="color: #0d6efd"] {
+  color: #1a5276 !important;
 }
 
 .theme-classic .t20-label {
@@ -3189,7 +3198,7 @@ body.theme-classic {
 .theme-classic #notesSection {
   background-color: var(--bg-card-solid) !important;
   border: 1px solid var(--borda-card) !important;
-  border-left: 3px solid #2c3e50 !important;
+  border-left: 3px solid #c0392b !important;
   color: var(--texto-principal) !important;
 }
 .theme-classic #attacksSection:hover,
@@ -3199,7 +3208,7 @@ body.theme-classic {
 .theme-classic #skillsSection:hover,
 .theme-classic #inventorySection:hover,
 .theme-classic #notesSection:hover {
-  border-color: #2c3e50 !important;
+  border-color: #8e7a5c !important;
 }
 
 .theme-classic .form-control,
@@ -3214,7 +3223,7 @@ body.theme-classic {
 .theme-classic .inp-bonus,
 .theme-classic .inp-penalty,
 .theme-classic .skill-row input {
-  background-color: #f8f9fa !important;
+  background-color: #faf8f5 !important;
   border: 1px solid var(--borda-card) !important;
   color: var(--texto-principal) !important;
 }
@@ -3231,18 +3240,18 @@ body.theme-classic {
 .theme-classic .inp-penalty:focus,
 .theme-classic .skill-row input:focus {
   background-color: #ffffff !important;
-  border-color: #2980b9 !important;
-  box-shadow: 0 0 8px rgba(41, 128, 185, 0.3) !important;
+  border-color: #c9933a !important;
+  box-shadow: 0 0 8px rgba(201, 147, 58, 0.4) !important;
   color: #2c3e50 !important;
 }
 
 .theme-classic .attr-token {
-  border: 4px solid #2c3e50 !important;
+  border: 4px solid #c9933a !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 .theme-classic .attr-token:hover {
-  border-color: #e74c3c !important;
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3) !important;
+  border-color: #c0392b !important;
+  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3) !important;
 }
 .theme-classic .attr-val {
   color: #c0392b !important;
