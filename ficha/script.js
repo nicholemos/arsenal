@@ -1309,32 +1309,32 @@ function loadData() {
         if (armorHalfLevelEl && data.armorHalfLevel !== undefined) armorHalfLevelEl.checked = data.armorHalfLevel;
 
         // --- DADOS GERAIS ---
-        if (data.charName) document.getElementById('charName').value = data.charName;
-        if (data.playerName) document.getElementById('playerName').value = data.playerName;
-        if (data.charRace) document.getElementById('charRace').value = data.charRace;
-        if (data.charOrigin) document.getElementById('charOrigin').value = data.charOrigin;
-        if (data.charClass) document.getElementById('charClass').value = data.charClass;
-        if (data.charDistinction) {
+        if (data.charName !== undefined) document.getElementById('charName').value = data.charName;
+        if (data.playerName !== undefined) document.getElementById('playerName').value = data.playerName;
+        if (data.charRace !== undefined) document.getElementById('charRace').value = data.charRace;
+        if (data.charOrigin !== undefined) document.getElementById('charOrigin').value = data.charOrigin;
+        if (data.charClass !== undefined) document.getElementById('charClass').value = data.charClass;
+        if (data.charDistinction !== undefined) {
             const distEl = document.getElementById('charDistinction');
             if (distEl) distEl.value = data.charDistinction;
         }
-        if (data.charLevel) document.getElementById('charLevel').value = data.charLevel;
-        if (data.charDeity) document.getElementById('charDeity').value = data.charDeity;
+        if (data.charLevel !== undefined) document.getElementById('charLevel').value = data.charLevel;
+        if (data.charDeity !== undefined) document.getElementById('charDeity').value = data.charDeity;
 
         // --- EXTRAS ---
         if (data.extras) {
-            if (data.extras.profs) document.getElementById('charProfs').value = data.extras.profs;
-            if (data.extras.size) document.getElementById('charSize').value = data.extras.size;
-            if (data.extras.speed) document.getElementById('charSpeed').value = data.extras.speed;
-            if (data.extras.xp) { document.getElementById('charXP').value = data.extras.xp; autoLevelFromXP(); }
-            if (data.extras.cash) document.getElementById('charCash').value = data.extras.cash;
-            if (data.extras.cashTO) document.getElementById('charCashTO').value = data.extras.cashTO;
+            if (data.extras.profs !== undefined) document.getElementById('charProfs').value = data.extras.profs;
+            if (data.extras.size !== undefined) document.getElementById('charSize').value = data.extras.size;
+            if (data.extras.speed !== undefined) document.getElementById('charSpeed').value = data.extras.speed;
+            if (data.extras.xp !== undefined) { document.getElementById('charXP').value = data.extras.xp; autoLevelFromXP(); }
+            if (data.extras.cash !== undefined) document.getElementById('charCash').value = data.extras.cash;
+            if (data.extras.cashTO !== undefined) document.getElementById('charCashTO').value = data.extras.cashTO;
         }
 
         // --- ATRIBUTOS ---
         if (data.attrs) {
             attrs.forEach(a => {
-                if (data.attrs[a]) document.getElementById(`attr-${a}`).value = data.attrs[a];
+                if (data.attrs[a] !== undefined) document.getElementById(`attr-${a}`).value = data.attrs[a];
             });
         }
 
@@ -1351,32 +1351,32 @@ function loadData() {
 
         // --- STATUS ---
         if (data.status) {
-            if (data.status.pvM) document.getElementById('pvMax').value = data.status.pvM;
-            if (data.status.pvC) document.getElementById('pvCurrent').value = data.status.pvC;
-            if (data.status.pmM) document.getElementById('pmMax').value = data.status.pmM;
-            if (data.status.pmC) document.getElementById('pmCurrent').value = data.status.pmC;
+            if (data.status.pvM !== undefined) document.getElementById('pvMax').value = data.status.pvM;
+            if (data.status.pvC !== undefined) document.getElementById('pvCurrent').value = data.status.pvC;
+            if (data.status.pmM !== undefined) document.getElementById('pmMax').value = data.status.pmM;
+            if (data.status.pmC !== undefined) document.getElementById('pmCurrent').value = data.status.pmC;
         }
 
         // --- DEFESA ---
         if (data.defense) {
             if (data.defense.config) {
-                if (data.defense.config.attr) document.getElementById('defAttrSelect').value = data.defense.config.attr;
+                if (data.defense.config.attr !== undefined) document.getElementById('defAttrSelect').value = data.defense.config.attr;
                 const chk = document.getElementById('applyDefAttr');
                 if (chk) chk.checked = data.defense.config.apply;
             }
             if (data.defense.armor) {
-                if (data.defense.armor.name) document.getElementById('armorName').value = data.defense.armor.name;
-                if (data.defense.armor.bonus) document.getElementById('armorBonus').value = data.defense.armor.bonus;
-                if (data.defense.armor.penalty) document.getElementById('armorPenalty').value = data.defense.armor.penalty;
-                if (data.defense.armor.type) document.getElementById('armorType').value = data.defense.armor.type;
-                if (data.defense.armor.desc) document.getElementById('armorDesc').value = data.defense.armor.desc;
+                if (data.defense.armor.name !== undefined) document.getElementById('armorName').value = data.defense.armor.name;
+                if (data.defense.armor.bonus !== undefined) document.getElementById('armorBonus').value = data.defense.armor.bonus;
+                if (data.defense.armor.penalty !== undefined) document.getElementById('armorPenalty').value = data.defense.armor.penalty;
+                if (data.defense.armor.type !== undefined) document.getElementById('armorType').value = data.defense.armor.type;
+                if (data.defense.armor.desc !== undefined) document.getElementById('armorDesc').value = data.defense.armor.desc;
             }
             if (data.defense.shield) {
-                if (data.defense.shield.name) document.getElementById('shieldName').value = data.defense.shield.name;
-                if (data.defense.shield.bonus) document.getElementById('shieldBonus').value = data.defense.shield.bonus;
-                if (data.defense.shield.penalty) document.getElementById('shieldPenalty').value = data.defense.shield.penalty;
-                if (data.defense.shield.type) document.getElementById('shieldType').value = data.defense.shield.type;
-                if (data.defense.shield.desc) document.getElementById('shieldDesc').value = data.defense.shield.desc;
+                if (data.defense.shield.name !== undefined) document.getElementById('shieldName').value = data.defense.shield.name;
+                if (data.defense.shield.bonus !== undefined) document.getElementById('shieldBonus').value = data.defense.shield.bonus;
+                if (data.defense.shield.penalty !== undefined) document.getElementById('shieldPenalty').value = data.defense.shield.penalty;
+                if (data.defense.shield.type !== undefined) document.getElementById('shieldType').value = data.defense.shield.type;
+                if (data.defense.shield.desc !== undefined) document.getElementById('shieldDesc').value = data.defense.shield.desc;
             }
             if (data.defense.other) {
                 data.defense.other.forEach(item => addDefenseItem(item));
@@ -1412,10 +1412,10 @@ function loadData() {
         // --- MAGIAS ---
         if (data.spells) {
             if (data.spells.config) {
-                if (data.spells.config.attr) document.getElementById('spellCDAttrSelect').value = data.spells.config.attr;
-                if (data.spells.config.powers) document.getElementById('spellCDPowers').value = data.spells.config.powers;
-                if (data.spells.config.items) document.getElementById('spellCDItems').value = data.spells.config.items;
-                if (data.spells.config.other) document.getElementById('spellCDOther').value = data.spells.config.other;
+                if (data.spells.config.attr !== undefined) document.getElementById('spellCDAttrSelect').value = data.spells.config.attr;
+                if (data.spells.config.powers !== undefined) document.getElementById('spellCDPowers').value = data.spells.config.powers;
+                if (data.spells.config.items !== undefined) document.getElementById('spellCDItems').value = data.spells.config.items;
+                if (data.spells.config.other !== undefined) document.getElementById('spellCDOther').value = data.spells.config.other;
             }
             if (data.spells.list) {
                 data.spells.list.forEach(item => addSpell(item.circle, item));
@@ -1427,8 +1427,10 @@ function loadData() {
             document.getElementById('loadAttrSelect').value = data.loadConfig.attr;
         }
 
-        if (data.condicoes) {
-            data.condicoes.forEach(key => {
+        // Compatibilidade: tenta tempMods.condicoes (novo) e data.condicoes (legado)
+        const condicoesArr = (data.tempMods && data.tempMods.condicoes) || data.condicoes;
+        if (condicoesArr && Array.isArray(condicoesArr)) {
+            condicoesArr.forEach(key => {
                 const chk = document.getElementById(`cond-${key}`);
                 if (chk) chk.checked = true;
             });
@@ -1437,10 +1439,11 @@ function loadData() {
         // --- CARREGAR MODIFICADORES TEMPORÁRIOS ---
         if (data.tempMods) {
             const m = data.tempMods;
+            // Helper disponível para todos os blocos de tempMods
+            const setMod = (id, val) => { if (document.getElementById(id)) document.getElementById(id).value = val || ''; };
 
             // Globais — atributos temporários
             if (m.globais) {
-                const setMod = (id, val) => { if (document.getElementById(id)) document.getElementById(id).value = val || ''; };
                 setMod('mod-attr-FOR', m.globais.attrFOR);
                 setMod('mod-attr-DES', m.globais.attrDES);
                 setMod('mod-attr-CON', m.globais.attrCON);
