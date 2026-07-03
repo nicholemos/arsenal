@@ -491,7 +491,9 @@ function setupEventListeners() {
 
     enchantQuantitySelect.addEventListener('change', (e) => {
         let sourceList = [];
-        if (currentModalItem.tipo === 'Esotérico') {
+        if (currentModalItem.contaComoArma || currentModalItem.categoria === 'Arma' || currentModalItem.tipo === 'Munição') {
+            sourceList = allEnchantments;
+        } else if (currentModalItem.tipo === 'Esotérico') {
             sourceList = allEsotericEnchantments;
         } else if (currentModalItem.tipo === 'Vestuário' || currentModalItem.tipo === 'Ferramenta' || currentModalItem.tipo === 'Acessório') {
             sourceList = allAccessoryEnchantments;
@@ -580,7 +582,7 @@ function handleModSelection(e) {
         let availableMaterials = [];
         const item = currentModalItem;
 
-        if (item.categoria === 'Arma') {
+        if (item.categoria === 'Arma' || item.contaComoArma) {
             availableMaterials = allMaterials.filter(m => m.nome.includes('(Arma)'));
         } else if (item.categoria === 'Escudo') {
             availableMaterials = allMaterials.filter(m => m.nome.includes('Leve/Escudo') || m.nome.includes('(Armadura/Escudo)'));
@@ -1371,7 +1373,7 @@ function parseSpaces(spaceString) {
 function getAvailableModOptions(item) {
     let opts = allModifications.filter(m => m.descricao?.includes('Todos'));
 
-    if (item.categoria === 'Arma' || item.tipo === 'Munição') {
+    if (item.categoria === 'Arma' || item.contaComoArma || item.tipo === 'Munição') {
         opts = opts.concat(allModifications.filter(m => m.descricao?.includes('Armas') || m.descricao?.includes('Munições')));
     } else if (item.categoria === 'Armadura') {
         let armorOpts = allModifications.filter(m => m.descricao?.includes('Armaduras'));
@@ -1478,7 +1480,7 @@ function updateCustomSelectors(quantity, container, sourceList, item) {
         const itemCat = item.categoria;
         const itemTipo = item.tipo;
 
-        if (itemCat === 'Arma' || itemTipo === 'Munição') {
+        if (itemCat === 'Arma' || item.contaComoArma || itemTipo === 'Munição') {
             availableOptions = sourceList.filter(m => m.tipo === 'Arma');
         } else if (itemCat === 'Armadura' || itemCat === 'Escudo' ||
             itemTipo === 'Acessório' || itemTipo === 'Vestuário' ||
@@ -1488,7 +1490,7 @@ function updateCustomSelectors(quantity, container, sourceList, item) {
         }
     } else {
         // Encantamentos
-        if (item.categoria === 'Arma' || item.tipo === 'Munição') {
+        if (item.categoria === 'Arma' || item.contaComoArma || item.tipo === 'Munição') {
             availableOptions = sourceList.filter(m => m.tipo === 'Arma' || m.tipo?.includes('Todos'));
         } else if (item.categoria === 'Armadura' || item.categoria === 'Escudo') {
             availableOptions = sourceList.filter(m => m.tipo === 'Armadura/Escudo' || m.tipo?.includes('Todos'));
@@ -1741,7 +1743,7 @@ function refreshEnchantSelectorOptions() {
 
     // Determina o pool correto para este item
     let fullPool = [];
-    if (item.categoria === 'Arma' || item.tipo === 'Munição') {
+    if (item.categoria === 'Arma' || item.contaComoArma || item.tipo === 'Munição') {
         fullPool = allEnchantments.filter(m => m.tipo === 'Arma' || m.tipo?.includes('Todos'));
     } else if (item.categoria === 'Armadura' || item.categoria === 'Escudo') {
         fullPool = allEnchantments.filter(m => m.tipo === 'Armadura/Escudo' || m.tipo?.includes('Todos'));
@@ -1831,7 +1833,7 @@ function openModal(index) {
         itemCustomizer.style.display = 'flex';
 
         // Esconde encantamentos para itens que não os têm
-        if (item.tipo === 'Ferramenta' || item.tipo === 'Vestuário') {
+        if ((item.tipo === 'Ferramenta' || item.tipo === 'Vestuário') && !item.contaComoArma) {
             enchantQuantitySelect.parentElement.parentElement.style.display = 'none';
         } else {
             enchantQuantitySelect.parentElement.parentElement.style.display = 'block';
@@ -2086,7 +2088,7 @@ function isModCompativel(mod, item) {
  * Retorna o pool de encantamentos correto para o item base.
  */
 function getEnchPoolForItem(item) {
-    if (item.categoria === 'Arma' || item.tipo === 'Munição') {
+    if (item.categoria === 'Arma' || item.contaComoArma || item.tipo === 'Munição') {
         return allEnchantments.filter(e => e.tipo === 'Arma');
     }
     if (item.categoria === 'Armadura' || item.categoria === 'Escudo') {
