@@ -4164,6 +4164,431 @@ function exportRoll20() {
     URL.revokeObjectURL(url);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// FOUNDRY VTT IMPORT / EXPORT — Compatível com o sistema Tormenta20 (Vizael)
+// ═══════════════════════════════════════════════════════════════════════════
+// OBS: o mapeamento de atributos, perícias, PV/PM, defesa, dinheiro e dados
+// gerais do personagem é 1:1 com o "actor.system" do Foundry (testado contra
+// um ator exportado em branco). Ataques, poderes, equipamentos e magias são
+// exportados como Items (arma/poder/equipamento/magia) com o texto completo
+// na descrição — os campos numéricos desses Items usam os nomes mais comuns
+// do sistema, mas como o Foundry recalcula muita coisa a partir dos Items de
+// Raça/Origem/Classe/Divindade (arrastados do compêndio), vale a pena revisar
+// esses itens dentro do Foundry após importar.
+
+// Mapeamento: nome interno da perícia → chave do Foundry (tormenta20 system)
+const FOUNDRY_SKILL_MAP = {
+    'Acrobacia': 'acro', 'Adestramento': 'ades', 'Atletismo': 'atle',
+    'Atuação': 'atua', 'Cavalgar': 'cava', 'Conhecimento': 'conh',
+    'Cura': 'cura', 'Diplomacia': 'dipl', 'Enganação': 'enga',
+    'Fortitude': 'fort', 'Furtividade': 'furt', 'Guerra': 'guer',
+    'Iniciativa': 'inic', 'Intimidação': 'inti', 'Intuição': 'intu',
+    'Investigação': 'inve', 'Jogatina': 'joga', 'Ladinagem': 'ladi',
+    'Luta': 'luta', 'Misticismo': 'mist', 'Nobreza': 'nobr',
+    'Percepção': 'perc', 'Pilotagem': 'pilo', 'Pontaria': 'pont',
+    'Reflexos': 'refl', 'Religião': 'reli', 'Sobrevivência': 'sobr',
+    'Vontade': 'vont'
+};
+const FOUNDRY_TO_SKILL = {};
+Object.entries(FOUNDRY_SKILL_MAP).forEach(([k, v]) => FOUNDRY_TO_SKILL[v] = k);
+
+// Ofícios específicos do Foundry — usados para tentar encaixar a especialidade
+// de "Ofício" digitada na ficha local num dos ofícios pré-cadastrados do sistema.
+// Se não encontrar, cai no genérico "arte" (Artesão).
+const FOUNDRY_CRAFT_MAP = {
+    alfa: /alfaiat/i, alqu: /alquimi/i, arme: /armeir/i,
+    cozi: /culin[aá]ri|cozinh/i, enge: /engenh/i
+};
+function craftSpecialtyToFoundryKey(specialty) {
+    if (!specialty) return 'arte';
+    for (const [key, re] of Object.entries(FOUNDRY_CRAFT_MAP)) {
+        if (re.test(specialty)) return key;
+    }
+    return 'arte';
+}
+
+// Tamanho: valor interno (usado em <select id="charSize">) ↔ chave do Foundry
+const FOUNDRY_SIZE_MAP = { '5': 'min', '2': 'peq', '0': 'med', '-2': 'grande', '-5': 'enorme', '-10': 'colossal' };
+const SIZE_FROM_FOUNDRY = {};
+Object.entries(FOUNDRY_SIZE_MAP).forEach(([k, v]) => SIZE_FROM_FOUNDRY[v] = k);
+
+function foundryAttrKey(attrCode) { return String(attrCode || 'DES').toLowerCase(); }
+function attrKeyToFoundry(key) {
+    const m = { for: 'FOR', des: 'DES', con: 'CON', int: 'INT', sab: 'SAB', car: 'CAR' };
+    return m[String(key || 'des').toLowerCase()] || 'DES';
+}
+
+// ── IMPORTAR DO FOUNDRY ───────────────────────────────────────────────────
+function importFoundry(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = '';
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const f = JSON.parse(e.target.result);
+            const sys = f.system;
+
+            if (!sys || !sys.atributos || !sys.pericias) {
+                alert('⚠️ Este arquivo não parece ser um Ator exportado do Foundry (sistema Tormenta20).\n\nPara importar um backup da sua ficha digital, use o botão "Carregar" normal.');
+                return;
+            }
+
+            const atr = sys.atributos || {};
+            const attrs = {
+                FOR: String(atr.for?.value ?? 0), DES: String(atr.des?.value ?? 0),
+                CON: String(atr.con?.value ?? 0), INT: String(atr.int?.value ?? 0),
+                SAB: String(atr.sab?.value ?? 0), CAR: String(atr.car?.value ?? 0)
+            };
+
+            const pv = sys.attributes?.pv || {};
+            const pm = sys.attributes?.pm || {};
+            const defesa = sys.attributes?.defesa || {};
+            const items = Array.isArray(f.items) ? f.items : [];
+
+            // Monta skills a partir das perícias do Foundry
+            const skills = JSON.parse(JSON.stringify(defaultSkills));
+            let oficioCount = 0;
+            skills.forEach(s => {
+                if (s.n === 'Ofício') {
+                    const key = oficioCount === 0 ? 'arte' : 'alqu'; // melhor esforço: 1º ofício = arte, 2º = alqu
+                    oficioCount++;
+                    const p = sys.pericias?.[key];
+                    if (p) {
+                        s.trained = !!p.treinado;
+                        s.other = parseInt(p.outros) || 0;
+                        s.specialty = p.label || '';
+                    }
+                    return;
+                }
+                const fkey = FOUNDRY_SKILL_MAP[s.n];
+                const p = fkey && sys.pericias?.[fkey];
+                if (!p) return;
+                s.trained = !!p.treinado;
+                s.other = parseInt(p.outros) || 0;
+            });
+
+            const cashTO = sys.dinheiro?.to || 0;
+
+            const data = {
+                version: 15.4,
+                playerName: '', // Foundry não guarda o nome do jogador no ator
+                charName: f.name || '',
+                charRace: sys.detalhes?.raca || '',
+                charOrigin: sys.detalhes?.origem || '',
+                charClass: items.find(it => it.type === 'classe')?.name || '',
+                charLevel: String(sys.attributes?.nivel?.value || '1'),
+                charDeity: sys.detalhes?.divindade || '',
+
+                extras: {
+                    profs: '',
+                    size: String(SIZE_FROM_FOUNDRY[sys.tracos?.tamanho] ?? '0'),
+                    speed: sys.attributes?.movement?.walk?.base ? `${sys.attributes.movement.walk.base}m` : '',
+                    xp: String(sys.attributes?.nivel?.xp?.value || ''),
+                    cash: cashTO ? String(cashTO) : ''
+                },
+
+                attrs,
+
+                status: {
+                    pvM: String(pv.max ?? '0'), pvC: String(pv.value ?? '0'),
+                    pmM: String(pm.max ?? '0'), pmC: String(pm.value ?? '0')
+                },
+
+                defense: {
+                    config: { attr: attrKeyToFoundry(defesa.atributo), apply: true },
+                    armor: { name: '', bonus: '', penalty: '', type: '', desc: '' },
+                    shield: { name: '', bonus: '', penalty: '', type: '', desc: '' },
+                    other: defesa.outros ? [{ name: 'Defesa (Foundry)', bonus: String(defesa.outros), note: '' }] : []
+                },
+
+                skills,
+                attacks: [],
+                inventory: [],
+                raceAbilities: [],
+                classAbilities: [],
+
+                notes: (sys.detalhes?.biography?.value || '').replace(/<\/p>\s*<p>/gi, '\n\n').replace(/<[^>]+>/g, '').trim(),
+                notesCampanha: '',
+                notesOutros: '',
+
+                spells: {
+                    config: { attr: attrKeyToFoundry(sys.attributes?.conjuracao), powers: '0', items: '0', other: '0' },
+                    list: []
+                },
+
+                loadBonus: 0, armorLoadBonus: 0, loadConfig: { attr: 'FOR' },
+
+                tempMods: {
+                    globais: { attrFOR: '', attrDES: '', attrCON: '', attrINT: '', attrSAB: '', attrCAR: '' },
+                    globaisListas: { rolagens: [], pericias: [], ataque: [], dano: [], defesa: [] },
+                    bonusLivres: [], periciasEspecificas: [], parceiros: [], condicoes: []
+                }
+            };
+
+            // Items → ataques / poderes / equipamentos / magias
+            let spellCircleCount = 0;
+            items.forEach(it => {
+                const desc = (it.system?.descricao?.value || it.system?.descricao || '')
+                    .replace(/<\/p>\s*<p>/gi, '\n\n').replace(/<[^>]+>/g, '').trim();
+
+                if (it.type === 'arma') {
+                    data.attacks.push({
+                        name: it.name || '',
+                        bonus: String(it.system?.bonus?.ataque?.[0] ?? it.system?.ataque ?? '0'),
+                        dmg: it.system?.dano?.formula || it.system?.dano || '',
+                        dmgExtra: '', diceExtra: '0',
+                        critRange: String(it.system?.critico?.min || it.system?.margem || '20'),
+                        crit: `x${it.system?.critico?.multi || it.system?.multiplicador || 2}`,
+                        skill: '', mod: 'FOR', type: it.system?.tipoDano || '',
+                        range: it.system?.alcance || '', desc
+                    });
+                } else if (it.type === 'poder') {
+                    (it.system?.acao?.origem === 'racial' ? data.raceAbilities : data.classAbilities)
+                        .push({ name: it.name || '', desc });
+                } else if (it.type === 'equipamento' || it.type === 'consumivel') {
+                    data.inventory.push({
+                        equipped: !!it.system?.equipado,
+                        name: it.name || '', qtd: String(it.system?.quantidade ?? '1'),
+                        slots: String(it.system?.espaco ?? it.system?.slot ?? '1'), note: desc
+                    });
+                } else if (it.type === 'magia') {
+                    spellCircleCount++;
+                    const circle = parseInt(it.system?.circulo) || 1;
+                    data.spells.list.push({
+                        circle,
+                        name: it.name || '',
+                        pm: String(spellCosts[circle] || circle),
+                        school: it.system?.escola || '',
+                        exec: it.system?.execucao || '',
+                        range: it.system?.alcance || '',
+                        target: it.system?.alvo || it.system?.area || '',
+                        dur: it.system?.duracao || '',
+                        res: it.system?.resistencia || '',
+                        desc
+                    });
+                }
+            });
+
+            localStorage.setItem('t20SheetData', JSON.stringify(data));
+            window.location.reload();
+
+        } catch (err) {
+            alert('Erro ao importar ficha do Foundry.\n\n' + err.message);
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+// ── EXPORTAR PARA FOUNDRY ─────────────────────────────────────────────────
+function exportFoundry() {
+    saveData();
+    const saved = localStorage.getItem('t20SheetData');
+    if (!saved) { alert('Nenhuma ficha para exportar!'); return; }
+    const d = JSON.parse(saved);
+
+    const attrOf = key => parseInt(d.attrs?.[key]) || 0;
+    const mkAttr = v => ({ value: v, base: v, racial: 0, bonus: 0 });
+
+    const nivel = parseInt(d.charLevel) || 1;
+    const pvM = parseInt(d.status?.pvM) || 0;
+    const pvC = parseInt(d.status?.pvC) || 0;
+    const pmM = parseInt(d.status?.pmM) || 0;
+    const pmC = parseInt(d.status?.pmC) || 0;
+
+    const defAttr = foundryAttrKey(d.defense?.config?.attr);
+    const defOutros = (d.defense?.other || []).reduce((a, o) => a + (parseInt(o.bonus) || 0), 0)
+        + (parseInt(d.defense?.armor?.bonus) || 0) + (parseInt(d.defense?.shield?.bonus) || 0);
+
+    const conjAttr = foundryAttrKey(d.spells?.config?.attr || 'INT');
+    const cd = 10 + Math.floor(nivel / 2) + attrOf(attrKeyToFoundry(conjAttr))
+        + (parseInt(d.spells?.config?.powers) || 0) + (parseInt(d.spells?.config?.other) || 0);
+
+    const speedMatch = String(d.extras?.speed || '').match(/(\d+)/);
+
+    const sys = {
+        atributos: {
+            for: mkAttr(attrOf('FOR')), des: mkAttr(attrOf('DES')), con: mkAttr(attrOf('CON')),
+            int: mkAttr(attrOf('INT')), sab: mkAttr(attrOf('SAB')), car: mkAttr(attrOf('CAR'))
+        },
+        attributes: {
+            carga: { value: 0, atributo: 'for', base: 10, bonus: [], limit: 0, max: 0, pct: 0, encumbered: false },
+            cd,
+            conjuracao: conjAttr,
+            defesa: { atributo: defAttr, pda: 0, value: 10 + attrOf(attrKeyToFoundry(defAttr)) + defOutros, base: 10, outros: defOutros, condi: 0, bonus: [] },
+            movement: {
+                walk: { base: speedMatch ? parseInt(speedMatch[1]) : 9, bonus: [] },
+                climb: { base: 0, bonus: [] }, burrow: { base: 0, bonus: [] },
+                swim: { base: 0, bonus: [] }, fly: { base: 0, bonus: [] },
+                hover: false, unit: 'm', tags: []
+            },
+            nivel: { value: nivel, xp: { value: parseInt(d.extras?.xp) || 0, pct: 0, proximo: 0 } },
+            pv: {
+                value: pvC, temp: 0, min: 0, max: pvM,
+                atributos: { for: false, des: false, int: false, sab: false, car: false },
+                bonus: { nivel: ['0'], nivelPar: ['0'], nivelImpar: ['0'], total: ['0'] }
+            },
+            pm: {
+                value: pmC, temp: 0, min: 0, max: pmM,
+                atributos: { for: false, des: false, con: false, int: false, sab: false, car: false },
+                bonus: { nivel: ['0'], nivelPar: ['0'], nivelImpar: ['0'], total: ['0'] }
+            },
+            sentidos: { value: [] },
+            treino: 0
+        },
+        detalhes: {
+            origem: d.charOrigin || '', info: d.extras?.profs || '', divindade: d.charDeity || '',
+            raca: d.charRace || '', tipo: 'hum',
+            biography: { value: (d.notes || '').split('\n').map(l => `<p>${l}</p>`).join(''), public: '' },
+            diario: { name: '', value: '' }, diario1: { name: '', value: '' }, diario2: { name: '', value: '' },
+            diario3: { name: '', value: '' }, diario4: { name: '', value: '' }, diario5: { name: '', value: '' }
+        },
+        dinheiro: { tc: 0, tl: 0, to: parseInt(String(d.extras?.cash || '').replace(/\D/g, '')) || 0, tp: 0 },
+        modificadores: {
+            custoPM: 0,
+            atributos: { for: [], des: [], con: [], int: [], sab: [], car: [], fisicos: [], mentais: [], geral: [] },
+            ataque: { geral: [], cac: [], ad: [] }, cura: { geral: [], mag: [] },
+            dano: { ad: [], alq: [], cac: [], geral: [], mag: [] },
+            pericias: { geral: [], resistencia: [], semataque: [], ataque: [], atr: { for: [], des: [], con: [], int: [], sab: [], car: [] } }
+        },
+        pericias: {},
+        resources: {
+            primary: { value: 0, max: 0, label: 'Recurso 1' }, secondary: { value: 0, max: 0, label: 'Recurso 2' },
+            tertiary: { value: 0, max: 0, label: 'Recurso 3' }, deathsave: { value: 0, max: 3, label: 'Falha na Morte' },
+            shadow: { value: 0, max: 5, label: 'Pontos de Sombra' }, catarse: { value: 0, max: 3, label: 'Catarse' }
+        },
+        tracos: {
+            ic: { value: [] }, idiomas: { value: [] }, profArmaduras: { value: [] }, profArmas: { value: [] },
+            resistencias: { dano: {}, perda: {}, acido: {}, corte: {}, eletricidade: {}, essencia: {}, fogo: {}, frio: {}, impacto: {}, luz: {}, psiquico: {}, perfuracao: {}, trevas: {} },
+            tamanho: FOUNDRY_SIZE_MAP[String(d.extras?.size ?? '0')] || 'med'
+        },
+        equipamentos: { limiteEmpunhado: 2, limiteVestido: 4 }
+    };
+    Object.keys(sys.tracos.resistencias).forEach(k => {
+        sys.tracos.resistencias[k] = { value: 0, base: 0, bonus: [], excecao: 0, imunidade: false, vulnerabilidade: false, danoPorDado: false };
+    });
+
+    // Perícias — parte dos códigos-padrão do sistema (mesmos atributos/flags do template)
+    const PERICIA_TEMPLATE = {
+        acro: 'des', ades: 'car', atle: 'for', atua: 'car', cava: 'des', conh: 'int', cura: 'sab',
+        dipl: 'car', enga: 'car', fort: 'con', furt: 'des', guer: 'int', inic: 'des', inti: 'car',
+        intu: 'sab', inve: 'int', joga: 'car', ladi: 'des', luta: 'for', mist: 'int', nobr: 'int',
+        perc: 'sab', pilo: 'des', pont: 'des', refl: 'des', reli: 'sab', sobr: 'sab', vont: 'sab',
+        alfa: 'int', alqu: 'int', arme: 'int', arte: 'int', cozi: 'int', enge: 'int'
+    };
+    Object.entries(PERICIA_TEMPLATE).forEach(([key, atributo]) => {
+        sys.pericias[key] = { atributo, treinado: false, st: false, pda: false, size: false, value: 0, outros: 0, condi: 0, bonus: [], custom: false, label: '' };
+    });
+    let oficioCount = 0;
+    (d.skills || defaultSkills).forEach(s => {
+        if (s.n === 'Ofício') {
+            const key = craftSpecialtyToFoundryKey(s.specialty);
+            oficioCount++;
+            sys.pericias[key].treinado = !!s.trained;
+            sys.pericias[key].outros = parseInt(s.other) || 0;
+            sys.pericias[key].label = s.specialty || '';
+            return;
+        }
+        const fkey = FOUNDRY_SKILL_MAP[s.n];
+        if (!fkey || !sys.pericias[fkey]) return;
+        sys.pericias[fkey].treinado = !!s.trained;
+        sys.pericias[fkey].outros = parseInt(s.other) || 0;
+    });
+
+    // Items: ataques, poderes (raça/origem + classe), equipamentos, magias
+    const items = [];
+    const descHtml = txt => ({ value: (txt || '').split('\n').map(l => `<p>${l}</p>`).join('') });
+
+    (d.attacks || []).forEach(atk => {
+        const mult = parseInt(critToR20Mult(atk.crit)) || 2;
+        items.push({
+            name: atk.name || 'Ataque', type: 'arma', img: 'icons/skills/melee/weapons-crossed-swords-yellow.webp',
+            system: {
+                descricao: descHtml(atk.desc),
+                dano: { formula: atk.dmg || '', tipo: atk.type || '' },
+                critico: { min: parseInt(atk.critRange) || 20, multi: mult },
+                bonus: { ataque: [String(atk.bonus || '0')] },
+                alcance: atk.range || '', tipoDano: atk.type || ''
+            }
+        });
+    });
+
+    (d.raceAbilities || []).forEach(a => {
+        items.push({
+            name: a.name || 'Habilidade', type: 'poder', img: 'icons/svg/aura.svg',
+            system: { descricao: descHtml(a.desc), acao: { origem: 'racial' } }
+        });
+    });
+    (d.classAbilities || []).forEach(a => {
+        items.push({
+            name: a.name || 'Poder', type: 'poder', img: 'icons/svg/upgrade.svg',
+            system: { descricao: descHtml(a.desc), acao: { origem: 'classe' } }
+        });
+    });
+
+    (d.inventory || []).forEach(item => {
+        items.push({
+            name: item.name || 'Item', type: 'equipamento', img: 'icons/containers/bags/pack-leather-brown.webp',
+            system: { descricao: descHtml(item.note), quantidade: parseInt(item.qtd) || 1, espaco: parseInt(item.slots) || 1, equipado: !!item.equipped }
+        });
+    });
+    if (d.defense?.armor?.name) {
+        items.push({
+            name: d.defense.armor.name, type: 'equipamento', img: 'icons/equipment/chest/breastplate-banded-steel-grey.webp',
+            system: { descricao: descHtml(d.defense.armor.desc), categoria: 'armaduraLeve', bonus: parseInt(d.defense.armor.bonus) || 0, penalidade: parseInt(d.defense.armor.penalty) || 0, equipado: true }
+        });
+    }
+    if (d.defense?.shield?.name) {
+        items.push({
+            name: d.defense.shield.name, type: 'equipamento', img: 'icons/equipment/shield/round-wooden-boss-steel.webp',
+            system: { descricao: descHtml(d.defense.shield.desc), categoria: 'escudo', bonus: parseInt(d.defense.shield.bonus) || 0, penalidade: parseInt(d.defense.shield.penalty) || 0, equipado: true }
+        });
+    }
+
+    (d.spells?.list || []).forEach(sp => {
+        items.push({
+            name: sp.name || 'Magia', type: 'magia', img: 'icons/magic/symbols/rune-sigil-black-pink.webp',
+            system: {
+                descricao: descHtml(sp.desc), circulo: sp.circle || 1, escola: sp.school || '',
+                execucao: sp.exec || '', alcance: sp.range || '', alvo: sp.target || '',
+                duracao: sp.dur || '', resistencia: sp.res || ''
+            }
+        });
+    });
+
+    const foundryActor = {
+        name: d.charName || 'Personagem',
+        type: 'character',
+        img: 'icons/svg/mystery-man.svg',
+        system: sys,
+        prototypeToken: {
+            name: d.charName || 'Personagem', displayName: 0, actorLink: true, width: 1, height: 1,
+            texture: { src: 'icons/svg/mystery-man.svg', anchorX: 0.5, anchorY: 0.5, offsetX: 0, offsetY: 0, fit: 'contain', scaleX: 1, scaleY: 1, rotation: 0, tint: '#ffffff', alphaThreshold: 0.75 },
+            lockRotation: false, rotation: 0, alpha: 1, disposition: 1, displayBars: 0,
+            bar1: { attribute: 'attributes.pv' }, bar2: { attribute: 'attributes.pm' },
+            sight: { enabled: true, range: 0, angle: 360, visionMode: 'basic', color: null, attenuation: 0.1, brightness: 0, saturation: 0, contrast: 0 },
+            detectionModes: [], flags: {}, randomImg: false, appendNumber: false, prependAdjective: false
+        },
+        items,
+        effects: [],
+        flags: {},
+        ownership: { default: 0 }
+    };
+
+    const charName = d.charName || 'personagem';
+    const blob = new Blob([JSON.stringify(foundryActor, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `foundry_${charName.replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 // ============================================================
 //  SISTEMA DE ALTERNÂNCIA DE TEMA (CLARO / ESCURO)
 // ============================================================

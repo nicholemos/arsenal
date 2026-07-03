@@ -68,6 +68,18 @@
                     </button>
                     <input type="file" id="fileInputRoll20" style="display:none;" accept=".json"
                         onchange="importRoll20(this)">
+                    <div class="vr mx-1"></div>
+                    <button class="btn btn-outline-info btn-sm fw-bold" onclick="exportFoundry()"
+                        title="Exportar ficha no formato Foundry VTT (sistema Tormenta20)">
+                        <i class="bi bi-shield-fill"></i> Foundry ↓
+                    </button>
+                    <button class="btn btn-outline-info btn-sm"
+                        onclick="document.getElementById('fileInputFoundry').click()"
+                        title="Importar ator exportado do Foundry VTT (sistema Tormenta20)">
+                        <i class="bi bi-shield-fill"></i> Foundry ↑
+                    </button>
+                    <input type="file" id="fileInputFoundry" style="display:none;" accept=".json"
+                        onchange="importFoundry(this)">
                 </div>
 
                 <!-- Botões da AMEAÇA (ocultos por padrão) -->
