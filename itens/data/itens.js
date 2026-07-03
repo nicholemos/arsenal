@@ -420,6 +420,7 @@ const itensData = {
             "espacos": "1",
             "categoria": "Item Geral",
             "tipo": "Vestuário",
+            "contaComoArma": true,
             "descricao": "Luva metálica. Ataques desarmados causam dano letal. Conta como uma arma para melhorias/encantos. (p. 159)",
             "imagem": "data/img/manopla.webp"
         },
@@ -1989,6 +1990,7 @@ const itensData = {
             espacos: "1",
             categoria: "Item Geral",
             tipo: "Vestuário",
+            contaComoArma: true,
             descricao: "Estas pinças de insetos gigantes, presas com tiras de couro, funcionam como uma manopla, mas seus benefícios também se aplicam a uma garra ou a uma arma natural.",
             fonte: "Ameaças de Arton",
             imagem: "data/img/garra.webp"
