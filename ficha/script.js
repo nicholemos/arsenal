@@ -4208,7 +4208,7 @@ function craftSpecialtyToFoundryKey(specialty) {
 }
 
 // Tamanho: valor interno (usado em <select id="charSize">) ↔ chave do Foundry
-const FOUNDRY_SIZE_MAP = { '5': 'min', '2': 'peq', '0': 'med', '-2': 'grande', '-5': 'enorme', '-10': 'colossal' };
+const FOUNDRY_SIZE_MAP = { '5': 'min', '2': 'peq', '0': 'med', '-2': 'gra', '-5': 'enor', '-10': 'col' };
 const SIZE_FROM_FOUNDRY = {};
 Object.entries(FOUNDRY_SIZE_MAP).forEach(([k, v]) => SIZE_FROM_FOUNDRY[v] = k);
 
@@ -4328,44 +4328,48 @@ function importFoundry(input) {
             };
 
             // Items → ataques / poderes / equipamentos / magias
-            let spellCircleCount = 0;
+            const ESCOLA_LABELS = { abj: 'Abjuração', adi: 'Adivinhação', con: 'Convocação', enc: 'Encantamento', evo: 'Evocação', ilu: 'Ilusão', nec: 'Necromancia', tra: 'Transmutação' };
+            const ALCANCE_LABELS = { touch: 'Toque', short: 'Curto', none: 'Pessoal' };
             items.forEach(it => {
-                const desc = (it.system?.descricao?.value || it.system?.descricao || '')
+                const desc = (it.system?.description?.value || it.system?.descricao?.value || '')
                     .replace(/<\/p>\s*<p>/gi, '\n\n').replace(/<[^>]+>/g, '').trim();
 
                 if (it.type === 'arma') {
+                    const rolls = it.system?.rolls || [];
+                    const atkRoll = rolls.find(r => r.type === 'ataque');
+                    const dmgRoll = rolls.find(r => r.type === 'dano');
                     data.attacks.push({
                         name: it.name || '',
-                        bonus: String(it.system?.bonus?.ataque?.[0] ?? it.system?.ataque ?? '0'),
-                        dmg: it.system?.dano?.formula || it.system?.dano || '',
+                        bonus: String(atkRoll?.parts?.[2]?.[0] ?? '0'),
+                        dmg: dmgRoll?.parts?.[0]?.[0] || '',
                         dmgExtra: '', diceExtra: '0',
-                        critRange: String(it.system?.critico?.min || it.system?.margem || '20'),
-                        crit: `x${it.system?.critico?.multi || it.system?.multiplicador || 2}`,
-                        skill: '', mod: 'FOR', type: it.system?.tipoDano || '',
-                        range: it.system?.alcance || '', desc
+                        critRange: String(it.system?.criticoM ?? '20'),
+                        crit: `x${it.system?.criticoX ?? 2}`,
+                        skill: '', mod: 'FOR',
+                        type: dmgRoll?.parts?.[0]?.[1] || '',
+                        range: it.system?.proposito === 'distância' ? 'Curto' : '', desc
                     });
                 } else if (it.type === 'poder') {
-                    (it.system?.acao?.origem === 'racial' ? data.raceAbilities : data.classAbilities)
+                    (it.system?.tipo === 'racial' ? data.raceAbilities : data.classAbilities)
                         .push({ name: it.name || '', desc });
-                } else if (it.type === 'equipamento' || it.type === 'consumivel') {
+                } else if (it.type === 'equipamento' || it.type === 'consumivel' || it.type === 'tesouro') {
                     data.inventory.push({
                         equipped: !!it.system?.equipado,
-                        name: it.name || '', qtd: String(it.system?.quantidade ?? '1'),
-                        slots: String(it.system?.espaco ?? it.system?.slot ?? '1'), note: desc
+                        name: it.name || '', qtd: String(it.system?.qtd ?? '1'),
+                        slots: String(it.system?.espacos ?? '1'), note: desc
                     });
                 } else if (it.type === 'magia') {
-                    spellCircleCount++;
                     const circle = parseInt(it.system?.circulo) || 1;
                     data.spells.list.push({
                         circle,
                         name: it.name || '',
-                        pm: String(spellCosts[circle] || circle),
-                        school: it.system?.escola || '',
-                        exec: it.system?.execucao || '',
-                        range: it.system?.alcance || '',
+                        pm: String(it.system?.ativacao?.custo || spellCosts[circle] || circle),
+                        school: ESCOLA_LABELS[it.system?.escola] || '',
+                        exec: it.system?.ativacao?.execucao === 'action' ? 'Padrão' : (it.system?.ativacao?.execucao || ''),
+                        range: ALCANCE_LABELS[it.system?.alcance] || '',
                         target: it.system?.alvo || it.system?.area || '',
-                        dur: it.system?.duracao || '',
-                        res: it.system?.resistencia || '',
+                        dur: it.system?.duracao?.special || '',
+                        res: it.system?.resistencia?.txt || '',
                         desc
                     });
                 }
@@ -4498,62 +4502,131 @@ function exportFoundry() {
     });
 
     // Items: ataques, poderes (raça/origem + classe), equipamentos, magias
+    // Schema real extraído de um export oficial do sistema (não mais "melhor esforço").
     const items = [];
-    const descHtml = txt => ({ value: (txt || '').split('\n').map(l => `<p>${l}</p>`).join('') });
+    const descHtml = txt => ({ value: (txt || '').split('\n').map(l => `<p>${l}</p>`).join(''), unidentified: '' });
+    const emptyActivation = () => ({ execucao: '', custo: 0, qtd: '', condicao: '', special: '' });
+    const emptyDuration = () => ({ value: 0, units: '', special: '' });
+    const emptyTarget = () => ({ value: null, width: null, type: '' });
+    const emptyRange = () => ({ value: null, units: '' });
+    const emptyConsume = () => ({ type: '', target: '', amount: null, mpMultiplier: false });
+    const emptyUpgrades = () => ({ melhoria1: '', melhoria2: '', melhoria3: '', melhoria4: '', material: '', encanto1: '', encanto2: '', encanto3: '' });
+
+    // Escolas de magia: só estes 8 códigos são aceitos pelo sistema — qualquer outro valor
+    // (ex.: o nome por extenso "Evocação") quebra a importação inteira no Foundry.
+    function mapEscola(text) {
+        const t = (text || '').toLowerCase();
+        if (/abju/.test(t)) return 'abj';
+        if (/adivin/.test(t)) return 'adi';
+        if (/convoca/.test(t)) return 'con';
+        if (/encant/.test(t)) return 'enc';
+        if (/evoca/.test(t)) return 'evo';
+        if (/ilus/.test(t)) return 'ilu';
+        if (/necro/.test(t)) return 'nec';
+        if (/transmut/.test(t)) return 'tra';
+        return 'abj'; // fallback seguro (sempre um valor válido)
+    }
+    // "alcance" também é um campo de escolha restrita — só usamos valores confirmados.
+    function mapAlcance(text) {
+        const t = (text || '').toLowerCase();
+        if (/toque/.test(t)) return 'touch';
+        if (/curto/.test(t)) return 'short';
+        if (/pessoal/.test(t)) return 'none';
+        return ''; // valor vazio é aceito; evita quebrar em "médio"/"longo" não confirmados
+    }
+    function mapResistAttr(text) {
+        const t = (text || '').toLowerCase();
+        if (/fort/.test(t)) return 'con';
+        if (/reflex/.test(t)) return 'des';
+        if (/vontade/.test(t)) return 'sab';
+        return '';
+    }
+    function mapTipoMagia(spellsConfigAttr) {
+        // Sem informação de arcana/divina na ficha local — "uni" (universal) é o valor mais seguro.
+        return 'uni';
+    }
 
     (d.attacks || []).forEach(atk => {
         const mult = parseInt(critToR20Mult(atk.crit)) || 2;
+        const isRanged = /curto|médio|medio|longo/i.test(atk.range || '');
+        const totalAtkBonus = (parseInt(atk.bonus) || 0) + (parseInt(atk.mod) || 0);
         items.push({
             name: atk.name || 'Ataque', type: 'arma', img: 'icons/skills/melee/weapons-crossed-swords-yellow.webp',
             system: {
-                descricao: descHtml(atk.desc),
-                dano: { formula: atk.dmg || '', tipo: atk.type || '' },
-                critico: { min: parseInt(atk.critRange) || 20, multi: mult },
-                bonus: { ataque: [String(atk.bonus || '0')] },
-                alcance: atk.range || '', tipoDano: atk.type || ''
+                description: descHtml(atk.desc), source: '',
+                equipado: true, equipado2: { slot: 0, type: 'hand' }, carregado: true,
+                peso: 0, espacos: 1, qtd: 1, preco: 0,
+                pv: { value: 0, min: 0, max: 0 }, rd: 0,
+                rolls: [
+                    { name: 'Ataque', key: 'ataque0', type: 'ataque', parts: [['1d20', '', ''], [atk.skill?.toLowerCase() === 'pontaria' ? 'pont' : 'luta', '', ''], [String(totalAtkBonus), '', '']], versatil: '' },
+                    { name: 'Dano', key: 'dano1', type: 'dano', parts: [[atk.dmg || '', atk.type || '', ''], ['@for', '', '']], versatil: '' }
+                ],
+                criticoM: parseInt(atk.critRange) || 20, criticoX: mult,
+                alcance: isRanged ? 'short' : 'none', tipoUso: 'sim',
+                propriedades: { ada: false, agi: false, alo: false, dup: false, ver: false, adaptavel: false, agil: false, alongada: false, arremesso: false, ataqueDistancia: isRanged, duasMaos: false, dupla: false, leve: false, municao: false, versatil: false, des: false, hib: false },
+                encantos: {}, ativacao: { custo: null, condicao: '', execucao: '', qtd: '', special: '' },
+                chatFlavor: '', consume: emptyConsume(), origin: '', tags: [], chatGif: '',
+                upgrades: emptyUpgrades(), melhorias: {}, ataques: 0,
+                proficiencia: 'marcial', proposito: isRanged ? 'distância' : 'corpo-a-corpo',
+                empunhadura: 'uma', size: 'normal', rolltags: [], enableAutoUpgrades: false
             }
         });
     });
 
-    (d.raceAbilities || []).forEach(a => {
-        items.push({
-            name: a.name || 'Habilidade', type: 'poder', img: 'icons/svg/aura.svg',
-            system: { descricao: descHtml(a.desc), acao: { origem: 'racial' } }
-        });
-    });
-    (d.classAbilities || []).forEach(a => {
-        items.push({
+    function mkPoder(a, tipo, subtipo) {
+        return {
             name: a.name || 'Poder', type: 'poder', img: 'icons/svg/upgrade.svg',
-            system: { descricao: descHtml(a.desc), acao: { origem: 'classe' } }
-        });
-    });
+            system: {
+                description: descHtml(a.desc), source: '',
+                ativacao: emptyActivation(), duracao: emptyDuration(), target: emptyTarget(), range: emptyRange(),
+                consume: emptyConsume(), efeito: '', alcance: '', alvo: '', area: '',
+                resistencia: { pericia: '', atributo: '', bonus: 0, txt: '' },
+                rolls: [], tipo, subtipo,
+                chatFlavor: '', origin: '', tags: [], chatGif: '', rolltags: []
+            }
+        };
+    }
+    (d.raceAbilities || []).forEach(a => items.push(mkPoder(a, 'racial', d.charRace || '')));
+    (d.classAbilities || []).forEach(a => items.push(mkPoder(a, 'classe', d.charClass || '')));
 
-    (d.inventory || []).forEach(item => {
+    function mkEquipamento(name, desc, qtd, espacos, equipado, tipo, armorBonus, penalty, slotType, img) {
         items.push({
-            name: item.name || 'Item', type: 'equipamento', img: 'icons/containers/bags/pack-leather-brown.webp',
-            system: { descricao: descHtml(item.note), quantidade: parseInt(item.qtd) || 1, espaco: parseInt(item.slots) || 1, equipado: !!item.equipped }
-        });
-    });
-    if (d.defense?.armor?.name) {
-        items.push({
-            name: d.defense.armor.name, type: 'equipamento', img: 'icons/equipment/chest/breastplate-banded-steel-grey.webp',
-            system: { descricao: descHtml(d.defense.armor.desc), categoria: 'armaduraLeve', bonus: parseInt(d.defense.armor.bonus) || 0, penalidade: parseInt(d.defense.armor.penalty) || 0, equipado: true }
+            name: name || 'Item', type: 'equipamento', img: img || 'icons/containers/bags/pack-leather-brown.webp',
+            system: {
+                description: descHtml(desc), source: '',
+                equipado: !!equipado, equipado2: { slot: 0, type: slotType || 'body' }, carregado: true,
+                peso: 0, espacos: parseFloat(espacos) || 1, qtd: parseInt(qtd) || 1, preco: 0,
+                pv: { value: 0, min: 0, max: 0 }, rd: 0,
+                tipo: tipo || 'traje',
+                armadura: { value: parseInt(armorBonus) || 0, penalidade: parseInt(penalty) || 0, maxAtr: 0 },
+                rolls: [], origin: '', tags: [], chatFlavor: '', chatGif: '',
+                ativacao: emptyActivation(), upgrades: emptyUpgrades(), melhorias: {}, encantos: {},
+                rolltags: [], enableAutoUpgrades: false
+            }
         });
     }
+    (d.inventory || []).forEach(item => mkEquipamento(item.name, item.note, item.qtd, item.slots, item.equipped, 'ferramenta', 0, 0, 'hand'));
+    if (d.defense?.armor?.name) {
+        mkEquipamento(d.defense.armor.name, d.defense.armor.desc, 1, 2, true, 'leve', d.defense.armor.bonus, d.defense.armor.penalty, 'body', 'icons/equipment/chest/breastplate-banded-steel-grey.webp');
+    }
     if (d.defense?.shield?.name) {
-        items.push({
-            name: d.defense.shield.name, type: 'equipamento', img: 'icons/equipment/shield/round-wooden-boss-steel.webp',
-            system: { descricao: descHtml(d.defense.shield.desc), categoria: 'escudo', bonus: parseInt(d.defense.shield.bonus) || 0, penalidade: parseInt(d.defense.shield.penalty) || 0, equipado: true }
-        });
+        mkEquipamento(d.defense.shield.name, d.defense.shield.desc, 1, 1, true, 'escudo', d.defense.shield.bonus, d.defense.shield.penalty, 'hand', 'icons/equipment/shield/round-wooden-boss-steel.webp');
     }
 
     (d.spells?.list || []).forEach(sp => {
         items.push({
             name: sp.name || 'Magia', type: 'magia', img: 'icons/magic/symbols/rune-sigil-black-pink.webp',
             system: {
-                descricao: descHtml(sp.desc), circulo: sp.circle || 1, escola: sp.school || '',
-                execucao: sp.exec || '', alcance: sp.range || '', alvo: sp.target || '',
-                duracao: sp.dur || '', resistencia: sp.res || ''
+                description: descHtml(sp.desc), source: '',
+                ativacao: { execucao: 'action', custo: parseInt(sp.pm) || 1, qtd: '', condicao: '', special: '' },
+                duracao: { value: 0, units: '', special: sp.dur || '' },
+                target: emptyTarget(), range: emptyRange(), consume: emptyConsume(),
+                efeito: '', alcance: mapAlcance(sp.range), alvo: sp.target || '', area: '',
+                resistencia: { pericia: '', atributo: mapResistAttr(sp.res), bonus: 0, txt: sp.res || '' },
+                rolls: [], tipo: mapTipoMagia(), circulo: String(sp.circle || 1),
+                preparada: false, escola: mapEscola(sp.school),
+                chatFlavor: '', origin: '', tags: [], chatGif: '', rolltags: [],
+                equipado2: { slot: 0, type: '' }
             }
         });
     });
