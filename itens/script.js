@@ -1939,7 +1939,7 @@ function enviarInventarioCompletoParaFicha() {
 
     alert(`${itensParaEnviar.length} item(s) preparado(s) para a ficha!\n\nClique em "Sync Loja" na ficha para importar, ou ela importará ao abrir.`);
 
-    window.open('https://nicholemos.github.io/ficha/', '_blank');
+    window.open('../ficha/', '_blank');
 }
 
 // ===== MAPA DE IMAGENS (SIMPLIFICADO) =====
