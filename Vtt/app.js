@@ -8834,7 +8834,68 @@ function fecharSeletorAtaquesToken() {
   if (modal) modal.style.display = 'none';
 }
 
+function atualizarMiniaturasSelecionados() {
+  const container = document.getElementById('selected-tokens-row');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (!BOARD.selectedTokens || BOARD.selectedTokens.size === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'flex';
+  
+  BOARD.selectedTokens.forEach(id => {
+    const token = BOARD.tokens.find(t => t.id === id);
+    if (!token) return;
+    
+    const wrapper = document.createElement('div');
+    wrapper.className = 'selected-token-capsule';
+    wrapper.title = token.name || 'Token';
+    
+    wrapper.onclick = (e) => {
+      e.stopPropagation();
+      centralizarEmToken(token);
+    };
+    
+    if (token.imageUrl) {
+      const img = document.createElement('img');
+      img.src = token.imageUrl;
+      img.style.border = `2px solid ${token.color || 'var(--gold)'}`;
+      wrapper.appendChild(img);
+    } else {
+      const initials = document.createElement('div');
+      initials.style.width = '28px';
+      initials.style.height = '28px';
+      initials.style.borderRadius = '50%';
+      initials.style.display = 'flex';
+      initials.style.alignItems = 'center';
+      initials.style.justifyContent = 'center';
+      initials.style.background = token.color || 'var(--gold)';
+      initials.style.color = '#000';
+      initials.style.fontFamily = "'Cinzel', serif";
+      initials.style.fontSize = '0.85rem';
+      initials.style.fontWeight = 'bold';
+      initials.style.border = '2px solid var(--border)';
+      initials.style.boxShadow = '0 0 4px rgba(0,0,0,0.5)';
+      initials.style.flexShrink = '0';
+      
+      const firstLetter = (token.name || 'T').substring(0, 1).toUpperCase();
+      initials.textContent = firstLetter;
+      wrapper.appendChild(initials);
+    }
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = token.name || 'Token';
+    wrapper.appendChild(nameSpan);
+    
+    container.appendChild(wrapper);
+  });
+}
+
 function atualizarBotoesTokenSelected() {
+  atualizarMiniaturasSelecionados();
   const btnSkills = document.getElementById('token-skills-btn');
   const btnAttacks = document.getElementById('token-attacks-btn');
   const btnMagias = document.getElementById('token-magias-btn');

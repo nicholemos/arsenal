@@ -702,6 +702,7 @@
       <div id="macro-bar-container" class="macro-bar-floating" style="display:flex; flex-direction:row; gap:0.2rem; align-items:flex-start;">
         <button id="macro-collapse-toggle" onclick="toggleMacroBar()" title="Recolher/Expandir barra de macros" style="pointer-events:auto;background:rgba(34,28,22,0.85);border:1px solid var(--border);color:var(--text-dim);border-radius:3px;width:18px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.6rem;flex-shrink:0;transition:all 0.15s;padding:0;line-height:1;" onmouseover="this.style.color='var(--gold-light)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border)'">❮</button>
         <div id="macro-collapsible-content" style="display:flex; flex-direction:column; gap:0.3rem; align-items:flex-start;">
+        <div id="selected-tokens-row" style="display:none; gap:0.5rem; align-items:center; pointer-events:auto; flex-wrap:wrap; margin-bottom:2px;"></div>
         <div id="macro-token-row" style="display:flex; gap:0.5rem; align-items:center; pointer-events:auto;">
           <button id="token-attacks-btn" class="macro-btn" style="display:none; width:42px; height:42px; background:var(--danger); color:#fff; border:2px solid #8b0000; flex-direction:column; justify-content:center; align-items:center;" title="Rolar Ataque do Token" onclick="abrirSeletorAtaquesToken()">
             <i class="bi bi-crosshair" style="font-size:1.2rem; margin-top:-2px;"></i>
@@ -720,7 +721,7 @@
             <span style="font-size:0.5rem; font-weight:bold;">PODERES</span>
           </button>
         </div>
-        <div style="display:flex; gap:0.5rem; align-items:center; pointer-events:auto;">
+        <div class="macro-nav-buttons-row" style="display:flex; gap:0.5rem; align-items:center; pointer-events:auto;">
           <div id="macro-nav" style="display:flex; gap:0.15rem; align-items:center; pointer-events:auto;">
             <button id="macro-prev" class="macro-nav-btn" onclick="macroPagePrev()" title="Página anterior">◀</button>
             <span id="macro-page-indicator" style="font-size:0.6rem;color:var(--text-dim);white-space:nowrap;min-width:28px;text-align:center;">1/1</span>
