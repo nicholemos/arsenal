@@ -1312,6 +1312,71 @@ var parceirosData = [
     "desc": "Não se sabe ao certo se é possível treinar guaxinins comuns para desempenharem o papel de guaxininjas, mas acredita-se que eles seriam um parceiro capanga especial.",
     "especial": "Uma vez por aventura, você pode gastar uma ação de movimento e 2 PM para fazer um assovio e invocar 1d4+1 guaxininjas capangas em espaços desocupados em alcance curto — eles surgem de um beco próximo, por trás de uma pedra ou de maneiras igualmente furtivas. Guaxininjas têm deslocamento 9m, Defesa 17, dano 1d4 de corte cada e Ataque Furtivo +1d6. Eles desaparecem quando morrem ou no fim da cena."
 
+  },
+  {
+    "name": "Bando Duyshidakk",
+    "category": "capanga",
+    "source": "herois",
+    "desc": "Um grupo de combatentes duyshidakk.",
+    "tiers": {
+      "iniciante": "cinco duyshidakk (deslocamento 9m, Defesa 15, dano 1d6+1 de corte cada).",
+      "veterano": "o grupo aumenta para seis duyshidakk infantes.",
+      "mestre": "o grupo aumenta para sete duyshidakk e o dano deles se torna 2d4+2."
+    }
+  },
+  {
+    "name": "Esqueletos Animados",
+    "category": "capanga",
+    "source": "herois",
+    "desc": "Um punhado de esqueletos de várias criaturas, reanimados como mortos-vivos sem mente.",
+    "tiers": {
+      "iniciante": "quatro esqueletos (deslocamento 9m, Defesa 18, dano 1d6+1 de corte cada).",
+      "veterano": "o grupo aumenta para cinco esqueletos e eles recebem redução de corte, frio e perfuração 5.",
+      "mestre": "o grupo aumenta para seis esqueletos e o dano deles se torna 1d8+2."
+    }
+  },
+  {
+    "name": "Pelotão de Infantaria",
+    "category": "capanga",
+    "source": "herois",
+    "desc": "Um grupo de soldados com treinamento e equipamento básicos.",
+    "tiers": {
+      "iniciante": "quatro infantes (deslocamento 9m, Defesa 16, dano 2d4+1 de corte cada).",
+      "veterano": "o grupo aumenta para cinco infantes.",
+      "mestre": "o grupo aumenta para seis infantes e a Defesa deles aumenta para 18."
+    }
+  },
+  {
+    "name": "Tripulação",
+    "category": "capanga",
+    "source": "herois",
+    "desc": "Uma equipe de tripulantes acostumados a operar as mais diversas embarcações, e a lutar em sua defesa.",
+    "tiers": {
+      "iniciante": "quatro tripulantes (deslocamento 9m, Defesa 14, dano 1d6 de corte cada; fornecem +1 em Pilotagem).",
+      "veterano": "a equipe aumenta para cinco tripulantes e o bônus em Pilotagem aumenta para +2.",
+      "mestre": "a equipe aumenta para seis tripulantes, o dano deles se torna 1d8 e o bônus em Pilotagem aumenta para +5."
+    }
+  },
+  {
+    "name": "Turba de Camponeses",
+    "category": "capanga",
+    "source": "herois",
+    "desc": "Um grupo de camponeses. Numerosos, mas sem treinamento ou equipamento.",
+    "tiers": {
+      "iniciante": "seis camponeses (deslocamento 9m, Defesa 10, dano 1d6 de perfuração cada).",
+      "veterano": "o grupo aumenta para oito camponeses.",
+      "mestre": "o grupo aumenta para dez camponeses e o dano deles se torna 1d6+1."
+    }
+  },
+  {
+    "name": "Unidade de Arqueiros",
+    "category": "capanga",
+    "source": "herois",
+    "desc": "Um grupamento de arqueiros com treinamento e equipamento básicos. Ao contrário de outros capangas, eles podem causar dano a inimigos em alcance curto que não tenham cobertura.",
+    "tiers": {
+      "iniciante": "quatro arqueiros (deslocamento 9m, Defesa 14, dano 1d6 de perfuração cada).",
+      "veterano": "o grupo aumenta para cinco arqueiros.",
+      "mestre": "o grupo aumenta para seis arqueiros e o dano deles se torna 1d8."
+    }
   }
-
 ];

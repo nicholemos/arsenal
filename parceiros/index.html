@@ -783,6 +783,109 @@
       font-size: 12px;
     }
 
+    /* ===== REGRAS DE MONTARIA (EXPANDÍVEL) ===== */
+    .mount-rules-collapsible {
+      margin-bottom: 24px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: var(--bg-dark-panel);
+      overflow: hidden;
+      transition: border-color 0.25s ease;
+    }
+
+    .mount-rules-collapsible:hover {
+      border-color: var(--gold-primary);
+    }
+
+    .mount-rules-summary {
+      padding: 14px 20px;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 0.95rem;
+      background: var(--bg-dark-surface);
+      transition: background 0.2s;
+      user-select: none;
+    }
+
+    .mount-rules-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .mount-rules-summary:hover {
+      background: var(--bg-dark-panel-hover);
+    }
+
+    .mount-rules-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-heading);
+      color: var(--gold-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .mount-rules-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: normal;
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .mount-rules-chevron {
+      font-size: 0.85rem;
+      transition: transform 0.25s ease;
+      color: var(--gold-primary);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    .mount-rules-collapsible[open] .mount-rules-chevron {
+      transform: rotate(180deg);
+    }
+
+    .mount-rules-body {
+      padding: 20px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .mount-rules-body p {
+      margin-bottom: 12px;
+    }
+
+    .mount-rules-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .mount-rules-body ul {
+      margin: 0 0 12px 0;
+      padding-left: 24px;
+      list-style: none;
+    }
+
+    .mount-rules-body ul li {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 10px;
+    }
+
+    .mount-rules-body ul li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--gold-primary);
+      font-weight: bold;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       .header {
@@ -1035,6 +1138,7 @@
       <button class="filter-btn" data-filter="montarias">🐴 Montarias</button>
       <button class="filter-btn active" data-filter="parceiros">🤝 Parceiros</button>
       <button class="filter-btn" data-filter="familiares">🦉 Familiares</button>
+      <button class="filter-btn" data-filter="capangas">💪 Capangas</button>
     </div>
 
     <div class="filter-bar-secondary">
@@ -1054,6 +1158,24 @@
     </div>
 
     <div id="section-montarias" class="filter-section">
+      <details class="mount-rules-collapsible">
+        <summary class="mount-rules-summary">
+          <span class="mount-rules-title">📖 Regras de Montaria</span>
+          <span class="mount-rules-hint">(clique para expandir)</span>
+          <span class="mount-rules-chevron" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mount-rules-body">
+          <p><strong>Montarias</strong> são um tipo específico de parceiro. Elas usam as seguintes regras especiais.</p>
+          <ul>
+            <li>Para usar um parceiro montaria você precisa <strong>montar</strong> nele. Para passá-lo para outro aliado, precisa <strong>desmontar</strong> antes. Ambas são <strong>ações de movimento</strong>.</li>
+            <li>Uma vez montado, você precisa gastar uma <strong>ação de movimento</strong> e fazer um teste de <strong>Cavalgar (CD 10)</strong> por turno para guiar a montaria. Se passar, recebe os benefícios dela. Se falhar, perde a ação de movimento. Se falhar por 5 ou mais, <strong>cai da montaria</strong> e sofre <strong>1d6</strong> pontos de dano. Se for <strong>treinado em Cavalgar</strong>, você recebe os bônus da montaria automaticamente, sem precisar gastar a ação ou fazer o teste.</li>
+            <li>Se você sofrer dano, deve fazer um teste de <strong>Cavalgar (CD igual ao dano)</strong>. Se falhar, cai da montaria e sofre <strong>1d6</strong> pontos de dano. Se possuir o poder <strong>Ginete</strong>, você não precisa fazer esse teste.</li>
+            <li>Cada parceiro montaria possui uma <strong>categoria de tamanho</strong> (indicada ao lado do nome do parceiro). Um personagem só pode montar uma montaria <strong>maior do que ele mesmo</strong>, e enquanto estiver montado usa o tamanho da montaria para efeitos do espaço que ocupa e para modificador de <strong>Furtividade</strong>.</li>
+            <li>O balanço da montaria em movimento torna mais difícil atacar à distância (<strong>–2 em testes de ataque</strong>) e conta como <strong>condição ruim</strong> para lançar magias. Se possuir o poder <strong>Ginete</strong>, você não sofre nenhuma dessas penalidades.</li>
+          </ul>
+          <p>Montarias podem ser <strong>compradas</strong> ou <strong>recebidas por habilidades</strong>. No primeiro caso, são sempre parceiros iniciantes. No segundo, seu poder é definido pela habilidade em questão. Note que embora alguns animais sejam facilmente comprados, como cavalos e trobos, outros são raros. Encontrar um grifo à venda é quase impossível!</p>
+        </div>
+      </details>
       <div id="montarias-grid" class="cards-grid"></div>
       <div id="montarias-empty" class="empty-state" style="display:none;">
         <div class="empty-state-icon">🐴</div>
@@ -1062,6 +1184,20 @@
     </div>
 
     <div id="section-parceiros" class="filter-section active">
+      <details class="mount-rules-collapsible">
+        <summary class="mount-rules-summary">
+          <span class="mount-rules-title">⚖️ Variante: Parceiros Vulneráveis</span>
+          <span class="mount-rules-hint">(clique para expandir)</span>
+          <span class="mount-rules-chevron" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mount-rules-body">
+          <p>Com esta variante, parceiros podem se ferir e morrer.</p>
+          <p>Sempre que um personagem sofre dano, deve rolar um dado para cada parceiro. Com um resultado <strong>"1"</strong>, o parceiro fica <strong>ferido</strong>. Por si só, isso não tem efeito em jogo. Porém, caso o jogador role um novo <strong>1</strong> para um parceiro que já esteja ferido, esse parceiro <strong>morre</strong>.</p>
+          <p>O dado rolado depende do poder do parceiro: <strong>d4</strong> para iniciantes, <strong>d6</strong> para veteranos e <strong>d8</strong> para mestres.</p>
+          <p>Esta variante coloca sobre o jogador a decisão de continuar ou não usando um parceiro ferido — o personagem abre mão da ajuda para não arriscar o amigo?</p>
+          <p style="margin-bottom:0;"><em>Recomendamos esta variante apenas para parceiros circunstanciais, não aqueles recebidos por habilidades de classe.</em></p>
+        </div>
+      </details>
       <div id="parceiros-grid" class="cards-grid"></div>
       <div id="parceiros-empty" class="empty-state" style="display:none;">
         <div class="empty-state-icon">🤝</div>
@@ -1070,10 +1206,50 @@
     </div>
 
     <div id="section-familiares" class="filter-section">
+      <details class="mount-rules-collapsible">
+        <summary class="mount-rules-summary">
+          <span class="mount-rules-title">🦉 Familiares Arcanos</span>
+          <span class="mount-rules-hint">(clique para expandir)</span>
+          <span class="mount-rules-chevron" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mount-rules-body">
+          <p>Um <strong>familiar</strong> é uma criatura mágica. Em termos de jogo, é um parceiro especial com o qual você pode se comunicar <strong>telepaticamente</strong> em alcance longo. Ele obedece a suas ordens, mas ainda está limitado ao que uma criatura de sua espécie pode fazer.</p>
+          <p>Se ele morrer, você fica <strong>atordoado por uma rodada</strong>. Você pode invocar um novo familiar com um ritual que exige <strong>um dia</strong> e <strong>T$ 100</strong> em ingredientes.</p>
+        </div>
+      </details>
       <div id="familiares-grid" class="cards-grid"></div>
       <div id="familiares-empty" class="empty-state" style="display:none;">
         <div class="empty-state-icon">🦉</div>
         <div class="empty-state-text">Nenhum familiar encontrado.</div>
+      </div>
+    </div>
+
+    <div id="section-capangas" class="filter-section">
+      <details class="mount-rules-collapsible">
+        <summary class="mount-rules-summary">
+          <span class="mount-rules-title">💪 Regras de Capanga</span>
+          <span class="mount-rules-hint">(clique para expandir)</span>
+          <span class="mount-rules-chevron" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mount-rules-body">
+          <p><strong>Capangas</strong> são um tipo de parceiro que atua em grupo. Individualmente, são fracos, mas graças aos números, tornam-se perigosos. Eles usam as seguintes regras.</p>
+          <ul>
+            <li>Para usar um grupo de capangas em combate, primeiro você deve <strong>posicioná-los</strong>. Para isso, você gasta uma <strong>ação completa</strong> e posiciona cada capanga do grupo em um espaço desocupado em <strong>alcance curto</strong>.</li>
+            <li>Você pode usar uma <strong>ação de movimento</strong> para fazer quaisquer capangas já posicionados se mover ao deslocamento deles, ou uma <strong>ação padrão</strong> para fazê-los causar <strong>dano automático</strong> a criaturas adjacentes (apenas uma vez por rodada). Capangas não agem sem receber ordens.</li>
+            <li>Exceto quando dito o contrário, capangas têm <strong>1 PV</strong> e falham automaticamente em qualquer teste oposto. Um capanga reduzido a 0 PV não pode ser usado pelo restante da cena.</li>
+            <li>Se o tamanho de um capanga não for indicado em sua descrição, ele é <strong>Médio</strong>.</li>
+            <li>Cada grupo de capangas conta como um <strong>parceiro</strong> para o limite de parceiros que você pode ter.</li>
+            <li>Usos criativos para capangas fora de combate ficam a <strong>critério do mestre</strong>.</li>
+            <li>Capangas são criaturas simplificadas e não se beneficiam de alguns efeitos (por exemplo, não recebem bônus em testes de ataque, pois causam dano automático).</li>
+          </ul>
+          <p><strong>Capangas Convocados.</strong> As criaturas convocadas pelas seguintes habilidades são capangas, e são afetadas por quaisquer efeitos que afetem especificamente capangas: <em>Conjurar Mortos-Vivos, Servos do Dragão, Tropas Duyshidakk</em> (Tormenta20), o aprimoramento que conjura kobolds de <em>Conjurar Monstro</em> (Ameaças de Arton) e <em>Legião Tapistana</em> (Jornada Heroica). Em especial, um efeito que aumente a quantidade de capangas que você recebe, como <strong>Comandante de Campo</strong>, aumenta a quantidade de capangas convocados. Da mesma forma, um efeito que reduza a ação necessária para posicionar seus capangas também reduz a ação necessária para usar essas habilidades (exceto para magias).</p>
+          <p>Capangas convocados <strong>não</strong> contam em seu limite de parceiros.</p>
+        </div>
+      </details>
+      <div id="capangas-grid" class="cards-grid"></div>
+      <div id="capangas-empty" class="empty-state" style="display:none;">
+        <div class="empty-state-icon">💪</div>
+        <div class="empty-state-text">Nenhum capanga encontrado.</div>
       </div>
     </div>
 
@@ -1240,7 +1416,7 @@
     var searchTerm = '';
 
     function renderCards() {
-      ['montarias', 'parceiros', 'familiares'].forEach(function (cat) {
+      ['montarias', 'parceiros', 'familiares', 'capangas'].forEach(function (cat) {
         var grid = document.getElementById(cat + '-grid');
         var empty = document.getElementById(cat + '-empty');
         var items = parceirosData.filter(function (p) {
@@ -1248,6 +1424,7 @@
           if (itemCat === 'parceiro') itemCat = 'parceiros';
           if (itemCat === 'montaria') itemCat = 'montarias';
           if (itemCat === 'familiar') itemCat = 'familiares';
+          if (itemCat === 'capanga') itemCat = 'capangas';
           return itemCat === cat;
         });
         grid.innerHTML = '';
