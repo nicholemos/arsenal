@@ -467,6 +467,23 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     }
 
+    function updateOsteonAttributes() {
+        const race = RACE_DATA.osteon;
+        if (!race?.calculateAttributes) return;
+        const r = race.calculateAttributes();
+        applyRaceAttributes(r.baseAttributes, r.isChoice, r.choiceCount, r.lockedChoiceAttributes, r.maxChoicePerAttribute);
+        renderRacialPowers(race, r.selectedPowers || []);
+        updateAll();
+    }
+    function updateYidishanAttributes() {
+        const race = RACE_DATA.yidishan;
+        if (!race?.calculateAttributes) return;
+        const r = race.calculateAttributes();
+        applyRaceAttributes(r.baseAttributes, r.isChoice, r.choiceCount, r.lockedChoiceAttributes, r.maxChoicePerAttribute);
+        renderRacialPowers(race, r.selectedPowers || []);
+        updateAll();
+    }
+
     // ── FILTRO ────────────────────────────────────────────────
     function handleFilterChange() {
         const sel = new Set();
@@ -632,14 +649,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.race-filter').forEach(cb => cb.addEventListener('change', handleFilterChange));
     racaSelect.addEventListener('change', handleRaceChange);
 
-    // ── INICIALIZAÇÃO ─────────────────────────────────────────
-    populateAttributeTable();
-    hideOutrosColumn();
-    populateRaceSelect();
-    loadState();
-    handleRaceChange();
-    handleFilterChange();
-
     // ── EXPOR AO GLOBAL (necessário para racas.js chamar via event listeners) ──
     window.updateAll = updateAll;
     window.applyRaceAttributes = applyRaceAttributes;
@@ -653,5 +662,15 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateAggelusAttributes = updateAggelusAttributes;
     window.updateSulfureAttributes = updateSulfureAttributes;
     window.updateKallyanachAttributes = updateKallyanachAttributes;
+    window.updateOsteonAttributes = updateOsteonAttributes;
+    window.updateYidishanAttributes = updateYidishanAttributes;
+
+    // ── INICIALIZAÇÃO ─────────────────────────────────────────
+    populateAttributeTable();
+    hideOutrosColumn();
+    populateRaceSelect();
+    loadState();
+    handleRaceChange();
+    handleFilterChange();
 
 });

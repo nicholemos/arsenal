@@ -36,6 +36,35 @@ const SURAGEL_HERANCAS = {
     'Werra': { description: "<b>Herança de Werra.</b> Você possui um conhecimento intuitivo para armas. Você recebe +1 em testes de ataque com armas e proficiência com armas marciais ou com duas armas exóticas." },
 };
 
+// Retorna a lista de poderes "herdáveis" de uma raça para uso em
+// Memória Póstuma (Osteon) e Natureza Orgânica (Yidishan).
+// Raças normais expõem racialPowers diretamente. Raças com variantes
+// raciais (ex: Moreau, cujos poderes dependem da Herança Animal
+// escolhida) precisam ter seus poderes "achatados" aqui, um por
+// variante, para aparecerem na lista de seleção.
+function getInheritableRacialPowers(race) {
+    if (!race) return null;
+
+    if (race === RACE_DATA.moreau) {
+        const list = [];
+        Object.entries(MOREAU_HERANCAS).forEach(([key, data]) => {
+            const label = key.charAt(0).toUpperCase() + key.slice(1);
+            (data.powers || []).forEach(p => {
+                list.push({ name: `${p.name} (${label})`, desc: p.desc, herancaKey: key });
+            });
+        });
+        return list.length ? list : null;
+    }
+
+    return race.racialPowers && race.racialPowers.length ? race.racialPowers : null;
+}
+
+function getInheritedTamanho(raceKey, power) {
+    if (power?.herancaKey === 'urso') return 'Grande';
+    const race = RACE_DATA[raceKey];
+    return race?.tamanho || 'Médio';
+}
+
 // ── DADOS INTERNOS DE RAÇAS COMPLEXAS ────────────────────────
 
 // Golem: chassi
@@ -421,7 +450,7 @@ const RACE_DATA = {
     // ── BASE ──────────────────────────────────────────────────
 
     humano: {
-        name: 'Humano/Humana', type: 'base', tamanho: 'Médio',
+        name: 'Humano/Humana', type: 'base', tamanho: 'Médio', raca: '-',
         attributes: {}, isChoice: true, choiceCount: 3, maxChoicePerAttribute: 1,
         bonusMessage: '+1 em Três Atributos Diferentes',
         racialPowers: [{ name: 'Versátil', desc: 'Você se torna treinado em duas perícias a sua escolha (não precisam ser da sua classe). Você pode trocar uma dessas perícias por um poder geral a sua escolha.' }],
@@ -431,7 +460,7 @@ const RACE_DATA = {
     elfo: {
         name: 'Elfo/Elfa',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { inteligencia: 2, destreza: 1, constituicao: -1 },
         isChoice: false,
         bonusMessage: 'Inteligência +2, Destreza +1, Constituição −1',
@@ -455,7 +484,7 @@ const RACE_DATA = {
     dwarf: {
         name: 'Anão/Anã',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { constituicao: 2, sabedoria: 1, destreza: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Sabedoria +1, Destreza −1',
@@ -483,7 +512,7 @@ const RACE_DATA = {
     dahllan: {
         name: 'Dahllan',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { sabedoria: 2, destreza: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Sabedoria +2, Destreza +1, Inteligência −1',
@@ -507,7 +536,7 @@ const RACE_DATA = {
     goblin: {
         name: 'Goblin',
         type: 'base',
-        tamanho: 'Pequeno',
+        tamanho: 'Pequeno', raca: 'Humanoide',
         attributes: { destreza: 2, inteligencia: 1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Inteligência +1, Carisma −1',
@@ -532,10 +561,7 @@ const RACE_DATA = {
         imageUrl: 'https://i.redd.it/37rebhpgjag91.gif'
     },
 
-    lefou: {
-        name: 'Lefou',
-        type: 'base',
-        tamanho: 'Médio',
+    lefou: {name: 'Lefou',type: 'base',tamanho: 'Médio', raca: 'Monstro',
         attributes: { carisma: -1 },
         isChoice: true,
         choiceCount: 3,
@@ -558,7 +584,7 @@ const RACE_DATA = {
     minotaur: {
         name: 'Minotauro',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { forca: 2, constituicao: 1, sabedoria: -1 },
         isChoice: false,
         bonusMessage: 'Força +2, Constituição +1, Sabedoria −1',
@@ -586,7 +612,7 @@ const RACE_DATA = {
     qareen: {
         name: 'Qareen',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { carisma: 2, inteligencia: 1, sabedoria: -1 },
         isChoice: false,
         bonusMessage: 'Carisma +2, Inteligência +1, Sabedoria −1',
@@ -609,10 +635,7 @@ const RACE_DATA = {
 
     // ── GOLEM (complexo) ──────────────────────────────────────
 
-    golem: {
-        name: 'Golem',
-        type: 'base',
-        tamanho: null,
+    golem: {name: 'Golem',type: 'base',tamanho: null, raca: 'Construto',
         attributes: {},
         isChoice: false,
         bonusMessage: 'Força +1, Carisma −1 (cumulativo com Chassi e Tamanho)',
@@ -792,7 +815,7 @@ const RACE_DATA = {
     hynne: {
         name: 'Hynne',
         type: 'base',
-        tamanho: 'Pequeno',
+        tamanho: 'Pequeno', raca: 'Humanoide',
         attributes: { destreza: 2, carisma: 1, forca: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Carisma +1, Força −1',
@@ -816,7 +839,7 @@ const RACE_DATA = {
     kliren: {
         name: 'Kliren',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { inteligencia: 2, carisma: 1, forca: -1 },
         isChoice: false,
         bonusMessage: 'Inteligência +2, Carisma +1, Força −1',
@@ -844,7 +867,7 @@ const RACE_DATA = {
     medusa: {
         name: 'Medusa',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { destreza: 2, carisma: 1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Carisma +1',
@@ -868,7 +891,7 @@ const RACE_DATA = {
     osteon: {
         name: 'Osteon',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Mort-Vivo',
         attributes: { constituicao: -1 },
         isChoice: true,
         choiceCount: 3,
@@ -881,10 +904,6 @@ const RACE_DATA = {
                 desc: 'Você recebe resistência a corte, frio e perfuração 5.'
             },
             {
-                name: 'Memória Póstuma',
-                desc: 'Você se torna treinado em uma perícia ou recebe um poder geral. Alternativamente, você pode ser um osteon de outra raça, ganhando uma habilidade dela e seu tamanho.'
-            },
-            {
                 name: 'Natureza Esquelética',
                 desc: 'Tipo morto-vivo. Visão no escuro e imunidade a cansaço, efeitos metabólicos, trevas e veneno. Cura mágica causa dano, mas trevas recuperam seus PV.'
             },
@@ -893,13 +912,112 @@ const RACE_DATA = {
                 desc: 'Precisa passar oito horas sob a luz de estrelas ou no subterrâneo para recuperar PV e PM (não afetado por condições de descanso). Caso contrário, sofre efeitos de fome.'
             }
         ],
-        imageUrl: 'https://i.pinimg.com/originals/b4/31/39/b431396f88202e330b79ce23fe951bcd.gif'
+        imageUrl: 'https://i.pinimg.com/originals/b4/31/39/b431396f88202e330b79ce23fe951bcd.gif',
+
+        createCustomUi(container) {
+            const humanoidRaces = Object.entries(RACE_DATA)
+                .filter(([key, r]) => r.raca === 'Humanoide' && key !== 'osteon')
+                .map(([key, r]) => `<option value="${key}">${r.name}</option>`)
+                .join('');
+
+            container.innerHTML = `
+            <div style="margin-bottom:6px">
+                <label class="check">
+                    <input type="checkbox" id="osteon-memoria">
+                    <span>Memória Póstuma: herdar raça humanoide</span>
+                </label>
+            </div>
+            <div id="osteon-race-select" class="hidden" style="margin-bottom:6px">
+                <label for="osteon-race">Raça:</label>
+                <select id="osteon-race">
+                    <option value="">Selecione</option>
+                    ${humanoidRaces}
+                </select>
+            </div>
+            <div id="osteon-power-select" class="hidden" style="margin-bottom:6px">
+                <label for="osteon-power">Poder Herdado:</label>
+                <select id="osteon-power">
+                    <option value="">Selecione</option>
+                </select>
+            </div>`;
+
+            const populatePowers = () => {
+                const raceKey = document.getElementById('osteon-race')?.value;
+                const powerSelect = document.getElementById('osteon-power');
+                const powerDiv = document.getElementById('osteon-power-select');
+                const race = raceKey ? RACE_DATA[raceKey] : null;
+                const powers = getInheritableRacialPowers(race);
+
+                powerSelect.innerHTML = '<option value="">Selecione</option>';
+                if (powers) {
+                    powers.forEach((p, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = p.name;
+                        powerSelect.appendChild(opt);
+                    });
+                    powerDiv.classList.remove('hidden');
+                } else {
+                    powerDiv.classList.add('hidden');
+                }
+            };
+
+            container.querySelector('#osteon-memoria').addEventListener('change', () => {
+                const checked = container.querySelector('#osteon-memoria').checked;
+                document.getElementById('osteon-race-select').classList.toggle('hidden', !checked);
+                document.getElementById('osteon-power-select').classList.add('hidden');
+                updateOsteonAttributes();
+            });
+            container.querySelector('#osteon-race').addEventListener('change', () => {
+                populatePowers();
+                updateOsteonAttributes();
+            });
+            container.querySelector('#osteon-power').addEventListener('change', updateOsteonAttributes);
+
+            updateOsteonAttributes();
+        },
+
+        calculateAttributes() {
+            const checked = document.getElementById('osteon-memoria')?.checked;
+            const raceKey = document.getElementById('osteon-race')?.value;
+            const selectedRace = raceKey ? RACE_DATA[raceKey] : null;
+            const powerIndex = document.getElementById('osteon-power')?.value;
+
+            const memoriaPower = checked && selectedRace && powerIndex !== ''
+                ? (() => {
+                    const power = getInheritableRacialPowers(selectedRace)?.[parseInt(powerIndex)];
+                    const tamanho = getInheritedTamanho(raceKey, power);
+                    return {
+                        name: `Memória Póstuma (${selectedRace.name})`,
+                        desc: power
+                            ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
+                            : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                    };
+                  })()
+                : {
+                    name: 'Memória Póstuma',
+                    desc: 'Você se torna treinado em uma perícia ou recebe um poder geral. Alternativamente, você pode ser um osteon de outra raça, ganhando uma habilidade dela e seu tamanho.'
+                  };
+
+            document.getElementById('bonusMessage').innerHTML =
+                '+1 em três atributos (exceto Constituição), Constituição −1' +
+                (checked && selectedRace ? `<br><b>Memória Póstuma:</b> ${selectedRace.name}` : '');
+
+            return {
+                baseAttributes: { constituicao: -1 },
+                isChoice: true,
+                choiceCount: 3,
+                maxChoicePerAttribute: 1,
+                lockedChoiceAttributes: ['constituicao'],
+                selectedPowers: [memoriaPower]
+            };
+        }
     },
 
     siren: {
         name: 'Sereia/Tritão',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: {},
         isChoice: true,
         choiceCount: 3,
@@ -925,7 +1043,7 @@ const RACE_DATA = {
     silfide: {
         name: 'Sílfide',
         type: 'base',
-        tamanho: 'Minúsculo',
+        tamanho: 'Minúsculo', raca: 'Espírito',
         attributes: { carisma: 2, destreza: 1, forca: -2 },
         isChoice: false,
         bonusMessage: 'Carisma +2, Destreza +1, Força −2',
@@ -949,7 +1067,7 @@ const RACE_DATA = {
     trog: {
         name: 'Trog',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { constituicao: 2, forca: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Força +1, Inteligência −1',
@@ -977,7 +1095,7 @@ const RACE_DATA = {
     troguinho: {
         name: 'Trog Anão',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { constituicao: 2, forca: 1, inteligencia: -1, destreza: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Força +1, Inteligência −1, Destreza -1',
@@ -1005,7 +1123,7 @@ const RACE_DATA = {
     aggelus: {
         name: 'Suraggel - Aggelus',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Espírito',
         attributes: { sabedoria: 2, carisma: 1 },
         isChoice: false,
         bonusMessage: 'Sabedoria +2, Carisma +1',
@@ -1026,7 +1144,7 @@ const RACE_DATA = {
     sulfure: {
         name: 'Suraggel - Sulfure',
         type: 'base',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Espírito',
         attributes: { destreza: 2, inteligencia: 1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Inteligência +1',
@@ -1049,7 +1167,7 @@ const RACE_DATA = {
     dwarf_ghanor: {
         name: 'Anão/Anã (Ghanor)',
         type: 'ghanor',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { constituicao: 2, inteligencia: 1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Inteligência +1, Carisma −1',
@@ -1073,7 +1191,7 @@ const RACE_DATA = {
     elf_ghanor: {
         name: 'Elfo/Elfa (Ghanor)',
         type: 'ghanor',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { sabedoria: 2, destreza: 1, constituicao: -1 },
         isChoice: false,
         bonusMessage: 'Sabedoria +2, Destreza +1, Constituição −1',
@@ -1105,7 +1223,7 @@ const RACE_DATA = {
     giant_ghanor: {
         name: 'Gigante (Ghanor)',
         type: 'ghanor',
-        tamanho: 'Grande',
+        tamanho: 'Grande', raca: 'Humanoide',
         attributes: { forca: 3, constituicao: 2, inteligencia: -2, sabedoria: -1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Força +3, Constituição +2, Inteligência −2, Sabedoria −1, Carisma −1',
@@ -1125,7 +1243,7 @@ const RACE_DATA = {
     hobgoblin_ghanor: {
         name: 'Hobgoblin (Ghanor)',
         type: 'ghanor',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { forca: 1, destreza: 1, constituicao: 1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Força +1, Destreza +1, Constituição +1, Carisma −1',
@@ -1153,7 +1271,7 @@ const RACE_DATA = {
     halfelf_ghanor: {
         name: 'Meio-Elfo (Ghanor)',
         type: 'ghanor',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { carisma: 2 },
         isChoice: true,
         choiceCount: 1,
@@ -1173,9 +1291,57 @@ const RACE_DATA = {
         imageUrl: 'https://i.pinimg.com/originals/84/88/ae/8488aec8f373c20370f1c47fd5917ae1.gif'
     },
 
+    cambionte: {
+        name: 'Cambionte (Ghanor)',
+        type: 'ghanor',
+        tamanho: 'Médio', raca: 'Espírito',
+        attributes: { inteligencia: 2, carisma: 2 },
+        isChoice: false,
+        bonusMessage: 'Inteligência +2, Carisma +2',
+        racialPowers: [
+            {
+                name: 'Língua Pérfida',
+                desc: 'Sua ascendência infernal confere a você habilidades mágicas de manipulação. Você pode lançar Enfeitiçar (atributo-chave Carisma).'
+            },
+            {
+                name: 'Estigma',
+                desc: 'Crescer com traços demoníacos fez de você alvo de ódio e temor, mas também fez com que aprendesse a se virar. NPCs têm uma atitude inicial em relação a você uma categoria pior. Por outro lado, você recebe +2 em Intimidação e Intuição.'
+            },
+            {
+                name: 'Sangue Infernal',
+                desc: 'Você é uma criatura do tipo espírito e recebe visão no escuro.'
+            }
+        ],
+        imageUrl: 'https://i.pinimg.com/originals/73/c1/c1/73c1c1a9718c951628c935633761b7ae.gif'
+    },
+
+    nefilim: {
+        name: 'Nefilim (Ghanor)',
+        type: 'ghanor',
+        tamanho: 'Médio', raca: 'Espírito',
+        attributes: { sabedoria: 2, carisma: 2 },
+        isChoice: false,
+        bonusMessage: 'Sabedoria +2, Carisma +2',
+        racialPowers: [
+            {
+                name: 'Obstinação',
+                desc: 'Sua natureza carrega a perseverança — e também a inflexibilidade — dos anjos. Você recebe +2 em testes de resistência.'
+            },
+            {
+                name: 'Presença Sagrada',
+                desc: 'O sangue celestial correndo em suas veias desperta para a batalha com facilidade, pois esta é a natureza dos anjos. Você pode lançar Arma Espiritual (atributo-chave Sabedoria).'
+            },
+            {
+                name: 'Sangue Celestial',
+                desc: 'Você é uma criatura do tipo espírito e recebe visão no escuro.'
+            }
+        ],
+        imageUrl: 'https://64.media.tumblr.com/2a9d414fd833c4fbcda0a8844e83d4ad/7a78531243008b56-43/s540x810/24b4fd010519bf17d2cc15da16b151b90e7cda10.gif'
+    },
+
     // ── ABERRANTE (complexo) ──────────────────────────────────
     aberrant: {
-        name: 'Aberrante (Ghanor)', type: 'ghanor', tamanho: 'Médio',
+        name: 'Aberrante (Ghanor)', type: 'ghanor', tamanho: 'Médio', raca: 'Monstro',
         attributes: {},
         bonusMessage: 'Carisma −2',
         racialPowers: [], // tudo dinâmico
@@ -1230,7 +1396,7 @@ const RACE_DATA = {
     halforc_ameacas: {
         name: 'Meio-Orc (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { forca: 2 },
         isChoice: true,
         choiceCount: 1,
@@ -1257,7 +1423,7 @@ const RACE_DATA = {
     orc_ameacas: {
         name: 'Orc (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { forca: 2, constituicao: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Força +2, Constituição +1, Inteligência −1',
@@ -1281,7 +1447,7 @@ const RACE_DATA = {
     tabrachi: {
         name: 'Tabrachi (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { constituicao: 2, forca: 1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Força +1, Carisma −1',
@@ -1305,7 +1471,7 @@ const RACE_DATA = {
     ogre: {
         name: 'Ogro (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Grande',
+        tamanho: 'Grande', raca: 'Humanoide',
         attributes: { forca: 3, constituicao: 2, inteligencia: -1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Força +3, Constituição +2, Inteligência −1, Carisma −1',
@@ -1329,7 +1495,7 @@ const RACE_DATA = {
     bugbear: {
         name: 'Bugbear (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { forca: 2, destreza: 1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Força +2, Destreza +1, Carisma −1',
@@ -1353,7 +1519,7 @@ const RACE_DATA = {
     hobgoblin_ameacas: {
         name: 'Hobgoblin (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { constituicao: 2, destreza: 1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Destreza +1, Carisma −1',
@@ -1377,7 +1543,7 @@ const RACE_DATA = {
     centaur: {
         name: 'Centauro (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Grande',
+        tamanho: 'Grande', raca: 'Humanoide',
         attributes: { sabedoria: 2, forca: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Sabedoria +2, Força +1, Inteligência −1',
@@ -1405,7 +1571,7 @@ const RACE_DATA = {
     gnoll: {
         name: 'Gnoll (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { constituicao: 2, sabedoria: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Sabedoria +1, Inteligência −1',
@@ -1432,7 +1598,7 @@ const RACE_DATA = {
 
     // ── KALLYANACH (complexo) ─────────────────────────────────
     kallyanach: {
-        name: 'Kallyanach (Ameaças)', type: 'ameacas', tamanho: 'Médio',
+        name: 'Kallyanach (Ameaças)', type: 'ameacas', tamanho: 'Médio', raca: 'Monstro',
         attributes: {}, isChoice: true, choiceCount: 2, maxChoicePerAttribute: 2,
         bonusMessage: '+2 em um atributo ou +1 em dois atributos',
         racialPowers: [], // dinâmico
@@ -1499,7 +1665,7 @@ const RACE_DATA = {
     kaijin: {
         name: 'Kaijin (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { forca: 2, constituicao: 1, carisma: -2 },
         isChoice: false,
         bonusMessage: 'Força +2, Constituição +1, Carisma −2',
@@ -1527,7 +1693,7 @@ const RACE_DATA = {
     kappa: {
         name: 'Kappa (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Espírito',
         attributes: { destreza: 2, constituicao: 1, carisma: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Constituição +1, Carisma −1',
@@ -1555,7 +1721,7 @@ const RACE_DATA = {
     nezumi: {
         name: 'Nezumi (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Pequeno',
+        tamanho: 'Pequeno', raca: 'Humanoide',
         attributes: { constituicao: 2, destreza: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Destreza +1, Inteligência −1',
@@ -1583,7 +1749,7 @@ const RACE_DATA = {
     tengu: {
         name: 'Tengu (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Espírito',
         attributes: { destreza: 2, inteligencia: 1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Inteligência +1',
@@ -1607,7 +1773,7 @@ const RACE_DATA = {
     minauro: {
         name: 'Minauro (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { forca: 1 },
         isChoice: true,
         choiceCount: 2,
@@ -1634,7 +1800,7 @@ const RACE_DATA = {
     kobold: {
         name: 'Kobolds (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { destreza: 2, forca: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Força −1',
@@ -1732,7 +1898,7 @@ const RACE_DATA = {
     harpia: {
         name: 'Harpia (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { destreza: 2, carisma: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Carisma +1, Inteligência −1',
@@ -1760,7 +1926,7 @@ const RACE_DATA = {
     ceratops: {
         name: 'Ceratops (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Grande',
+        tamanho: 'Grande', raca: 'Humanoide',
         attributes: { constituicao: 2, forca: 1, destreza: -1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Constituição +2, Força +1, Destreza −1, Inteligência −1',
@@ -1788,7 +1954,7 @@ const RACE_DATA = {
     pteros: {
         name: 'Pteros (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Grande',
+        tamanho: 'Grande', raca: 'Humanoide',
         attributes: { sabedoria: 2, destreza: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Sabedoria +2, Destreza +1, Inteligência −1',
@@ -1820,7 +1986,7 @@ const RACE_DATA = {
     velocis: {
         name: 'Velocis (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { destreza: 2, sabedoria: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Sabedoria +1, Inteligência −1',
@@ -1844,7 +2010,7 @@ const RACE_DATA = {
     voracis: {
         name: 'Voracis (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { destreza: 2, constituicao: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Constituição +1, Inteligência −1',
@@ -1868,7 +2034,7 @@ const RACE_DATA = {
     yidishan: {
         name: 'Yidishan (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Construto',
         attributes: { carisma: -2 },
         isChoice: true,
         choiceCount: 3,
@@ -1881,20 +2047,115 @@ const RACE_DATA = {
                 desc: 'Tipo construto. Imune a cansaço, efeitos metabólicos e veneno. Não respira, come ou dorme. Cura mundana reduzida à metade. Recupera PV/PM fixos por descanso (8h inerte).'
             },
             {
-                name: 'Natureza Orgânica',
-                desc: 'Ganha uma perícia treinada ou um poder geral. Alternativamente, pode ser de outra raça: ganha uma habilidade e o tamanho dela.'
-            },
-            {
                 name: 'Peças Metálicas',
                 desc: 'Recebe +2 na Defesa, mas sofre penalidade de armadura de –2.'
             }
         ],
-        imageUrl: 'https://media1.tenor.com/m/Ohc53jtWsUwAAAAd/dc-cyborg.gif'
+        imageUrl: 'https://media1.tenor.com/m/Ohc53jtWsUwAAAAd/dc-cyborg.gif',
+
+        createCustomUi(container) {
+            const allRaces = Object.entries(RACE_DATA)
+                .filter(([key, r]) => r.raca === 'Humanoide' && key !== 'yidishan')
+                .map(([key, r]) => `<option value="${key}">${r.name}</option>`)
+                .join('');
+
+            container.innerHTML = `
+            <div style="margin-bottom:6px">
+                <label class="check">
+                    <input type="checkbox" id="yidishan-natureza">
+                    <span>Natureza Orgânica: herdar outra raça</span>
+                </label>
+            </div>
+            <div id="yidishan-race-select" class="hidden" style="margin-bottom:6px">
+                <label for="yidishan-race">Raça:</label>
+                <select id="yidishan-race">
+                    <option value="">Selecione</option>
+                    ${allRaces}
+                </select>
+            </div>
+            <div id="yidishan-power-select" class="hidden" style="margin-bottom:6px">
+                <label for="yidishan-power">Poder Herdado:</label>
+                <select id="yidishan-power">
+                    <option value="">Selecione</option>
+                </select>
+            </div>`;
+
+            const populatePowers = () => {
+                const raceKey = document.getElementById('yidishan-race')?.value;
+                const powerSelect = document.getElementById('yidishan-power');
+                const powerDiv = document.getElementById('yidishan-power-select');
+                const race = raceKey ? RACE_DATA[raceKey] : null;
+                const powers = getInheritableRacialPowers(race);
+
+                powerSelect.innerHTML = '<option value="">Selecione</option>';
+                if (powers) {
+                    powers.forEach((p, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = p.name;
+                        powerSelect.appendChild(opt);
+                    });
+                    powerDiv.classList.remove('hidden');
+                } else {
+                    powerDiv.classList.add('hidden');
+                }
+            };
+
+            container.querySelector('#yidishan-natureza').addEventListener('change', () => {
+                const checked = container.querySelector('#yidishan-natureza').checked;
+                document.getElementById('yidishan-race-select').classList.toggle('hidden', !checked);
+                document.getElementById('yidishan-power-select').classList.add('hidden');
+                updateYidishanAttributes();
+            });
+            container.querySelector('#yidishan-race').addEventListener('change', () => {
+                populatePowers();
+                updateYidishanAttributes();
+            });
+            container.querySelector('#yidishan-power').addEventListener('change', updateYidishanAttributes);
+
+            updateYidishanAttributes();
+        },
+
+        calculateAttributes() {
+            const checked = document.getElementById('yidishan-natureza')?.checked;
+            const raceKey = document.getElementById('yidishan-race')?.value;
+            const selectedRace = raceKey ? RACE_DATA[raceKey] : null;
+            const powerIndex = document.getElementById('yidishan-power')?.value;
+
+            const naturezaPower = checked && selectedRace && powerIndex !== ''
+                ? (() => {
+                    const power = getInheritableRacialPowers(selectedRace)?.[parseInt(powerIndex)];
+                    const tamanho = getInheritedTamanho(raceKey, power);
+                    return {
+                        name: `Natureza Orgânica (${selectedRace.name})`,
+                        desc: power
+                            ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
+                            : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                    };
+                  })()
+                : {
+                    name: 'Natureza Orgânica',
+                    desc: 'Ganha uma perícia treinada ou um poder geral. Alternativamente, pode ser de outra raça: ganha uma habilidade e o tamanho dela.'
+                  };
+
+            document.getElementById('bonusMessage').innerHTML =
+                '+1 em três atributos (exceto Carisma), Carisma −2' +
+                (checked && selectedRace ? `<br><b>Natureza Orgânica:</b> ${selectedRace.name}` : '');
+
+            return {
+                baseAttributes: { carisma: -2 },
+                isChoice: true,
+                choiceCount: 3,
+                maxChoicePerAttribute: 1,
+                lockedChoiceAttributes: ['carisma'],
+                selectedPowers: [naturezaPower]
+            };
+        }
     },
 
     // ── MOREAU (complexo) ─────────────────────────────────────
     moreau: {
-        name: 'Moreau (Ameaças)', type: 'ameacas', tamanho: 'Médio',
+        name: 'Moreau (Ameaças)', type: 'ameacas', tamanho: 'Médio', raca: 'Humanoide',
         attributes: {},
         bonusMessage: 'Selecione uma herança',
         racialPowers: [], // tudo dinâmico — cada animal tem seus próprios
@@ -1939,7 +2200,7 @@ const RACE_DATA = {
     sea_elf: {
         name: 'Elfo do Mar (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { destreza: 2, constituicao: 1, inteligencia: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Constituição +1, Inteligência −1',
@@ -1963,7 +2224,7 @@ const RACE_DATA = {
     nagah_macho: {
         name: 'Nagah (Macho - Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { forca: 1, destreza: 1, constituicao: 1 },
         isChoice: false,
         bonusMessage: 'Força +1, Destreza +1, Constituição +1',
@@ -1991,7 +2252,7 @@ const RACE_DATA = {
     nagah_femea: {
         name: 'Nagah (Fêmea - Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { inteligencia: 1, sabedoria: 1, carisma: 1 },
         isChoice: false,
         bonusMessage: 'Inteligência +1, Sabedoria +1, Carisma +1',
@@ -2019,7 +2280,7 @@ const RACE_DATA = {
     fintroll: {
         name: 'Fintroll (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Monstro',
         attributes: { inteligencia: 2, constituicao: 1, forca: -1 },
         isChoice: false,
         bonusMessage: 'Inteligência +2, Constituição +1, Força −1',
@@ -2047,7 +2308,7 @@ const RACE_DATA = {
     soterrado: {
         name: 'Soterrado (Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Mort-Vivo',
         attributes: { constituicao: -1 },
         isChoice: true,
         choiceCount: 3,
@@ -2078,7 +2339,7 @@ const RACE_DATA = {
     // ── HERÓIS DE ARTON ───────────────────────────────────────
 
     duende: {
-        name: 'Duende (Herois de Arton)', type: 'DHracas', tamanho: 'Variável',
+        name: 'Duende (Herois de Arton)', type: 'DHracas', tamanho: 'Variável', raca: 'Espírito',
         attributes: {},
         bonusMessage: 'Varia por Natureza e Tamanho',
         // 1. DEIXE VAZIO AQUI para evitar a duplicação pelo sistema principal
@@ -2292,7 +2553,7 @@ const RACE_DATA = {
     eiradaan: {
         name: 'Eiradaan (Heróis de Arton)',
         type: 'DHracas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Espírito',
         attributes: { sabedoria: 2, carisma: 1, forca: -1 },
         isChoice: false,
         bonusMessage: 'Sabedoria +2, Carisma +1, Força −1',
@@ -2320,7 +2581,7 @@ const RACE_DATA = {
     galokk: {
         name: 'Galokk (Heróis de Arton)',
         type: 'DHracas',
-        tamanho: 'Grande',
+        tamanho: 'Grande', raca: 'Humanoide',
         attributes: { forca: 1, constituicao: 1, carisma: -1 },
         isChoice: true,
         choiceCount: 1,
@@ -2346,7 +2607,7 @@ const RACE_DATA = {
     halfelf_herois: {
         name: 'Meio-Elfo (Heróis de Arton)',
         type: 'DHracas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { inteligencia: 1 },
         isChoice: true,
         choiceCount: 2,
@@ -2373,7 +2634,7 @@ const RACE_DATA = {
     satiro: {
         name: 'Sátiro (Heróis de Arton)',
         type: 'DHracas',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Espírito',
         attributes: { carisma: 2, destreza: 1, sabedoria: -1 },
         isChoice: false,
         bonusMessage: 'Carisma +2, Destreza +1, Sabedoria −1',
@@ -2403,7 +2664,7 @@ const RACE_DATA = {
     nailanandora: {
         name: 'Nailanandora (Duelo de Dragões)',
         type: 'outraRaca',
-        tamanho: 'Médio',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { destreza: 2, carisma: 1, constituicao: -1 },
         isChoice: false,
         bonusMessage: 'Destreza +2, Carisma +1, Constituição −1',
