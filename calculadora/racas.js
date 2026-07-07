@@ -36,27 +36,40 @@ const SURAGEL_HERANCAS = {
     'Werra': { description: "<b>Herança de Werra.</b> Você possui um conhecimento intuitivo para armas. Você recebe +1 em testes de ataque com armas e proficiência com armas marciais ou com duas armas exóticas." },
 };
 
-// Retorna a lista de poderes "herdáveis" de uma raça para uso em
+// Retorna a configuração de poderes "herdáveis" de uma raça para uso em
 // Memória Póstuma (Osteon) e Natureza Orgânica (Yidishan).
-// Raças normais expõem racialPowers diretamente. Raças com variantes
-// raciais (ex: Moreau, cujos poderes dependem da Herança Animal
-// escolhida) precisam ter seus poderes "achatados" aqui, um por
-// variante, para aparecerem na lista de seleção.
-function getInheritableRacialPowers(race) {
+// - Raças normais: um único poder fixo, escolhido em uma lista (<select>).
+// - Raças com variantes raciais (ex: Moreau, cujos poderes dependem da
+//   Herança Animal escolhida): poderes de todas as variantes são
+//   "achatados" numa lista única de escolha (<select>).
+// - Raças com pool dinâmico de mutações/talentos escolhidos via checkbox
+//   (ex: Aberrante): usa uma checklist com um limite de seleção próprio,
+//   menor que o limite normal da raça original (2 em vez de 4).
+function getInheritablePowerConfig(race) {
     if (!race) return null;
+    //aqui voce seleciona raças com checkbox
+
+    if (race === RACE_DATA.aberrant) {
+        const options = Object.entries(ABERRANT_MUTATIONS).map(([id, m]) => ({
+            id, name: m.name, desc: m.desc || ''
+        }));
+        return options.length ? { type: 'checklist', maxSelect: 2, options } : null;
+    }
 
     if (race === RACE_DATA.moreau) {
-        const list = [];
+        const options = [];
         Object.entries(MOREAU_HERANCAS).forEach(([key, data]) => {
             const label = key.charAt(0).toUpperCase() + key.slice(1);
             (data.powers || []).forEach(p => {
-                list.push({ name: `${p.name} (${label})`, desc: p.desc, herancaKey: key });
+                options.push({ name: `${p.name} (${label})`, desc: p.desc, herancaKey: key });
             });
         });
-        return list.length ? list : null;
+        return options.length ? { type: 'select', options } : null;
     }
 
-    return race.racialPowers && race.racialPowers.length ? race.racialPowers : null;
+    return race.racialPowers && race.racialPowers.length
+        ? { type: 'select', options: race.racialPowers }
+        : null;
 }
 
 function getInheritedTamanho(raceKey, power) {
@@ -939,26 +952,53 @@ const RACE_DATA = {
                 <select id="osteon-power">
                     <option value="">Selecione</option>
                 </select>
+            </div>
+            <div id="osteon-power-checklist" class="hidden" style="margin-bottom:6px">
+                <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 2</span></label>
+                <div id="osteon-mutation-container" class="checklist"></div>
             </div>`;
 
             const populatePowers = () => {
                 const raceKey = document.getElementById('osteon-race')?.value;
                 const powerSelect = document.getElementById('osteon-power');
-                const powerDiv = document.getElementById('osteon-power-select');
+                const selectDiv = document.getElementById('osteon-power-select');
+                const checklistDiv = document.getElementById('osteon-power-checklist');
+                const checklistContainer = document.getElementById('osteon-mutation-container');
                 const race = raceKey ? RACE_DATA[raceKey] : null;
-                const powers = getInheritableRacialPowers(race);
+                const config = getInheritablePowerConfig(race);
 
                 powerSelect.innerHTML = '<option value="">Selecione</option>';
-                if (powers) {
-                    powers.forEach((p, i) => {
+                checklistContainer.innerHTML = '';
+                selectDiv.classList.add('hidden');
+                checklistDiv.classList.add('hidden');
+
+                if (!config) return;
+
+                if (config.type === 'checklist') {
+                    checklistContainer.innerHTML = config.options.map(o => `
+                        <label class="check">
+                            <input type="checkbox" class="osteon-mut" id="osteon-mut-${o.id}" value="${o.id}">
+                            <span>${o.name}</span>
+                        </label>`).join('');
+                    checklistContainer.querySelectorAll('.osteon-mut').forEach(cb => {
+                        cb.addEventListener('change', () => {
+                            const count = checklistContainer.querySelectorAll('.osteon-mut:checked').length;
+                            if (count > config.maxSelect) {
+                                alert(`Você só pode escolher até ${config.maxSelect} poderes!`);
+                                cb.checked = false;
+                            }
+                            updateOsteonAttributes();
+                        });
+                    });
+                    checklistDiv.classList.remove('hidden');
+                } else {
+                    config.options.forEach((p, i) => {
                         const opt = document.createElement('option');
                         opt.value = i;
                         opt.textContent = p.name;
                         powerSelect.appendChild(opt);
                     });
-                    powerDiv.classList.remove('hidden');
-                } else {
-                    powerDiv.classList.add('hidden');
+                    selectDiv.classList.remove('hidden');
                 }
             };
 
@@ -966,6 +1006,7 @@ const RACE_DATA = {
                 const checked = container.querySelector('#osteon-memoria').checked;
                 document.getElementById('osteon-race-select').classList.toggle('hidden', !checked);
                 document.getElementById('osteon-power-select').classList.add('hidden');
+                document.getElementById('osteon-power-checklist').classList.add('hidden');
                 updateOsteonAttributes();
             });
             container.querySelector('#osteon-race').addEventListener('change', () => {
@@ -981,27 +1022,48 @@ const RACE_DATA = {
             const checked = document.getElementById('osteon-memoria')?.checked;
             const raceKey = document.getElementById('osteon-race')?.value;
             const selectedRace = raceKey ? RACE_DATA[raceKey] : null;
-            const powerIndex = document.getElementById('osteon-power')?.value;
+            const config = checked && selectedRace ? getInheritablePowerConfig(selectedRace) : null;
 
-            const memoriaPower = checked && selectedRace && powerIndex !== ''
-                ? (() => {
-                    const power = getInheritableRacialPowers(selectedRace)?.[parseInt(powerIndex)];
-                    const tamanho = getInheritedTamanho(raceKey, power);
-                    return {
+            let memoriaPowers;
+            let memoriaLabel = null;
+
+            if (config?.type === 'checklist') {
+                const selectedIds = Array.from(document.querySelectorAll('.osteon-mut:checked')).map(cb => cb.value);
+                const tamanho = getInheritedTamanho(raceKey, null);
+                memoriaPowers = selectedIds.length
+                    ? selectedIds.map(id => {
+                        const opt = config.options.find(o => o.id === id);
+                        return {
+                            name: `Memória Póstuma (${selectedRace.name})`,
+                            desc: `Você herda a habilidade "${opt.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${opt.desc}`
+                        };
+                      })
+                    : [{
                         name: `Memória Póstuma (${selectedRace.name})`,
-                        desc: power
-                            ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
-                            : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
-                    };
-                  })()
-                : {
+                        desc: `Você herda habilidades da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                      }];
+                memoriaLabel = selectedRace.name;
+            } else if (config) {
+                const powerIndex = document.getElementById('osteon-power')?.value;
+                const power = powerIndex !== '' ? config.options[parseInt(powerIndex)] : null;
+                const tamanho = getInheritedTamanho(raceKey, power);
+                memoriaPowers = [{
+                    name: `Memória Póstuma (${selectedRace.name})`,
+                    desc: power
+                        ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
+                        : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                }];
+                memoriaLabel = selectedRace.name;
+            } else {
+                memoriaPowers = [{
                     name: 'Memória Póstuma',
                     desc: 'Você se torna treinado em uma perícia ou recebe um poder geral. Alternativamente, você pode ser um osteon de outra raça, ganhando uma habilidade dela e seu tamanho.'
-                  };
+                }];
+            }
 
             document.getElementById('bonusMessage').innerHTML =
                 '+1 em três atributos (exceto Constituição), Constituição −1' +
-                (checked && selectedRace ? `<br><b>Memória Póstuma:</b> ${selectedRace.name}` : '');
+                (memoriaLabel ? `<br><b>Memória Póstuma:</b> ${memoriaLabel}` : '');
 
             return {
                 baseAttributes: { constituicao: -1 },
@@ -1009,7 +1071,7 @@ const RACE_DATA = {
                 choiceCount: 3,
                 maxChoicePerAttribute: 1,
                 lockedChoiceAttributes: ['constituicao'],
-                selectedPowers: [memoriaPower]
+                selectedPowers: memoriaPowers
             };
         }
     },
@@ -2078,26 +2140,53 @@ const RACE_DATA = {
                 <select id="yidishan-power">
                     <option value="">Selecione</option>
                 </select>
+            </div>
+            <div id="yidishan-power-checklist" class="hidden" style="margin-bottom:6px">
+                <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 2</span></label>
+                <div id="yidishan-mutation-container" class="checklist"></div>
             </div>`;
 
             const populatePowers = () => {
                 const raceKey = document.getElementById('yidishan-race')?.value;
                 const powerSelect = document.getElementById('yidishan-power');
-                const powerDiv = document.getElementById('yidishan-power-select');
+                const selectDiv = document.getElementById('yidishan-power-select');
+                const checklistDiv = document.getElementById('yidishan-power-checklist');
+                const checklistContainer = document.getElementById('yidishan-mutation-container');
                 const race = raceKey ? RACE_DATA[raceKey] : null;
-                const powers = getInheritableRacialPowers(race);
+                const config = getInheritablePowerConfig(race);
 
                 powerSelect.innerHTML = '<option value="">Selecione</option>';
-                if (powers) {
-                    powers.forEach((p, i) => {
+                checklistContainer.innerHTML = '';
+                selectDiv.classList.add('hidden');
+                checklistDiv.classList.add('hidden');
+
+                if (!config) return;
+
+                if (config.type === 'checklist') {
+                    checklistContainer.innerHTML = config.options.map(o => `
+                        <label class="check">
+                            <input type="checkbox" class="yidishan-mut" id="yidishan-mut-${o.id}" value="${o.id}">
+                            <span>${o.name}</span>
+                        </label>`).join('');
+                    checklistContainer.querySelectorAll('.yidishan-mut').forEach(cb => {
+                        cb.addEventListener('change', () => {
+                            const count = checklistContainer.querySelectorAll('.yidishan-mut:checked').length;
+                            if (count > config.maxSelect) {
+                                alert(`Você só pode escolher até ${config.maxSelect} poderes!`);
+                                cb.checked = false;
+                            }
+                            updateYidishanAttributes();
+                        });
+                    });
+                    checklistDiv.classList.remove('hidden');
+                } else {
+                    config.options.forEach((p, i) => {
                         const opt = document.createElement('option');
                         opt.value = i;
                         opt.textContent = p.name;
                         powerSelect.appendChild(opt);
                     });
-                    powerDiv.classList.remove('hidden');
-                } else {
-                    powerDiv.classList.add('hidden');
+                    selectDiv.classList.remove('hidden');
                 }
             };
 
@@ -2105,6 +2194,7 @@ const RACE_DATA = {
                 const checked = container.querySelector('#yidishan-natureza').checked;
                 document.getElementById('yidishan-race-select').classList.toggle('hidden', !checked);
                 document.getElementById('yidishan-power-select').classList.add('hidden');
+                document.getElementById('yidishan-power-checklist').classList.add('hidden');
                 updateYidishanAttributes();
             });
             container.querySelector('#yidishan-race').addEventListener('change', () => {
@@ -2120,27 +2210,48 @@ const RACE_DATA = {
             const checked = document.getElementById('yidishan-natureza')?.checked;
             const raceKey = document.getElementById('yidishan-race')?.value;
             const selectedRace = raceKey ? RACE_DATA[raceKey] : null;
-            const powerIndex = document.getElementById('yidishan-power')?.value;
+            const config = checked && selectedRace ? getInheritablePowerConfig(selectedRace) : null;
 
-            const naturezaPower = checked && selectedRace && powerIndex !== ''
-                ? (() => {
-                    const power = getInheritableRacialPowers(selectedRace)?.[parseInt(powerIndex)];
-                    const tamanho = getInheritedTamanho(raceKey, power);
-                    return {
+            let naturezaPowers;
+            let naturezaLabel = null;
+
+            if (config?.type === 'checklist') {
+                const selectedIds = Array.from(document.querySelectorAll('.yidishan-mut:checked')).map(cb => cb.value);
+                const tamanho = getInheritedTamanho(raceKey, null);
+                naturezaPowers = selectedIds.length
+                    ? selectedIds.map(id => {
+                        const opt = config.options.find(o => o.id === id);
+                        return {
+                            name: `Natureza Orgânica (${selectedRace.name})`,
+                            desc: `Você herda a habilidade "${opt.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${opt.desc}`
+                        };
+                      })
+                    : [{
                         name: `Natureza Orgânica (${selectedRace.name})`,
-                        desc: power
-                            ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
-                            : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
-                    };
-                  })()
-                : {
+                        desc: `Você herda habilidades da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                      }];
+                naturezaLabel = selectedRace.name;
+            } else if (config) {
+                const powerIndex = document.getElementById('yidishan-power')?.value;
+                const power = powerIndex !== '' ? config.options[parseInt(powerIndex)] : null;
+                const tamanho = getInheritedTamanho(raceKey, power);
+                naturezaPowers = [{
+                    name: `Natureza Orgânica (${selectedRace.name})`,
+                    desc: power
+                        ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
+                        : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                }];
+                naturezaLabel = selectedRace.name;
+            } else {
+                naturezaPowers = [{
                     name: 'Natureza Orgânica',
                     desc: 'Ganha uma perícia treinada ou um poder geral. Alternativamente, pode ser de outra raça: ganha uma habilidade e o tamanho dela.'
-                  };
+                }];
+            }
 
             document.getElementById('bonusMessage').innerHTML =
                 '+1 em três atributos (exceto Carisma), Carisma −2' +
-                (checked && selectedRace ? `<br><b>Natureza Orgânica:</b> ${selectedRace.name}` : '');
+                (naturezaLabel ? `<br><b>Natureza Orgânica:</b> ${naturezaLabel}` : '');
 
             return {
                 baseAttributes: { carisma: -2 },
@@ -2148,7 +2259,7 @@ const RACE_DATA = {
                 choiceCount: 3,
                 maxChoicePerAttribute: 1,
                 lockedChoiceAttributes: ['carisma'],
-                selectedPowers: [naturezaPower]
+                selectedPowers: naturezaPowers
             };
         }
     },
@@ -2690,5 +2801,3 @@ const RACE_DATA = {
 // Exportar para uso global
 window.RACE_DATA = RACE_DATA;
 window.SURAGEL_HERANCAS = SURAGEL_HERANCAS;
-
-
