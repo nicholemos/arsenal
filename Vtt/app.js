@@ -7336,6 +7336,12 @@ function onBoardDblClick(e) {
         return;
       }
     }
+    // Desktop: duplo clique fora de token alterna Mover → Navegar
+    if (BOARD.tool === 'move') {
+      setTool('pan');
+      toast('✜ Navegar');
+      return;
+    }
     return;
   }
   if (token.type === 'object' && myRole !== 'mestre' && !emVisaoJogador()) return;
