@@ -7283,6 +7283,48 @@ function onBoardDblClick(e) {
     return;
   }
 
+  // Mobile: duplo clique alterna entre Mover e Navegar
+  if (document.body.dataset.mobile === '1') {
+    const { x, y } = getBoardXY(e);
+    const token = getTokenAt(x, y);
+    const shape = myRole === 'mestre' ? shapeAt(x, y) : null;
+    if (!token && !shape) {
+      if (BOARD.tool === 'move') {
+        setTool('pan');
+        toast('✜ Navegar');
+      } else if (BOARD.tool === 'pan') {
+        setTool('move');
+        toast('✥ Mover');
+      }
+      return;
+    }
+    // Mobile: duplo clique no token seleciona e abre ficha vinculada
+    if (token) {
+      BOARD.selectedTokens.clear();
+      BOARD.selectedTokens.add(token.id);
+      atualizarVisaoJogadorPorSelecao();
+      boardRender();
+      if (token.bestiaryName && typeof AMEACAS_DB !== 'undefined') {
+        mostrarDetalhesCriatura(token.bestiaryName);
+        return;
+      }
+      if (token.masterFichaId && myRole === 'mestre') {
+        abrirFichaMestre(token.masterFichaId);
+        return;
+      }
+      if (token.controlledBy) {
+        if (myRole === 'mestre' && fichasJogadores[token.controlledBy]) {
+          abrirFichaJogador(token.controlledBy);
+          return;
+        } else if (temControleToken(token)) {
+          toggleFichaPanel();
+          return;
+        }
+      }
+      return;
+    }
+  }
+
   const { x, y } = getBoardXY(e);
   const token = getTokenAt(x, y);
   if (!token) {
@@ -10795,10 +10837,43 @@ function onBoardTouchStart(e) {
     const t = e.touches[0];
     const fake = { button: 0, clientX: t.clientX, clientY: t.clientY, preventDefault: () => e.preventDefault() };
     onBoardMouseDown(fake);
+
+    // Long-press para mobile: abrir menu de contexto do token
+    if (document.body.dataset.mobile === '1') {
+      BOARD.longPressStartX = t.clientX;
+      BOARD.longPressStartY = t.clientY;
+      BOARD.longPressTimer = setTimeout(() => {
+        BOARD.longPressTimer = null;
+        // Cancela o ping timer pra não disparar junto
+        if (BOARD.pingTimer) { clearTimeout(BOARD.pingTimer); BOARD.pingTimer = null; }
+        const rect = BOARD.wrap.getBoundingClientRect();
+        const relX = t.clientX - rect.left;
+        const relY = t.clientY - rect.top;
+        const token = getTokenAt(relX, relY);
+        if (token) {
+          const fakeContext = {
+            clientX: t.clientX,
+            clientY: t.clientY,
+            preventDefault: () => {}
+          };
+          onBoardContextMenu(fakeContext);
+        }
+      }, 700);
+    }
   }
 }
 function onBoardTouchMove(e) {
   e.preventDefault();
+  // Cancela long-press se o dedo moveu muito
+  if (BOARD.longPressTimer) {
+    const t = e.touches[0];
+    const dx = t.clientX - BOARD.longPressStartX;
+    const dy = t.clientY - BOARD.longPressStartY;
+    if (Math.hypot(dx, dy) > 12) {
+      clearTimeout(BOARD.longPressTimer);
+      BOARD.longPressTimer = null;
+    }
+  }
   if (e.touches.length === 2) {
     if (BOARD.dragging) return; // Prevent zooming while dragging a token
     const dist = Math.hypot(
@@ -10819,6 +10894,7 @@ function onBoardTouchMove(e) {
   }
 }
 function onBoardTouchEnd(e) {
+  if (BOARD.longPressTimer) { clearTimeout(BOARD.longPressTimer); BOARD.longPressTimer = null; }
   onBoardMouseUp({ button: 0 });
 }
 
