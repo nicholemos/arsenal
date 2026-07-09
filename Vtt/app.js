@@ -2680,6 +2680,16 @@ function _handleFichaMsg(data) {
     return;
   }
 
+  if (data.type === 'ficha-swipe-move') {
+    if (window.innerWidth <= 900) _fichaPanelSwipeMove(data.dx || 0);
+    return;
+  }
+
+  if (data.type === 'ficha-swipe-end') {
+    if (window.innerWidth <= 900) _fichaPanelSwipeEnd(data.dx || 0);
+    return;
+  }
+
   if (data.type === 'vtt-send-chat-message') {
     if (myRole === 'expectador') { toast('Expectadores não podem enviar mensagens da ficha.'); return; }
     if (myRole === 'cego') return;
@@ -16182,6 +16192,164 @@ function toggleChatPanel() {
   togglePanelColapsavel(document.querySelector('.chat-panel'), 'btn-chat-expand-floating', 'vtt_chat_collapsed');
 }
 
+// ── Fechar painéis colapsáveis deslizando (swipe) no celular ──
+// direction: 'left'  -> painel fecha deslizando para a esquerda (ex: sidebar)
+// direction: 'right' -> painel fecha deslizando para a direita (ex: master-panel, chat-panel)
+function _initSwipeToClose(panel, direction, closeFn) {
+  if (!panel) return;
+  const THRESHOLD = 65; // px mínimos de arraste para considerar "fechar"
+  let startX = 0, startY = 0, lastX = 0, dragging = false, horizontalLock = false;
+
+  const isMobile = () => window.innerWidth <= 900;
+
+  panel.addEventListener('touchstart', (e) => {
+    if (!isMobile() || panel.classList.contains('collapsed')) return;
+    if (e.touches.length !== 1) return;
+    startX = lastX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dragging = true;
+    horizontalLock = false;
+    panel.style.transition = 'none';
+  }, { passive: true });
+
+  panel.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+
+    if (!horizontalLock) {
+      // Só assume o gesto como swipe horizontal se o movimento for
+      // claramente mais horizontal que vertical (evita atrapalhar scroll interno do painel).
+      if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) { dragging = false; panel.style.transition = ''; return; }
+      horizontalLock = true;
+    }
+
+    const closing = direction === 'left' ? deltaX < 0 : deltaX > 0;
+    lastX = touch.clientX;
+    // Segue o dedo ao fechar; resistência leve se arrastar no sentido de abrir.
+    panel.style.transform = `translateX(${closing ? deltaX : deltaX * 0.15}px)`;
+  }, { passive: true });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    const deltaX = lastX - startX;
+    const closing = direction === 'left' ? deltaX < -THRESHOLD : deltaX > THRESHOLD;
+
+    if (closing && horizontalLock) {
+      const finalTransform = direction === 'left' ? 'translateX(-100%)' : 'translateX(100%)';
+      panel.style.transition = 'transform 0.2s ease';
+      panel.style.transform = finalTransform;
+      setTimeout(() => {
+        closeFn();
+        panel.style.transform = '';
+        panel.style.transition = '';
+      }, 200);
+    } else {
+      panel.style.transition = 'transform 0.2s ease';
+      panel.style.transform = '';
+      setTimeout(() => { panel.style.transition = ''; }, 200);
+    }
+  };
+
+  panel.addEventListener('touchend', endDrag);
+  panel.addEventListener('touchcancel', endDrag);
+}
+
+function _initSwipeToCloseAllPanels() {
+  _initSwipeToClose(document.getElementById('sidebar'), 'left', toggleSidebar);
+  _initSwipeToClose(document.getElementById('master-panel'), 'right', toggleMasterPanel);
+  _initSwipeToClose(document.querySelector('.chat-panel'), 'right', toggleChatPanel);
+  _initSwipeToCloseFichaPanel();
+}
+
+// ── Fechar a Ficha do Personagem deslizando (swipe) no celular ──
+// A ficha-panel ocupa a tela toda no lugar do mapa e o conteúdo é um <iframe>.
+// Duas fontes acionam o mesmo gesto:
+//   1) Toque no cabeçalho (título/botões), capturado aqui direto.
+//   2) Toque dentro do próprio conteúdo da ficha, que roda em outro documento
+//      e nos avisa via postMessage ('ficha-swipe-move' / 'ficha-swipe-end').
+var _fichaSwipeDragging = false;
+var FICHA_SWIPE_THRESHOLD = 65;
+
+function _fichaPanelSwipeMove(deltaX) {
+  const panel = document.getElementById('ficha-panel');
+  if (!panel || !panel.classList.contains('active')) return;
+  if (!_fichaSwipeDragging) {
+    panel.style.transition = 'none';
+    _fichaSwipeDragging = true;
+  }
+  panel.style.transform = `translateX(${deltaX}px)`;
+}
+
+function _fichaPanelSwipeEnd(deltaX) {
+  const panel = document.getElementById('ficha-panel');
+  _fichaSwipeDragging = false;
+  if (!panel || !panel.classList.contains('active')) return;
+  const closing = Math.abs(deltaX) > FICHA_SWIPE_THRESHOLD;
+
+  if (closing) {
+    const finalTransform = deltaX < 0 ? 'translateX(-100%)' : 'translateX(100%)';
+    panel.style.transition = 'transform 0.2s ease';
+    panel.style.transform = finalTransform;
+    setTimeout(() => {
+      toggleFichaPanel();
+      panel.style.transform = '';
+      panel.style.transition = '';
+    }, 200);
+  } else {
+    panel.style.transition = 'transform 0.2s ease';
+    panel.style.transform = '';
+    setTimeout(() => { panel.style.transition = ''; }, 200);
+  }
+}
+
+function _initSwipeToCloseFichaPanel() {
+  const panel = document.getElementById('ficha-panel');
+  const header = panel ? panel.querySelector('.ficha-panel-header') : null;
+  if (!panel || !header) return;
+
+  let startX = 0, startY = 0, lastX = 0, dragging = false, horizontalLock = false;
+  const isMobile = () => window.innerWidth <= 900;
+
+  header.addEventListener('touchstart', (e) => {
+    if (!isMobile() || !panel.classList.contains('active')) return;
+    if (e.touches.length !== 1) return;
+    startX = lastX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dragging = true;
+    horizontalLock = false;
+  }, { passive: true });
+
+  header.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+
+    if (!horizontalLock) {
+      if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) { dragging = false; return; }
+      horizontalLock = true;
+    }
+
+    lastX = touch.clientX;
+    _fichaPanelSwipeMove(deltaX);
+  }, { passive: true });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    if (!horizontalLock) return;
+    _fichaPanelSwipeEnd(lastX - startX);
+  };
+
+  header.addEventListener('touchend', endDrag);
+  header.addEventListener('touchcancel', endDrag);
+}
+
 // ── Painel colapsável de Aventureiros ──
 function togglePlayersPanel() {
   const list = document.getElementById('playersTopList');
@@ -16325,6 +16493,8 @@ function aplicarCegoVisual() {
   _initMacroBarCollapse();
   // Inicializa o editor de imagens
   initImageEditor();
+  // Inicializa o fechamento por swipe dos painéis colapsáveis (mobile)
+  _initSwipeToCloseAllPanels();
 
   // Inicialização do estado recolhido dos painéis (só em desktop)
   if (window.innerWidth > 900) {

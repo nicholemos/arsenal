@@ -15544,5 +15544,55 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { __postMessageSafe({ type: 'ficha-ready' }); enviarResumo(); }, 2500);
 })();
 </script>
+<script>
+// ── Swipe para fechar a ficha (avisa a janela pai via postMessage) ──
+// Só inicia o gesto se o toque começar bem na borda da tela (estilo "voltar" do
+// sistema), assim não conflita com scroll, abas ou listas arrastáveis (Sortable.js)
+// que ficam no meio do conteúdo.
+(function() {
+  const EDGE_ZONE = 24; // px a partir da borda esquerda/direita para iniciar o gesto
+  let startX = 0, startY = 0, lastX = 0, dragging = false, horizontalLock = false;
+  const isMobile = () => window.innerWidth <= 900;
+
+  document.addEventListener('touchstart', (e) => {
+    if (!isMobile() || window.parent === window) return;
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const nearEdge = t.clientX <= EDGE_ZONE || t.clientX >= window.innerWidth - EDGE_ZONE;
+    if (!nearEdge) return;
+    startX = lastX = t.clientX;
+    startY = t.clientY;
+    dragging = true;
+    horizontalLock = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const deltaX = t.clientX - startX;
+    const deltaY = t.clientY - startY;
+
+    if (!horizontalLock) {
+      if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) { dragging = false; return; }
+      horizontalLock = true;
+    }
+
+    lastX = t.clientX;
+    __postMessageSafe({ type: 'ficha-swipe-move', dx: deltaX });
+  }, { passive: true });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    if (horizontalLock) {
+      __postMessageSafe({ type: 'ficha-swipe-end', dx: lastX - startX });
+    }
+  };
+
+  document.addEventListener('touchend', endDrag);
+  document.addEventListener('touchcancel', endDrag);
+})();
+</script>
 </body>
 </html>
