@@ -10841,6 +10841,30 @@ function onBoardTouchStart(e) {
   }
   if (e.touches.length === 1) {
     const t = e.touches[0];
+    const now = Date.now();
+    const lastTapTime = BOARD.lastTapTime || 0;
+    const lastTapX = BOARD.lastTapX || 0;
+    const lastTapY = BOARD.lastTapY || 0;
+    const isDoubleTap = (now - lastTapTime < 300) && (Math.hypot(t.clientX - lastTapX, t.clientY - lastTapY) < 30);
+    
+    BOARD.lastTapTime = now;
+    BOARD.lastTapX = t.clientX;
+    BOARD.lastTapY = t.clientY;
+
+    if (isDoubleTap && document.body.dataset.mobile === '1') {
+      if (BOARD.longPressTimer) { clearTimeout(BOARD.longPressTimer); BOARD.longPressTimer = null; }
+      if (BOARD.pingTimer) { clearTimeout(BOARD.pingTimer); BOARD.pingTimer = null; }
+      
+      const fakeDblClick = {
+        clientX: t.clientX,
+        clientY: t.clientY,
+        preventDefault: () => e.preventDefault()
+      };
+      onBoardDblClick(fakeDblClick);
+      e.preventDefault();
+      return;
+    }
+
     const fake = { button: 0, clientX: t.clientX, clientY: t.clientY, preventDefault: () => e.preventDefault() };
     onBoardMouseDown(fake);
 
