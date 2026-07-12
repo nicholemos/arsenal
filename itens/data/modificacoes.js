@@ -79,7 +79,7 @@ const modificacoesData = {
             "nome": "Discreto",
             "preco": "",
             "espacos": "—",
-            "categoria": "Item Superior",
+            "categoria": "fItem Superior",
             "tipo": "Melhoria",
             "descricao": "Melhoria para Todos que reduz espaços ocupados em –1 (mín. 1) e fornece +5 em Ladinagem para ocultar."
         },
@@ -192,7 +192,7 @@ const modificacoesData = {
             "espacos": "—",
             "categoria": "Item Superior",
             "tipo": "Melhoria",
-            "descricao": "Melhoria para Armas que fornece +1 em testes de ataque."
+            "descricao": "Cuidado especial foi tomado ao temperar o aço desta arma, para que seu fio se mantenha sempre como uma navalha. A margem de ameaça aumenta em 1 ponto. Uma arma não pode ser precisa e maciça."
         },
         {
             "nome": "Pungente",
@@ -200,7 +200,7 @@ const modificacoesData = {
             "espacos": "—",
             "categoria": "Item Superior",
             "tipo": "Melhoria",
-            "descricao": "Melhoria para Armas que causa +1d6 de dano de perfuração adicional."
+            "descricao": "A arma é um amontoado de pontas, ganchos e protuberâncias. É difícil empunhá-la sem se machucar, mas ela fornece +2 nas rolagens de dano. Pré-requisito: Cruel."
         },
         {
             "nome": "Reforçada",
