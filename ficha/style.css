@@ -11,12 +11,31 @@
 h1,
 h2,
 h3,
+h4,
+h5,
+h6,
 .fs-4,
+#charLevel,
+.inp-name,
 #skillsSection > div:first-child span,
 #skillsSection .skills-content > div:first-child.row,
 .skill-row select,
-.skill-row [id^="skAttrVal"] {
-    font-family: 'Tormenta', serif;
+.skill-row [id^="skAttrVal"],
+.skill-row [id^="skHalfLevel"],
+.ameaca-key,
+.ameaca-key-titulo,
+.ameaca-chave-titulo,
+.ameaca-nome-input,
+.ameaca-nd-label,
+.ameaca-nd-val,
+.ameaca-val-input,
+.ameaca-attr-input,
+.am-input,
+.am-select,
+.am-textarea,
+.am-per-nome,
+.am-per-valor {
+    font-family: 'Tormenta', serif !important;
     letter-spacing: 1px;
 }
 
@@ -1481,6 +1500,7 @@ h3,
     min-width: 64px;
     padding: 6px 10px;
     flex-shrink: 0;
+    border: 1px solid #6b0000;
 }
 
 .ameaca-nd-label {
@@ -3398,10 +3418,26 @@ body.theme-classic {
   color: #c0392b !important;
 }
 
+.theme-classic #charLevel,
+.theme-classic .inp-name,
 .theme-classic #skillsSection > div:first-child span,
 .theme-classic #skillsSection .skills-content > div:first-child.row,
 .theme-classic .skill-row select,
-.theme-classic .skill-row [id^="skAttrVal"] {
+.theme-classic .skill-row [id^="skAttrVal"],
+.theme-classic .skill-row [id^="skHalfLevel"],
+.theme-classic .ameaca-key,
+.theme-classic .ameaca-key-titulo,
+.theme-classic .ameaca-chave-titulo,
+.theme-classic .ameaca-nome-input,
+.theme-classic .ameaca-nd-label,
+.theme-classic .ameaca-nd-val,
+.theme-classic .ameaca-val-input,
+.theme-classic .ameaca-attr-input,
+.theme-classic .am-input,
+.theme-classic .am-select,
+.theme-classic .am-textarea,
+.theme-classic .am-per-nome,
+.theme-classic .am-per-valor {
   font-family: "Tormenta", serif !important;
   letter-spacing: 1px;
 }
@@ -3431,6 +3467,12 @@ body:not(.theme-dark):not(.theme-classic) .text-primary {
 }
 body:not(.theme-dark):not(.theme-classic) .border-primary {
   border-color: var(--ouro) !important;
+}
+
+body:not(.theme-dark):not(.theme-classic) [id^="mod-attr-"],
+body:not(.theme-dark):not(.theme-classic) [id^="mod-skill-attr-"] {
+  border: 1px solid #d0d0d0 !important;
+  border-radius: 6px !important;
 }
 
 /* ===== THEME SWITCHER (FICHA) ===== */
