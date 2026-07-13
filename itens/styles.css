@@ -534,7 +534,8 @@ select:focus {
 
 .inventory-table-wrap {
   border-radius: 10px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
   border: 1px solid var(--border);
 }
 
@@ -588,9 +589,11 @@ select:focus {
   white-space: nowrap;
 }
 
-.inv-actions {
+.inv-actions,
+.inv-actions-th {
   text-align: right;
-  width: 44px;
+  width: 50px;
+  min-width: 50px;
 }
 
 /* ===== RESUMO DO INVENTÁRIO ===== */
@@ -662,24 +665,25 @@ select:focus {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 1px solid var(--accent);
-  background: var(--surface);
+  border: 1.5px solid var(--accent);
+  background: var(--glow);
   color: var(--accent);
   cursor: pointer;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  line-height: 1;
 }
 
 .remove-item-btn:hover {
   background: var(--accent);
   color: #fff;
-  transform: scale(1.1);
-  box-shadow: 0 0 10px var(--accent-glow);
+  transform: scale(1.15);
+  box-shadow: 0 0 14px var(--accent-glow);
 }
 
 .inventory-top-btn {
@@ -1634,84 +1638,97 @@ select:focus {
 }
 
 /* ===================================================
-   RESPONSIVO (DESKTOP / GAVETA MOBILE)
+   DRAWER DO INVENTÁRIO (bolsa flutuante)
    =================================================== */
-@media (min-width: 1024px) {
-  .container-grid {
-    grid-template-columns: 3fr 1.15fr;
-    align-items: start;
-  }
 
-  .inventory-container {
-    position: sticky;
-    top: 18px;
-    max-height: calc(100vh - 36px);
-    overflow-y: auto;
-  }
+/* Overlay escuro atrás do drawer */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.drawer-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Drawer deslizante */
+.inventory-container {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 92%;
+  max-width: 600px;
+  height: 100vh;
+  height: 100svh;
+  z-index: 2000;
+  background: var(--surface);
+  border-left: 2px solid var(--border-solid);
+  border-radius: 0;
+  overflow-y: auto;
+  transition: right .25s ease-in-out;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, .5);
+}
+
+.inventory-container.active {
+  right: 0;
 }
 
 #closeInventoryBtn {
-  display: none;
+  display: flex;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 999;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-@media (max-width: 1023px) {
-  #closeInventoryBtn {
-    display: flex;
-  }
+#closeInventoryBtn:hover {
+  background: var(--accent);
+  color: #fff;
+}
 
-  #mobileInventoryBtn.float-btn {
-    display: flex;
-  }
+#mobileInventoryBtn.float-btn {
+  pointer-events: auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--bg-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px var(--shadow-main);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
 
-  .inventory-container {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 92%;
-    max-width: 420px;
-    height: 100vh;
-    height: 100svh;
-    z-index: 2000;
-    background: var(--surface);
-    border-left: 2px solid var(--border-solid);
-    border-radius: 0;
-    overflow-y: auto;
-    transition: right .25s ease-in-out;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, .5);
-  }
+#mobileInventoryBtn.float-btn:hover {
+  transform: translateY(-2px);
+  background: var(--gold-light);
+  box-shadow: 0 10px 22px var(--glow);
+}
 
-  .inventory-container.active {
-    right: 0;
-  }
-
-  .inventory-close-mobile {
-    display: flex;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 999;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 1px solid var(--accent);
-    background: var(--surface);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--accent);
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-
-  .inventory-close-mobile:hover {
-    background: var(--accent);
-    color: #fff;
-  }
-
-  .inventory-list {
-    max-height: calc(100vh - 290px);
-  }
+.inventory-list {
+  max-height: calc(100vh - 290px);
 }
 
 .floating-buttons {
@@ -1725,27 +1742,28 @@ select:focus {
   pointer-events: none;
 }
 
-#mobileInventoryBtn.float-btn {
+.scroll-top-btn {
   pointer-events: auto;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: var(--bg-main);
-  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--gold);
+  display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px var(--shadow-main);
   cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
-#mobileInventoryBtn.float-btn:hover {
+.scroll-top-btn:hover {
+  background: var(--gold-dim);
+  color: var(--gold-light);
+  border-color: var(--gold);
   transform: translateY(-2px);
-  background: var(--gold-light);
-  box-shadow: 0 10px 22px var(--glow);
+  box-shadow: 0 0 10px var(--glow);
 }
 
 #mobileInvCount.mobile-badge {

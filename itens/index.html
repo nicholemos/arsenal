@@ -120,51 +120,47 @@
         </div>
       </div>
 
-      <aside id="inventoryContainer" class="inventory-container">
-        <button id="closeInventoryBtn" class="inventory-close-mobile">&times;</button>
-
-        <h2 class="inventory-title">Inventário</h2>
-
-        <div id="inventoryList" class="inventory-list">
-          <div class="inventory-empty">Seu inventário está vazio.</div>
-        </div>
-
-        <div id="inventorySummary" class="inventory-summary">
-          <div class="summary-row">
-            <span>Espaços Totais:</span>
-            <span id="totalSpaces">0</span>
-          </div>
-          <div class="summary-row summary-price">
-            <span>Preço Total:</span>
-            <span id="totalCost">T$ 0</span>
-          </div>
-          <div class="summary-row">
-            <span>Itens Vestidos:</span>
-            <span id="totalVestidos">0 / 4</span>
-          </div>
-          <button class="btn-exportar-ficha" onclick="enviarInventarioCompletoParaFicha()">
-            <i class="bi bi-box-arrow-right"></i> Enviar p/ Ficha
-          </button>
-
-          <button id="clearInventoryBtn" class="btn-limpar-estilo" onclick="clearInventory()" style="margin-top: 10px;">
-            <i class="bi bi-trash"></i> Limpar Inventário
-          </button>
-
-          <!-- seta AGORA fica abaixo do inventário -->
-          <button id="backToTopBtn" class="inventory-top-btn" type="button" aria-label="Voltar ao topo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m18 15-6-6-6 6" />
-            </svg>
-          </button>
-        </div>
-
-
-      </aside>
-
-
     </div>
   </main>
+
+  <aside id="inventoryContainer" class="inventory-container">
+    <button id="closeInventoryBtn" class="inventory-close-mobile">&times;</button>
+
+    <h2 class="inventory-title">Inventário</h2>
+
+    <div id="inventoryList" class="inventory-list">
+      <div class="inventory-empty">Seu inventário está vazio.</div>
+    </div>
+
+    <div id="inventorySummary" class="inventory-summary">
+      <div class="summary-row">
+        <span>Espaços Totais:</span>
+        <span id="totalSpaces">0</span>
+      </div>
+      <div class="summary-row summary-price">
+        <span>Preço Total:</span>
+        <span id="totalCost">T$ 0</span>
+      </div>
+      <div class="summary-row">
+        <span>Itens Vestidos:</span>
+        <span id="totalVestidos">0 / 4</span>
+      </div>
+      <button class="btn-exportar-ficha" onclick="enviarInventarioCompletoParaFicha()">
+        <i class="bi bi-box-arrow-right"></i> Enviar p/ Ficha
+      </button>
+
+      <button id="clearInventoryBtn" class="btn-limpar-estilo" onclick="clearInventory()" style="margin-top: 10px;">
+        <i class="bi bi-trash"></i> Limpar Inventário
+      </button>
+
+      <button id="backToTopBtn" class="inventory-top-btn" type="button" aria-label="Voltar ao topo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m18 15-6-6-6 6" />
+        </svg>
+      </button>
+    </div>
+  </aside>
 
   <div id="itemModal" class="modal">
     <button class="modal-nav-btn modal-nav-prev" aria-label="Item anterior">&#10094;</button>
@@ -265,7 +261,14 @@
   </div>
 
   <div id="modalOverlay" class="modal-overlay"></div>
+  <div id="inventoryOverlay" class="drawer-overlay"></div>
   <div class="floating-buttons">
+    <button id="scrollTopBtn" class="float-btn scroll-top-btn" aria-label="Voltar ao topo" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m18 15-6-6-6 6" />
+      </svg>
+    </button>
     <button id="mobileInventoryBtn" class="float-btn mobile-inv-trigger" aria-label="Abrir Inventário">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

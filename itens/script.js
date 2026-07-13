@@ -101,7 +101,7 @@ let searchInput, itemsGrid, itemModal, modalOverlay, closeModalBtn,
     empunhaduraButtons, itemCustomizer, modQuantitySelect, modSelectorsContainer,
     enchantQuantitySelect, enchantSelectorsContainer, modalVestidoBox, sourceFilterSelect, sortSelect,
     curseCheckbox, curseQuantityContainer, curseQuantitySelect, curseSelectorsContainer,
-    backToTopBtn, mobileInventoryBtn, inventoryContainer, closeInventoryBtn, mobileInvCount;
+    backToTopBtn, mobileInventoryBtn, inventoryContainer, closeInventoryBtn, mobileInvCount, inventoryOverlay;
 
 // ===== INICIALIZAÇÃO =====
 // ATUALIZADO: Usamos window.onload para esperar TUDO (incluindo armas.js) carregar
@@ -164,6 +164,7 @@ window.onload = () => {
     inventoryContainer = document.getElementById('inventoryContainer');
     closeInventoryBtn = document.getElementById('closeInventoryBtn');
     mobileInvCount = document.getElementById('mobileInvCount');
+    inventoryOverlay = document.getElementById('inventoryOverlay');
 
     // Inicialização do Tema Sangue/Sombras/Clássico
     function applyTheme(theme) {
@@ -343,14 +344,29 @@ function setupEventListeners() {
         saveFilters();
     });
 
-    if (mobileInventoryBtn && inventoryContainer) {
+    if (mobileInventoryBtn && inventoryContainer && inventoryOverlay) {
         mobileInventoryBtn.addEventListener('click', () => {
             if (itemModal?.classList.contains('active')) closeModal();
             inventoryContainer.classList.add('active');
+            inventoryOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
         });
     }
 
+    // Swipe para fechar a mochila no mobile
+    if (inventoryContainer) {
+        let touchStartX = 0;
+        inventoryContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        inventoryContainer.addEventListener('touchend', (e) => {
+            if (!inventoryContainer.classList.contains('active')) return;
+            const diffX = e.changedTouches[0].screenX - touchStartX;
+            if (diffX > 80) {
+                closeInventoryDrawer();
+            }
+        }, { passive: true });
+    }
 
     categoryButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -396,6 +412,7 @@ function setupEventListeners() {
             if (itemModal.classList.contains('active')) closeModal();
             const rm = document.getElementById('randomizerModal');
             if (rm && rm.classList.contains('active')) closeRandomizerModal();
+            if (inventoryContainer?.classList.contains('active')) closeInventoryDrawer();
         }
         if (itemModal.classList.contains('active')) {
             if (e.key === 'ArrowLeft') navigateModal(-1);
@@ -536,32 +553,40 @@ function setupEventListeners() {
         updateCustomSelectors(parseInt(e.target.value), curseSelectorsContainer, allCurses, currentModalItem);
     });
 
-    // Abrir inventário no mobile
-    mobileInventoryBtn.addEventListener('click', () => {
-        inventoryContainer.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Trava o scroll do fundo
-    });
 
-    // Fechar inventário no mobile
-    closeInventoryBtn.addEventListener('click', () => {
-        inventoryContainer.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    });
+    // Fechar inventário
+    closeInventoryBtn.addEventListener('click', closeInventoryDrawer);
+
+    // Fechar ao clicar no overlay
+    if (inventoryOverlay) {
+        inventoryOverlay.addEventListener('click', closeInventoryDrawer);
+    }
 
     // Scroll para o topo
-    backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 
     // Monitorar o scroll para mostrar/esconder o botão de topo
     window.addEventListener('scroll', () => {
+        if (!scrollTopBtn) return;
         if (window.scrollY > 300) {
-            backToTopBtn.classList.add('visible');
+            scrollTopBtn.style.display = 'flex';
         } else {
-            backToTopBtn.classList.remove('visible');
+            scrollTopBtn.style.display = 'none';
         }
     });
 
+}
+
+// ===== Fechar drawer do inventário =====
+function closeInventoryDrawer() {
+    if (inventoryContainer) inventoryContainer.classList.remove('active');
+    if (inventoryOverlay) inventoryOverlay.classList.remove('active');
+    document.body.style.overflow = 'auto';
 }
 
 // ===== Handler para "Material Especial" =====
@@ -1279,7 +1304,7 @@ function renderInventory() {
               <th>Custo</th>
               <th>Qtde</th>
               <th>Espaços</th>
-              <th></th>
+              <th class="inv-actions-th"></th>
             </tr>
           </thead>
           <tbody>
