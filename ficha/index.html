@@ -665,6 +665,11 @@
                             </select>
                             <span id="classSkillBadge" class="d-none rounded px-1"
                                 style="font-size:0.65rem;background:rgba(255,255,255,0.25);white-space:nowrap;"></span>
+                            <div class="form-check form-check-inline m-0" style="font-size:0.65rem;white-space:nowrap;">
+                                <input class="form-check-input m-0" type="checkbox" id="hideUntrainedOnly" onchange="toggleHideUntrained()"
+                                    style="transform:scale(0.7);vertical-align:middle;cursor:pointer;">
+                                <label class="form-check-label text-white" for="hideUntrainedOnly" style="cursor:pointer;font-size:0.65rem;vertical-align:middle;" title="Ocultar perícias somente treinada que não estão treinadas">Ocultar</label>
+                            </div>
                         </div>
                         <button id="btnGroupSkills" onclick="toggleSkillGrouping()" title="Agrupar por atributo"
                             class="btn btn-sm border-0 rounded px-2 py-0"

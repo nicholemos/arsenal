@@ -2,12 +2,13 @@
 const attrs = ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR'];
 
 // Perícias que só funcionam se treinadas (retornam 0 se não treinado)
-const TRAINED_ONLY_SKILLS = ['Adestramento', 'Conhecimento', 'Guerra', 'Jogatina', 'Ladinagem', 'Misticismo', 'Nobreza', 'Pilotagem', 'Religião'];
+const TRAINED_ONLY_SKILLS = ['Adestramento', 'Atuação', 'Conhecimento', 'Guerra', 'Jogatina', 'Ladinagem', 'Misticismo', 'Nobreza', 'Ofício', 'Pilotagem', 'Religião'];
 
 // Perícias com penalidade de armadura (✠ = total, ✠* = parcial)
 const ARMOR_PENALTY_SKILLS = { 'Acrobacia': 'total', 'Furtividade': 'total', 'Ladinagem': 'total', 'Atletismo': 'parcial' };
 
 let groupSkillsByAttr = false;
+let hideUntrainedOnly = false;
 
 // Tabela de XP por nível (T20)
 const XP_TABLE = [0, 1000, 3000, 6000, 10000, 15000, 21000, 28000, 36000, 45000, 55000, 66000, 78000, 91000, 105000, 120000, 136000, 153000, 171000, 190000];
@@ -239,7 +240,7 @@ function renderSkills() {
 
         return `
         <div class="row g-0 align-items-center skill-row py-1 border-bottom" ${rowBg}>
-            <div class="col-1 text-center"><input class="form-check-input border-dark" type="checkbox" id="skTrain${i}" ${s.trained ? 'checked' : ''}></div>
+            <div class="col-1 text-center"><input class="form-check-input border-dark" type="checkbox" id="skTrain${i}" ${s.trained ? 'checked' : ''} onchange="onSkillTrainChange(${i})"></div>
             <div class="col-1 text-center"><i class="bi bi-dice-20-fill dice-roller text-secondary" onclick="rollSkill(${i})" title="Rolar"></i></div>
             <div class="col-4 ps-1 d-flex align-items-center">
                 <div style="flex:1;overflow:hidden;">${nameDisplay}</div>
@@ -258,11 +259,16 @@ function renderSkills() {
         </div>`;
     }
 
+    function shouldHide(s) {
+        return hideUntrainedOnly && TRAINED_ONLY_SKILLS.includes(s.n) && !s.trained;
+    }
+
     if (groupSkillsByAttr) {
         // Agrupa as perícias por atributo, mantendo o índice original para callbacks
         const groups = {};
         ATTR_ORDER.forEach(a => groups[a] = []);
         currentSkills.forEach((s, i) => {
+            if (shouldHide(s)) return;
             const key = attrs.includes(s.a) ? s.a : 'FOR';
             groups[key].push({ s, i });
         });
@@ -278,10 +284,18 @@ function renderSkills() {
             ${items.map(({ s, i }) => buildSkillRow(s, i)).join('')}`;
         }).join('');
     } else {
-        skillsContainer.innerHTML = currentSkills.map((s, i) => buildSkillRow(s, i)).join('');
+        const filtered = currentSkills
+            .map((s, i) => ({ s, i }))
+            .filter(({ s }) => !shouldHide(s));
+        skillsContainer.innerHTML = filtered.map(({ s, i }) => buildSkillRow(s, i)).join('');
     }
 
     attachGlobalListeners();
+}
+
+function toggleHideUntrained() {
+    hideUntrainedOnly = document.getElementById('hideUntrainedOnly').checked;
+    renderSkills();
 }
 
 function toggleSkillGrouping() {
@@ -325,6 +339,11 @@ function updateSkillOther(index, delta) {
 // --- GERENCIAMENTO DE PERÍCIAS ---
 function addSkill() { currentSkills.push({ n: 'Nova Perícia', a: 'INT', trained: false, other: 0, isCustom: true }); renderSkills(); saveData(); }
 function deleteSkill(index) { if (confirm("Remover perícia?")) { currentSkills.splice(index, 1); renderSkills(); saveData(); } }
+function onSkillTrainChange(i) {
+    const check = document.getElementById(`skTrain${i}`);
+    if (check) currentSkills[i].trained = check.checked;
+    renderSkills();
+}
 function updateSkillAttr(index, newAttr) { currentSkills[index].a = newAttr; updateCalculations(); saveData(); }
 function updateSkillName(index, newName) { currentSkills[index].n = newName; saveData(); updateCalculations(); }
 function updateSkillSpecialty(index, value) { if (currentSkills[index]) currentSkills[index].specialty = value; saveData(); }
