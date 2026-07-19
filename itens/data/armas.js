@@ -421,7 +421,7 @@ const armasData = {
             "categoria": "Arma",
             "tipo": "Marcial",
             "empunhadura": "Duas Mãos",
-            "descricao": "Arco grande que causa 1d8 de dano de perfuração (crítico x3). Alcance longo. Recarregar é ação de movimento.",
+            "descricao": "Arco grande que causa 1d8 de dano de perfuração (crítico x3). Alcance médio. Recarregar é ação de movimento.",
             "imagem": "data/img/arco-longo.webp"
         },
         {
