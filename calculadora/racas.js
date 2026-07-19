@@ -2335,7 +2335,7 @@ const RACE_DATA = {
     nagah_macho: {
         name: 'Nagah (Macho - Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio', raca: 'Monstro',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { forca: 1, destreza: 1, constituicao: 1 },
         isChoice: false,
         bonusMessage: 'Força +1, Destreza +1, Constituição +1',
@@ -2363,7 +2363,7 @@ const RACE_DATA = {
     nagah_femea: {
         name: 'Nagah (Fêmea - Ameaças)',
         type: 'ameacas',
-        tamanho: 'Médio', raca: 'Monstro',
+        tamanho: 'Médio', raca: 'Humanoide',
         attributes: { inteligencia: 1, sabedoria: 1, carisma: 1 },
         isChoice: false,
         bonusMessage: 'Inteligência +1, Sabedoria +1, Carisma +1',
