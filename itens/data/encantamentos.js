@@ -41,7 +41,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que anula penalidades por camuflagem e cobertura. Aumenta alcance de armas à distância em uma categoria."
+            "descricao": "Encantamento que anula penalidades por camuflagem leve e total, bem como por cobertura leve. Aumenta alcance de armas à distância em uma categoria."
         },
         {
             "nome": "Encanto Congelante",
@@ -89,7 +89,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que fornece +2 em testes contra construtos e objetos, causando +2d8 de dano."
+            "descricao": "Encantamento que fornece +2 em testes de ataque contra construtos e objetos (manobra quebrar), causando +2d8 de dano."
         },
         {
             "nome": "Encanto Dilacerante",
@@ -105,7 +105,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que causa +1d6 de dano de trevas em acertos críticos e cura metade do dano. Ação livre causa +2d6 (custo 2 PM)."
+            "descricao": "Encantamento que em acertos críticos em criaturas vivas as deixa fracas e concede 2d10 PV temporários a você."
         },
         {
             "nome": "Encanto Elétrica",
@@ -137,7 +137,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que causa +1d6 de dano de fogo. Alvo pega fogo (sofre 1d6 de dano por rodada)."
+            "descricao": "Encantamento que causa +1d6 de dano de fogo. Uma vez por rodada, quando ataca, pode gastar 2 PM para disparar uma bola de fogo contra um alvo em alcance médio, causando 6d6 de dano de fogo (Reflexos reduz à metade)."
         },
         {
             "nome": "Encanto Formidável",
@@ -145,7 +145,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que aumenta dados de dano em um passo e fornece +1 em testes de ataque."
+            "descricao": "Encantamento que fornece +2 em testes de ataque e rolagens de dano."
         },
         {
             "nome": "Encanto Lacinante",
@@ -185,7 +185,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que causa +1d6 de dano de luz contra criaturas do mal."
+            "descricao": "Encantamento que causa +2d8 de dano contra devotos de deuses que canalizam apenas energia negativa e criaturas malignas."
         },
         {
             "nome": "Encanto Sanguinaria",
@@ -209,7 +209,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que causa +1d6 de dano de trevas. Impede cura da vítima por 1d4 rodadas."
+            "descricao": "Encantamento que causa +1d8 de dano de trevas. Uma vez por rodada, quando ataca, pode gastar 2 PM para aumentar o dano para +2d8, mas sofre 1d8 de dano."
         },
         {
             "nome": "Encanto Veloz",
@@ -226,7 +226,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que causa +1d6 de dano de veneno. Alvo fica envenenado (Fort CD 15 evita)."
+            "descricao": "Encantamento que permite, uma vez por rodada ao atacar, gastar 2 PM para envenenar a vítima, que perde 1d12 PV por rodada durante 3 rodadas."
         },
 
         // ===== ENCANTOS DE ARMADURA E ESCUDO (Tabela 8-3) =====
@@ -285,7 +285,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Armadura/Escudo",
-            "descricao": "Você recebe redução de ácido 10 e pode gastar uma ação de movimento e 2 PM para fazer o item gotejar ácido. Se fizer isso, seus ataques causam +1d4 de dano de ácido até o fim da cena"
+            "descricao": "Você recebe redução de ácido 10 e pode gastar uma ação de movimento e 2 PM para fazer o item gotejar ácido. Se fizer isso, seus ataques causam +1d4 de dano de ácido até o fim da cena."
         },
         {
             "nome": "Encanto Defensor",
@@ -405,7 +405,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Armadura/Escudo",
-            "descricao": "ocê recebe redução de eletricidade 10 e pode gastar uma ação de movimento e 2 PM para gerar arcos voltaicos até o fim da cena. Se fizer isso, qualquer criatura que o ataque em corpo a corpo sofre 2d6 pontos de dano de eletricidade. (p. 339)"
+            "descricao": "Você recebe redução de eletricidade 10 e pode gastar uma ação de movimento e 2 PM para gerar arcos voltaicos até o fim da cena. Se fizer isso, qualquer criatura que o ataque em corpo a corpo sofre 2d6 pontos de dano de eletricidade. (p. 339)"
         },
         {
             "nome": "Encanto Reluzente",
@@ -727,7 +727,7 @@ const enchantmentosData = {
             espacos: "—",
             categoria: "encantamento",
             tipo: "Armadura/Escudo",
-            descricao: "1/cena, pode gastar 3 PM para se tornar incorpóreo por 1 rodada (ignora efeitos não mágicos, pode atravessar sólidos, Força nula).",
+            descricao: "1/cena, pode gastar 3 PM para se tornar incorpóreo por 1 rodada (ignora ataques e efeitos não mágicos, pode atravessar paredes e objetos sólidos, Força nula). Se terminar a rodada dentro de um sólido, é expelido e sofre 1d12 PV por 1,5m.",
             fonte: "Heróis de Arton"
         },
         {
