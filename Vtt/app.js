@@ -4951,6 +4951,8 @@ const BOARD = {
   gridScaleUnit: 'm',
   gridType: 'square',
   lightingType: 'sunny',
+  // Projeção: '2d' (top-down padrão) ou 'iso' (2.5D isométrico)
+  projection: '2d',
 };
 
 // ══════════════════════════════════════════════════════
@@ -6110,10 +6112,113 @@ function hexGridFromPoint(wx, wy) {
   return { gx: Math.max(0, bestGx), gy: Math.max(0, bestGy) };
 }
 
+// ══════════════════════════════════════════════════════
+//  SISTEMA DE PROJEÇÃO 2D / 2.5D ISOMÉTRICO
+// ══════════════════════════════════════════════════════
+
+// Converte coordenadas mundo (world/flat) → tela (screen) no modo isométrico
+// O ratio ISO_RATIO controla o achatamento vertical (0.5 = isométrico clássico)
+const ISO_RATIO = 0.5;
+
+function isoProject(wx, wy) {
+  const gs = BOARD.gridSize;
+  const cols = BOARD.gridCols || 30;
+  // Desloca a origem para que o grid fique centralizado horizontalmente
+  const originX = cols * gs * ISO_RATIO;
+  return {
+    x: (wx - wy) * ISO_RATIO + originX,
+    y: (wx + wy) * ISO_RATIO * ISO_RATIO
+  };
+}
+
+// isoProject é uma transformação linear (afim) de (wx,wy). Esta função expõe
+// os mesmos coeficientes no formato do ctx.transform(a,b,c,d,e,f) do Canvas,
+// permitindo aplicar a MESMA projeção isométrica diretamente ao desenhar
+// imagens (ex: o mapa de fundo), sem precisar re-implementar o warp manualmente.
+function isoMatrix() {
+  const gs = BOARD.gridSize;
+  const cols = BOARD.gridCols || 30;
+  const originX = cols * gs * ISO_RATIO;
+  const r2 = ISO_RATIO * ISO_RATIO;
+  return { a: ISO_RATIO, b: r2, c: -ISO_RATIO, d: r2, e: originX, f: 0 };
+}
+
+// Converte coordenadas tela (screen) → mundo (world/flat) no modo isométrico
+function isoUnproject(sx, sy) {
+  const gs = BOARD.gridSize;
+  const cols = BOARD.gridCols || 30;
+  const originX = cols * gs * ISO_RATIO;
+  const sxAdj = sx - originX;
+  const isoH = ISO_RATIO * ISO_RATIO;
+  return {
+    x: (sxAdj / ISO_RATIO + sy / isoH) / 2,
+    y: (sy / isoH - sxAdj / ISO_RATIO) / 2
+  };
+}
+
+// Wrapper: projeta ponto mundo → tela usando a projeção ativa
+function projectPoint(wx, wy) {
+  if (BOARD.projection === 'iso' && BOARD.gridType !== 'hex') {
+    return isoProject(wx, wy);
+  }
+  return { x: wx, y: wy };
+}
+
+// Wrapper: des-projeta ponto tela → mundo usando a projeção ativa
+function unprojectPoint(sx, sy) {
+  if (BOARD.projection === 'iso' && BOARD.gridType !== 'hex') {
+    return isoUnproject(sx, sy);
+  }
+  return { x: sx, y: sy };
+}
+
+// Projeta os 4 cantos de uma célula do grid — retorna array de 4 pontos {x,y}
+function projectTileCorners(gx, gy) {
+  const gs = BOARD.gridSize;
+  return [
+    projectPoint(gx * gs, gy * gs),           // topo
+    projectPoint((gx + 1) * gs, gy * gs),      // direita
+    projectPoint((gx + 1) * gs, (gy + 1) * gs),// base
+    projectPoint(gx * gs, (gy + 1) * gs)       // esquerda
+  ];
+}
+
+// Centro de uma célula na projeção ativa
+function projectTileCenter(gx, gy) {
+  const gs = BOARD.gridSize;
+  return projectPoint(gx * gs + gs / 2, gy * gs + gs / 2);
+}
+
+// Retorna elevação visual em pixels para um andar (floor) no modo iso
+function isoElevation(floor) {
+  if (BOARD.projection !== 'iso') return 0;
+  return floor * BOARD.gridSize * 0.6;
+}
+
+// Toggle de projeção
+function toggleProjection() {
+  if (BOARD.gridType === 'hex') {
+    toast('Modo isométrico não disponível para grid hexagonal.');
+    return;
+  }
+  BOARD.projection = BOARD.projection === 'iso' ? '2d' : 'iso';
+  const btn = document.getElementById('btnToggleProjection');
+  if (btn) {
+    btn.textContent = BOARD.projection === 'iso' ? '🔷 2.5D' : '🔲 2D';
+    btn.classList.toggle('active', BOARD.projection === 'iso');
+  }
+  boardRender();
+  boardSave();
+  toast(BOARD.projection === 'iso' ? 'Modo 2.5D Isométrico ativado' : 'Modo 2D Top-Down ativado');
+}
+
 function tokenWorldPos(gx, gy) {
   const gs = BOARD.gridSize;
   if (BOARD.gridType === 'hex') {
     return hexCenter(gx, gy);
+  }
+  if (BOARD.projection === 'iso') {
+    return projectTileCenter(gx, gy);
   }
   return { x: gx * gs + gs / 2, y: gy * gs + gs / 2 };
 }
@@ -6121,10 +6226,14 @@ function tokenWorldPos(gx, gy) {
 // ── Coordenadas canvas → grade ──
 function canvasToGrid(cx, cy) {
   const { offsetX, offsetY, zoom, gridSize, gridType } = BOARD;
-  const wx = (cx - offsetX) / zoom;
-  const wy = (cy - offsetY) / zoom;
+  let wx = (cx - offsetX) / zoom;
+  let wy = (cy - offsetY) / zoom;
   if (gridType === 'hex') {
     return hexGridFromPoint(wx, wy);
+  }
+  if (BOARD.projection === 'iso') {
+    const world = unprojectPoint(wx, wy);
+    return { gx: Math.floor(world.x / gridSize), gy: Math.floor(world.y / gridSize) };
   }
   return { gx: Math.floor(wx / gridSize), gy: Math.floor(wy / gridSize) };
 }
@@ -6136,6 +6245,10 @@ function gridToCanvas(gx, gy) {
     const c = hexCenter(gx, gy);
     wx = c.x;
     wy = c.y;
+  } else if (BOARD.projection === 'iso') {
+    const p = projectPoint(gx * gridSize, gy * gridSize);
+    wx = p.x;
+    wy = p.y;
   } else {
     wx = gx * gridSize;
     wy = gy * gridSize;
@@ -6165,13 +6278,26 @@ function getTokenAt(cx, cy) {
     const sizeH = (t.sizeY || t.size || 1) * gridSize;
     const pos = tokenWorldPos(t.gx, t.gy);
     const px = pos.x;
-    const py = pos.y;
+    let py = pos.y;
+    // No modo iso, aplicar elevação visual do andar
+    if (BOARD.projection === 'iso') {
+      py -= isoElevation(getFloorFromZ(t.z));
+    }
     if (t.type === 'object') {
-      if (wx >= px - sizeW / 2 && wx <= px + sizeW / 2 && wy >= py - sizeH / 2 && wy <= py + sizeH / 2) return t;
+      if (BOARD.projection === 'iso') {
+        // Hit-test losango para objetos em iso
+        const isoHalfW = sizeW * ISO_RATIO;
+        const isoHalfH = sizeH * ISO_RATIO * ISO_RATIO;
+        const ddx = Math.abs(wx - px);
+        const ddy = Math.abs(wy - py);
+        if (ddx / isoHalfW + ddy / isoHalfH <= 1) return t;
+      } else {
+        if (wx >= px - sizeW / 2 && wx <= px + sizeW / 2 && wy >= py - sizeH / 2 && wy <= py + sizeH / 2) return t;
+      }
       continue;
     }
     const rX = sizeW * 0.42;
-    const rY = sizeH * 0.42;
+    const rY = BOARD.projection === 'iso' ? sizeH * 0.42 * ISO_RATIO : sizeH * 0.42;
     const dist = Math.sqrt(((wx - px) / rX) ** 2 + ((wy - py) / rY) ** 2);
     if (dist <= 1) return t;
   }
@@ -7509,9 +7635,9 @@ function centralizarEmToken(token) {
   if (!token) return;
   const wrap = BOARD.wrap;
   const gs = BOARD.gridSize;
-  const sz = (token.size || 1) * gs / 2;
-  const tx = token.gx * gs + sz;
-  const ty = token.gy * gs + sz;
+  const pos = tokenWorldPos(token.gx, token.gy);
+  const tx = pos.x;
+  const ty = pos.y;
   BOARD.offsetX = wrap.clientWidth / 2 - tx * BOARD.zoom;
   BOARD.offsetY = wrap.clientHeight / 2 - ty * BOARD.zoom;
   BOARD.activeFloor = getFloorFromZ(token.z);
@@ -11009,11 +11135,23 @@ function boardRender() {
     const my = BOARD.mapY || 0;
     const mw = BOARD.mapWidth !== undefined && BOARD.mapWidth !== null ? BOARD.mapWidth : mapImg.naturalWidth;
     const mh = BOARD.mapHeight !== undefined && BOARD.mapHeight !== null ? BOARD.mapHeight : mapImg.naturalHeight;
+    // No modo iso, a imagem do mapa é desenhada através da mesma transformação
+    // afim usada pelo grid/tokens/paredes, para que ela acompanhe o "losango"
+    // isométrico ao invés de ficar plana/top-down.
+    const mapIso = BOARD.projection === 'iso' && gridType !== 'hex';
+    if (mapIso) {
+      ctx.save();
+      const m = isoMatrix();
+      ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f);
+    }
     if (isGifUrl(mapImg.src)) {
       const frame = getGifFrame(mapImg.src, mapImg.naturalWidth, mapImg.naturalHeight);
       ctx.drawImage(frame, mx, my, mw, mh);
     } else {
       ctx.drawImage(mapImg, mx, my, mw, mh);
+    }
+    if (mapIso) {
+      ctx.restore();
     }
   } else {
     const R = gridSize / 2;
@@ -11029,9 +11167,26 @@ function boardRender() {
     ctx.fillStyle = '#0f0b08';
     ctx.fillRect(-offsetX / zoom, -offsetY / zoom, W / zoom, H / zoom);
 
-    // Pergaminho dentro do grid
-    ctx.fillStyle = '#1e1610';
-    ctx.fillRect(0, 0, gridPixelW, gridPixelH);
+    if (BOARD.projection === 'iso') {
+      const cols = gridCols || 30;
+      const rows = gridRows || 30;
+      const corners = [
+        projectPoint(0, 0),
+        projectPoint(cols * gridSize, 0),
+        projectPoint(cols * gridSize, rows * gridSize),
+        projectPoint(0, rows * gridSize)
+      ];
+      ctx.beginPath();
+      ctx.moveTo(corners[0].x, corners[0].y);
+      for (let i = 1; i < 4; i++) ctx.lineTo(corners[i].x, corners[i].y);
+      ctx.closePath();
+      ctx.fillStyle = '#1e1610';
+      ctx.fill();
+    } else {
+      // Pergaminho dentro do grid
+      ctx.fillStyle = '#1e1610';
+      ctx.fillRect(0, 0, gridPixelW, gridPixelH);
+    }
   }
 
   // Grade
@@ -11091,6 +11246,12 @@ function boardRender() {
     if (layerA !== layerB) {
       if (layerA === 'map') return -1;
       if (layerB === 'map') return 1;
+    }
+    // Painter's algorithm no modo iso: desenhar de trás (gx+gy menor) para frente
+    if (BOARD.projection === 'iso') {
+      const isoA = (a.gx || 0) + (a.gy || 0);
+      const isoB = (b.gx || 0) + (b.gy || 0);
+      if (isoA !== isoB) return isoA - isoB;
     }
     return 0;
   });
@@ -11248,7 +11409,11 @@ function boardRender() {
       const sizeH = (t.sizeY || t.size || 1) * gridSize;
 
       let tcx, tcy;
-      if (BOARD.gridType === 'hex') {
+      if (BOARD.projection === 'iso') {
+        const pos = tokenWorldPos(t.gx, t.gy);
+        tcx = pos.x;
+        tcy = pos.y;
+      } else if (BOARD.gridType === 'hex') {
         const R = gridSize / 2;
         const hexHeight = Math.sqrt(3) * R;
         tcx = t.gx * R * 1.5;
@@ -11339,7 +11504,11 @@ function boardRender() {
       const sizeH = (t.sizeY || t.size || 1) * gridSize;
 
       let tcx, tcy;
-      if (BOARD.gridType === 'hex') {
+      if (BOARD.projection === 'iso') {
+        const pos = tokenWorldPos(t.gx, t.gy);
+        tcx = pos.x;
+        tcy = pos.y;
+      } else if (BOARD.gridType === 'hex') {
         const R = gridSize / 2;
         const hexHeight = Math.sqrt(3) * R;
         tcx = t.gx * R * 1.5;
@@ -11509,6 +11678,24 @@ function drawGrid(ctx, W, H) {
         }
       }
     }
+  } else if (BOARD.projection === 'iso') {
+    const startGx = Math.max(0, Math.ceil((-offsetX / zoom) / gs) - 2);
+    const endGx = Math.min(gridCols || 30, Math.ceil(((W - offsetX) / zoom) / gs) + 2);
+    const startGy = Math.max(0, Math.ceil((-offsetY / zoom) / gs) - 2);
+    const endGy = Math.min(gridRows || 30, Math.ceil(((H - offsetY) / zoom) / gs) + 2);
+
+    for (let gx = startGx; gx <= endGx; gx++) {
+      const p1 = projectPoint(gx * gs, -gs * 10);
+      const p2 = projectPoint(gx * gs, (gridRows + 10) * gs);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+    }
+    for (let gy = startGy; gy <= endGy; gy++) {
+      const p1 = projectPoint(-gs * 10, gy * gs);
+      const p2 = projectPoint((gridCols + 10) * gs, gy * gs);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+    }
   } else {
     const startGx = Math.ceil((-offsetX / zoom) / gs);
     const endGx = Math.ceil(((W - offsetX) / zoom) / gs);
@@ -11530,15 +11717,24 @@ function drawGrid(ctx, W, H) {
   ctx.restore();
 }
 
+function _wallProj(x, y, elev) {
+  if (BOARD.projection !== 'iso') return { x, y };
+  const p = projectPoint(x, y);
+  p.y -= elev;
+  return p;
+}
+
 function drawWalls(ctx) {
   const walls = BOARD.walls;
   if (!walls || walls.length === 0) return;
   const activeFloor = getCurrentFloor();
+  const iso = BOARD.projection === 'iso';
   ctx.save();
 
   walls.forEach(w => {
     if (getFloorFromZ(w.z) !== activeFloor) return;
     const type = w.type || 'normal';
+    const elev = iso ? isoElevation(getFloorFromZ(w.z)) : 0;
 
     if (type === 'invisible') {
       if (myRole !== 'mestre' || emVisaoJogador()) return;
@@ -11547,8 +11743,10 @@ function drawWalls(ctx) {
       ctx.lineWidth = 3 / BOARD.zoom;
       ctx.setLineDash([6 / BOARD.zoom, 6 / BOARD.zoom]);
       ctx.beginPath();
-      ctx.moveTo(w.x1, w.y1);
-      ctx.lineTo(w.x2, w.y2);
+      const p1 = _wallProj(w.x1, w.y1, elev);
+      const p2 = _wallProj(w.x2, w.y2, elev);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
       ctx.restore();
       return;
@@ -11556,22 +11754,25 @@ function drawWalls(ctx) {
 
     if (type === 'normal') {
       ctx.save();
+      const p1 = _wallProj(w.x1, w.y1, elev);
+      const p2 = _wallProj(w.x2, w.y2, elev);
+
       ctx.strokeStyle = '#5a3a1a';
       ctx.lineWidth = 4 / BOARD.zoom;
       ctx.lineCap = 'round';
       ctx.shadowColor = 'rgba(0,0,0,0.6)';
       ctx.shadowBlur = 4 / BOARD.zoom;
       ctx.beginPath();
-      ctx.moveTo(w.x1, w.y1);
-      ctx.lineTo(w.x2, w.y2);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
 
       ctx.strokeStyle = 'rgba(160,100,40,0.6)';
       ctx.lineWidth = 1.5 / BOARD.zoom;
       ctx.shadowBlur = 0;
       ctx.beginPath();
-      ctx.moveTo(w.x1, w.y1);
-      ctx.lineTo(w.x2, w.y2);
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
       ctx.restore();
       return;
@@ -11604,21 +11805,24 @@ function drawWalls(ctx) {
       }
     }
 
+    const p1 = _wallProj(w.x1, w.y1, elev);
+    const p2 = _wallProj(w.x2, w.y2, elev);
+
     ctx.strokeStyle = baseColor;
     ctx.lineWidth = 5 / BOARD.zoom;
     if (isDashed) {
       ctx.setLineDash([4 / BOARD.zoom, 4 / BOARD.zoom]);
     }
     ctx.beginPath();
-    ctx.moveTo(w.x1, w.y1);
-    ctx.lineTo(w.x2, w.y2);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
 
     ctx.strokeStyle = topColor;
     ctx.lineWidth = 2 / BOARD.zoom;
     ctx.beginPath();
-    ctx.moveTo(w.x1, w.y1);
-    ctx.lineTo(w.x2, w.y2);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
 
     ctx.restore();
@@ -11628,8 +11832,11 @@ function drawWalls(ctx) {
     if (getFloorFromZ(w.z) !== activeFloor) return;
     const type = w.type || 'normal';
     if (type === 'door' || type === 'window') {
-      const mx = (w.x1 + w.x2) / 2;
-      const my = (w.y1 + w.y2) / 2;
+      const elev = iso ? isoElevation(getFloorFromZ(w.z)) : 0;
+      const p1 = _wallProj(w.x1, w.y1, elev);
+      const p2 = _wallProj(w.x2, w.y2, elev);
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2;
       const r = 9 / BOARD.zoom;
 
       ctx.save();
@@ -11670,14 +11877,17 @@ function drawWalls(ctx) {
   if (myRole === 'mestre' && BOARD.tool === 'wall' && BOARD.selectedWallId) {
     const selWall = BOARD.walls.find(w => w.id === BOARD.selectedWallId);
     if (selWall && getFloorFromZ(selWall.z) === activeFloor) {
+      const elev = iso ? isoElevation(activeFloor) : 0;
+      const sp1 = _wallProj(selWall.x1, selWall.y1, elev);
+      const sp2 = _wallProj(selWall.x2, selWall.y2, elev);
       ctx.save();
       // Draw highlight glow
       ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
       ctx.lineWidth = 12 / BOARD.zoom;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(selWall.x1, selWall.y1);
-      ctx.lineTo(selWall.x2, selWall.y2);
+      ctx.moveTo(sp1.x, sp1.y);
+      ctx.lineTo(sp2.x, sp2.y);
       ctx.stroke();
 
       // Draw handles
@@ -11689,14 +11899,14 @@ function drawWalls(ctx) {
 
       // Point 1 handle
       ctx.beginPath();
-      ctx.arc(selWall.x1, selWall.y1, handleR, 0, Math.PI * 2);
+      ctx.arc(sp1.x, sp1.y, handleR, 0, Math.PI * 2);
       ctx.fillStyle = '#00bfff';
       ctx.fill();
       ctx.stroke();
 
       // Point 2 handle
       ctx.beginPath();
-      ctx.arc(selWall.x2, selWall.y2, handleR, 0, Math.PI * 2);
+      ctx.arc(sp2.x, sp2.y, handleR, 0, Math.PI * 2);
       ctx.fillStyle = '#00bfff';
       ctx.fill();
       ctx.stroke();
@@ -11744,44 +11954,85 @@ function _desenharImagemGatilho(ctx, s) {
   ctx.restore();
 }
 
+function _spPt(x, y) {
+  if (BOARD.projection !== 'iso') return { x, y };
+  return projectPoint(x, y);
+}
+
 function drawShapes(ctx) {
   if (!BOARD.shapes || BOARD.shapes.length === 0) return;
   const activeFloor = getCurrentFloor();
+  const iso = BOARD.projection === 'iso';
+  const elev = iso ? isoElevation(activeFloor) : 0;
   BOARD.shapes.forEach(s => {
     if (getFloorFromZ(s.z) !== activeFloor) return;
     ctx.save();
     const isHidden = (s.hidden === true) && !s.triggered;
-    // Jogador não vê formas ocultas
     if (isHidden && myRole !== 'mestre') { ctx.restore(); return; }
     const fillColor = hexToRgba(s.color || '#c9903a', isHidden ? 0.1 : 0.25);
     const strokeColor = s.color || '#c9903a';
-    const w = s.x2 - s.x1;
-    const h = s.y2 - s.y1;
     ctx.fillStyle = fillColor;
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2 / BOARD.zoom;
     if (isHidden) ctx.setLineDash([6 / BOARD.zoom, 4 / BOARD.zoom]);
-    if (s.kind === 'circle') {
-      const cx = s.x1 + w / 2;
-      const cy = s.y1 + h / 2;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    } else if (s.kind === 'freehand') {
-      if (s.points && s.points.length > 0) {
+
+    if (iso) {
+      const p1 = _spPt(s.x1, s.y1);
+      const p2 = _spPt(s.x2, s.y2);
+      p1.y -= elev; p2.y -= elev;
+      if (s.kind === 'circle') {
+        const cx = (p1.x + p2.x) / 2;
+        const cy = (p1.y + p2.y) / 2;
+        const w2 = Math.abs(p2.x - p1.x) / 2;
+        const h2 = Math.abs(p2.y - p1.y) / 2;
         ctx.beginPath();
-        ctx.moveTo(s.points[0].x, s.points[0].y);
+        ctx.ellipse(cx, cy, w2, h2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (s.kind === 'freehand' && s.points && s.points.length > 0) {
+        ctx.beginPath();
+        const p0 = _spPt(s.points[0].x, s.points[0].y); p0.y -= elev;
+        ctx.moveTo(p0.x, p0.y);
         for (let j = 1; j < s.points.length; j++) {
-          ctx.lineTo(s.points[j].x, s.points[j].y);
+          const pj = _spPt(s.points[j].x, s.points[j].y); pj.y -= elev;
+          ctx.lineTo(pj.x, pj.y);
         }
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+      } else {
+        const rx = Math.min(p1.x, p2.x);
+        const ry = Math.min(p1.y, p2.y);
+        const rw = Math.abs(p2.x - p1.x);
+        const rh = Math.abs(p2.y - p1.y);
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.strokeRect(rx, ry, rw, rh);
       }
     } else {
-      ctx.fillRect(s.x1, s.y1, w, h);
-      ctx.strokeRect(s.x1, s.y1, w, h);
+      const w = s.x2 - s.x1;
+      const h = s.y2 - s.y1;
+      if (s.kind === 'circle') {
+        const cx = s.x1 + w / 2;
+        const cy = s.y1 + h / 2;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (s.kind === 'freehand') {
+        if (s.points && s.points.length > 0) {
+          ctx.beginPath();
+          ctx.moveTo(s.points[0].x, s.points[0].y);
+          for (let j = 1; j < s.points.length; j++) {
+            ctx.lineTo(s.points[j].x, s.points[j].y);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      } else {
+        ctx.fillRect(s.x1, s.y1, w, h);
+        ctx.strokeRect(s.x1, s.y1, w, h);
+      }
     }
     if (isHidden) ctx.setLineDash([]);
 
@@ -11794,33 +12045,65 @@ function drawShapes(ctx) {
       ctx.setLineDash([6 / BOARD.zoom, 3 / BOARD.zoom]);
       ctx.strokeStyle = '#00bfff';
       ctx.lineWidth = 2 / BOARD.zoom;
-      if (s.kind === 'circle') {
-        const cx = s.x1 + w / 2;
-        const cy = s.y1 + h / 2;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (s.kind === 'freehand') {
-        if (s.points && s.points.length > 0) {
+      if (iso) {
+        const p1 = _spPt(s.x1, s.y1);
+        const p2 = _spPt(s.x2, s.y2);
+        p1.y -= elev; p2.y -= elev;
+        if (s.kind === 'circle') {
+          const cx = (p1.x + p2.x) / 2;
+          const cy = (p1.y + p2.y) / 2;
           ctx.beginPath();
-          ctx.moveTo(s.points[0].x, s.points[0].y);
+          ctx.ellipse(cx, cy, Math.abs(p2.x - p1.x) / 2, Math.abs(p2.y - p1.y) / 2, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (s.kind === 'freehand' && s.points && s.points.length > 0) {
+          ctx.beginPath();
+          const p0 = _spPt(s.points[0].x, s.points[0].y); p0.y -= elev;
+          ctx.moveTo(p0.x, p0.y);
           for (let j = 1; j < s.points.length; j++) {
-            ctx.lineTo(s.points[j].x, s.points[j].y);
+            const pj = _spPt(s.points[j].x, s.points[j].y); pj.y -= elev;
+            ctx.lineTo(pj.x, pj.y);
           }
           ctx.closePath();
           ctx.stroke();
+        } else {
+          const rx = Math.min(p1.x, p2.x);
+          const ry = Math.min(p1.y, p2.y);
+          ctx.strokeRect(rx, ry, Math.abs(p2.x - p1.x), Math.abs(p2.y - p1.y));
         }
       } else {
-        ctx.strokeRect(s.x1, s.y1, w, h);
+        const w = s.x2 - s.x1;
+        const h = s.y2 - s.y1;
+        if (s.kind === 'circle') {
+          const cx = s.x1 + w / 2;
+          const cy = s.y1 + h / 2;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (s.kind === 'freehand') {
+          if (s.points && s.points.length > 0) {
+            ctx.beginPath();
+            ctx.moveTo(s.points[0].x, s.points[0].y);
+            for (let j = 1; j < s.points.length; j++) {
+              ctx.lineTo(s.points[j].x, s.points[j].y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+          }
+        } else {
+          ctx.strokeRect(s.x1, s.y1, w, h);
+        }
       }
       ctx.setLineDash([]);
     }
 
     // Indicador visual de gatilho (escada/elevador) — só o mestre vê
     if (s.triggerType && myRole === 'mestre') {
-      const cx = (s.x1 + s.x2) / 2;
-      const cy = (s.y1 + s.y2) / 2;
-      const sz = Math.min(Math.abs(w), Math.abs(h)) * 0.35;
+      const cxRaw = (s.x1 + s.x2) / 2;
+      const cyRaw = (s.y1 + s.y2) / 2;
+      const center = iso ? _spPt(cxRaw, cyRaw) : { x: cxRaw, y: cyRaw };
+      if (iso) center.y -= elev;
+      const cx = center.x, cy = center.y;
+      const sz = Math.min(Math.abs(s.x2 - s.x1), Math.abs(s.y2 - s.y1)) * 0.35;
       const iconSize = Math.max(16 / BOARD.zoom, Math.min(sz, 60 / BOARD.zoom));
 
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
@@ -11828,7 +12111,6 @@ function drawShapes(ctx) {
       ctx.lineWidth = 1.5 / BOARD.zoom;
 
       if (s.triggerType === 'stairs-up' || s.triggerType === 'stair-up') {
-        // Triângulo para cima
         ctx.beginPath();
         ctx.moveTo(cx, cy - iconSize);
         ctx.lineTo(cx - iconSize * 0.8, cy + iconSize * 0.4);
@@ -11842,7 +12124,6 @@ function drawShapes(ctx) {
         ctx.textBaseline = 'middle';
         ctx.fillText('▲', cx, cy - iconSize * 0.15);
       } else if (s.triggerType === 'stairs-down' || s.triggerType === 'stair-down') {
-        // Triângulo para baixo
         ctx.beginPath();
         ctx.moveTo(cx, cy + iconSize);
         ctx.lineTo(cx - iconSize * 0.8, cy - iconSize * 0.4);
@@ -11856,7 +12137,6 @@ function drawShapes(ctx) {
         ctx.textBaseline = 'middle';
         ctx.fillText('▼', cx, cy + iconSize * 0.15);
       } else if (s.triggerType === 'stairs') {
-        // Escada bidirecional: dois triângulos
         const half = iconSize * 0.45;
         ctx.beginPath();
         ctx.moveTo(cx, cy - iconSize * 0.7);
@@ -11873,7 +12153,6 @@ function drawShapes(ctx) {
         ctx.fill();
         ctx.stroke();
       } else if (s.triggerType === 'elevator-manual' || s.triggerType === 'elevator-auto') {
-        // Quadrado com "E" para elevador
         const box = iconSize * 0.7;
         ctx.fillRect(cx - box, cy - box, box * 2, box * 2);
         ctx.strokeRect(cx - box, cy - box, box * 2, box * 2);
@@ -11889,6 +12168,11 @@ function drawShapes(ctx) {
   });
 }
 
+function _projPt(x, y) {
+  if (BOARD.projection !== 'iso') return { x, y };
+  return projectPoint(x, y);
+}
+
 function drawShapePreview(ctx) {
   const { shapeStartX, shapeStartY, shapeCurX, shapeCurY, shapeColor, tool } = BOARD;
   ctx.save();
@@ -11897,11 +12181,14 @@ function drawShapePreview(ctx) {
   ctx.strokeStyle = color;
   ctx.lineWidth = 2 / BOARD.zoom;
   ctx.setLineDash([8 / BOARD.zoom, 4 / BOARD.zoom]);
+  const iso = BOARD.projection === 'iso';
   if (tool === 'shape-circle') {
-    const x1 = Math.min(shapeStartX, shapeCurX);
-    const y1 = Math.min(shapeStartY, shapeCurY);
-    const w = Math.abs(shapeCurX - shapeStartX);
-    const h = Math.abs(shapeCurY - shapeStartY);
+    const s1 = _projPt(shapeStartX, shapeStartY);
+    const s2 = _projPt(shapeCurX, shapeCurY);
+    const x1 = Math.min(s1.x, s2.x);
+    const y1 = Math.min(s1.y, s2.y);
+    const w = Math.abs(s2.x - s1.x);
+    const h = Math.abs(s2.y - s1.y);
     ctx.beginPath();
     ctx.ellipse(x1 + w / 2, y1 + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -11910,19 +12197,23 @@ function drawShapePreview(ctx) {
     const pts = BOARD.shapeFreehandPoints || [];
     if (pts.length > 0) {
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
+      const p0 = _projPt(pts[0].x, pts[0].y);
+      ctx.moveTo(p0.x, p0.y);
       for (let i = 1; i < pts.length; i++) {
-        ctx.lineTo(pts[i].x, pts[i].y);
+        const pi = _projPt(pts[i].x, pts[i].y);
+        ctx.lineTo(pi.x, pi.y);
       }
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
     }
   } else {
-    const x1 = Math.min(shapeStartX, shapeCurX);
-    const y1 = Math.min(shapeStartY, shapeCurY);
-    const w = Math.abs(shapeCurX - shapeStartX);
-    const h = Math.abs(shapeCurY - shapeStartY);
+    const s1 = _projPt(shapeStartX, shapeStartY);
+    const s2 = _projPt(shapeCurX, shapeCurY);
+    const x1 = Math.min(s1.x, s2.x);
+    const y1 = Math.min(s1.y, s2.y);
+    const w = Math.abs(s2.x - s1.x);
+    const h = Math.abs(s2.y - s1.y);
     ctx.fillRect(x1, y1, w, h);
     ctx.strokeRect(x1, y1, w, h);
   }
@@ -11942,29 +12233,40 @@ function hexToRgba(hex, alpha) {
 function drawWallPreview(ctx) {
   const { wallStartX, wallStartY, wallCurX, wallCurY, wallType } = BOARD;
   ctx.save();
+  const elev = BOARD.projection === 'iso' ? isoElevation(getCurrentFloor()) : 0;
 
   let strokeStyle = 'rgba(232,185,106,0.8)';
   if (wallType === 'invisible') strokeStyle = 'rgba(0, 191, 255, 0.6)';
   else if (wallType === 'door') strokeStyle = 'rgba(211, 47, 47, 0.8)';
   else if (wallType === 'window') strokeStyle = 'rgba(2, 136, 209, 0.8)';
 
+  const p1 = _wallProj(wallStartX, wallStartY, elev);
+  const p2 = _wallProj(wallCurX, wallCurY, elev);
+
   ctx.strokeStyle = strokeStyle;
   ctx.lineWidth = 3 / BOARD.zoom;
   ctx.lineCap = 'round';
   ctx.setLineDash([8 / BOARD.zoom, 4 / BOARD.zoom]);
   ctx.beginPath();
-  ctx.moveTo(wallStartX, wallStartY);
-  ctx.lineTo(wallCurX, wallCurY);
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
 }
 
+function _rulerFlatDist(x1, y1, x2, y2) {
+  if (BOARD.projection !== 'iso') return { dx: x2 - x1, dy: y2 - y1 };
+  const u1 = unprojectPoint(x1, y1);
+  const u2 = unprojectPoint(x2, y2);
+  return { dx: u2.x - u1.x, dy: u2.y - u1.y };
+}
+
 function drawRulerPreview(ctx) {
   if (!BOARD.rulerActive) return;
   const { rulerStartX, rulerStartY, rulerEndX, rulerEndY, rulerMode, gridSize, gridScaleVal, gridScaleUnit, zoom } = BOARD;
-  const dx = rulerEndX - rulerStartX;
-  const dy = rulerEndY - rulerStartY;
+  const f = _rulerFlatDist(rulerStartX, rulerStartY, rulerEndX, rulerEndY);
+  const dx = f.dx, dy = f.dy;
   const D = Math.hypot(dx, dy);
   if (D < 2) return;
 
@@ -11991,7 +12293,6 @@ function drawRulerPreview(ctx) {
   ctx.lineWidth = 3 / zoom;
 
   if (rulerMode === 'circle') {
-    // Circle/Raio Mode
     ctx.setLineDash([6 / zoom, 4 / zoom]);
     ctx.fillStyle = 'rgba(0, 191, 255, 0.12)';
     ctx.beginPath();
@@ -12004,7 +12305,6 @@ function drawRulerPreview(ctx) {
     ctx.lineTo(rulerEndX, rulerEndY);
     ctx.stroke();
   } else {
-    // Line Mode
     ctx.beginPath();
     ctx.moveTo(rulerStartX, rulerStartY);
     ctx.lineTo(rulerEndX, rulerEndY);
@@ -12049,6 +12349,22 @@ function drawRulerPreview(ctx) {
 }
 
 // ── Régua com Waypoints ──
+function _wayFlatDist(p1, p2) {
+  if (BOARD.projection !== 'iso') return { dx: p2.x - p1.x, dy: p2.y - p1.y };
+  const u1 = unprojectPoint(p1.x, p1.y);
+  const u2 = unprojectPoint(p2.x, p2.y);
+  return { dx: u2.x - u1.x, dy: u2.y - u1.y };
+}
+
+function _wayCells(dx, dy, gridSize) {
+  if (BOARD.gridType === 'hex') return Math.hypot(dx, dy) / gridSize;
+  const gridDx = Math.round(Math.abs(dx) / gridSize);
+  const gridDy = Math.round(Math.abs(dy) / gridSize);
+  if (BOARD.distanceMode === 'euclidean') return Math.hypot(dx, dy) / gridSize;
+  if (BOARD.distanceMode === 'double_diagonal') return Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
+  return Math.max(gridDx, gridDy);
+}
+
 function drawWayRulerPreview(ctx) {
   const pts = BOARD.wayRulerPoints;
   if (!pts || !pts.length) return;
@@ -12061,27 +12377,10 @@ function drawWayRulerPreview(ctx) {
   ctx.fillStyle = col;
   ctx.setLineDash([]);
 
-  // Linhas entre waypoints fixos
   let totalDist = 0;
   for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i].x - pts[i - 1].x;
-    const dy = pts[i].y - pts[i - 1].y;
-    
-    let cells;
-    if (BOARD.gridType === 'hex') {
-      cells = Math.hypot(dx, dy) / gridSize;
-    } else {
-      const gridDx = Math.round(Math.abs(dx) / gridSize);
-      const gridDy = Math.round(Math.abs(dy) / gridSize);
-      if (BOARD.distanceMode === 'euclidean') {
-        cells = Math.hypot(dx, dy) / gridSize;
-      } else if (BOARD.distanceMode === 'double_diagonal') {
-        cells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
-      } else {
-        cells = Math.max(gridDx, gridDy);
-      }
-    }
-    
+    const f = _wayFlatDist(pts[i - 1], pts[i]);
+    const cells = _wayCells(f.dx, f.dy, gridSize);
     totalDist += cells;
 
     const val = cells * gridScaleVal;
@@ -12092,7 +12391,6 @@ function drawWayRulerPreview(ctx) {
     ctx.lineTo(pts[i].x, pts[i].y);
     ctx.stroke();
 
-    // Label da distância de cada segmento
     const mx = (pts[i - 1].x + pts[i].x) / 2;
     const my = (pts[i - 1].y + pts[i].y) / 2;
     ctx.font = `${Math.max(11, 13 / zoom)}px 'Cinzel', sans-serif`;
@@ -12120,39 +12418,25 @@ function drawWayRulerPreview(ctx) {
   // Linha pontilhada para o preview (último ponto → mouse)
   if (BOARD.wayRulerActive && pts.length > 0) {
     const lastPt = pts[pts.length - 1];
-    const dx = BOARD.wayRulerTempX - lastPt.x;
-    const dy = BOARD.wayRulerTempY - lastPt.y;
+    const tempPt = { x: BOARD.wayRulerTempX, y: BOARD.wayRulerTempY };
+    const f = _wayFlatDist(lastPt, tempPt);
     
     ctx.setLineDash([4 / zoom, 4 / zoom]);
     ctx.strokeStyle = 'rgba(255,170,68,0.5)';
     ctx.lineWidth = 1.5 / zoom;
     ctx.beginPath();
     ctx.moveTo(lastPt.x, lastPt.y);
-    ctx.lineTo(BOARD.wayRulerTempX, BOARD.wayRulerTempY);
+    ctx.lineTo(tempPt.x, tempPt.y);
     ctx.stroke();
     ctx.setLineDash([]);
     
-    // Label da distância do segmento atual (preview)
-    let tempCells;
-    if (BOARD.gridType === 'hex') {
-      tempCells = Math.hypot(dx, dy) / gridSize;
-    } else {
-      const gridDx = Math.round(Math.abs(dx) / gridSize);
-      const gridDy = Math.round(Math.abs(dy) / gridSize);
-      if (BOARD.distanceMode === 'euclidean') {
-        tempCells = Math.hypot(dx, dy) / gridSize;
-      } else if (BOARD.distanceMode === 'double_diagonal') {
-        tempCells = Math.max(gridDx, gridDy) + Math.min(gridDx, gridDy);
-      } else {
-        tempCells = Math.max(gridDx, gridDy);
-      }
-    }
+    const tempCells = _wayCells(f.dx, f.dy, gridSize);
     
     if (tempCells > 0) {
       const val = tempCells * gridScaleVal;
       const label = '+' + val.toFixed(1) + ' ' + (gridScaleUnit || 'm');
-      const mx = (lastPt.x + BOARD.wayRulerTempX) / 2;
-      const my = (lastPt.y + BOARD.wayRulerTempY) / 2;
+      const mx = (lastPt.x + tempPt.x) / 2;
+      const my = (lastPt.y + tempPt.y) / 2;
       
       ctx.font = `${Math.max(11, 13 / zoom)}px 'Cinzel', sans-serif`;
       const tw = ctx.measureText(label).width;
@@ -12175,7 +12459,6 @@ function drawWayRulerPreview(ctx) {
       ctx.textBaseline = 'middle';
       ctx.fillText(label, mx, my);
       
-      // Add temp distance to totalDist for the final label preview
       totalDist += tempCells;
     }
   }
@@ -12191,7 +12474,6 @@ function drawWayRulerPreview(ctx) {
     ctx.stroke();
   }
 
-  // Distância total
   if (totalDist > 0) {
     const totalVal = totalDist * gridScaleVal;
     const totalLabel = 'Total: ' + totalVal.toFixed(1) + ' ' + (gridScaleUnit || 'm');
@@ -12241,18 +12523,44 @@ function drawFogRectPreview(ctx) {
 
   ctx.save();
   if (BOARD.tool === 'reveal') {
-    ctx.fillStyle = 'rgba(76, 175, 80, 0.25)'; // Light green tint for reveal
+    ctx.fillStyle = 'rgba(76, 175, 80, 0.25)';
     ctx.strokeStyle = '#4CAF50';
   } else {
-    ctx.fillStyle = 'rgba(244, 67, 54, 0.25)'; // Light red tint for fog/hide
+    ctx.fillStyle = 'rgba(244, 67, 54, 0.25)';
     ctx.strokeStyle = '#F44336';
   }
-  ctx.fillRect(minX, minY, w, h);
 
   ctx.lineWidth = 2 / BOARD.zoom;
   ctx.setLineDash([6 / BOARD.zoom, 4 / BOARD.zoom]);
-  ctx.strokeRect(minX, minY, w, h);
+  if (BOARD.projection === 'iso') {
+    const c1 = projectPoint(minX, minY);
+    const c2 = projectPoint(maxX, minY);
+    const c3 = projectPoint(maxX, maxY);
+    const c4 = projectPoint(minX, maxY);
+    ctx.beginPath();
+    ctx.moveTo(c1.x, c1.y);
+    ctx.lineTo(c2.x, c2.y);
+    ctx.lineTo(c3.x, c3.y);
+    ctx.lineTo(c4.x, c4.y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    ctx.fillRect(minX, minY, w, h);
+    ctx.strokeRect(minX, minY, w, h);
+  }
   ctx.restore();
+}
+
+function _drawFogTile(ctx, gx, gy, gs) {
+  if (BOARD.projection === 'iso') {
+    const c = projectTileCorners(gx, gy);
+    ctx.moveTo(c[0].x, c[0].y);
+    for (let i = 1; i < 4; i++) ctx.lineTo(c[i].x, c[i].y);
+    ctx.closePath();
+  } else {
+    ctx.rect(gx * gs, gy * gs, gs, gs);
+  }
 }
 
 function drawFog(ctx, W, H) {
@@ -12267,14 +12575,16 @@ function drawFog(ctx, W, H) {
 
   ctx.save();
   ctx.fillStyle = 'rgba(10,8,6,0.82)';
+  ctx.beginPath();
   for (let gx = x0; gx <= x1; gx++) {
     for (let gy = y0; gy <= y1; gy++) {
       const key = f === 0 ? `${gx},${gy}` : `${f}:${gx},${gy}`;
       if (!BOARD.fogVisible.has(key)) {
-        ctx.fillRect(gx * gs, gy * gs, gs, gs);
+        _drawFogTile(ctx, gx, gy, gs);
       }
     }
   }
+  ctx.fill();
   ctx.restore();
 }
 
@@ -12459,8 +12769,9 @@ function drawToken(ctx, t, isDragging, isHovered) {
   const sizeW = (t.sizeX || t.size || 1) * gs;
   const sizeH = (t.sizeY || t.size || 1) * gs;
   const pos = tokenWorldPos(t.gx, t.gy);
+  const floorElev = BOARD.projection === 'iso' ? isoElevation(getFloorFromZ(t.z)) : 0;
   const px = pos.x;
-  const py = pos.y;
+  const py = pos.y - floorElev;
   const rX = isObject ? sizeW / 2 : sizeW * 0.42;
   const rY = isObject ? sizeH / 2 : sizeH * 0.42;
 
@@ -12468,6 +12779,27 @@ function drawToken(ctx, t, isDragging, isHovered) {
 
   if (layer === 'gm') {
     ctx.globalAlpha = 0.5;
+  }
+
+  // Sombra projetada no modo isométrico
+  if (BOARD.projection === 'iso' && floorElev > 1) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 0.5 / BOARD.zoom;
+    if (isObject) {
+      const shw = sizeW * ISO_RATIO * 0.9;
+      const shh = sizeH * ISO_RATIO * ISO_RATIO * 0.9;
+      ctx.beginPath();
+      ctx.ellipse(pos.x, pos.y, shw / 2, shh / 2, 0, 0, Math.PI * 2);
+    } else {
+      const sr = Math.max(rX, rY) * ISO_RATIO * 0.9;
+      ctx.beginPath();
+      ctx.ellipse(pos.x, pos.y, sr, sr * ISO_RATIO, 0, 0, Math.PI * 2);
+    }
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
 
   const halfW = rX;
@@ -12558,31 +12890,24 @@ function drawToken(ctx, t, isDragging, isHovered) {
       ctx.save();
       // Clip ao bounding box do objeto para o overlay não vazar
       ctx.beginPath();
-      ctx.rect(t.gx * gs, t.gy * gs, spanX * gs, spanY * gs);
+      if (BOARD.projection === 'iso') {
+        const c0 = projectPoint(t.gx * gs, t.gy * gs);
+        const c1 = projectPoint((t.gx + spanX) * gs, t.gy * gs);
+        const c2 = projectPoint((t.gx + spanX) * gs, (t.gy + spanY) * gs);
+        const c3 = projectPoint(t.gx * gs, (t.gy + spanY) * gs);
+        ctx.moveTo(c0.x, c0.y);
+        ctx.lineTo(c1.x, c1.y);
+        ctx.lineTo(c2.x, c2.y);
+        ctx.lineTo(c3.x, c3.y);
+        ctx.closePath();
+      } else {
+        ctx.rect(t.gx * gs, t.gy * gs, spanX * gs, spanY * gs);
+      }
       ctx.clip();
 
-      // Primeira passagem: célula sólidas (não visíveis e não na borda)
       ctx.filter = 'none';
-      for (let dx = 0; dx < spanX; dx++) {
-        for (let dy = 0; dy < spanY; dy++) {
-          const cellGx = t.gx + dx;
-          const cellGy = t.gy + dy;
-          if (BOARD.fogVisible.has(fogKey(cellGx, cellGy))) continue; // já visível
-          // Verificar se é célula de borda (adjacent a uma célula visível)
-          const isBoundary =
-            BOARD.fogVisible.has(fogKey(cellGx - 1, cellGy)) ||
-            BOARD.fogVisible.has(fogKey(cellGx + 1, cellGy)) ||
-            BOARD.fogVisible.has(fogKey(cellGx, cellGy - 1)) ||
-            BOARD.fogVisible.has(fogKey(cellGx, cellGy + 1));
-          if (!isBoundary) {
-            ctx.fillStyle = 'rgba(10,8,6,0.92)';
-            ctx.fillRect(cellGx * gs, cellGy * gs, gs, gs);
-          }
-        }
-      }
-
-      // Segunda passagem: células de borda com blur para fade suave
-      ctx.filter = `blur(${Math.max(4, gs * 0.35)}px)`;
+      ctx.fillStyle = 'rgba(10,8,6,0.92)';
+      ctx.beginPath();
       for (let dx = 0; dx < spanX; dx++) {
         for (let dy = 0; dy < spanY; dy++) {
           const cellGx = t.gx + dx;
@@ -12593,13 +12918,39 @@ function drawToken(ctx, t, isDragging, isHovered) {
             BOARD.fogVisible.has(fogKey(cellGx + 1, cellGy)) ||
             BOARD.fogVisible.has(fogKey(cellGx, cellGy - 1)) ||
             BOARD.fogVisible.has(fogKey(cellGx, cellGy + 1));
-          if (isBoundary) {
-            ctx.fillStyle = 'rgba(10,8,6,0.88)';
-            ctx.fillRect(cellGx * gs - gs * 0.5, cellGy * gs - gs * 0.5, gs * 2, gs * 2);
+          if (BOARD.projection === 'iso') {
+            if (isBoundary) continue; // skip boundary in iso (simplified)
+            _drawFogTile(ctx, cellGx, cellGy, gs);
+          } else if (!isBoundary) {
+            ctx.rect(cellGx * gs, cellGy * gs, gs, gs);
           }
         }
       }
-      ctx.filter = 'none';
+      ctx.fill();
+
+      // Segunda passagem (apenas 2D): células de borda com blur para fade suave
+      if (BOARD.projection !== 'iso') {
+        ctx.filter = `blur(${Math.max(4, gs * 0.35)}px)`;
+        ctx.fillStyle = 'rgba(10,8,6,0.88)';
+        ctx.beginPath();
+        for (let dx = 0; dx < spanX; dx++) {
+          for (let dy = 0; dy < spanY; dy++) {
+            const cellGx = t.gx + dx;
+            const cellGy = t.gy + dy;
+            if (BOARD.fogVisible.has(fogKey(cellGx, cellGy))) continue;
+            const isBoundary =
+              BOARD.fogVisible.has(fogKey(cellGx - 1, cellGy)) ||
+              BOARD.fogVisible.has(fogKey(cellGx + 1, cellGy)) ||
+              BOARD.fogVisible.has(fogKey(cellGx, cellGy - 1)) ||
+              BOARD.fogVisible.has(fogKey(cellGx, cellGy + 1));
+            if (isBoundary) {
+              ctx.rect(cellGx * gs - gs * 0.5, cellGy * gs - gs * 0.5, gs * 2, gs * 2);
+            }
+          }
+        }
+        ctx.fill();
+        ctx.filter = 'none';
+      }
       ctx.restore();
     }
     ctx.restore();
@@ -12917,6 +13268,13 @@ function drawTokenMovementPath(ctx, t) {
 
   const start = getTokenCenter(t, startGx, startGy);
   const end = getTokenCenter(t, t.gx, t.gy);
+
+  // Aplicar elevação iso
+  if (BOARD.projection === 'iso') {
+    const elev = isoElevation(getFloorFromZ(t.z));
+    start.y -= elev;
+    end.y -= elev;
+  }
 
   const dx = end.x - start.x;
   const dy = end.y - start.y;
@@ -14837,6 +15195,7 @@ function saveCurrentBoardToActiveScene() {
   activeScene.gridType = BOARD.gridType;
   activeScene.distanceMode = BOARD.distanceMode;
   activeScene.lightingType = BOARD.lightingType;
+  activeScene.projection = BOARD.projection || '2d';
   activeScene.mapDataUrl = BOARD.mapDataUrl;
   activeScene.mapX = BOARD.mapX || 0;
   activeScene.mapY = BOARD.mapY || 0;
@@ -14899,6 +15258,12 @@ function loadSceneIntoBoard(scene) {
   if (scene.lightingType !== undefined) {
     BOARD.lightingType = scene.lightingType;
     if (typeof _syncWeatherSelect === 'function') _syncWeatherSelect();
+  }
+  BOARD.projection = scene.projection || '2d';
+  const isoBtn = document.getElementById('btnToggleProjection');
+  if (isoBtn) {
+    isoBtn.textContent = BOARD.projection === 'iso' ? '🔷 2.5D' : '🔲 2D';
+    isoBtn.classList.toggle('active', BOARD.projection === 'iso');
   }
   
   if (scene.fogManual && scene.fogVisible) {
@@ -15624,7 +15989,8 @@ function syncBoardToPlayers() {
     gridScaleUnit: BOARD.gridScaleUnit,
     gridType: BOARD.gridType,
     distanceMode: BOARD.distanceMode,
-    lightingType: BOARD.lightingType
+    lightingType: BOARD.lightingType,
+    projection: BOARD.projection || '2d'
   }, null);
   const notify = { type: 'combat-sync-notify', text: 'Mestre sincronizou o tabuleiro.' };
   broadcast(notify, null); addMsg(notify);
@@ -15805,6 +16171,14 @@ function receberBoardSync(data) {
   if (data.gridType !== undefined) BOARD.gridType = data.gridType;
   if (data.lightingType !== undefined) { BOARD.lightingType = data.lightingType; _syncWeatherSelect(); _applyWeatherParticles(); }
   if (data.distanceMode !== undefined) BOARD.distanceMode = data.distanceMode;
+  if (data.projection !== undefined) {
+    BOARD.projection = data.projection;
+    const isoBtn = document.getElementById('btnToggleProjection');
+    if (isoBtn) {
+      isoBtn.textContent = BOARD.projection === 'iso' ? '🔷 2.5D' : '🔲 2D';
+      isoBtn.classList.toggle('active', BOARD.projection === 'iso');
+    }
+  }
   setTimeout(atualizarFogJogador, 50);
   boardRender();
   setTimeout(applyPlayerConditionEffects, 80);
