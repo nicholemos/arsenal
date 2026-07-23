@@ -8826,7 +8826,7 @@ const powersData = [
         category: "Geral",
         source: "herois",
         req: "-",
-        desc: "Escolha uma classe. Você pode escolher poderes dessa classe como se pertencesse a ela (considere seu nível -4)."
+        desc: "Escolha uma classe. Você pode escolher um poder dessa classe como se pertencesse a ela (considere seu nível -4)."
     },
     {
         name: "Andarilho Urbano",
