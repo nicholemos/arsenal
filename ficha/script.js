@@ -1704,8 +1704,17 @@ function clearSheet() {
 
 function exportSheet() {
     saveData();
-    const data = localStorage.getItem('t20SheetData');
-    const blob = new Blob([data], { type: 'application/json' });
+    const data = JSON.parse(localStorage.getItem('t20SheetData'));
+
+    // Inclui a imagem do personagem (se houver) no backup
+    const savedImage = localStorage.getItem('charImage');
+    const savedPos = localStorage.getItem('charImagePos');
+    if (savedImage) {
+        data.charImage = savedImage;
+        data.charImagePos = savedPos || '50% 50%';
+    }
+
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1723,6 +1732,19 @@ function importSheet(input) {
         reader.onload = function (e) {
             try {
                 const data = JSON.parse(e.target.result);
+
+                // Imagem do personagem: restaura se veio no backup,
+                // senão apaga a que possa estar salva no localStorage
+                if (data.charImage) {
+                    localStorage.setItem('charImage', data.charImage);
+                    localStorage.setItem('charImagePos', data.charImagePos || '50% 50%');
+                } else {
+                    localStorage.removeItem('charImage');
+                    localStorage.removeItem('charImagePos');
+                }
+                delete data.charImage;
+                delete data.charImagePos;
+
                 localStorage.setItem('t20SheetData', JSON.stringify(data));
                 window.location.reload();
             } catch (error) {
