@@ -209,7 +209,7 @@ const enchantmentosData = {
             "espacos": "—",
             "categoria": "encantamento",
             "tipo": "Arma",
-            "descricao": "Encantamento que causa +1d8 de dano de trevas. Uma vez por rodada, quando ataca, pode gastar 2 PM para aumentar o dano para +2d8, mas sofre 1d8 de dano."
+            "descricao": "Encantamento que causa +1d8 de dano de trevas. Uma vez por rodada, quando ataca, pode gastar 2 PM para aumentar o dano para +2d8, mas perde 1d8 pvs."
         },
         {
             "nome": "Encanto Veloz",
