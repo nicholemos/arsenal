@@ -460,6 +460,33 @@ footer hr {
   margin-right: auto;
 }
 
+/* ===== JDA WARNING ===== */
+.jda-warning {
+  background-color: var(--bg-card);
+  border: 1px solid var(--gold-primary);
+  border-left: 4px solid var(--gold-primary);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 1rem 0 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+.jda-warning p {
+  color: var(--text-color);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0.3rem 0;
+}
+
+.jda-warning p:first-child {
+  margin-top: 0;
+}
+
+.jda-warning strong {
+  color: var(--gold-primary);
+}
+
 /* ===== STICKY TEXT (ERRO/AVISO) ===== */
 #sticky-text {
   background-color: var(--bg-card);

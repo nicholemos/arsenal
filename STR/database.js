@@ -1,5 +1,115 @@
 const DATABASE = [
   {
+    "id": "db229",
+    "label": "DB 229 (Jul/26)",
+    "artigos": [
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "combate",
+          "regras",
+          "manobras"
+        ],
+        "pergunta": "Olá, juízes do Supremo! Gostaria de sanar algumas dúvidas a respeito do STR de maio.<br>Se compreendi bem a última resposta do STR a outro colega conselheiro, resistir a uma manobra não é considerado exatamente atacar um inimigo. Então se um inimigo, com camuflagem ou com armadura de matéria vermelha ou com o efeito da magia piscar, faz uma manobra contra mim, eu não terei chance de falha quando for resistir à manobra?<br>Outra questão, ainda sobre o STR de maio. Por que é irrelevante que uma criatura agarre um alvo mais de uma vez? Não existe a possibilidade de um mesmo atacante agarrar uma criatura com 2 ou mais membros, forçando a criatura a se soltar de um membro por vez?",
+        "conselheiro": "— Cons. Sr.prefeito",
+        "resposta": "Saudações elucidadas, conselheiro! Um teste de manobra continua sendo um teste de ataque, sujeito a todos os redutores relacionados a ele. A resposta no STR anterior explicita que resistir a um teste de manobra não conta como um ataque para os propósitos de interromper a habilidade Duelo de um cavaleiro, não para outros critérios.<br>Sobre manobras agarrar, não há nenhuma vantagem para um atacante tentar agarrar uma criatura mais de uma vez. Ou a criatura está agarrada por um alvo ou não está. Quando passa em seu teste para se soltar, deixa de estar agarrada pela criatura da qual tentou se soltar. Por isso, é irrelevante."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "magia",
+          "regras",
+          "iluminacao"
+        ],
+        "pergunta": "Prezados juízes! Trago-lhes algumas dúvidas de exímia importância sobre as regras de iluminação e a linha de visão de um conjurador em Tormenta20.<br>Imaginemos o seguinte cenário: um mago humano, sem nenhum tipo de visão especial, está em um ambiente de escuridão leve (penumbra). Dado tal fato, pergunto: ele consegue enxergar e estabelecer linha de visão com os alvos nesse ambiente? Existe alguma distância máxima limitando essa percepção em metros, ou enxerga até onde o alcance da magia permitir? Existe alguma penalidade geral para lançar magias na penumbra? Camuflagem leve se aplica apenas a efeitos que exigem testes de ataque? Magias que exigem apenas testes de resistência do alvo sofrem alguma penalidade? E quanto a magias de área?",
+        "conselheiro": "— Cons. Lunatis",
+        "resposta": "Saudações obscuras, conselheiro! Essa é uma questão mais fácil do que parece. Escuridão leve não bloqueia linha de visão, mesmo sem nenhuma forma de visão especial. Não há diferença no alcance do que o personagem vê, portanto nenhuma mudança no alcance normal de suas magias. Também não há penalidade por lançar magias na penumbra. E sim, camuflagem afeta apenas efeitos que tenham testes de ataque. Magias que usem testes de resistência, sejam de área ou não, passam incólumes pela penumbra."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "combate",
+          "regras"
+        ],
+        "pergunta": "Saudações, lustrosos ministros das regras, guardiões dos sagrados textos regrísticos!<br>Estou com uma dúvida sobre investida. Como bem sabemos, para realizar uma ação de investida, você deve se locomover uma distância até o dobro de seu deslocamento e realizar um ataque contra uma criatura em seu alcance. Porém, caso você seja um centauro, seu alcance natural é de 3m e, caso utilize uma arma alongada, esse alcance aumenta para 6m. Dito isso, um centauro poderia fazer uma investida para trás (se afastando de um inimigo) e mesmo assim acertá-lo?",
+        "conselheiro": "— Cons. Lídia, Disléxica de Lena",
+        "resposta": "Saudações agressivas, conselheira! Não. A descrição de investida é bem clara: você avança até o dobro do seu deslocamento em linha reta antes de qualquer outra coisa. Se afastar de um inimigo não é avançar."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "itens",
+          "classes",
+          "regras",
+          "magia"
+        ],
+        "pergunta": "Saudações, meus queridos! Encantos fornecidos pelas emulsões do alquimista e pelo poder Implante Exclusivo da distinção Cobaia dos Médicos Monstruosos são considerados mágicos para efeitos que anulem efeitos mágicos, tenham resistência mágica ou para o poder Ao Sabor do Destino?",
+        "conselheiro": "— Cons. Samkim Aura Monster",
+        "resposta": "Saudações anuladas, conselheiro! Uma emulsão em si não é um item mágico, mas concede explicitamente propriedades mágicas. Um encanto advindo de uma emulsão pode ser anulado por 1d6 rodadas com Dissipar Magia, por exemplo. O mesmo vale para Implante Exclusivo; o poder em si não é mágico, mas os encantos gerados continuam usando as regras gerais para encantos, sendo inerentemente mágicos."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "combate",
+          "regras",
+          "classes",
+          "racas",
+          "magia"
+        ],
+        "pergunta": "Saudações, grande tribunal! Por conta das seguintes perguntas, um certo grupo de aventureiros começou um conflito em escala regional em Valkaria, destruindo 10% da cidade. Desta forma, trago-as ao conhecimento de vossas excelências no intuito de obter respostas antes que as coisas piorem!<br>I. Algumas armas naturais de garra, como as obtidas por moreau da Herança do Gato, funcionam com habilidades que exigem uma arma secundária. Essas garras podem ser usadas com Estilo de Duas Armas para fazer dois ataques com garra ou precisa haver uma arma empunhada?<br>II. Ainda sobre as garras, elas podem ser usadas com habilidades de caçador que exigem duas armas empunhadas, como Bote?<br>III. Se um místico (DB 199) tiver Herança Dracônica Aprimorada (fogo), lançar Toque Chocante e utilizar afinidade para mudar o dano para fogo, poderia aplicar os efeitos da Herança Dracônica à magia?<br>IV. A habilidade Sopro de Dragão dos kallyanach é afetada por poderes como Poder Sem Limites ou Magia Ilimitada? E se o kallyanach for um feiticeiro dracônico?<br>V. Poder Sem Limites funcionaria com o Ataque Elemental do místico?<br>VI. Se um guerreiro mágico lançar uma magia de 2º círculo como ação livre (seja com Preparação Veloz ou Magia Acelerada) e logo em seguida lançar outra magia de 1º círculo, seja com ação padrão ou de movimento, qual seria o bônus concedido pelo poder Fogo e Aço?",
+        "conselheiro": "— Cons. Renan da Justa",
+        "resposta": "Saudações vorazes, conselheiro! Que os Escamas Vivas não nos ouçam, pois temos as suas respostas:<br>I. Como o moreau do gato e similares têm duas armas naturais e cada uma delas pode servir como uma arma secundária, ele pode usar Estilo de Duas Armas com as garras.<br>II. Sim, pelos mesmos motivos.<br>III. Sim. A versão final da classe místico, porém, não terá essa habilidade de conversão.<br>IV. Poder Sem Limites afeta o Sopro de Dragão de qualquer kallyanach e sua CD será determinada por Constituição ou Carisma, à sua escolha, com +2 por Poder Ilimitado.<br>V. Sim. Essa habilidade será renomeada para Combate Elemental em uma versão futura.<br>VI. Fogo e Aço dura até o final do turno. Se várias magias são lançadas ao longo desse turno, o bônus mais alto é aplicado. No exemplo, o bônus seria +2. Visualize dessa forma: um guerreiro mágico lança Erupção Glacial como ação livre, com Acelerar Magia, para eliminar um grupo de inimigos. Um destes inimigos prepara uma ação e dispara uma flecha contra o guerreiro mágico, que lança Salto Dimensional como reação para desviar dela. O inimigo sobrevive. Com sua ação de movimento, nosso conjurador do exemplo lança Primor Atlético para se aproximar e obter os bônus de investida em seu próximo ataque. Ele lança, então, Toque Chocante com um aprimoramento para fazer um ataque. Este ataque receberá +2 no teste de ataque e causará um dado adicional de dano por Primor Atlético, além de receber +3 no dano por Fogo e Aço. O guerreiro mágico lançou quatro magias, sendo uma de 3º círculo, uma de 2º círculo e duas de 1º círculo. Prevalece o maior bônus, de Erupção Glacial."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "magia",
+          "regras"
+        ],
+        "pergunta": "Saudações, tribunal! Se eu estiver usando as regras opcionais de ataques localizados e tentar cortar o rabo de um humano transformado em trog com Disfarce Ilusório, o que acontece? Um devoto de Tenebra pode se proteger da luz de Azgher com essa mesma magia ou o pai severo vê tudo?",
+        "conselheiro": "— Cons. Mercos",
+        "resposta": "Saudações esquivas, conselheiro! Perceba que Disfarce Ilusório não é uma transformação, apenas uma ilusão! Você não pode cortar o que não está lá. Dessa forma, o ataque não teria efeito, o que pode ser uma dica de que a criatura não é o que parece. Quanto ao devoto de Tenebra, o disfarce não o protegeria da luz de Azgher… mas ele devia estar mais preocupado com Tenebra vendo isso e punindo-o com a perda de todos os PM!"
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "combate",
+          "regras",
+          "ameacas"
+        ],
+        "pergunta": "Prezados senhores da corte RPGística. Tenho uma dúvida simples em essência, mas que levanta questionamentos. Se a arma empunhada por uma ameaça for quebrada, como ficam seus ataques? Há alguma redução?",
+        "conselheiro": "— Cons. paladinoazul2k5",
+        "resposta": "Saudações partidas, conselheiro! Uma ameaça desarmada pode tentar atacar com ataques desarmados, usando as regras normais, caso não tenha outra arma disponível. Também pode usar manobras de desarmar para tomar a arma de um inimigo. Os ataques usam o mesmo valor do ataque com a arma padrão, mas o dano deve ser recalculado, usando os dados de dano adequados à arma em questão. Um ataque desarmado causa 1d3 pontos de dano, ajustados pelo tamanho, mais o mesmo bônus estático de dano usado pelo ataque principal, sem contar bônus e dados extras de dano específicos da arma.<br>Lembre-se de que quebrar uma arma é difícil: ameaças costumam ter bônus de ataque mais altos que os aventureiros, além de que uma arma quebrada é uma arma a menos recebida como tesouro. Portanto, quebrar armas precisa conceder vantagens significativas! Você pode ler mais sobre a remoção de equipamentos de ameaças em Ameaças de Arton, página 374."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "itens",
+          "magia",
+          "regras"
+        ],
+        "pergunta": "Prezadíssimos membros desse tribunal, peço-lhes ajuda para mediar as disputas de interpretação entre os devotos do Culto à Bola de Fogo e os membros da Guilda da Espadinha.<br>I. Efeitos que aumentam o dano em um dado, como o cetro elemental, se acumulam com efeitos que adicionam um dado de dano, como do catalisador baga-de-fogo e da melhoria energético?<br>II. Por extensão, efeitos que adicionam especificações ou condicionantes, como o do casaco longo, são distintos o suficiente para serem considerados efeitos diferentes para fins de acúmulo?",
+        "conselheiro": "— Cons. Kaezzaar",
+        "resposta": "Saudações dualísticas, conselheiro!<br>I. Não; neste caso, todos os efeitos fornecem \"dados extras de fogo\" de fonte \"item\", o que não é cumulativo (Tormenta20, página 226). Mas note que é possível melhorar sua Bola de Fogo usando um cetro elemental em conjunto com o catalisador terra de cemitério, pois nesse caso os efeitos seriam diferentes (um dado extra de fogo e outro de trevas).<br>II. Não, pois o bônus do casaco longo ainda é um bônus em um teste de Fortitude (ele é adicionado somente em um caso específico)."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "classes",
+          "regras",
+          "combate",
+          "magia",
+          "itens",
+          "racas",
+          "distincao"
+        ],
+        "pergunta": "Saudações, ministros! Vamos fazer algumas perguntas interessantes:<br>I. O que acontece quando um personagem multiclasse obtém um nível de machado de pedra, a variante de bárbaro presente em Heróis de Arton? E quando o machado de pedra se torna, ele mesmo, multiclasse? O personagem aprende e/ou desaprende a falar?<br>II. Redirecionar Destino, um poder concedido de Thyatis apresentado em Deuses de Arton, permite alterar o valor do dado rolado. Se um 20 natural for redirecionado, o que acontece?<br>III. A melhoria devotado (Deuses de Arton) pode ser aplicada a um símbolo sagrado, já que seu pré-requisito é a melhoria inscrito, que transforma o objeto em um símbolo sagrado?<br>IV. Os itens bainha mágica e fragmento de filactério são itens vestidos?<br>V. É possível escolher 0 em testes de perícia durante um combate? Para se esconder, por exemplo.<br>VI. Como funcionam as magias de um usurpador com a origem Duplo Feérico, escolhendo a linhagem abençoada do feiticeiro como seu poder da origem? Ele recebe magia divina e arcana, simplesmente aprende magias arcanas e sabe todas as divinas?<br>VII. Como a magia Sigilo de Sszzaas interage com fintas em combate e com o poder Sombra Espreitadora, da distinção sombra de Tenebra?<br>VIII. Se tenho efeitos iguais da mesma fonte para um mesmo propósito, mas de forma diferente, eles se acumulam? Por exemplo, um parceiro que conceda +2 em testes de perícia e outro que conceda +2 em testes de ataque.<br>IX. Um devoto de Tenebra com o poder Visão nas Trevas consegue enxergar através de escuridão de espaços de masmorra?",
+        "conselheiro": "— Cons. Aguiar Bryan",
+        "resposta": "Saudações ministeriais, conselheiro! Vamos às suas respostas:<br>I. Dado o que um machado de pedra é, cabe relembrar o que o FAQ diz na página 8: um personagem pode escolher qualquer classe ao subir de nível, mas sugerimos conversar com o mestre antecipadamente no caso de combinações que tenham reflexos diretos na campanha (dessa forma, vocês podem fazer a transição narrativa mais facilmente, talvez inserindo um período em que o personagem viva em uma tribo ou um ritual mágico que o transforme). Isto posto, um machado de pedra multiclasse ainda usa a habilidade Grunhidos exatamente como um de classe única. Isso quer dizer que um personagem que se torna um bárbaro machado de pedra depois do 1º nível perde sua habilidade de falar normalmente e um machado de pedra que faça multiclasse não só continua incapaz de falar como não amplia seu vocabulário, uma vez que ele só é expandido com níveis de machado de pedra!<br>II. Para todos os efeitos, o resultado do d20 é substituído pelo último resultado anotado com este poder. Digamos que começa o dia, o devoto de Thyatis rola 1 e anota esse resultado. Ao longo do dia, o devoto é atacado por um ogro. Quando o ogro faz o teste, o devoto usa Redirecionar Destino. O ogro ainda faz seu teste, mas usa o resultado 1 rolado pelo devoto no começo do dia. O resultado do ogro (incluindo um 20 natural) é anotado e pode ser usado pelo devoto para substituir outro teste de uma criatura em alcance curto.<br>III. Pela fria letra da regra, não. Um símbolo sagrado não é um item superior com a melhoria inscrito. Você pode conversar com seu mestre para obter uma exceção mas, como redutores de custo são poderosos, é bem capaz que ele não a conceda!<br>IV. A bainha mágica é um item vestido. O fragmento de filactério deve ser empunhado, como qualquer esotérico, para conceder seus benefícios.<br>V. De forma geral, você sempre pode escolher 0, mesmo que isso resulte em uma falha no teste devido ao resultado (0 + seu modificador no teste) não ser suficiente.<br>VI. Não. Mas há três questões diferentes para abordar sobre isso. Primeiramente, é a habilidade Magias do arcanista que faz com que ele aprenda (inicialmente e ao longo dos níveis) e possa lançar magias arcanas, não a habilidade Caminho do Arcanista - Feiticeiro; esta apenas modifica o aprendizado e outros detalhes do personagem, além de fornecer acesso a uma linhagem. Desta forma, ao usar Duplo Feérico para obter uma dessas habilidades, você receberá apenas os benefícios dela, não de ambas (em suma, terá só Magias ou só a linhagem). Em segundo lugar, suas magias de usurpador não têm nenhuma ligação com suas magias de arcanista (independente de você ter níveis nas duas classes ou a habilidade Magias de arcanista via Duplo Feérico). Portanto, ao usar a habilidade Usurpar para lançar magias, você lança apenas as magias às quais ela dá acesso, não magias de outras classes (mesmo que uma dessas outras magias seja obtida via Duplo Feérico). E, em último lugar, se um usurpador usar Duplo Feérico para obter a linhagem abençoada, desperdiçará sua origem, pois isso não lhe trará nenhum benefício. Isto ocorre porque a magia divina aprendida através da linhagem não poderá ser lançada (pois a linhagem em si não torna o personagem capaz de lançá-la; ela é apenas uma magia adicional que um arcanista normal lança através da habilidade Magias, coisa que o usurpador feérico não tem) e o poder concedido nunca será obtido, pois Duplo Feérico só permite usar Caminho do Arcanista como se tivesse 1 nível naquela classe, e o poder é obtido no 2º nível.<br>VII. Em ambos os casos, embora possa não parecer evidente à primeira vista, o oponente está procurando obter uma informação: a intenção ou posição do atacante. Independente da perícia usada, esses testes sofrem –5 se o atacante estiver sob efeito de Sigilo de Sszzaas.<br>VIII. São bônus diferentes. Digamos que um bardo com o poder Esgrima Mágica tenha dois parceiros: um ajudante (que concede +2 em Atuação) e um combatente (que concede +2 em testes de ataque). Quando tenta impressionar a corte com seu bandolim, ele recebe +2 no teste de perícia devido ao ajudante. Quando tenta atingir um inimigo com seu florete, recebe +2 no teste de ataque devido ao combatente. Sob efeito de inspiração, porém, ele faz testes de ataque usando Atuação, então seu bônus aumenta para +4.<br>IX. Sim. Espaços de masmorra têm escuridão sobrenatural, ou seja, mágica. Visão nas Trevas permite enxergar nesses espaços. Hynnin não ia querer pisar no calo de Tenebra por tão pouco…"
+      }
+    ]
+  },
+  {
     "id": "db228",
     "label": "DB 228 (Jun/26)",
     "artigos": [

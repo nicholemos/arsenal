@@ -13,7 +13,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- RENDERIZA O HTML A PARTIR DO JSON ---
     function renderDatabase() {
-        return DATABASE.map(edition => {
+        let html = '';
+        let passedJda = false;
+        DATABASE.forEach(edition => {
+            const match = edition.id?.match(/db(\d+)/);
+            const isPreJda = match && parseInt(match[1], 10) <= 182;
+
+            if (isPreJda && !passedJda) {
+                passedJda = true;
+                html += `
+                <div class="jda-warning">
+                    <p><strong>Conteúdo anterior ao Jogo do Ano</strong></p>
+                    <p>As edições abaixo são da versão anterior de <strong>Tormenta20</strong>, anteriores ao lançamento do <strong>Jogo do Ano</strong>. Com a publicação da nova edição, estas respostas podem estar desatualizadas.</p>
+                </div>`;
+            }
+
             const articles = edition.artigos.map(art => {
                 const classes = ['article', 'searchable', art.sistema, ...art.tags].join(' ');
                 return `
@@ -24,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>`;
             }).join('\n');
 
-            return `
+            html += `
             <div class="edition" id="${edition.id}" data-label="${edition.label}">
                 <button class="edition-title">
                     <span>${edition.label}</span><span class="icon">▶</span>
@@ -33,7 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${articles}
                 </div>
             </div>`;
-        }).join('\n');
+        });
+        return html;
     }
 
     contentArea.innerHTML = renderDatabase();
@@ -89,10 +104,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const systemValue = filterSistema?.value || 'all';
         const selectedDB  = dbSelector?.value   || 'all';
 
+        const hidePreJda = jdaCheckbox?.checked || false;
+
         document.querySelectorAll('.edition').forEach(edition => {
             if (selectedDB !== 'all' && edition.id !== selectedDB) {
                 edition.style.display = 'none';
                 return;
+            }
+            if (hidePreJda) {
+                const match = edition.id?.match(/db(\d+)/);
+                if (match && parseInt(match[1], 10) <= 182) {
+                    edition.style.display = 'none';
+                    return;
+                }
             }
             edition.style.display = 'block';
 
@@ -118,9 +142,19 @@ document.addEventListener('DOMContentLoaded', function () {
     filterSistema?.addEventListener('change', applyAllFilters);
 
     jdaCheckbox?.addEventListener('change', function () {
-        const alvo = document.getElementById('palavra-marcada');
-        if (!alvo) return;
-        alvo.style.display = this.checked ? 'none' : 'block';
+        document.querySelectorAll('.edition').forEach(edition => {
+            const id = edition.id;
+            if (!id) return;
+            const match = id.match(/db(\d+)/);
+            if (!match) return;
+            const num = parseInt(match[1], 10);
+            if (num <= 182) {
+                edition.dataset.preJda = 'true';
+                edition.style.display = this.checked ? 'none' : '';
+            } else {
+                edition.dataset.preJda = 'false';
+            }
+        });
     });
 
     // --- BOTÃO VOLTAR AO TOPO ---
