@@ -1972,16 +1972,7 @@ const powersData = [
         subType: "ability",
         req: "Nível 1",
         pathReq: "clerigo-base", // EXCLUSIVO PADRÃO (Usurpador tem regra própria)
-        desc: "Lança magias divinas (Atributo: Sabedoria). Começa com 3 magias de 1º círculo. A cada nível, aprende uma nova magia."
-    },
-    {
-        name: "Novos Círculos",
-        type: "class",
-        class: "clerigo",
-        subType: "ability",
-        req: "Níveis 5, 9, 13 e 17",
-        pathReq: "all", // COMPARTILHADA
-        desc: "Acesso a magias de círculos superiores: 2º (Nvl 5), 3º (Nvl 9), 4º (Nvl 13) e 5º (Nvl 17)."
+        desc: "Lança magias divinas (Atributo: Sabedoria). Começa com 3 magias de 1º círculo. A cada nível, aprende uma nova magia. A cada 4 níveis recebe um novo círculo de magia 2º (Nvl 5), 3º (Nvl 9), 4º (Nvl 13) e 5º (Nvl 17)."
     },
     {
         name: "Mão da Divindade",
@@ -2012,7 +2003,7 @@ const powersData = [
         subType: "ability",
         req: "Nível 1 (Substitui Magias)",
         pathReq: "usurpador",
-        desc: "Lança magias divinas (Carisma). Não aprende magias automaticamente (começa com 0).<br><strong>Usurpar:</strong> Pode lançar QUALQUER magia divina do círculo acessível. Exige teste de Enganação (CD 15 + custo PM). Falha: perde a magia e os PM. Penalidade de armadura aplica no teste. -5 se houver símbolo sagrado visível no local."
+        desc: "Lança magias divinas (Carisma). Não aprende magias automaticamente (começa com 0).<br><strong>Usurpar:</strong> Pode lançar QUALQUER magia divina do círculo acessível. Exige teste de Enganação (CD 15 + custo PM). Falha: perde a magia e os PM. Penalidade de armadura aplica no teste. -5 se houver símbolo sagrado visível no local. A cada 4 níveis recebe um novo círculo de magia 2º (Nvl 5), 3º (Nvl 9), 4º (Nvl 13) e 5º (Nvl 17)."
     },
     {
         name: "Canalização Falsa",
@@ -12161,8 +12152,8 @@ const powersData = [
     //outras fontes
     {
         name: "Escolhido dos Deuses",
-        type: "geral",
-        category: "Geral",
+        type: "destiny",
+        category: "destino",
         req: "Origem Criação dos Deuses ou Serviço de Importância",
         desc: "Você recebe a atenção de uma divindade maior. Escolha um deus para receber seus traços e benefícios únicos (JH).",
         variants: [
