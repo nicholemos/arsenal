@@ -4819,3 +4819,262 @@ function selecionarPoderNoBuscador(index) {
         fecharBuscadorPoderes();
     }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ██  BUSCA DE EQUIPAMENTOS INLINE  ██
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _allSearchItems = null;   // Cache da lista unificada
+let _currentItemCategory = 'all';
+
+// Monta a lista unificada de todos os itens dos 4 bancos de dados
+function _buildSearchItemList() {
+    if (_allSearchItems) return _allSearchItems;
+    const items = [];
+
+    // Armas
+    if (typeof armasData !== 'undefined' && armasData.arma) {
+        armasData.arma.forEach(a => {
+            items.push({
+                ...a,
+                _source: 'arma',
+                _badge: a.tipo || 'Arma',
+                _badgeClass: 'badge-arma',
+                _meta: [a.dano, a.critico, a.tipo_dano, a.empunhadura].filter(Boolean).join(' · ')
+            });
+        });
+    }
+
+    // Armaduras e Escudos
+    if (typeof armadurasData !== 'undefined' && armadurasData.armadura) {
+        armadurasData.armadura.forEach(a => {
+            const isShield = (a.categoria || '').toLowerCase().includes('escudo') ||
+                             (a.tipo || '').toLowerCase().includes('escudo');
+            items.push({
+                ...a,
+                _source: 'armadura',
+                _badge: a.tipo || (isShield ? 'Escudo' : 'Armadura'),
+                _badgeClass: isShield ? 'badge-escudo' : 'badge-armadura',
+                _meta: [`Defesa ${a.bonus_defesa || ''}`, `Pen. ${a.penalidade_armadura || '0'}`].join(' · ')
+            });
+        });
+    }
+
+    // Itens Gerais
+    if (typeof itensData !== 'undefined' && itensData.item) {
+        itensData.item.forEach(a => {
+            items.push({
+                ...a,
+                _source: 'item',
+                _badge: a.tipo || 'Item Geral',
+                _badgeClass: 'badge-item',
+                _meta: [a.tipo, a.preco].filter(Boolean).join(' · ')
+            });
+        });
+    }
+
+    // Itens Mágicos
+    if (typeof itensMagicosData !== 'undefined' && itensMagicosData.item) {
+        itensMagicosData.item.forEach(a => {
+            items.push({
+                ...a,
+                _source: 'magico',
+                _badge: a.tipo || 'Item Mágico',
+                _badgeClass: 'badge-magico',
+                _meta: [a.tipo, a.preco].filter(Boolean).join(' · ')
+            });
+        });
+    }
+
+    _allSearchItems = items;
+    return items;
+}
+
+// Abre o modal de busca
+function openItemSearch() {
+    const modal = document.getElementById('modalBuscaItens');
+    if (!modal) return;
+    _buildSearchItemList();
+    _currentItemCategory = 'all';
+
+    // Reset filtros
+    const input = document.getElementById('itemSearchInput');
+    if (input) input.value = '';
+    document.querySelectorAll('.item-filter-btn').forEach(b => b.classList.remove('active'));
+    const allBtn = document.querySelector('.item-filter-btn[data-cat="all"]');
+    if (allBtn) allBtn.classList.add('active');
+
+    modal.style.display = 'flex';
+    filterItemResults();
+    setTimeout(() => input?.focus(), 100);
+}
+
+// Fecha o modal de busca
+function closeItemSearch() {
+    const modal = document.getElementById('modalBuscaItens');
+    if (modal) modal.style.display = 'none';
+}
+
+// Troca a categoria do filtro
+function setItemCategory(cat, btn) {
+    _currentItemCategory = cat;
+    document.querySelectorAll('.item-filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    filterItemResults();
+}
+
+// Filtra e renderiza os resultados
+function filterItemResults() {
+    const items = _buildSearchItemList();
+    const query = (document.getElementById('itemSearchInput')?.value || '').toLowerCase().trim();
+    const cat = _currentItemCategory;
+
+    // Normaliza acentos para busca
+    const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const queryNorm = normalize(query);
+
+    let filtered = items;
+
+    // Filtra por categoria
+    if (cat !== 'all') {
+        filtered = filtered.filter(i => i._source === cat);
+    }
+
+    // Filtra por texto
+    if (queryNorm.length > 0) {
+        filtered = filtered.filter(i => {
+            const nameNorm = normalize(i.nome || '');
+            const tipoNorm = normalize(i.tipo || '');
+            return nameNorm.includes(queryNorm) || tipoNorm.includes(queryNorm);
+        });
+    }
+
+    // Limita para performance
+    const MAX_RESULTS = 80;
+    const total = filtered.length;
+    const shown = filtered.slice(0, MAX_RESULTS);
+
+    // Contador
+    const countEl = document.getElementById('itemSearchCount');
+    if (countEl) {
+        if (query.length === 0 && cat === 'all') {
+            countEl.textContent = `${total} itens disponíveis — digite para filtrar`;
+        } else {
+            countEl.textContent = total > MAX_RESULTS
+                ? `Exibindo ${MAX_RESULTS} de ${total} resultados`
+                : `${total} resultado(s)`;
+        }
+    }
+
+    // Renderiza
+    const container = document.getElementById('itemSearchResults');
+    if (!container) return;
+
+    if (shown.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted py-4" style="font-size:0.85rem;"><i class="bi bi-search me-1"></i>Nenhum item encontrado</div>';
+        return;
+    }
+
+    container.innerHTML = shown.map((item, idx) => {
+        // Destaca o texto buscado no nome
+        let displayName = _escapeHtml(item.nome || '');
+        if (queryNorm.length > 1) {
+            const nameNorm = normalize(item.nome || '');
+            const matchIdx = nameNorm.indexOf(queryNorm);
+            if (matchIdx !== -1) {
+                const orig = item.nome || '';
+                displayName = _escapeHtml(orig.slice(0, matchIdx))
+                    + '<mark>' + _escapeHtml(orig.slice(matchIdx, matchIdx + query.length)) + '</mark>'
+                    + _escapeHtml(orig.slice(matchIdx + query.length));
+            }
+        }
+
+        return `
+        <div class="item-result-row" onclick="addSearchedItem(${idx})" data-search-idx="${idx}">
+            <div class="item-result-info">
+                <div class="item-result-name">${displayName}</div>
+                <div class="item-result-meta">${_escapeHtml(item._meta || '')} ${item.preco ? '· ' + _escapeHtml(item.preco) : ''}</div>
+            </div>
+            <span class="item-result-badge ${item._badgeClass}">${_escapeHtml(item._badge)}</span>
+            <span class="item-result-add"><i class="bi bi-plus-circle-fill"></i></span>
+        </div>`;
+    }).join('');
+
+    // Salva referência para uso no addSearchedItem
+    container._filteredItems = shown;
+}
+
+function _escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+// Adiciona item selecionado ao inventário com combatData/defenseData
+function addSearchedItem(filteredIdx) {
+    const container = document.getElementById('itemSearchResults');
+    if (!container || !container._filteredItems) return;
+    const item = container._filteredItems[filteredIdx];
+    if (!item) return;
+
+    // Monta anotação
+    const noteLines = [];
+    if (item.descricao) noteLines.push(item.descricao);
+    if (item.dano) noteLines.push(`⚔️ Dano: ${item.dano} | Crítico: ${item.critico} | Tipo: ${item.tipo_dano || '—'} | Alcance: ${item.alcance || '—'}`);
+    if (item.bonus_defesa) noteLines.push(`🛡️ Defesa: ${item.bonus_defesa} | Penalidade: ${item.penalidade_armadura || '0'}`);
+
+    const transferItem = {
+        name: item.nome,
+        qtd: '1',
+        slots: String(item.espacos || 0),
+        note: noteLines.join('\n'),
+
+        // Dados de combate (armas)
+        combatData: item.dano ? {
+            nome: item.nome,
+            dano: item.dano,
+            critico: item.critico,
+            tipo_dano: item.tipo_dano || '',
+            alcance: item.alcance || ''
+        } : null,
+
+        // Dados de defesa (armaduras e escudos)
+        defenseData: item.bonus_defesa ? {
+            nome: item.nome,
+            bonus: item.bonus_defesa,
+            penalidade: item.penalidade_armadura || '0',
+            tipo: item.tipo || ''
+        } : null
+    };
+
+    // Usa a mesma função que já existe para adicionar ao inventário
+    addInventoryItem(transferItem);
+    saveData();
+
+    // Feedback visual na linha clicada
+    const row = container.querySelector(`.item-result-row[data-search-idx="${filteredIdx}"]`);
+    if (row) {
+        const icon = row.querySelector('.item-result-add');
+        if (icon) {
+            icon.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+            icon.classList.add('item-result-added');
+            setTimeout(() => {
+                icon.innerHTML = '<i class="bi bi-plus-circle-fill"></i>';
+                icon.classList.remove('item-result-added');
+            }, 2000);
+        }
+    }
+
+    showSheetToast(`📦 <strong>${_escapeHtml(item.nome)}</strong> adicionado ao inventário!`);
+}
+
+// Atalho de teclado: Escape fecha o modal
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('modalBuscaItens');
+        if (modal && modal.style.display === 'flex') {
+            closeItemSearch();
+            e.stopPropagation();
+        }
+    }
+});

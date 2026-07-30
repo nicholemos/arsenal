@@ -705,11 +705,11 @@
                         </span>
 
                         <div class="d-flex gap-2 align-items-center">
-                            <a href="https://arsenal-delta.vercel.app/itens/" target="_blank"
+                            <button onclick="openItemSearch()"
                                 class="btn btn-sm btn-outline-dark py-0"
                                 style="font-size: 0.75rem; border-radius: 20px;">
                                 <i class="bi bi-search"></i> Buscar Itens
-                            </a>
+                            </button>
                             <button onclick="importFromShop()" class="btn btn-sm btn-outline-secondary py-0"
                                 style="font-size: 0.75rem; border-radius: 20px;"
                                 title="Importar manualmente itens pendentes da loja">
@@ -1621,6 +1621,38 @@
     <script src="ameacas_db.js"></script>
     <script src="../poderes/js/data.js"></script>
     <script src="pdf_base64.js"></script>
+
+    <!-- Bancos de dados de itens para busca inline -->
+    <script src="../itens/data/armas.js"></script>
+    <script src="../itens/data/armaduras.js"></script>
+    <script src="../itens/data/itens.js"></script>
+    <script src="../itens/data/itensmagicos.js"></script>
+
+    <!-- Modal: Buscar Equipamentos -->
+    <div id="modalBuscaItens"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; padding:16px;"
+        onclick="if(event.target===this)closeItemSearch()">
+        <div class="item-search-container">
+            <div class="item-search-header">
+                <strong style="font-size:1rem;"><i class="bi bi-search me-2"></i>Buscar Equipamentos</strong>
+                <button onclick="closeItemSearch()"
+                    style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+            </div>
+            <div class="item-search-filters">
+                <input type="text" id="itemSearchInput" class="form-control form-control-sm" placeholder="Digite o nome do item..." oninput="filterItemResults()" autocomplete="off">
+                <div class="d-flex gap-1 flex-wrap mt-2">
+                    <button class="btn btn-sm item-filter-btn active" data-cat="all" onclick="setItemCategory('all', this)">Todas</button>
+                    <button class="btn btn-sm item-filter-btn" data-cat="arma" onclick="setItemCategory('arma', this)">⚔️ Armas</button>
+                    <button class="btn btn-sm item-filter-btn" data-cat="armadura" onclick="setItemCategory('armadura', this)">🛡️ Armaduras</button>
+                    <button class="btn btn-sm item-filter-btn" data-cat="item" onclick="setItemCategory('item', this)">🎒 Itens</button>
+                    <button class="btn btn-sm item-filter-btn" data-cat="magico" onclick="setItemCategory('magico', this)">✨ Mágicos</button>
+                </div>
+            </div>
+            <div id="itemSearchCount" class="item-search-count"></div>
+            <div id="itemSearchResults" class="item-search-results"></div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 
