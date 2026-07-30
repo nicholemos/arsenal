@@ -805,36 +805,6 @@ const armasData = {
             imagem: "data/img/pistola.webp"
         },
         {
-            nome: "Mordida do Diabo",
-            preco: "T$ 30",
-            dano: "1d4",
-            critico: "x2",
-            alcance: "—",
-            tipo_dano: "Perfuração",
-            espacos: "1",
-            categoria: "Arma",
-            tipo: "Exótica",
-            empunhadura: "Uma Mão",
-            descricao: "Aparato em forma de mandíbula com corrente, pode se destacar do cabo (alcance 3m). É uma arma ágil e versátil (+2 para agarrar e desarmar).",
-            fonte: "Ameaças de Arton",
-            imagem: "data/img/mordida.webp"
-        },
-        {
-            nome: "Presa de Serpente",
-            preco: "T$ 1.000",
-            dano: "1d8",
-            critico: "17/x2",
-            alcance: "—",
-            tipo_dano: "Corte",
-            espacos: "1",
-            categoria: "Arma",
-            tipo: "Exótica",
-            empunhadura: "Uma Mão",
-            descricao: "Espada de obsidiana. Em um acerto crítico, o dano aumenta em um passo (antes de ser multiplicado). Não pode receber material especial. É uma arma ágil.",
-            fonte: "Ameaças de Arton",
-            imagem: "data/img/adaga.webp"
-        },
-        {
             nome: "Lança de Fogo (Corpo a Corpo)",
             preco: "T$ 1.000",
             dano: "1d10",
