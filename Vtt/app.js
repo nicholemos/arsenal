@@ -11144,8 +11144,8 @@ function boardRender() {
       const m = isoMatrix();
       ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f);
     }
-    if (isGifUrl(mapImg.src)) {
-      const frame = getGifFrame(mapImg.src, mapImg.naturalWidth, mapImg.naturalHeight);
+    if (isAnimatedMediaUrl(mapImg.src)) {
+      const frame = getAnimatedFrame(mapImg.src, mapImg.naturalWidth, mapImg.naturalHeight);
       ctx.drawImage(frame, mx, my, mw, mh);
     } else {
       ctx.drawImage(mapImg, mx, my, mw, mh);
@@ -11467,10 +11467,11 @@ function boardRender() {
     ctx.drawImage(offscreen, 0, 0);
   }
 
-  // Loop de animação para suporte a GIFs
+  // Loop de animação para suporte a GIFs e vídeos (webm)
   if (boardTemGif()) {
     if (!BOARD.gifInterval) {
-      BOARD.gifInterval = setInterval(boardRender, 100);
+      // Vídeos ficam mais suaves com ~20fps; GIFs com ~10fps
+      BOARD.gifInterval = setInterval(boardRender, boardTemVideo() ? 50 : 100);
     }
   } else {
     if (BOARD.gifInterval) { clearInterval(BOARD.gifInterval); BOARD.gifInterval = null; }
@@ -11577,6 +11578,15 @@ function isGifUrl(url) {
   return /\.gif($|\?)/i.test(url) || url.startsWith('data:image/gif');
 }
 
+function isVideoUrl(url) {
+  if (!url) return false;
+  return /\.(webm|mp4|m4v|ogv|ogg)($|\?)/i.test(url) || url.startsWith('data:video/');
+}
+
+function isAnimatedMediaUrl(url) {
+  return isGifUrl(url) || isVideoUrl(url);
+}
+
 const _gifCanvasCache = {};
 
 function getGifCanvas(url, naturalWidth, naturalHeight) {
@@ -11636,15 +11646,71 @@ function getGifFrame(url, naturalWidth, naturalHeight) {
   return entry.offCanvas;
 }
 
+// ── Suporte a vídeo/webm para tokens, objetos e mapas ─────────────────
+const _videoCache = {};
+
+function getVideo(url) {
+  let entry = _videoCache[url];
+  if (entry) return entry;
+  const video = document.createElement('video');
+  video.muted = true;
+  video.loop = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  video.setAttribute('playsinline', '');
+  video.setAttribute('webkit-playsinline', '');
+  video.crossOrigin = 'anonymous';
+  video.src = url;
+  const container = document.getElementById('gifHost') || document.body;
+  container.appendChild(video);
+  video.play().catch(() => { });
+  entry = { video, offCanvas: document.createElement('canvas') };
+  _videoCache[url] = entry;
+  return entry;
+}
+
+function isVideoReady(url) {
+  const entry = _videoCache[url];
+  return !!(entry && entry.video.readyState >= 1 && entry.video.videoWidth > 0);
+}
+
+function getVideoFrame(url, w, h) {
+  const entry = getVideo(url);
+  const v = entry.video;
+  const vw = w || v.videoWidth || 200;
+  const vh = h || v.videoHeight || 200;
+  if (entry.offCanvas.width !== vw) entry.offCanvas.width = vw;
+  if (entry.offCanvas.height !== vh) entry.offCanvas.height = vh;
+  const ctx = entry.offCanvas.getContext('2d');
+  ctx.clearRect(0, 0, vw, vh);
+  try { ctx.drawImage(v, 0, 0, vw, vh); } catch (e) { }
+  return entry.offCanvas;
+}
+
+function getAnimatedFrame(url, w, h) {
+  if (isVideoUrl(url)) return getVideoFrame(url, w, h);
+  return getGifFrame(url, w, h);
+}
+
 function hospedarGifNoDom(img) {
   // Mantida para compatibilidade
 }
 
 function boardTemGif() {
-  if (BOARD.mapDataUrl && isGifUrl(BOARD.mapDataUrl)) return true;
-  if (BOARD.mapImg && BOARD.mapImg.src && isGifUrl(BOARD.mapImg.src)) return true;
+  if (BOARD.mapDataUrl && isAnimatedMediaUrl(BOARD.mapDataUrl)) return true;
+  if (BOARD.mapImg && BOARD.mapImg.src && isAnimatedMediaUrl(BOARD.mapImg.src)) return true;
   for (const t of BOARD.tokens) {
-    if (t.imageUrl && isGifUrl(t.imageUrl)) return true;
+    if (t.imageUrl && isAnimatedMediaUrl(t.imageUrl)) return true;
+  }
+  return false;
+}
+
+function boardTemVideo() {
+  if (BOARD.mapDataUrl && isVideoUrl(BOARD.mapDataUrl)) return true;
+  if (BOARD.mapImg && BOARD.mapImg.src && isVideoUrl(BOARD.mapImg.src)) return true;
+  for (const t of BOARD.tokens) {
+    if (t.imageUrl && isVideoUrl(t.imageUrl)) return true;
   }
   return false;
 }
@@ -12807,20 +12873,27 @@ function drawToken(ctx, t, isDragging, isHovered) {
 
   if (isObject) {
     if (t.imageUrl) {
+      const isVideo = isVideoUrl(t.imageUrl);
       let img = tokenImageCache[t.imageUrl];
-      if (!img) {
+      if (!isVideo && !img) {
         img = new Image();
         img.src = t.imageUrl;
         img.onload = () => boardRender();
         tokenImageCache[t.imageUrl] = img;
       }
 
-      if (img.complete && img.naturalWidth !== 0) {
+      const mediaReady = isVideo
+        ? isVideoReady(t.imageUrl)
+        : (img && img.complete && img.naturalWidth !== 0);
+
+      if (mediaReady) {
         ctx.save();
         ctx.translate(px, py);
         ctx.rotate(rotation);
         ctx.translate(-px, -py);
-        const drawSrc = isGifUrl(t.imageUrl) ? getGifFrame(t.imageUrl, img.naturalWidth, img.naturalHeight) : img;
+        const drawSrc = isAnimatedMediaUrl(t.imageUrl)
+          ? getAnimatedFrame(t.imageUrl, img ? img.naturalWidth : 0, img ? img.naturalHeight : 0)
+          : img;
         ctx.drawImage(drawSrc, px - halfW, py - halfH, sizeW, sizeH);
         ctx.restore();
       } else {
@@ -13040,15 +13113,18 @@ function drawToken(ctx, t, isDragging, isHovered) {
 
   let hasDrawnImage = false;
   if (t.imageUrl) {
+    const isVideo = isVideoUrl(t.imageUrl);
     let img = tokenImageCache[t.imageUrl];
-    if (!img) {
+    if (!isVideo && !img) {
       img = new Image();
       img.src = t.imageUrl;
       img.onload = () => boardRender();
       tokenImageCache[t.imageUrl] = img;
     }
 
-    if (img.complete && img.naturalWidth !== 0) {
+    const mediaReady = isVideo ? isVideoReady(t.imageUrl) : (img.complete && img.naturalWidth !== 0);
+
+    if (mediaReady) {
       ctx.save();
       ctx.translate(px, py);
       ctx.rotate(rotation);
@@ -13075,8 +13151,10 @@ function drawToken(ctx, t, isDragging, isHovered) {
         posY = parseFloat(m[2]);
       }
 
-      const w = img.naturalWidth;
-      const h = img.naturalHeight;
+      const srcW = isVideo ? (getVideo(t.imageUrl).video.videoWidth || 1) : img.naturalWidth;
+      const srcH = isVideo ? (getVideo(t.imageUrl).video.videoHeight || 1) : img.naturalHeight;
+      const w = srcW;
+      const h = srcH;
       const s = Math.min(w, h);
 
       let sx = 0;
@@ -13088,8 +13166,8 @@ function drawToken(ctx, t, isDragging, isHovered) {
         sy = (h - w) * posY / 100;
       }
 
-      if (isGifUrl(t.imageUrl)) {
-        const frame = getGifFrame(t.imageUrl, w, h);
+      if (isAnimatedMediaUrl(t.imageUrl)) {
+        const frame = getAnimatedFrame(t.imageUrl, w, h);
         ctx.drawImage(frame, sx, sy, s, s, px - tokenR, py - tokenR, tokenR * 2, tokenR * 2);
       } else {
         ctx.drawImage(img, sx, sy, s, s, px - tokenR, py - tokenR, tokenR * 2, tokenR * 2);
@@ -13852,6 +13930,10 @@ function selecionarFotoUnsplash(foto) {
 }
 
 function precarregarGifSeNecessario(url) {
+  if (isVideoUrl(url)) {
+    getVideo(url);
+    return;
+  }
   if (isGifUrl(url)) {
     loadImageWithCORSFallback(url, (img) => {
       tokenImageCache[url] = img;
@@ -13901,6 +13983,22 @@ function criarObjetoDeImagem(url, size) {
     gx: Math.max(0, gx), gy: Math.max(0, gy)
   };
   BOARD.tokens.push(tokenObj);
+  if (isVideoUrl(url)) {
+    const v = getVideo(url).video;
+    if (v.videoWidth && v.videoHeight) {
+      const iw = v.videoWidth, ih = v.videoHeight;
+      let sx = size, sy = size;
+      if (iw > ih) {
+        sy = Math.max(0.25, size * (ih / iw));
+      } else {
+        sx = Math.max(0.25, size * (iw / ih));
+      }
+      tokenObj.sizeX = Math.round(sx * 4) / 4;
+      tokenObj.sizeY = Math.round(sy * 4) / 4;
+    }
+    precarregarGifSeNecessario(url);
+    boardSave(); boardRender(); syncBoardTokensToPlayers();
+  } else {
   loadImageWithCORSFallback(url, (img) => {
     if (img.naturalWidth && img.naturalHeight) {
       const iw = img.naturalWidth, ih = img.naturalHeight;
@@ -13919,6 +14017,7 @@ function criarObjetoDeImagem(url, size) {
     precarregarGifSeNecessario(url);
     boardSave(); boardRender(); syncBoardTokensToPlayers();
   });
+  }
   setBoardLayer('map');
   BOARD.selectedTokens.clear();
   BOARD.selectedTokens.add(newId);
@@ -14223,6 +14322,11 @@ function fecharUploadImagem() {
 function onBoardUploadFileChange(input) {
   const file = input.files && input.files[0];
   if (!file) return;
+  if (file.type && file.type.startsWith('video/')) {
+    toast('🎬 Vídeos devem ser adicionados por URL (ex: https://.../fire.webm). Upload de vídeo está bloqueado para proteger o armazenamento/sync.', 4000);
+    input.value = '';
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -14288,6 +14392,11 @@ function onMapaFileChange(input) {
   if (myRole !== 'mestre') return;
   const file = input.files && input.files[0];
   if (!file) return;
+  if (file.type && file.type.startsWith('video/')) {
+    toast('🎬 Vídeos devem ser adicionados por URL (ex: https://.../fire.webm). Upload de vídeo está bloqueado para proteger o armazenamento/sync.', 4000);
+    input.value = '';
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -14756,6 +14865,7 @@ function posicionarForm(cx, cy) {
 function fecharFormToken() {
   document.getElementById('tokenForm')?.classList.remove('open');
   tfEditingId = null;
+  if (tfPreviewAnim) { clearInterval(tfPreviewAnim); tfPreviewAnim = null; }
   _clearSizeProportionLock();
 }
 
@@ -14773,7 +14883,25 @@ function selectTokenColorByValue(color) {
 }
 
 let tfPreviewImg = null;
+let tfPreviewVideo = null;
 let tfPreviewDrag = null;
+let tfPreviewAnim = null;
+
+function _tfPreviewSource() {
+  return tfPreviewImg || tfPreviewVideo || null;
+}
+
+function _tfPreviewWidth() {
+  if (tfPreviewImg && tfPreviewImg.naturalWidth) return tfPreviewImg.naturalWidth;
+  if (tfPreviewVideo && tfPreviewVideo.videoWidth) return tfPreviewVideo.videoWidth;
+  return 0;
+}
+
+function _tfPreviewHeight() {
+  if (tfPreviewImg && tfPreviewImg.naturalHeight) return tfPreviewImg.naturalHeight;
+  if (tfPreviewVideo && tfPreviewVideo.videoHeight) return tfPreviewVideo.videoHeight;
+  return 0;
+}
 
 function _renderTokenPreviewCanvas() {
   const canvas = document.getElementById('tfImgCanvas');
@@ -14789,10 +14917,13 @@ function _renderTokenPreviewCanvas() {
   ctx.fill();
   ctx.restore();
 
-  if (tfPreviewImg && tfPreviewImg.complete && tfPreviewImg.naturalWidth > 0) {
+  const preview = _tfPreviewSource();
+  const pw = _tfPreviewWidth();
+  const ph = _tfPreviewHeight();
+  if (preview && pw > 0 && ph > 0) {
     const posX = parseFloat(document.getElementById('tfImgPosX')?.value ?? 50);
     const posY = parseFloat(document.getElementById('tfImgPosY')?.value ?? 50);
-    const iw = tfPreviewImg.naturalWidth, ih = tfPreviewImg.naturalHeight;
+    const iw = pw, ih = ph;
 
     const scale = (W * 1.0) / Math.min(iw, ih);
     const dw = iw * scale, dh = ih * scale;
@@ -14802,7 +14933,7 @@ function _renderTokenPreviewCanvas() {
     ctx.beginPath();
     ctx.arc(R, R, R - 1, 0, Math.PI * 2);
     ctx.clip();
-    ctx.drawImage(tfPreviewImg, dx, dy, dw, dh);
+    ctx.drawImage(preview, dx, dy, dw, dh);
     ctx.restore();
   }
 
@@ -14825,7 +14956,7 @@ function _initTokenPreviewDrag() {
     return { x: e.clientX, y: e.clientY };
   }
   function onStart(e) {
-    if (!tfPreviewImg) return;
+    if (!_tfPreviewSource()) return;
     e.preventDefault();
     const p = getPos(e);
     tfPreviewDrag = {
@@ -14839,7 +14970,7 @@ function _initTokenPreviewDrag() {
     if (!tfPreviewDrag) return;
     e.preventDefault();
     const p = getPos(e);
-    const iw = tfPreviewImg.naturalWidth, ih = tfPreviewImg.naturalHeight;
+    const iw = _tfPreviewWidth(), ih = _tfPreviewHeight();
     const scale = (canvas.width) / Math.min(iw, ih);
     const dw = iw * scale, dh = ih * scale;
     const rangeX = dw - canvas.width;
@@ -14894,7 +15025,31 @@ function _renderBorderPreview() {
 }
 
 function _loadTokenPreviewImage(url, cb) {
-  if (!url) { tfPreviewImg = null; _renderTokenPreviewCanvas(); if (cb) cb(); return; }
+  tfPreviewImg = null;
+  tfPreviewVideo = null;
+  if (tfPreviewAnim) { clearInterval(tfPreviewAnim); tfPreviewAnim = null; }
+  _renderTokenPreviewCanvas();
+  if (!url) { if (cb) cb(); return; }
+  if (isVideoUrl(url)) {
+    const v = document.createElement('video');
+    v.muted = true;
+    v.loop = true;
+    v.playsInline = true;
+    v.preload = 'auto';
+    v.setAttribute('playsinline', '');
+    v.crossOrigin = 'anonymous';
+    v.addEventListener('loadeddata', () => {
+      tfPreviewVideo = v;
+      _renderTokenPreviewCanvas();
+      if (cb) cb();
+    });
+    v.addEventListener('error', () => { if (cb) cb(); });
+    v.src = url;
+    v.play().catch(() => { });
+    // Anima o preview enquanto o formulário estiver aberto
+    tfPreviewAnim = setInterval(_renderTokenPreviewCanvas, 50);
+    return;
+  }
   loadImageWithCORSFallback(url, (img) => {
     tfPreviewImg = img;
     _renderTokenPreviewCanvas();
@@ -14931,6 +15086,11 @@ function previewImagemToken(url) {
 function carregarImagemArquivo(input) {
   const file = input.files && input.files[0];
   if (!file) return;
+  if (file.type && file.type.startsWith('video/')) {
+    toast('🎬 Vídeos devem ser adicionados por URL (ex: https://.../fire.webm). Upload de vídeo está bloqueado para proteger o armazenamento/sync.', 4000);
+    input.value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = (e) => {
     definirImagemToken(e.target.result);
@@ -17222,6 +17382,10 @@ function abrirEditorImagem(url, target) {
 }
 
 function abrirEditorImagemToken() {
+  if (isVideoUrl(tfSelectedImage)) {
+    toast('Vídeos (webm/mp4) não podem ser editados no editor de imagem.');
+    return;
+  }
   if (tfSelectedImage) {
     abrirEditorImagem(tfSelectedImage, 'token');
   } else {
