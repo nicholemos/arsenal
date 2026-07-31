@@ -133,8 +133,13 @@
                             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 16 16'%3E%3Cpath fill='%23ccc' d='M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z'/%3E%3Cpath fill='%23ccc' fill-rule='evenodd' d='M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z'/%3E%3C/svg%3E"
                             style="width: 100%; height: 100%; object-fit: cover;">
                         <div
-                            class="position-absolute bottom-0 w-100 text-center bg-dark bg-opacity-50 text-white small py-1">
-                            ALTERAR FOTO</div>
+                            class="position-absolute bottom-0 w-100 d-flex align-items-center justify-content-between bg-dark bg-opacity-50 text-white small py-1 px-2">
+                            <span class="w-100 text-center">ALTERAR FOTO</span>
+                            <button class="btn btn-sm p-0 px-1" style="font-size:0.7rem; color:#fff;"
+                                onclick="setImageFromUrl(event)" title="Inserir imagem por link (URL)">
+                                <i class="bi bi-link-45deg"></i>
+                            </button>
+                        </div>
                         <input type="file" id="charImgInput" style="display: none;" accept="image/*"
                             onchange="uploadImage(this)">
                         <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-0 px-1"
@@ -1155,6 +1160,28 @@
                             <input type="text" id="am-tipo" class="ameaca-tipo-input"
                                 placeholder="Ex: Humanoide (humano) Médio" oninput="saveAmeaca()">
                         </div>
+                    </div>
+                    <div class="ameaca-img-container position-relative"
+                        onclick="document.getElementById('amImgInput').click()"
+                        title="Clique para alterar a imagem">
+                        <img id="amImgPreview"
+                            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 16 16'%3E%3Cpath fill='%23ccc' d='M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z'/%3E%3Cpath fill='%23ccc' fill-rule='evenodd' d='M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z'/%3E%3C/svg%3E"
+                            alt="Imagem da ameaça">
+                        <input type="file" id="amImgInput" style="display: none;" accept="image/*"
+                            onchange="uploadAmeacaImage(this)">
+                        <div
+                            class="position-absolute bottom-0 w-100 d-flex align-items-center justify-content-between bg-dark bg-opacity-50 text-white small py-1 px-2">
+                            <span class="w-100 text-center">IMAGEM</span>
+                            <button class="btn btn-sm p-0 px-1" style="font-size:0.7rem; color:#fff;"
+                                onclick="setAmeacaImageFromUrl(event)" title="Inserir imagem por link (URL)">
+                                <i class="bi bi-link-45deg"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-0 px-1"
+                            style="z-index:10; font-size:0.7rem;" onclick="resetAmeacaImage(event)"
+                            title="Remover imagem">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     </div>
                     <div class="ameaca-nd-badge">
                         <button class="btn btn-sm btn-outline-warning fw-bold mb-1" style="font-size: 0.6rem; padding: 2px 8px;" onclick="carregarAmeacaOficial()" title="Carregar ameaça oficial (PDF)">

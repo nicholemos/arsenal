@@ -1637,11 +1637,12 @@ function importPoderesDoCarrinho() {
     }
 }
 
+const DEFAULT_CHAR_IMG_SRC = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 16 16'%3E%3Cpath fill='%23ccc' d='M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z'/%3E%3Cpath fill='%23ccc' fill-rule='evenodd' d='M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z'/%3E%3C/svg%3E";
+
 // --- RESET IMAGEM DO PERSONAGEM ---
 function resetCharImage(e) {
     e.stopPropagation(); // evita abrir o file picker
-    const defaultSrc = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 16 16'%3E%3Cpath fill='%23ccc' d='M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z'/%3E%3Cpath fill='%23ccc' fill-rule='evenodd' d='M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z'/%3E%3C/svg%3E";
-    document.getElementById('charImgPreview').src = defaultSrc;
+    document.getElementById('charImgPreview').src = DEFAULT_CHAR_IMG_SRC;
     localStorage.removeItem('charImage');
     const fileInput = document.getElementById('charImgInput');
     if (fileInput) fileInput.value = '';
@@ -1852,6 +1853,74 @@ function uploadImage(input) {
         };
         reader.readAsDataURL(file);
     }
+}
+
+function setImageFromUrl(e) {
+    if (e) e.stopPropagation();
+    const url = (prompt('Cole o link (URL) da imagem do personagem:') || '').trim();
+    if (!url) return;
+    if (!/^https?:\/\/|^data:image\//i.test(url)) {
+        alert('Link inválido. Use uma URL começando com http:// ou https://');
+        return;
+    }
+    const probe = new Image();
+    probe.onload = function () {
+        const img = document.getElementById('charImgPreview');
+        img.src = url;
+        img.style.objectPosition = '50% 50%';
+        localStorage.setItem('charImage', url);
+        localStorage.setItem('charImagePos', '50% 50%');
+    };
+    probe.onerror = function () {
+        alert('Não foi possível carregar a imagem do link. Verifique se a URL é válida e acessível.');
+    };
+    probe.src = url;
+}
+
+// ── Imagem da Ficha de Ameaça ─────────────────────────────────────────
+function uploadAmeacaImage(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = document.getElementById('amImgPreview');
+            img.src = e.target.result;
+            img.style.objectPosition = '50% 50%';
+            saveAmeaca();
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function setAmeacaImageFromUrl(e) {
+    if (e) e.stopPropagation();
+    const url = (prompt('Cole o link (URL) da imagem da ameaça:') || '').trim();
+    if (!url) return;
+    if (!/^https?:\/\/|^data:image\//i.test(url)) {
+        alert('Link inválido. Use uma URL começando com http:// ou https://');
+        return;
+    }
+    const probe = new Image();
+    probe.onload = function () {
+        const img = document.getElementById('amImgPreview');
+        img.src = url;
+        img.style.objectPosition = '50% 50%';
+        saveAmeaca();
+    };
+    probe.onerror = function () {
+        alert('Não foi possível carregar a imagem do link. Verifique se a URL é válida e acessível.');
+    };
+    probe.src = url;
+}
+
+function resetAmeacaImage(e) {
+    e.stopPropagation();
+    const img = document.getElementById('amImgPreview');
+    img.src = DEFAULT_CHAR_IMG_SRC;
+    img.style.objectPosition = '50% 50%';
+    const fileInput = document.getElementById('amImgInput');
+    if (fileInput) fileInput.value = '';
+    saveAmeaca();
 }
 
 // ── Arrastar imagem para reposicionar ──────────────────────────────────
@@ -2720,6 +2789,12 @@ function filtrarAmeacas() {
 function carregarAmeacaDoDB(nome) {
     const data = AMEACAS_DB.find(a => a.nome === nome);
     if (!data) return;
+    if (!data.image) {
+        // Se a ameaça do banco não tem imagem própria, preserva a imagem já carregada pelo usuário
+        const prev = getSavedAmeacaData();
+        if (prev.image) data.image = prev.image;
+        if (prev.imagePos) data.imagePos = prev.imagePos;
+    }
     localStorage.setItem('t20AmeacaData', JSON.stringify(data));
     ['am-ataques-list', 'am-habilidades-list', 'am-pericias-list'].forEach(id => {
         const el = document.getElementById(id); if (el) el.innerHTML = '';
@@ -2788,6 +2863,12 @@ function saveAmeaca() {
         equipamento: document.getElementById('am-equipamento')?.value || ''
     };
 
+    const amImgEl = document.getElementById('amImgPreview');
+    if (amImgEl && amImgEl.src && amImgEl.src !== DEFAULT_CHAR_IMG_SRC) {
+        data.image = amImgEl.src;
+        data.imagePos = amImgEl.style.objectPosition || '50% 50%';
+    }
+
     localStorage.setItem('t20AmeacaData', JSON.stringify(data));
 }
 
@@ -2827,6 +2908,20 @@ function loadAmeaca() {
         if (d.ataques) d.ataques.forEach(a => addAmeacaAtaque(a));
         if (d.habilidades) d.habilidades.forEach(h => addAmeacaHabilidade(h));
         if (d.pericias) d.pericias.forEach(p => addAmeacaPericia(p));
+
+        if (d.image) {
+            const amImg = document.getElementById('amImgPreview');
+            if (amImg) {
+                amImg.src = d.image;
+                if (d.imagePos) amImg.style.objectPosition = d.imagePos;
+            }
+        } else {
+            const amImg = document.getElementById('amImgPreview');
+            if (amImg) {
+                amImg.src = DEFAULT_CHAR_IMG_SRC;
+                amImg.style.objectPosition = '50% 50%';
+            }
+        }
     } catch (e) {
         console.error('Erro ao carregar ficha de ameaça:', e);
     }
