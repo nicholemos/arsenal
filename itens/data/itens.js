@@ -3947,6 +3947,493 @@ const itensData = {
             "descricao": "Segue as mesmas regras da bomba comum, mas, em vez de causar dano, afeta uma esfera com 6m de raio que fica sob efeito simulado da magia Área Escorregadia até o fim da cena. Criaturas dentro dessa área durante a explosão também ficam lentas (Reflexos CD Des evita); elas podem gastar uma ação de movimento para fazer um teste de Força (CD Des) para se recuperar da condição.",
             "fonte": "Dragão Brasil",
             "imagem": "data/img/bomba-de-tinta.webp"
+        },
+
+        // (Serviços de Vectora - Dragão Brasil)
+        {
+            "nome": "Aeronauta Goblin (Serviço)",
+            "preco": "T$ 10",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Transporte aéreo por balões e dirigíveis goblins. Barato, porém lento e arriscado: a fila leva horas (os personagens perdem uma rodada de exploração em Vectora). Um jogador rola 1d6; em 1 ou 2, ocorre um acidente — todos no veículo sofrem 8d6 de dano de impacto e precisam voltar para a fila. T$ 10 por pessoa.",
+            "fonte": "Dragão Brasil",
+            "imagem": "data/img/balao-goblin.webp"
+        },
+        {
+            "nome": "Carona Alada (Serviço)",
+            "preco": "T$ 100",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Transporte com ginetes de grifos, tapetes voadores e outras montarias ou itens capazes de voar. Mais rápido e seguro que os balões, porém mais caro e assustador. Teste de Vontade (CD 25); em caso de falha, fica abalado por um dia. T$ 100 por pessoa.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Teletransporte (Serviço)",
+            "preco": "T$ 300",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Transporte luxuoso, instantâneo e totalmente seguro, porém enjoativo para quem não está acostumado. Personagens não treinados em Misticismo fazem teste de Fortitude (CD 20); em caso de falha, ficam fatigados por um dia. T$ 300 por pessoa.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Estadia em Vectora (Serviço)",
+            "preco": "T$ 10",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Taxa diária para não residentes da cidade voadora. Os visitantes devem comprar papéis de viagem em postos da Milícia ou estalagens certificadas; à noite, patrulheiros fiscalizam hospedarias, tavernas e casas noturnas. Evitar a fiscalização exige Enganação ou Furtividade (CD 25). Apanhado sem os papéis: paga a taxa no ato, mais uma multa de T$ 300. Sem o dinheiro, tem os bens apreendidos e é despachado à superfície em um balão goblin (se não cair antes...). T$ 10 por dia.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Guia Urbano (Serviço)",
+            "preco": "T$ 30",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Guia local que faz testes de Investigação e Sobrevivência em Vectora no seu lugar, com bônus +15. Aumenta em um passo o dado da rolagem de encontros aleatórios. T$ 30/dia.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Mapa da Cidade",
+            "preco": "T$ 30",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Mapa detalhado da cidade voadora. Fornece +2 em testes de Investigação e Sobrevivência em Vectora.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Passeio de Balão (Serviço)",
+            "preco": "T$ 150",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Voo panorâmico oferecido pelo goblin Glong e seu javali de guarda Tuk-tuk, no quiosque do Voo de Balão. Você descobre todos os pontos de interesse de um setor à sua escolha.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Poção Batizada (Serviço)",
+            "preco": "T$ (preço da poção)",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Poção de até 3º círculo misturada com bebida alcoólica (a dose é por conta da casa). Ao beber, recebe PM para gastar em aprimoramentos da magia gerada, mas faz teste de Fortitude. Em falha, fica embriagado (–2 em testes de Destreza e Carisma); se já estava embriagado, fica bebum (desprevenido, –5 em testes de Destreza e Carisma); se já estava bebum, cai inconsciente. Condições duram até o fim do dia. Dose pequena: 1d4+1 PM, CD 25. Dose grande: 2d4+2 PM, CD 35.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Pijama Hynne",
+            "preco": "T$ 300",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Vestuário",
+            "descricao": "Conjunto de calça e camisa fofas e aconchegantes. Dormir com o pijama hynne e nenhum outro item vestido fornece +1 PM temporário por patamar no dia seguinte.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Hospedagem Divina (Serviço)",
+            "preco": "T$ 2.000",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Hospedagem no Reino dos Deuses: quartos imensos, mobília suntuosa, banquetes exuberantes e batalhão de servos. Conta como descanso luxuoso e fornece +10% de XP por uma aventura (ou por um mês). Sem XP, recebe um benefício do próximo nível por uma aventura (ou por um mês).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Festival de Música (Serviço)",
+            "preco": "T$ 200",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Até o fim desta aventura (ou por um mês), você recebe um poder de Música para o qual cumpra os pré-requisitos ou aumenta em +2 a CD para resistir a todos os seus poderes de Música (à sua escolha).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Escultura",
+            "preco": "T$ 6.000",
+            "espacos": "20",
+            "categoria": "Item Geral",
+            "descricao": "Obra de arte que eleva a alma. Fornece +2 PM (somente um dia após adquiri-la). Você não precisa carregá-la consigo, mas ela deve estar em um lugar que considere lar — ainda que apenas seu acampamento ou uma estalagem onde se hospede com frequência.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Escultura Pessoal",
+            "preco": "T$ 20.000",
+            "espacos": "20",
+            "categoria": "Item Geral",
+            "descricao": "Estátua de você mesmo, feita sob encomenda. Fornece +5 PM (somente um dia após adquiri-la). Conectada à sua alma, permite redirecionar para ela um efeito nocivo que recém o afetou — fazer isso destrói a estátua. Zentura nunca faz mais de uma escultura pessoal para a mesma pessoa.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Consulta na Biblioteca das Respostas (Serviço)",
+            "preco": "T$ 250",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Teste de Investigação com +5 para receber uma informação sobre um assunto à sua escolha. A CD varia conforme a complexidade (veja a perícia Conhecimento, T20, p. 117). A informação é escolhida pelo mestre.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Festa na Dança de Marah (Serviço)",
+            "preco": "T$ 600",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Festejar nesta taverna o deixa extremamente amável. Uma vez até o fim desta aventura (ou por um mês), você pode gastar uma ação padrão para melhorar em um passo a categoria de atitude de um NPC com quem esteja interagindo.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Noite no Teatro (Serviço)",
+            "preco": "T$ 300",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Assistir a uma peça ensina a modelar expressões, falas e trejeitos. Role 1d4; recebe esse resultado em d4 de auxílio. Até o fim da aventura, em testes de perícia baseados em Carisma, você pode gastar 1d4 e somar o resultado (cumulativo com bônus de outros itens).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Figurino Teatral",
+            "preco": "T$ 3.600",
+            "espacos": "1",
+            "categoria": "Item Mágico",
+            "tipo": "Acessório Menor",
+            "descricao": "Roupa encantada que muda de aparência conforme o que você tenta fazer. Se for treinado em Atuação e Enganação, uma vez por cena fornece +5 em um teste de perícia qualquer.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Audiência com Lorde Vectorius (Serviço)",
+            "preco": "T$ 5.000",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Audiência com o arquimago nos guichês do castelo. Após pagar, faça um teste de perícia à sua escolha (com relação ao que disse): contra CD 40 para convencê-lo; depois contra CD 50 (perícia diferente); e, por fim, um teste oposto ao arquimago (+46). Vencendo o último, Vectorius o aconselha sobre qualquer dilema; a critério do mestre, isso pode torná-lo treinado em uma perícia ou dar um poder sem pré-requisitos. Falhar em qualquer teste encerra a audiência.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Rito da Troca Vital (Serviço)",
+            "preco": "T$ 600 (menor) / T$ 1.500 (maior)",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Ritual da dahllan Lyris: o praticante oferece vigor ao solo e recebe energia espiritual. Menor: perde 2d4 PV e ganha 1d4+2 PM permanentemente. Maior: perde 2d8 PV e ganha 2d4+4 PM.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Comprar Criatura (Serviço)",
+            "preco": "T$ 600 (iniciante) / T$ 3.000 (veterano) / T$ 15.000 (mestre)",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Criaturas à venda no Empório das Garras. Qualquer personagem pode comprar criaturas iniciantes, mas apenas treinados em Adestramento podem comprar criaturas veteranas ou mestras. Todas contam como parceiros e seguem as regras de Tormenta20, p. 260 (incluindo o limite de parceiros).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Treinar Criatura (Serviço)",
+            "preco": "T$ 3.000",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Tibbo treina um parceiro animal ou monstro que você possua e ensina um truque novo. A criatura passa a fornecer o bônus de um tipo de parceiro iniciante (ajudante, combatente, fortão, guardião ou perseguidor), além de seus bônus normais. Uma mesma criatura só pode ser treinada uma vez por Tibbo.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Tratamento Monstruoso (Serviço)",
+            "preco": "T$ 1.500",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Tratamento temporário (injeção de sangue de monstro, implante de escamas etc.) que concede um benefício à sua escolha por uma aventura (ou um mês): +2 em Força, Destreza ou Constituição; deslocamento de escalada ou natação igual ao base; arma natural de cauda com espinhos (1d6, crítico x2, impacto e perfuração — uma vez por rodada, gastando 1 PM ao agredir com outra arma, faz um ataque extra com a cauda); redução de dano 2; ou redução de dano 10 contra um tipo de dano específico.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Armadilha Comum",
+            "preco": "T$ 150",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Permite usar um poder de Armadilha do caçador, escolhido na compra (Tormenta20, p. 50).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Armadilha Rara",
+            "preco": "T$ 300",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Permite usar uma das armadilhas do armadilheiro, escolhida na compra (Heróis de Arton, p. 117).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Peça Letal",
+            "preco": "T$ 90",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Pode ser usada na preparação de uma armadilha para aumentar em +2 a CD dela e em +1 por dado o dano.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Leitura na Ampulheta (Serviço)",
+            "preco": "T$ 300",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Você procura um livro de um assunto de seu interesse (Conhecimento, Guerra, Misticismo, Nobreza ou Religião) e rola 1d4. Resultado 1: perde a próxima ação de exploração. Resultado 2: não recebe benefício nem perde nada. Resultado 3 ou 4: recebe +1 permanente na perícia escolhida (não cumulativo).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Instante Engarrafado",
+            "preco": "T$ 1.200",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Frasco com uma névoa espiralante que pulsa com todas as cores — um pouco de tempo. Usar é uma ação padrão. Você recebe uma ação padrão adicional na rodada em que usa e na seguinte.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Relógio da Memória",
+            "preco": "T$ 900",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Pequeno relógio de bolso enferrujado que grava o que você fez. Se fizer uma ação igual a outra já feita na mesma cena (mesma arma, mesma magia...) que exija rolagens, pode gastá-lo para repetir uma rolagem da ação anterior (ataque, dano da magia etc.).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Bússola do Desejo",
+            "preco": "T$ 600",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Pequena bússola de bronze. Na compra, escolha uma pessoa ou objeto que já tenha visto pessoalmente; o item aponta o caminho até o alvo. O efeito dura por uma aventura (ou um mês), quando se esvai para sempre.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Clarividência (Serviço)",
+            "preco": "T$ 150",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Por alguns tibares, Vessara vê seu futuro. Role 1d10–3. Positivo: escolha uma cena até o fim da aventura (ou do mês) em que recebe o número rolado em d6 de auxílio (pode gastar até 2d6 por teste de perícia) — descreva a previsão e tente torná-la real. Negativo: o mestre define a cena e pode usar os dados como penalidade. Zero: nada acontece.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Espelho do Futuro",
+            "preco": "T$ 350",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Espelho de mão que permite rolar novamente um teste recém-realizado que não tenha sido uma falha crítica. Fazer isso quebra o espelho. Apenas um espelho do futuro pode ser usado por cena.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Orbe da Visão Remota",
+            "preco": "T$ 150",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Esfera de cristal do tamanho de uma maçã. Ação completa: olhe para dentro e escolha um ponto em alcance longo (mesmo sem linha de visão). Por uma rodada, enxerga como se estivesse nesse ponto.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Areia de Halak-Tûr",
+            "preco": "T$ 600",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Frasco com areia carregada da energia dos portais do Deserto da Perdição. Ação padrão: quebre o vidro e despeje a areia sob os pés de uma criatura em alcance curto. O alvo se teletransporta para qualquer ponto desocupado em alcance longo que você veja; involuntários têm direito a Reflexos (CD Des).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Chave Dimensional",
+            "preco": "T$ 1.000",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Chave de bronze que, girada no ar (ação padrão), cria uma porta em pleno ar. Por uma rodada, qualquer criatura pode cruzá-la para um bolsão dimensional como uma gruta vazia e escura. O bolsão dura algumas horas (dá para dormir) e então se desfaz, devolvendo todos ao espaço da porta. É possível empurrar alguém pela porta à força (manobra empurrar; a criatura ainda rola Reflexos CD For para se segurar no batente).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Mapa Planar",
+            "preco": "T$ 300",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Catalisador",
+            "descricao": "Pergaminho rasgado que mostra caminhos entre Arton e outros planos. Ao lançar uma magia de convocação olhando para essas rotas, a CD aumenta em +2 e os efeitos numéricos variáveis em +1 por dado.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Viagem Rápida (Serviço)",
+            "preco": "T$ 800",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Harrun Vol prepara uma das portas de sua loja para levar você a qualquer lugar em Arton ou em um reino divino que não esteja protegido por magia.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Cabelo de Fada",
+            "preco": "T$ 600",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Catalisador",
+            "descricao": "Diminui o custo da magia em –1d4 PM e permite usar aprimoramentos para os quais você não cumpre os pré-requisitos.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Cinzas de Pergaminho Ancestral",
+            "preco": "T$ 600",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Catalisador",
+            "descricao": "Guarda ecos de magias esquecidas. Permite lançar uma segunda magia como uma ação livre.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Fragmento de Mana Condensada",
+            "preco": "T$ 900",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Catalisador",
+            "descricao": "Brilha como um pequeno sol. Fornece 5 PM para usar em aprimoramentos; esses PM podem ultrapassar o seu limite.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Nuvem Engarrafada",
+            "preco": "T$ 300",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Catalisador",
+            "descricao": "Fornece deslocamento de voo de 12m por 1d4 rodadas.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Pó de Estrela Cadente",
+            "preco": "T$ 1.200",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Catalisador",
+            "descricao": "Extremamente raro e caro, traz o poder do éter para suas magias. Fornece +2 na CD da magia, aumenta todos os dados dela em um passo e todos os efeitos numéricos variáveis em +1 por dado.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Cirurgia de Aprimoramento (Serviço)",
+            "preco": "T$ 1.000",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Lyasis aprimora golens e outros construtos. Você recebe +2 em uma perícia à sua escolha, mas perde 2 PV permanentemente. Pode fazer mais de uma cirurgia, mas apenas para perícias diferentes.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Comprar Construto (Serviço)",
+            "preco": "T$ 600 (iniciante) / T$ 3.000 (veterano) / T$ 15.000 (mestre)",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Lyasis oferece construtos programados para ajudar e proteger. Qualquer personagem pode comprar construtos iniciantes, mas apenas treinados em Ofício (artesanato) podem comprar veteranos ou mestres. Todos contam como parceiros (Tormenta20, p. 260, incluindo o limite). Mecanosservo ajudante: parceiro ajudante. Mecanosservo guardião: iniciante +2 Defesa; veterano +2 Defesa e gastando 1 PM ao sofrer dano, RD 5; mestre +4 Defesa e gastando 2 PM ao sofrer dano, RD 10.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Reagente Instável",
+            "preco": "T$ 120",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Ao ativar uma engenhoca, pode ser usado como parte da ativação. Aumenta qualquer efeito numérico variável dela em +1 por dado ou a CD para resistir em +2 (à sua escolha), mas aumenta a CD para ativá-la em +5.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Autoforja (Serviço)",
+            "preco": "T$ 1/10 do preço do item",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Aluguel da autoforja que reduz o tempo de fabricação de um item para poucas horas (a ação de exploração já gasta na Oficina). Você ainda passa no teste de perícia e gasta a matéria-prima — só o tempo é reduzido. Só pode ser usada uma vez por visita a Vectora (quebra após o uso).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Noite no Vapor & Café (Serviço)",
+            "preco": "T$ 200",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Você passa a noite conversando com inventores e tomando bebidas energéticas. No dia seguinte acorda com uma ideia genial: pode fabricar uma engenhoca que, ao ser ativada, também gera o efeito de uma magia de 1º círculo. Porém, perde permanentemente 1 PV e 1 PM.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Essência de Medo",
+            "preco": "T$ 300",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Frasco com névoa escura e espiralante. Ação padrão: atire em qualquer ponto em alcance curto. Criaturas a até 3m ficam apavoradas por 1d4+1 rodadas e então abaladas pela cena (Von CD Des diminui para abaladas pela cena).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Maldição Física Engarrafada",
+            "preco": "T$ 360",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Garrafa metálica enferrujada. Abri-la (ação padrão) libera uma maldição em forma de uivo agonizante sobre uma criatura em alcance curto. Ela fica debilitada por 1 semana (Von CD Car reduz para fraca por 1d4 rodadas).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Maldição Mental Engarrafada",
+            "preco": "T$ 360",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Como a maldição física, mas a criatura fica esmorecida por 1 semana (Fort CD Car reduz para frustrada por 1d4 rodadas).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Pergaminho Sombrio",
+            "preco": "T$ (preço do pergaminho)",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Maelkir vende pergaminhos de qualquer magia de trevas de até 3º círculo pelo preço normal. A fabricação nefasta faz os efeitos numéricos variáveis aumentarem em +1 por dado. Disponível apenas no submundo de Vectora — nem todos têm acesso.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Venenos Potentes",
+            "preco": "T$ (preço do veneno)",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Venenos",
+            "descricao": "Maelkir vende qualquer veneno conhecido (e alguns desconhecidos) em versões ainda mais letais: preço normal, mas com +2 na CD. Disponível apenas no submundo de Vectora — nem todos têm acesso.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Noite de Wyrt",
+            "preco": "T$ (aposta)",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Jogo de azar com cartas e dados, proibido para não nobres no Reinado, mas permitido para todos na Véu Escarlate. Disponível apenas no submundo de Vectora — nem todos têm acesso. Pague a aposta e faça um teste de Jogatina. Salão comunal: aposta 3d6 x T$ 10, CD 1d10+20. Área privativa: aposta 3d6 x T$ 10, CD 2d10+20. Sucesso: lucra a aposta. Passar por 10+: lucra 4x a aposta. Blefar (Enganação CD 20): +2 na Jogatina (+1 a cada 5 acima da CD), falha –5. Trapacear (Ladinagem CD 25): +10 na Jogatina; Percepção oposta pode notar a trapaça (jogo acaba e briga começa).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Noite de Prazeres (Serviço)",
+            "preco": "T$ 150",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Na Véu Escarlate, o \"amor\" está à venda. Disponível apenas no submundo de Vectora — nem todos têm acesso. Algumas horas de carícias lascivas fornecem 2d6 PM temporários.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Passagem para o Submundo (Serviço)",
+            "preco": "T$ (suborno 3d10 x T$ 10)",
+            "espacos": "—",
+            "categoria": "Item Geral",
+            "tipo": "Serviço",
+            "descricao": "Acesso ao Mercado das Profundezas, no submundo de Vectora. Observando atentamente os movimentos das pessoas, você descobre uma entrada (alçapão sob um tapete, passagem secreta no escritório de um mestre de guilda etc.). Atravessá-la pode exigir teste de Furtividade ou Intimidação (CD 30), suborno (3d10 x T$ 10) ou outra ideia que o mestre aprove.",
+            "fonte": "Dragão Brasil"
         }
 
     ]

@@ -980,6 +980,53 @@ const modificacoesData = {
             "tipo": "Melhoria",
             "descricao": "Aplicável em: Armaduras, Escudos, Ferramentas, Vestuário. Conta como um símbolo sagrado do deus (incluindo bônus de +1 em testes de resistência para devotos).",
             "fonte": "Deuses de Arton"
+        },
+
+        // (Melhorias de Vectora - Dragão Brasil)
+        {
+            "nome": "Bolsos Internos",
+            "preco": "",
+            "espacos": "—",
+            "categoria": "Item Superior",
+            "tipo": "Melhoria",
+            "descricao": "Aplicável em: Vestuários. Aumenta sua capacidade de carga em 2 espaços (o item continua ocupando seu espaço).",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Tarimbado",
+            "preco": "",
+            "espacos": "—",
+            "categoria": "Item Superior",
+            "tipo": "Melhoria",
+            "descricao": "Aplicável em: Equipamentos de Aventura, Ferramentas e Vestuários. O item fornece +1 em uma perícia (determinada na compra). O bônus só se aplica se o item estiver empunhado ou vestido, mas é cumulativo com bônus fornecidos pelo item.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Reforjado",
+            "preco": "",
+            "espacos": "—",
+            "categoria": "Item Superior",
+            "tipo": "Melhoria",
+            "descricao": "Aplicável em: Armaduras e Escudos. Uma vez por cena, você pode forçar um inimigo a rolar novamente um teste de ataque recém-feito contra você. Pré-requisito: uma melhoria qualquer.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Bênção da Guerra",
+            "preco": "",
+            "espacos": "—",
+            "categoria": "Item Superior",
+            "tipo": "Melhoria",
+            "descricao": "Aplicável em: Armas. Fornece +2 em testes de ataque e rolagens de dano, mas impõe –2 em Vontade. Pré-requisito: Cruel.",
+            "fonte": "Dragão Brasil"
+        },
+        {
+            "nome": "Eletrificada",
+            "preco": "",
+            "espacos": "—",
+            "categoria": "Item Superior",
+            "tipo": "Melhoria",
+            "descricao": "Aplicável em: Armas. Causa +1d6 de dano de eletricidade, mas o torna vulnerável a esse mesmo elemento. Pré-requisitos: Certeira e Precisa.",
+            "fonte": "Dragão Brasil"
         }
 
     ]
