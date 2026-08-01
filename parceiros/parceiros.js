@@ -1314,6 +1314,50 @@ var parceirosData = [
 
   },
   {
+    "name": "Coruja Conselheira",
+    "category": "parceiro",
+    "source": "dragaobrasil",
+    "desc": "Uma coruja sábia que voa ao redor de você piando dicas úteis. Ajudante.",
+    "tiers": {
+      "iniciante": "no início de cada cena, você recebe 1d4 de dados de auxílio. Ao realizar um teste de perícia, pode gastar um ou mais desses dados e adicionar o resultado deles como bônus no teste.",
+      "veterano": "como acima, mas você recebe 2d4.",
+      "mestre": "como acima, mas você recebe 3d6."
+    }
+  },
+  {
+    "name": "Glop de Guarda",
+    "category": "parceiro",
+    "source": "dragaobrasil",
+    "desc": "Este pingo verde fica na sua frente, absorvendo ataques contra você. Guardião.",
+    "tiers": {
+      "iniciante": "você recebe redução de dano 1.",
+      "veterano": "muda para redução de dano 2 e, sempre que uma criatura adjacente a você o atacar, ela sofre 1d6 de dano de ácido.",
+      "mestre": "muda para redução de dano 3 e 2d6 de dano de ácido. Além disso, quando sofre dano, você pode fazer o glop absorvê-lo: sofre apenas metade do dano, mas o glop se divide em vários glopinhos e não pode mais ajudá-lo até a próxima cena, quando cresce de volta ao tamanho normal."
+    }
+  },
+  {
+    "name": "Mecanosservo Ajudante",
+    "category": "parceiro",
+    "source": "dragaobrasil",
+    "desc": "Autômato pequeno e prestativo que funciona como um parceiro ajudante.",
+    "tiers": {
+      "iniciante": "você recebe +2 em duas perícias.",
+      "veterano": "muda para +2 em três perícias.",
+      "mestre": "muda para +4 em três perícias. As perícias são definidas pelo parceiro. Um ajudante não pode fornecer bônus em Luta ou Pontaria."
+    }
+  },
+  {
+    "name": "Mecanosservo Guardião",
+    "category": "parceiro",
+    "source": "dragaobrasil",
+    "desc": "Autômato robusto, programado para se colocar entre seu proprietário e o perigo. Guardião.",
+    "tiers": {
+      "iniciante": "você recebe +2 na Defesa.",
+      "veterano": "como acima e, quando sofre dano, você pode gastar 1 PM para receber RD 5 contra este dano.",
+      "mestre": "você recebe +4 na Defesa e, quando sofre dano, pode gastar 2 PM para receber RD 10 contra este dano."
+    }
+  },
+  {
     "name": "Bando Duyshidakk",
     "category": "capanga",
     "source": "herois",
