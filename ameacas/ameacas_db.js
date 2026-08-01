@@ -44975,5 +44975,494 @@ const AMEACAS_DB = [
         "fonte": "Ameaças de Arton",
         "equipamento": "Arco longo, flechas de matéria vermelha x20",
         "img": "https://i.imgur.com/dgNs99I.png"
+    },
+    {
+        "nome": "Vigilante",
+        "tipo": "Humanoide Médio",
+        "nd": "7",
+        "iniciativa": "+12",
+        "percepcao": "+10",
+        "percepcaoObs": "",
+        "defesa": "30",
+        "fort": "+14",
+        "ref": "+17",
+        "von": "+11",
+        "defesaObs": "resistência a encantos +2",
+        "pv": "50",
+        "desl": "9m (6q)",
+        "pm": "0",
+        "atributos": {
+            "for": "3",
+            "des": "3",
+            "con": "2",
+            "int": "1",
+            "sab": "1",
+            "car": "0"
+        },
+        "ataques": [
+            {
+                "nome": "Espada longa",
+                "tipo": "Corpo a Corpo",
+                "bonus": "+27",
+                "dano": "2d8+25",
+                "desc": "19."
+            },
+            {
+                "nome": "Balestra alquímica",
+                "tipo": "À Distância",
+                "bonus": "+27",
+                "dano": "2d12+25",
+                "desc": "Mais 6d6 de ácido, mais lento pela cena (Fort CD 24 reduz a 1 rodada), 19."
+            }
+        ],
+        "habilidades": [
+            {
+                "nome": "Ataque Coordenado",
+                "tipo": "Padrão",
+                "desc": "Dois ou mais guardas podem atacar em conjunto. Use as mesmas estatísticas do ataque escolhido (corpo a corpo ou à distância), com bônus de +4 no teste de ataque e +1d8+10 na rolagem de dano para cada guarda além do primeiro."
+            },
+            {
+                "nome": "Ginete de Baleote",
+                "tipo": "Qualidade",
+                "desc": "Alguns vigilantes possuem um baleote, um parceiro montaria Grande (veja Ameaças de Arton, p. 210). Enquanto estiver montado, recebe deslocamento de voo 12m e pode usar uma ação de movimento para causar 2d6 de dano de eletricidade em uma linha de 9m."
+            }
+        ],
+        "pericias": [
+            {
+                "nome": "Atletismo",
+                "valor": "+12"
+            },
+            {
+                "nome": "Cavalgar",
+                "valor": "+12"
+            },
+            {
+                "nome": "Intuição",
+                "valor": "+10"
+            }
+        ],
+        "tesouro": "Nenhum",
+        "fonte": "Dragão Brasil",
+        "equipamento": "Espada longa certeira de adamante, balestra certeira com injeção alquímica, cota de malha de mitral"
+    },
+    {
+        "nome": "Comissário Vigílico",
+        "tipo": "Humanoide Médio",
+        "nd": "11",
+        "iniciativa": "+14",
+        "percepcao": "+16",
+        "percepcaoObs": "",
+        "defesa": "42",
+        "fort": "+15",
+        "ref": "+20",
+        "von": "+25",
+        "defesaObs": "resistência a magia +2",
+        "pv": "250",
+        "desl": "9m (6q)",
+        "pm": "81",
+        "atributos": {
+            "for": "2",
+            "des": "3",
+            "con": "2",
+            "int": "4",
+            "sab": "1",
+            "car": "0"
+        },
+        "ataques": [
+            {
+                "nome": "Espada longa",
+                "tipo": "Corpo a Corpo",
+                "bonus": "+35",
+                "dano": "2d10+30",
+                "desc": "Mais 10d8+20 de eletricidade, 18."
+            }
+        ],
+        "habilidades": [
+            {
+                "nome": "Conjurador Encouraçado",
+                "tipo": "Qualidade",
+                "desc": "Pode lançar magias arcanas cavalgando e/ou de armadura sem precisar de testes de Misticismo."
+            },
+            {
+                "nome": "Visão do Oficial",
+                "tipo": "Qualidade",
+                "desc": "Permanentemente sob efeito da magia Visão Mística com o aprimoramento que permite enxergar criaturas e objetos invisíveis e soma sua Inteligência aos seus testes de Intuição e Percepção (já contabilizado)."
+            },
+            {
+                "nome": "Magias",
+                "tipo": "Qualidade",
+                "desc": "Como um mago de 11º nível (CD 37). • Amarras Etéreas (Padrão, 5 PM) Quatro laços de energia se enroscam em uma criatura em alcance médio, deixando-a agarrada (Ref evita). A vítima pode gastar uma ação padrão para fazer um teste de Atletismo; se passar, destrói um laço, mais um laço adicional para cada 5 pontos pelos quais superou a CD. Os laços podem ser atacados: cada um tem Def 10, 10 PV, RD 5 e imunidade a dano mágico. Se todos forem destruídos, a magia é dissipada. O oficial pode gastar +2 PM para afetar +1 alvo (até 11 PM para 4 alvos). • Arma Mágica (Padrão, 10 PM) Uma arma em alcance de toque se torna mágica até o fim da cena: +3 em testes de ataque e rolagens de dano e +2d6 de fogo. Se estiver empunhando a arma, usa Inteligência no lugar de Força nos testes de ataque (ataque total +40). • Dissipar Magia (Padrão, 3 PM) Escolhe uma criatura, objeto ou esfera de 3m em alcance médio e faz um teste de Misticismo; todas as magias no alvo com CD menor que o teste são dissipadas. Contra um item mágico, transforma-o em mundano por 1d6 rodadas (Von anula). • Seta Infalível Daquele Professor Mequetrefe (Padrão, 7 PM) Projeta cinco lanças de energia distribuídas em até cinco criaturas em alcance médio; cada lança causa 1d8+1 de dano de essência (uma delas recebe +4 na rolagem de dano)."
+            }
+        ],
+        "pericias": [
+            {
+                "nome": "Atletismo",
+                "valor": "+13"
+            },
+            {
+                "nome": "Intuição",
+                "valor": "+16"
+            },
+            {
+                "nome": "Misticismo",
+                "valor": "+15"
+            }
+        ],
+        "tesouro": "Nenhum",
+        "fonte": "Dragão Brasil",
+        "equipamento": "Espada longa certeira e precisa de adamante, cota de malha de mitral"
+    },
+    {
+        "nome": "Aster Arelor, a Lâmina Celeste",
+        "tipo": "Espírito (suraggel) Médio",
+        "nd": "15",
+        "iniciativa": "+22",
+        "percepcao": "+23",
+        "percepcaoObs": "visão no escuro",
+        "defesa": "55",
+        "fort": "+17",
+        "ref": "+22",
+        "von": "+27",
+        "defesaObs": "resistência a encantamentos +2",
+        "pv": "700",
+        "desl": "9m (6q), voo 18m (12q)",
+        "pm": "81",
+        "atributos": {
+            "for": "4",
+            "des": "7",
+            "con": "5",
+            "int": "3",
+            "sab": "5",
+            "car": "5"
+        },
+        "ataques": [
+            {
+                "nome": "Espada longa",
+                "tipo": "Corpo a Corpo",
+                "bonus": "+45",
+                "dano": "4d10+30",
+                "desc": "x3, 17, mais 2d8 de eletricidade."
+            }
+        ],
+        "habilidades": [
+            {
+                "nome": "Aura de Disciplina",
+                "tipo": "Qualidade",
+                "desc": "Emana uma aura de disciplina com 9m de raio. Criaturas que comecem o turno dentro da aura sofrem –5 em Enganação, Furtividade e Ladinagem. Aliados de Aster dentro da aura recebem +5 em testes de ataque e de Vontade."
+            },
+            {
+                "nome": "Golpe da Ascensão",
+                "tipo": "Completa",
+                "desc": "Aster voa ao redor de uma criatura Grande ou menor, que deve fazer um teste de Fortitude (CD 45). Em falha, a lufada de vento das asas a ergue do solo, deixando-a desprevenida; Aster golpeia com +2 na margem de ameaça, +1 no multiplicador de crítico e ignorando 20 de RD. Por fim, a criatura despenca, sofrendo 4d6 de impacto e ficando caída. Em sucesso, Aster ainda pode atacar, mas sem os bônus da habilidade. Recarga (movimento)."
+            },
+            {
+                "nome": "Graça Aérea",
+                "tipo": "Qualidade",
+                "desc": "Se gastar uma ação de movimento para se deslocar voando, Aster recebe +5 na Defesa e evasão aprimorada."
+            },
+            {
+                "nome": "Olhar Dourado",
+                "tipo": "Movimento",
+                "desc": "Uma criatura em alcance médio sofre 6d12+6 de dano de luz e fica cega por 1d4+1 rodadas (Fort CD 45 reduz para ofuscado por 1 rodada). Como alternativa, gera o efeito básico de Dissipar Magia, exceto que só dissipa efeitos de encantamento, ilusão ou trevas e que Aster faz um teste de Intuição contra a CD da magia, em vez de Misticismo."
+            },
+            {
+                "nome": "Visão do Oficial",
+                "tipo": "Qualidade",
+                "desc": "Permanentemente sob efeito da magia Visão Mística com o aprimoramento que permite enxergar criaturas e objetos invisíveis e soma sua Inteligência aos seus testes de Intuição e Percepção (já contabilizado)."
+            }
+        ],
+        "pericias": [
+            {
+                "nome": "Acrobacia",
+                "valor": "+22"
+            },
+            {
+                "nome": "Intuição",
+                "valor": "+23"
+            },
+            {
+                "nome": "Misticismo",
+                "valor": "+18"
+            },
+            {
+                "nome": "Nobreza",
+                "valor": "+18"
+            }
+        ],
+        "tesouro": "Nenhum",
+        "fonte": "Dragão Brasil",
+        "equipamento": "Couraça defensora e protetora, espada longa certeira, formidável e precisa de mitral"
+    },
+    {
+        "nome": "Capanga da Sangue Sombrio",
+        "tipo": "Humanoide Médio",
+        "nd": "6",
+        "iniciativa": "+13",
+        "percepcao": "+10",
+        "percepcaoObs": "",
+        "defesa": "32",
+        "fort": "+14",
+        "ref": "+19",
+        "von": "+8",
+        "defesaObs": "",
+        "pv": "40",
+        "desl": "12m (8q)",
+        "pm": "0",
+        "atributos": {
+            "for": "2",
+            "des": "4",
+            "con": "1",
+            "int": "1",
+            "sab": "1",
+            "car": "0"
+        },
+        "ataques": [
+            {
+                "nome": "Adagas",
+                "tipo": "Corpo a Corpo",
+                "bonus": "+27",
+                "dano": "2d6+15",
+                "desc": "x2, mais veneno, 19."
+            },
+            {
+                "nome": "Besta de repetição",
+                "tipo": "À Distância",
+                "bonus": "+27",
+                "dano": "2d8+15",
+                "desc": "x2, mais veneno, 19."
+            }
+        ],
+        "habilidades": [
+            {
+                "nome": "Ataque Furtivo",
+                "tipo": "Qualidade",
+                "desc": "+4d6."
+            },
+            {
+                "nome": "Capuz das Profundezas",
+                "tipo": "Livre",
+                "desc": "Uma vez por cena, o capanga fica invisível por uma rodada."
+            },
+            {
+                "nome": "Veneno: Peçonha Comum",
+                "tipo": "Qualidade",
+                "desc": "A vítima perde 1d12 PV."
+            }
+        ],
+        "pericias": [
+            {
+                "nome": "Acrobacia",
+                "valor": "+13"
+            },
+            {
+                "nome": "Furtividade",
+                "valor": "+13"
+            },
+            {
+                "nome": "Ladinagem",
+                "valor": "+13"
+            }
+        ],
+        "tesouro": "Nenhum",
+        "fonte": "Dragão Brasil",
+        "equipamento": "Espada curta certeira, besta de repetição certeira, peçonha comum x6"
+    },
+    {
+        "nome": "Executor da Sangue Sombrio",
+        "tipo": "Humanoide Médio",
+        "nd": "10",
+        "iniciativa": "+18",
+        "percepcao": "+13",
+        "percepcaoObs": "",
+        "defesa": "37",
+        "fort": "+16",
+        "ref": "+20",
+        "von": "+12",
+        "defesaObs": "",
+        "pv": "66",
+        "desl": "12m (8q)",
+        "pm": "0",
+        "atributos": {
+            "for": "4",
+            "des": "4",
+            "con": "1",
+            "int": "1",
+            "sab": "2",
+            "car": "0"
+        },
+        "ataques": [
+            {
+                "nome": "Espada-gadanho",
+                "tipo": "Corpo a Corpo",
+                "bonus": "+35",
+                "dano": "2d8+20",
+                "desc": "x2, mais veneno, 18."
+            }
+        ],
+        "habilidades": [
+            {
+                "nome": "Ataque Furtivo Letal",
+                "tipo": "Qualidade",
+                "desc": "+6d8. O executor pode fazer até dois ataques furtivos por rodada. Sempre que rola um 7 ou 8 em um dado de dano da habilidade, rola um dado extra."
+            },
+            {
+                "nome": "Capuz das Profundezas",
+                "tipo": "Livre",
+                "desc": "Uma vez por cena, o executor fica invisível por uma rodada."
+            },
+            {
+                "nome": "Frasco de Sombras Drenantes",
+                "tipo": "Padrão",
+                "desc": "Uma vez por cena, o executor atira um frasco de vidro em um ponto qualquer em alcance curto. O frasco libera tentáculos de sombra: criaturas a até 3m perdem 4d8+4 PV e ficam debilitadas (Fort CD 30 reduz a condição para fraco), na rodada em que é usado e na seguinte. Não afeta membros da Sangue Sombrio."
+            },
+            {
+                "nome": "Truque das Profundezas",
+                "tipo": "Qualidade",
+                "desc": "Pode sacar ou guardar itens como ação livre. Uma vez por cena, se sacar sua espada-gadanho e atacar no mesmo turno, o oponente fica desprevenido contra esse ataque."
+            },
+            {
+                "nome": "Veneno: Peçonha Concentrada",
+                "tipo": "Qualidade",
+                "desc": "A vítima perde 1d12 PV por rodada durante 3 rodadas (Fort CD 32 reduz para perde 1d12 PV)."
+            }
+        ],
+        "pericias": [
+            {
+                "nome": "Acrobacia",
+                "valor": "+15"
+            },
+            {
+                "nome": "Furtividade",
+                "valor": "+15"
+            },
+            {
+                "nome": "Intimidação",
+                "valor": "+13"
+            }
+        ],
+        "tesouro": "Nenhum",
+        "fonte": "Dragão Brasil",
+        "equipamento": "Espada-gadanho certeira e precisa, peçonha concentrada x3"
+    },
+    {
+        "nome": "Zordoelaram",
+        "tipo": "Morto-vivo Médio",
+        "nd": "18",
+        "iniciativa": "+26",
+        "percepcao": "+32",
+        "percepcaoObs": "visão no escuro",
+        "defesa": "55",
+        "fort": "+19",
+        "ref": "+27",
+        "von": "+32",
+        "defesaObs": "cura acelerada 20, redução de dano 20/luz, resistência a encantamentos +5",
+        "pv": "660",
+        "desl": "18m (12q), escalar 18m (12q)",
+        "pm": "0",
+        "atributos": {
+            "for": "6",
+            "des": "6",
+            "con": "4",
+            "int": "7",
+            "sab": "5",
+            "car": "7"
+        },
+        "ataques": [
+            {
+                "nome": "Espada longa",
+                "tipo": "Corpo a Corpo",
+                "bonus": "+49",
+                "dano": "4d10+32",
+                "desc": "x3, 16/x3, mais 4d10 de trevas."
+            },
+            {
+                "nome": "Garra",
+                "tipo": "Corpo a Corpo",
+                "bonus": "+45",
+                "dano": "4d6+30",
+                "desc": "Mais 4d10 de trevas."
+            }
+        ],
+        "habilidades": [
+            {
+                "nome": "Dominação Vampírica",
+                "tipo": "Padrão",
+                "desc": "Sussurra palavras de controle para um humanoide em alcance curto. A vítima fica confusa, enfeitiçada ou fascinada até o fim da cena, ou perde as memórias da última hora, à escolha do vampiro (Von CD 49 evita). Uma criatura só pode ser alvo desta habilidade uma vez por cena."
+            },
+            {
+                "nome": "Drenar Sangue",
+                "tipo": "Padrão",
+                "desc": "Drena sangue de uma criatura viva que esteja agarrando: causa 6d10 de dano de perfuração e recupera a mesma quantidade de PV. Uma criatura morta desta forma se erguerá como um vampiro na próxima noite e deverá vencer um teste de Vontade oposto contra Zordoelaram ou ficará sob o controle dele até que ele a liberte ou seja destruído."
+            },
+            {
+                "nome": "Forma de Morcego",
+                "tipo": "Padrão",
+                "desc": "Transforma-se em um morcego Minúsculo (+5 em Furtividade e –5 em testes de manobra) com deslocamento de voo 12m. Seu equipamento é absorvido (retorna ao normal) e as outras estatísticas não são alteradas. A transformação dura quanto tempo ele desejar, mas termina se fizer um ataque, usar uma habilidade mágica ou sofrer dano."
+            },
+            {
+                "nome": "Manipular as Sombras",
+                "tipo": "Reação",
+                "desc": "Uma vez por rodada, quando é alvo de um efeito hostil, Zordoelaram pode redirecioná-lo a qualquer outra criatura em alcance curto — inclusive à própria criatura que fez o efeito. A criatura tem direito a Reflexos (CD 49) para evitar."
+            },
+            {
+                "nome": "Orgulho",
+                "tipo": "Reação",
+                "desc": "Uma vez por cena, quando faz um teste de perícia, Zordoelaram soma o dobro de seu Carisma (+14) nesse teste."
+            },
+            {
+                "nome": "Presença Majestosa",
+                "tipo": "Reação",
+                "desc": "Quando uma criatura ataca Zordoelaram, deve passar em um teste de Vontade (CD 49) ou não conseguirá machucá-lo e perderá a ação. Quem passa no teste não é mais afetado por esta habilidade até o fim da cena."
+            },
+            {
+                "nome": "Sensibilidade ao Sol",
+                "tipo": "Qualidade",
+                "desc": "Quando exposto a luz solar direta, fica ofuscado e perde 6d10 PV por rodada."
+            },
+            {
+                "nome": "Sombras Sedentas",
+                "tipo": "Padrão",
+                "desc": "Conjura tentáculos com presas em uma área de 6m de raio em alcance médio. Todas as criaturas na área perdem 10d10+10 PV (Fort CD 49 reduz à metade) e 6d8+6 PM (Von CD 49 reduz à metade). Recarga (usar Drenar Sangue)."
+            },
+            {
+                "nome": "Velocidade Ancestral",
+                "tipo": "Qualidade",
+                "desc": "Uma vez por rodada, pode usar Dominação Vampírica, Drenar Sangue ou Sombras Sedentas como uma ação livre."
+            },
+            {
+                "nome": "Visão da Verdade",
+                "tipo": "Qualidade",
+                "desc": "Permanentemente sob o efeito da magia Visão da Verdade, com +10 em Percepção e Intuição."
+            }
+        ],
+        "pericias": [
+            {
+                "nome": "Diplomacia",
+                "valor": "+24"
+            },
+            {
+                "nome": "Enganação",
+                "valor": "+27"
+            },
+            {
+                "nome": "Furtividade",
+                "valor": "+26"
+            },
+            {
+                "nome": "Intuição",
+                "valor": "+32"
+            },
+            {
+                "nome": "Misticismo",
+                "valor": "+24"
+            },
+            {
+                "nome": "Nobreza",
+                "valor": "+24"
+            }
+        ],
+        "tesouro": "Dobro",
+        "fonte": "Dragão Brasil",
+        "equipamento": "Armadura completa cravejada de gemas, delicada e selada de mitral, espada longa formidável, precisa, pungente e veloz de mitral"
     }
 ];
