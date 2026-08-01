@@ -26,6 +26,8 @@ const modificationPrereqs = {
     "Atroz": ["Cruel"],
     "Penetrante": ["Cruel"],
     "Farpada": ["Cruel"],
+    "Bênção da Guerra": ["Cruel"],
+    "Eletrificada": ["Certeira", "Precisa"],
     // Armaduras e Escudos
     "Sob Medida": ["Ajustada"],
     // Esotéricos
@@ -1895,6 +1897,16 @@ function openModal(index) {
     `;
 
     document.getElementById('modalDescription').textContent = item.descricao;
+
+    // Ações extras no modal (botões de link para outros apps)
+    const modalCustomActions = document.getElementById('modalCustomActions');
+    if (modalCustomActions) {
+        if (item.nome === 'Comprar Criatura (Serviço)' || item.nome === 'Comprar Construto (Serviço)') {
+            modalCustomActions.innerHTML = `<a href="../parceiros/index.html" class="add-item-btn" style="justify-content:center; text-decoration:none;">🦅 Ver Parceiros</a>`;
+        } else {
+            modalCustomActions.innerHTML = '';
+        }
+    }
 
     // Renderiza os stats base (sem melhorias ainda)
     renderModalStats(item);

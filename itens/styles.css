@@ -1000,6 +1000,13 @@ select:focus {
   font-size: 0.8rem;
 }
 
+.modal-custom-actions {
+  margin-top: 12px;
+}
+.modal-custom-actions:empty {
+  display: none;
+}
+
 .add-item-btn {
   width: 100%;
   height: 40px;
