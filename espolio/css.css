@@ -701,6 +701,37 @@ a { color: inherit; text-decoration: none; }
 /* ===== LISTA DE ITENS ===== */
 .treasure-list { display: grid; gap: 10px; }
 
+/* ===== LEGENDA DOS ASTERISCOS ===== */
+.legend-note {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px dashed var(--borda-card);
+  border-left: 4px solid var(--ouro);
+  border-radius: var(--radius-card);
+  background: var(--bg-sub-card);
+  font-size: 0.78rem;
+  color: var(--texto-secundario);
+  line-height: 1.5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: baseline;
+}
+
+.legend-title {
+  font-weight: 700;
+  color: var(--ouro);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.7rem;
+  flex: 0 0 100%;
+  margin-bottom: 2px;
+}
+
+.legend-item::first-letter { font-weight: 700; color: var(--ouro); }
+
+.theme-classic .legend-note { background: #ffffff; }
+
 .treasure-item {
   display: flex;
   align-items: flex-start;
@@ -902,8 +933,84 @@ a { color: inherit; text-decoration: none; }
 .history-total:empty { display: none; }
 .history-total-val { color: var(--ouro); font-weight: 600; }
 
-.mesa-input { margin-top: 8px; width: 100%; }
-.mesa-input:disabled { opacity: 0.5; cursor: not-allowed; }
+.mesa-builder { margin-top: 10px; }
+.mesa-nd-label {
+  font-size: 0.72rem;
+  color: var(--texto-secundario);
+  opacity: 0.85;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.mesa-add-row { display: flex; align-items: center; gap: 8px; }
+.mesa-nd-atual {
+  font-family: "Tormenta", serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ouro);
+  background: var(--bg-sub-card);
+  border: 1px solid var(--borda-card);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-width: 62px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.mesa-qty { display: flex; align-items: center; gap: 6px; flex: 1; }
+.mesa-qty-btn { width: 34px; height: 34px; font-size: 1rem; }
+.mesa-qty-input {
+  width: 52px;
+  height: 34px;
+  text-align: center;
+  background: var(--bg-sub-card);
+  border: 1px solid var(--borda-card);
+  border-radius: 8px;
+  color: var(--ouro);
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: inherit;
+  -moz-appearance: textfield;
+}
+.mesa-qty-input::-webkit-outer-spin-button,
+.mesa-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.mesa-add-btn { white-space: nowrap; padding: 8px 14px; font-size: 0.85rem; }
+.mesa-chips { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+.mesa-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-sub-card);
+  border: 1px solid var(--borda-card);
+  border-radius: 999px;
+  padding: 5px 5px 5px 12px;
+  animation: fadeIn 0.25s ease;
+}
+.mesa-chip-val { font-weight: 700; color: var(--ouro); font-size: 0.85rem; }
+.mesa-chip-x {
+  border: none;
+  background: transparent;
+  color: var(--rubi);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+.mesa-chip-x:hover { background: rgba(255, 255, 255, 0.1); }
+.mesa-clear {
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: var(--rubi);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.75rem;
+  padding: 0;
+}
 .mesa-hint {
   margin-top: 6px;
   font-size: 0.75rem;

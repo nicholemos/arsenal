@@ -52,6 +52,13 @@
                 <p class="message">
                     O <strong>Espólio</strong> automatiza as rolagens de tesouro de <strong>Tormenta20</strong>.
                     <br><br>
+                    <strong>Legenda dos asteriscos (encantos de itens mágicos):</strong>
+                    <br>
+                    · <code>*</code> = só armadura<br>
+                    · <code>**</code> = role 1d6 para material<br>
+                    · <code>***</code> = conta como duas melhorias e inclui o pré-requisito; role de novo se só tiver
+                    uma
+                    <br><br>
                     <strong>Recompensa de Missão</strong> segue a tabela "Tesouro por ND" (Capítulo 8): escolha o
                     <strong>ND</strong> e a <strong>Quantidade de Tesouro</strong> (Nenhum/Padrão/Metade/Dobro) e
                     role.
@@ -132,8 +139,22 @@
                                     <span class="check-box"></span>
                                     <span class="check-label">Usar composição <small>rolar vários NDs de uma vez</small></span>
                                 </label>
-                                <input type="text" class="select mesa-input" id="mesaInput" placeholder="Ex.: ND3 x4; ND6 x1" autocomplete="off" disabled>
-                                <div class="mesa-hint" id="mesaHint"></div>
+
+                                <div class="mesa-builder" id="mesaBuilder" style="display:none;">
+                                    <div class="mesa-nd-label">O ND abaixo é usado como base. Ajuste a quantidade e adicione à mesa:</div>
+                                    <div class="mesa-add-row">
+                                        <span class="mesa-nd-atual" id="mesaNdAtual">ND 1</span>
+                                        <div class="mesa-qty">
+                                            <button class="qty-btn mesa-qty-btn" id="mesaQtyMinus" type="button" title="Diminuir">−</button>
+                                            <input type="number" class="mesa-qty-input" id="mesaQty" value="1" min="1" max="99" step="1" inputmode="numeric" aria-label="Quantidade">
+                                            <button class="qty-btn mesa-qty-btn" id="mesaQtyPlus" type="button" title="Aumentar">+</button>
+                                        </div>
+                                        <button class="btn btn-primary mesa-add-btn" id="mesaAddBtn" type="button">+ Adicionar</button>
+                                    </div>
+                                    <div class="mesa-chips" id="mesaChips"></div>
+                                    <button class="mesa-clear" id="mesaLimparBtn" type="button" style="display:none;">Limpar composição</button>
+                                    <div class="mesa-hint" id="mesaHint"></div>
+                                </div>
                             </div>
 
                             <div class="card-dark">
@@ -281,6 +302,15 @@
 
                     <!-- Itens -->
                     <div id="treasureList" class="treasure-list"></div>
+
+                    <!-- Legenda dos asteriscos -->
+                    <div id="legendAsteriscos" class="legend-note" style="display: none;">
+                        <span class="legend-title">Legenda dos asteriscos</span>
+                        <span class="legend-item">* só armadura</span>
+                        <span class="legend-item">** role 1d6 para material</span>
+                        <span class="legend-item">*** conta como duas melhorias e inclui o pré-requisito; role de novo
+                            se só tiver uma</span>
+                    </div>
                 </section>
 
                 <!-- Painel 3: Histórico de Rolagens -->
@@ -313,6 +343,9 @@
         </button>
         <button class="btn btn-flotante-sec" id="btnCopyResult" type="button" style="display:none;" title="Copiar resultado">
             <i class="fa-solid fa-copy"></i> <span>Copiar</span>
+        </button>
+        <button class="btn btn-flotante-sec" id="btnClearData" type="button" title="Limpar todos os dados salvos (configurações, último baú aberto e histórico)">
+            <i class="fa-solid fa-eraser"></i> <span>Limpar dados</span>
         </button>
     </div>
 

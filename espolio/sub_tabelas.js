@@ -22,14 +22,109 @@ function rollTabela(tabela, bonus) {
 	return tabela[tabela.length - 1][0];
 }
 
-// Rola uma sub-tabela evitando o marcador "… específico(a) (role na tabela de …)",
-// re-rolando até gerar um item Mágico/encanto de verdade.
-function rollTabelaSemEspecifico(tabela) {
+// ─────────────── ITENS ESPECÍFICOS (d100) ───────────────
+// Tabelas extraídas do xlsx oficial de tesouros T20.
+
+var ARMAS_ESPECIFICAS = [
+	["Adaga da bruma",2],
+	["Adaga ofídica",1],
+	["Adaga sorrateira",1],
+	["Alabarda da coragem",1],
+	["Alfange dourado",1],
+	["Alguma coisa de Nimb...",1],
+	["Arco das sombras",3],
+	["Arco do crepúsculo",2],
+	["Arco do poder",3],
+	["Avalanche",3],
+	["Azagaia dos relâmpagos",3],
+	["Azagaia fantasma",2],
+	["Besta estelar",3],
+	["Besta explosiva",3],
+	["Bordão sabichão",1],
+	["Cajado das matas",1],
+	["Cimitarra solar",1],
+	["Clava de lava",2],
+	["Espada baronial",3],
+	["Espada da tempestade",2],
+	["Espada do guardião",3],
+	["Espada imaculada",1],
+	["Espada monástica",1],
+	["Espada solar",2],
+	["Espada sortuda",3],
+	["Florete do vendaval",2],
+	["Florete fugaz",3],
+	["Katana da determinação",1],
+	["Lâmina da luz",3],
+	["Lança animalesca",3],
+	["Lança da dominação",1],
+	["Lança da fênix",2],
+	["Língua do deserto",3],
+	["Maça do terror",3],
+	["Maça monstruosa",1],
+	["Machado da bravura",1],
+	["Machado da natureza",2],
+	["Machado do abismo",2],
+	["Machado do vulcão",3],
+	["Machado lamnoriano",1],
+	["Machado silvestre",3],
+	["Mangual aventureiro",1],
+	["Martelo da terra",2],
+	["Martelo de Doherimm",3],
+	["Martelo do titã",2],
+	["Punhal das profundezas",2],
+	["Punhal sszzaazita",3],
+	["Tridente aquoso",1],
+	["Vingadora sagrada",3]
+];
+
+var ARMADURAS_ESPECIFICAS = [
+	["Armadura da luz",4],
+	["Armadura das sombras profundas",4],
+	["Armadura do dragão ancião",4],
+	["Armadura do inverno perene",4],
+	["Armadura do julgamento",2],
+	["Baluarte anão",4],
+	["Carapaça demoníaca",4],
+	["Cota da serpente marinha",4],
+	["Cota élfica",10],
+	["Couraça do comando",4],
+	["Couraça do guardião celeste",4],
+	["Couro de monstro",4],
+	["Escudo da ira vulcânica",4],
+	["Escudo da luz estelar",4],
+	["Escudo da natureza viva",4],
+	["Escudo de Azgher",4],
+	["Escudo do conjurador",4],
+	["Escudo do eclipse",4],
+	["Escudo do grifo",4],
+	["Escudo do leão",6],
+	["Escudo do trovão",4],
+	["Escudo espinhoso",4],
+	["Loriga do centurião",4],
+	["Manto da noite",2]
+];
+
+var ESOTERICOS_ESPECIFICOS = [
+	["Cajado da destruição",20],
+	["Cajado da vida",20],
+	["Cajado das marés",5],
+	["Cajado do poder",15],
+	["Cálice sagrado",15],
+	["Relógio do arcanista",10],
+	["Varinha da generosidade",10],
+	["Varinha milenar",5]
+];
+
+// Rola numa tabela de encantos; quando cai na faixa "específico",
+// resolve de fato na tabela de itens específicos correspondente (tipo).
+// tipo: 'arma', 'armadura' ou 'esoterico'
+function rollTabelaComEspecifico(tabela, tipo) {
 	var resultado = rollTabela(tabela);
-	var tentativas = 0;
-	while (resultado.indexOf('específ') >= 0 && tentativas < 20) {
-		resultado = rollTabela(tabela);
-		tentativas++;
+	if (resultado.indexOf('específ') >= 0) {
+		var tabelaEsp = tipo === 'arma' ? ARMAS_ESPECIFICAS :
+		                tipo === 'armadura' ? ARMADURAS_ESPECIFICAS :
+		                ESOTERICOS_ESPECIFICOS;
+		resultado = '🏆 ' + rollTabela(tabelaEsp);
 	}
 	return resultado;
 }
@@ -377,7 +472,7 @@ function getArmaMagica() {
 		["Veloz",2],["Venenosa",1],
 		["Arma específica (role na tabela de Armas Mágicas)",10]
 	];
-	return rollTabelaSemEspecifico(tabela);
+	return rollTabelaComEspecifico(tabela, 'arma');
 }
 
 // ─────────────── ENCANTOS DE ARMADURAS MÁGICAS (d100) ───────────────
@@ -386,26 +481,26 @@ function getEncantoArmadura() {
 		["Abascanto",2],["Abençoado",2],
 		["Abissal",1],
 		["Acrobático",1],["Alado",2],
-		["Ancorada***",1],
+		["Ancorada*",1],
 		["Animado**",2],
-		["Anulador*",1],
+		["Anulador***",1],
 		["Arbóreo",1],
 		["Assustador",2],
 		["Astuto",1],
 		["Cáustica",1],["Defensor",10],
-		["Densa***",1],
+		["Densa*",1],
 		["Égide",1],
-		["Enraizada***",1],
+		["Enraizada*",1],
 		["Escorregadio",1],
 		["Esmagador**",2],
 		["Esmérico",1],
-		["Estígio*",2],
+		["Estígio***",2],
 		["Etéreo",1],
 		["Fantasmagórico",2],["Fortificado",4],["Gélido",1],
 		["Geomântico",1],
-		["Guardião*",10],
+		["Guardião***",10],
 		["Hipnótico",2],["Ilusório",1],["Incandescente",1],["Invulnerável",5],
-		["Ligeira***",1],
+		["Ligeira*",1],
 		["Luminescente",2],
 		["Opaco",5],
 		["Prístino",1],
@@ -420,7 +515,7 @@ function getEncantoArmadura() {
 		["Zeloso",1],
 		["Armadura/Escudo específico (role na tabela de Armaduras Mágicas)",10]
 	];
-	return rollTabelaSemEspecifico(tabela);
+	return rollTabelaComEspecifico(tabela, 'armadura');
 }
 
 // ─────────────── ENCANTOS DE ESOTÉRICOS MÁGICOS (d100) ───────────────
@@ -439,7 +534,7 @@ function getEncantoEsoterico() {
 		["Retaliador",1],["Sanguessuga",2],["Traiçoeiro",1],["Verdugo",2],
 		["Esotérico específico (role na tabela de Esotéricos Mágicos)",10]
 	];
-	return rollTabelaSemEspecifico(tabela);
+	return rollTabelaComEspecifico(tabela, 'esoterico');
 }
 
 // ─────────────── ACESSÓRIOS MENORES (d100) ───────────────

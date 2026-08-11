@@ -38,6 +38,7 @@
         var open = content.style.display === 'none';
         content.style.display = open ? 'block' : 'none';
         icon.textContent = open ? '[Ocultar]' : '[Mostrar]';
+        salvarConfigLocal();
     });
 })();
 
@@ -76,11 +77,12 @@ document.querySelectorAll('.seg-btn input').forEach(function (input) {
     var plus = document.getElementById('qtyPlus');
 
     function render() { qtyValue.textContent = value; }
-    minus.addEventListener('click', function () { if (value > 1) { value--; render(); } });
-    plus.addEventListener('click', function () { if (value < 10) { value++; render(); } });
+    minus.addEventListener('click', function () { if (value > 1) { value--; render(); salvarConfigLocal(); } });
+    plus.addEventListener('click', function () { if (value < 10) { value++; render(); salvarConfigLocal(); } });
     render();
 
     window.getQtyRolagens = function () { return value; };
+    window.setQtyRolagens = function (v) { value = Math.max(1, Math.min(10, v)); render(); };
 })();
 
 // ===================== QTD "DINHEIRO ATRAI DINHEIRO" =====================
@@ -91,11 +93,12 @@ document.querySelectorAll('.seg-btn input').forEach(function (input) {
     var plus = document.getElementById('qtyDaaPlus');
 
     function render() { qtyValue.textContent = value; }
-    minus.addEventListener('click', function () { if (value > 1) { value--; render(); atualizarBonusTotal(); } });
-    plus.addEventListener('click', function () { if (value < 12) { value++; render(); atualizarBonusTotal(); } });
+    minus.addEventListener('click', function () { if (value > 1) { value--; render(); atualizarBonusTotal(); salvarConfigLocal(); } });
+    plus.addEventListener('click', function () { if (value < 12) { value++; render(); atualizarBonusTotal(); salvarConfigLocal(); } });
     render();
 
     window.getQtyDinheiroAtrai = function () { return value; };
+    window.setQtyDinheiroAtrai = function (v) { value = Math.max(1, Math.min(12, v)); render(); };
 })();
 
 // ===================== BÔNUS DE ROLAGEM =====================
@@ -206,6 +209,121 @@ function atualizarTotalSessao() {
         soma += parseInt(lis[i].getAttribute('data-total'), 10) || 0;
     }
     elTotal.textContent = soma > 0 ? '🪙 ' + fmtTibares(soma) + ' na sessão' : '';
+}
+
+// ===================== PERSISTÊNCIA LOCAL =====================
+var CONFIG_STORAGE_KEY = 'arsenal_espolio_config_v1';
+var ULTIMO_BAU_STORAGE_KEY = 'arsenal_espolio_ultimo_bau_v1';
+
+function salvarConfigLocal() {
+    var cfg = {
+        modo: document.querySelector('input[name="modoRecompensa"]:checked').value,
+        nd: document.getElementById('ndEspecifico').value,
+        multiplicador: document.getElementById('multiplicadorTesouro').value,
+        usarMesa: document.getElementById('usarMesa').checked,
+        mesaGrupos: mesaGrupos,
+        qtdRolagens: window.getQtyRolagens(),
+        separar: document.getElementById('separarPorCriatura').checked,
+        nivelBusca: document.getElementById('nivelBusca').value,
+        sucessosBusca: document.querySelector('input[name="sucessosBusca"]:checked').value,
+        bonusSala: document.getElementById('bonusSalaTesouro').checked,
+        bonusDaa: document.getElementById('bonusDinheiroAtrai').checked,
+        qtyDaa: window.getQtyDinheiroAtrai(),
+        guiaAberto: document.getElementById('guideContent').style.display === 'block'
+    };
+    try { localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(cfg)); } catch (e) { }
+}
+
+function restaurarConfigLocal() {
+    var cfg = null;
+    try { cfg = JSON.parse(localStorage.getItem(CONFIG_STORAGE_KEY) || 'null'); } catch (e) { cfg = null; }
+    if (!cfg) return;
+
+    var modoInput = document.querySelector('input[name="modoRecompensa"][value="' + cfg.modo + '"]');
+    if (modoInput) modoInput.checked = true;
+    refreshSegGroup('modoRecompensa');
+
+    var ndEl = document.getElementById('ndEspecifico');
+    if (cfg.nd && ndEl) ndEl.value = cfg.nd;
+
+    var multEl = document.getElementById('multiplicadorTesouro');
+    if (cfg.multiplicador && multEl) multEl.value = cfg.multiplicador;
+
+    var usarMesaEl = document.getElementById('usarMesa');
+    if (usarMesaEl) usarMesaEl.checked = !!cfg.usarMesa;
+    var mesaBuilderEl = document.getElementById('mesaBuilder');
+    if (mesaBuilderEl) mesaBuilderEl.style.display = usarMesaEl && usarMesaEl.checked ? 'block' : 'none';
+
+    if (Array.isArray(cfg.mesaGrupos)) mesaGrupos = cfg.mesaGrupos;
+
+    if (cfg.qtdRolagens) window.setQtyRolagens(cfg.qtdRolagens);
+
+    var separarEl = document.getElementById('separarPorCriatura');
+    if (separarEl) separarEl.checked = !!cfg.separar;
+
+    var nivelEl = document.getElementById('nivelBusca');
+    if (cfg.nivelBusca && nivelEl) nivelEl.value = cfg.nivelBusca;
+
+    var sucInput = document.querySelector('input[name="sucessosBusca"][value="' + cfg.sucessosBusca + '"]');
+    if (sucInput) sucInput.checked = true;
+    refreshSegGroup('sucessosBusca');
+
+    var salaEl = document.getElementById('bonusSalaTesouro');
+    if (salaEl) salaEl.checked = !!cfg.bonusSala;
+
+    var daaEl = document.getElementById('bonusDinheiroAtrai');
+    if (daaEl) daaEl.checked = !!cfg.bonusDaa;
+    var rowDaaEl = document.getElementById('qtyDinheiroAtraiRow');
+    if (rowDaaEl) rowDaaEl.style.display = daaEl && daaEl.checked ? 'flex' : 'none';
+
+    if (cfg.qtyDaa) window.setQtyDinheiroAtrai(cfg.qtyDaa);
+
+    if (cfg.guiaAberto) {
+        var guideContent = document.getElementById('guideContent');
+        var guideIcon = document.getElementById('guideIcon');
+        if (guideContent) guideContent.style.display = 'block';
+        if (guideIcon) guideIcon.textContent = '[Ocultar]';
+    }
+
+    atualizarModo();
+    atualizarReferenciaND();
+    atualizarLabelNDAtual();
+    renderizarChipsMesa();
+    atualizarHintMesa();
+    atualizarBonusTotal();
+}
+
+function salvarUltimoBauLocal() {
+    var panel = document.getElementById('resultPanel');
+    if (!panel || panel.style.display === 'none' || !panel.innerHTML) return;
+    var data = {
+        html: panel.innerHTML,
+        ultimoResultado: _ultimoResultado,
+        ultimaRodada: _ultimaRodada
+    };
+    try { localStorage.setItem(ULTIMO_BAU_STORAGE_KEY, JSON.stringify(data)); } catch (e) { }
+}
+
+function restaurarUltimoBauLocal() {
+    var data = null;
+    try { data = JSON.parse(localStorage.getItem(ULTIMO_BAU_STORAGE_KEY) || 'null'); } catch (e) { data = null; }
+    if (!data || !data.html) return;
+    var panel = document.getElementById('resultPanel');
+    if (!panel) return;
+    panel.innerHTML = data.html;
+    panel.style.display = 'block';
+    _ultimoResultado = data.ultimoResultado || null;
+    _ultimaRodada = data.ultimaRodada || null;
+    _ultimaRodadaItensEls = [];
+    var itens = panel.querySelectorAll('#treasureList .treasure-item');
+    for (var i = 0; i < itens.length; i++) _ultimaRodadaItensEls.push(itens[i]);
+    var btnCopiar = document.getElementById('btnCopyResult');
+    var btnReroll = document.getElementById('btnReroll');
+    var btnRerollCoins = document.getElementById('btnRerollCoins');
+    if (btnCopiar) btnCopiar.style.display = _ultimoResultado ? '' : 'none';
+    if (btnReroll) btnReroll.style.display = _ultimaRodada ? '' : 'none';
+    if (btnRerollCoins) btnRerollCoins.style.display = _ultimaRodada ? '' : 'none';
+    atualizarLegendaAsteriscos();
 }
 
 // Sortear 3ª perícia de uma busca (Tabela 6-6), auxílio ao mestre
@@ -448,6 +566,9 @@ function _referenciaDisponivel() {
         REF_MAPAS.superiores = _construirMapa(_coletarLinhas(SUPERIORES));
         REF_MAPAS.encantos = _construirMapa(_coletarLinhas(MAGICOS_ENCANTOS));
         REF_MAPAS.acessorios = _construirMapa(_coletarLinhas(MAGICOS_ACESSORIOS));
+        if (typeof MAGICOS_ESPECIFICOS !== 'undefined') {
+            REF_MAPAS.especificos = _construirMapa(_coletarLinhas(MAGICOS_ESPECIFICOS));
+        }
     }
     return true;
 }
@@ -496,12 +617,18 @@ function sufixoReferencia(rotulo, nome) {
     if (!_referenciaDisponivel()) return '';
     var mapa = _mapaParaRotulo(rotulo);
     if (!mapa) return '';
-    var ref = _buscarReferencia(mapa, nome);
+    // Limpa prefixo de troféu (itens específicos)
+    var nomeLimpo = (nome || '').replace(/^🏆\s*/, '').trim();
+    var ref = _buscarReferencia(mapa, nomeLimpo);
     if (!ref) {
-        var nomeBase = (nome || '').replace(/\s*\[.*\]\s*$/, '').trim();
-        if (nomeBase && nomeBase !== nome) {
+        var nomeBase = nomeLimpo.replace(/\s*\[.*\]\s*$/, '').trim();
+        if (nomeBase && nomeBase !== nomeLimpo) {
             ref = _buscarReferencia(REF_MAPAS.equip, nomeBase);
         }
+    }
+    // Fallback: buscar em itens específicos (armas/armaduras/esotéricos nomeados)
+    if (!ref && REF_MAPAS.especificos) {
+        ref = _buscarReferencia(REF_MAPAS.especificos, nomeLimpo);
     }
     if (!ref || !ref.l) return '';
     var texto = ' 📖 ' + ref.l;
@@ -544,18 +671,24 @@ function renderizarItensResolvidos(lista, contexto, cor, acc) {
                             acc.itensValor = (acc.itensValor || 0) + valorT$;
                         }
                     }
-                    var decomp = decomporSubRolado(subRolado);
-                    var badges = [];
-                    if (!isRiqueza && valorT$ > 0) badges.push('🪙 ' + valorT$.toLocaleString('pt-BR') + ' T$');
-                    if (item.bonusFlag) badges.push('+20% no tipo');
-                    els.push(criarItemEl(
-                        emojiParaRotulo(item.rotulo || ''),
-                        decomp.nome,
-                        badges.length ? badges.join(' · ') : null,
-                        1,
-                        contexto + (decomp.detalhe ? ' ' + decomp.detalhe : '') + sufixoReferencia(item.rotulo, subRolado),
-                        cor
-                    ));
+var decomp = decomporSubRolado(subRolado);
+var badges = [];
+var sufEspacos = '';
+if (isRiqueza) {
+    var rEsp = rolarEspacosRiqueza();
+    badges.push('📦 ' + fmtEspacos(rEsp.espacos));
+    if (rEsp.desc) sufEspacos = ' — ' + rEsp.desc;
+}
+if (!isRiqueza && valorT$ > 0) badges.push('🪙 ' + valorT$.toLocaleString('pt-BR') + ' T$');
+if (item.bonusFlag) badges.push('+20% no tipo');
+els.push(criarItemEl(
+    emojiParaRotulo(item.rotulo || ''),
+    decomp.nome,
+    badges.length ? badges.join(' · ') : null,
+    1,
+    contexto + (decomp.detalhe ? ' ' + decomp.detalhe : '') + sufEspacos + sufixoReferencia(item.rotulo, subRolado),
+    cor
+));
                 }
             }
         } else if (item.tipo === 'contagem') {
@@ -699,21 +832,7 @@ function atualizarReferenciaND() {
 }
 
 // ===================== ROLAGEM: COMPOSIÇÃO DE MESA =====================
-function parseComposicaoMesa(texto) {
-    if (!texto) return null;
-    var grupos = [];
-    var partes = String(texto).split(/[;,+\n\r]+\s*/);
-    for (var i = 0; i < partes.length; i++) {
-        var p = partes[i].trim();
-        if (!p) continue;
-        var m = p.match(/^ND?\s*([0-9]+(?:\/[0-9]+)?)\s*(?:[xX×*]\s*([0-9]+))?$/i);
-        if (!m) return null;
-        var qtd = m[2] ? parseInt(m[2], 10) : 1;
-        if (qtd < 1 || qtd > 99) return null;
-        grupos.push({ nd: m[1], qtd: qtd });
-    }
-    return grupos.length ? grupos : null;
-}
+var mesaGrupos = [];
 
 function composicaoMesaValida(grupos) {
     if (!grupos) return false;
@@ -735,18 +854,95 @@ function expandirMesa(grupos) {
     return plano;
 }
 
+function obterQtdMesa() {
+    var input = document.getElementById('mesaQty');
+    var v = parseInt(input.value, 10);
+    if (isNaN(v)) return 1;
+    return Math.min(99, Math.max(1, v));
+}
+
+function setQtdMesa(valor) {
+    document.getElementById('mesaQty').value = Math.min(99, Math.max(1, valor));
+}
+
+function mudarQtdMesa(delta) {
+    setQtdMesa(obterQtdMesa() + delta);
+}
+
+function atualizarLabelNDAtual() {
+    var el = document.getElementById('mesaNdAtual');
+    if (!el) return;
+    el.textContent = 'ND ' + document.getElementById('ndEspecifico').value;
+}
+
+function renderizarChipsMesa() {
+    var wrapper = document.getElementById('mesaChips');
+    var addBtn = document.getElementById('mesaAddBtn');
+    var limparBtn = document.getElementById('mesaLimparBtn');
+    if (!wrapper) return;
+    wrapper.innerHTML = '';
+    mesaGrupos.forEach(function (g, i) {
+        var chip = document.createElement('span');
+        chip.className = 'mesa-chip';
+
+        var val = document.createElement('span');
+        val.className = 'mesa-chip-val';
+        val.textContent = 'ND ' + g.nd + ' ×' + g.qtd;
+
+        var x = document.createElement('button');
+        x.className = 'mesa-chip-x';
+        x.type = 'button';
+        x.innerHTML = '✕';
+        x.title = 'Remover';
+        x.setAttribute('aria-label', 'Remover ND ' + g.nd + ' ×' + g.qtd);
+        x.addEventListener('click', function () { removerGrupoMesa(i); });
+
+        chip.appendChild(val);
+        chip.appendChild(x);
+        wrapper.appendChild(chip);
+    });
+    if (addBtn) addBtn.textContent = mesaGrupos.length ? 'Adicionar outro' : '+ Adicionar';
+    if (limparBtn) limparBtn.style.display = mesaGrupos.length ? 'inline' : 'none';
+    atualizarHintMesa();
+}
+
+function adicionarGrupoMesa() {
+    var nd = document.getElementById('ndEspecifico').value;
+    var qtd = obterQtdMesa();
+    if (!obterLinhaND(nd)) {
+        showToast('ND inválido para composição.', 'toast-aviso');
+        return;
+    }
+    mesaGrupos.push({ nd: nd, qtd: qtd });
+    renderizarChipsMesa();
+    salvarConfigLocal();
+    showToast('Adicionado ND ' + nd + ' ×' + qtd, 'toast-sucesso');
+}
+
+function removerGrupoMesa(indice) {
+    mesaGrupos.splice(indice, 1);
+    renderizarChipsMesa();
+    salvarConfigLocal();
+}
+
+function limparMesa() {
+    mesaGrupos = [];
+    renderizarChipsMesa();
+    salvarConfigLocal();
+}
+
 function atualizarHintMesa() {
     var chk = document.getElementById('usarMesa');
     var hint = document.getElementById('mesaHint');
-    var input = document.getElementById('mesaInput');
-    if (!chk || !hint || !input) return;
-    var grupos = parseComposicaoMesa(input.value);
-    if (chk.checked && grupos && composicaoMesaValida(grupos)) {
-        var total = grupos.reduce(function (a, g) { return a + g.qtd; }, 0);
-        hint.textContent = '✅ ' + descreverMesa(grupos) + ' → ' + total + ' criatura(s)';
+    if (!chk || !hint) return;
+    if (chk.checked && mesaGrupos.length && composicaoMesaValida(mesaGrupos)) {
+        var total = mesaGrupos.reduce(function (a, g) { return a + g.qtd; }, 0);
+        hint.textContent = '✅ ' + descreverMesa(mesaGrupos) + ' → ' + total + ' criatura(s)';
         hint.style.color = 'var(--ouro)';
     } else if (chk.checked) {
-        hint.textContent = input.value.trim() ? '⚠️ ND inválido. Use "ND3 x4; ND6 x1" (NDs 1/4 a 20).' : 'Formato: "ND3 x4; ND6 x1"';
+        hint.textContent = mesaGrupos.length
+            ? '⚠️ Algum ND da composição ficou fora do padrão (1/4 a 20).'
+            : 'Selecione o ND acima e clique em "Adicionar" para montar a mesa.';
         hint.style.color = 'var(--rubi)';
     } else {
         hint.textContent = '';
@@ -857,6 +1053,35 @@ function criarItemEl(emoji, nome, badge, quantidade, descricao, corBorda) {
     return el;
 }
 
+function atualizarLegendaAsteriscos() {
+    var el = document.getElementById('legendAsteriscos');
+    if (!el) return;
+    var nomes = document.querySelectorAll('#treasureList .treasure-item-name');
+    var mostra = false;
+    for (var i = 0; i < nomes.length; i++) {
+        if (nomes[i].textContent.indexOf('*') >= 0) { mostra = true; break; }
+    }
+    el.style.display = mostra ? 'flex' : 'none';
+}
+
+function fmtEspacos(n) {
+    var s = String(n).replace('.', ',');
+    return s + (n === 1 ? ' espaço' : ' espaços');
+}
+
+function rolarEspacosRiqueza() {
+    var d20 = 1 + Math.floor(Math.random() * 20);
+    registrarRolagem('1d20 (espaços da riqueza)', d20);
+    var espacos = 0.5, desc = '';
+    if (typeof RIQUEZAS_ESPACOS !== 'undefined' && RIQUEZAS_ESPACOS) {
+        for (var i = 0; i < RIQUEZAS_ESPACOS.length; i++) {
+            var e = RIQUEZAS_ESPACOS[i];
+            if (d20 >= e.d[0] && d20 <= e.d[1]) { espacos = e.espacos; desc = e.desc || ''; break; }
+        }
+    }
+    return { espacos: espacos, desc: desc };
+}
+
 function agregarMoedas(listaDinheiro, acumulador) {
     listaDinheiro.forEach(function (item) {
         if (item.tipo !== 'dinheiro') return;
@@ -883,7 +1108,7 @@ function rollChest() {
         var multiplicador = document.getElementById('multiplicadorTesouro').value;
         var separarEl = document.getElementById('separarPorCriatura');
         var chkMesa = document.getElementById('usarMesa');
-        var gruposMesa = chkMesa && chkMesa.checked ? parseComposicaoMesa(document.getElementById('mesaInput').value) : null;
+        var gruposMesa = chkMesa && chkMesa.checked && mesaGrupos.length ? mesaGrupos.slice() : null;
         var planoMesa = gruposMesa && composicaoMesaValida(gruposMesa) ? expandirMesa(gruposMesa) : null;
         if (planoMesa) qtd = planoMesa.length;
         var separar = !!separarEl && separarEl.checked && qtd > 1;
@@ -1041,6 +1266,8 @@ function rollChest() {
     };
 
     showToast('🪙 Recompensas reveladas!', 'toast-sucesso');
+    atualizarLegendaAsteriscos();
+    salvarUltimoBauLocal();
 }
 
 // "Só moedas": refaz apenas o Dinheiro, mantendo os itens da última rolagem
@@ -1149,6 +1376,8 @@ function rolarSoMoedas() {
     };
 
     showToast('🪙 Moedas roladas de novo — itens mantidos!', 'toast-sucesso');
+    atualizarLegendaAsteriscos();
+    salvarUltimoBauLocal();
 }
 
 function capitalizar(texto) {
@@ -1234,12 +1463,25 @@ document.getElementById('multiplicadorTesouro').addEventListener('change', atual
 atualizarReferenciaND();
 restaurarHistorico();
 var chkMesa = document.getElementById('usarMesa');
-var inputMesa = document.getElementById('mesaInput');
+var mesaBuilder = document.getElementById('mesaBuilder');
 chkMesa.addEventListener('change', function () {
-    inputMesa.disabled = !chkMesa.checked;
+    mesaBuilder.style.display = chkMesa.checked ? 'block' : 'none';
     atualizarHintMesa();
 });
-inputMesa.addEventListener('input', atualizarHintMesa);
+document.getElementById('ndEspecifico').addEventListener('change', atualizarLabelNDAtual);
+document.getElementById('mesaAddBtn').addEventListener('click', adicionarGrupoMesa);
+document.getElementById('mesaLimparBtn').addEventListener('click', limparMesa);
+document.getElementById('mesaQtyMinus').addEventListener('click', function () { mudarQtdMesa(-1); });
+document.getElementById('mesaQtyPlus').addEventListener('click', function () { mudarQtdMesa(1); });
+document.getElementById('mesaQty').addEventListener('input', function () {
+    var v = parseInt(this.value, 10);
+    if (isNaN(v)) return;
+    if (v < 1) this.value = 1;
+    if (v > 99) this.value = 99;
+    salvarConfigLocal();
+});
+atualizarLabelNDAtual();
+renderizarChipsMesa();
 atualizarHintMesa();
 document.getElementById('btnClearHistory').addEventListener('click', function () {
     var history = document.getElementById('historicoTesouros');
@@ -1247,3 +1489,32 @@ document.getElementById('btnClearHistory').addEventListener('click', function ()
     try { localStorage.removeItem(HISTORY_STORAGE_KEY); } catch (e) { }
     atualizarTotalSessao();
 });
+
+// ===================== PERSISTÊNCIA: DISPARO AUTOMÁTICO =====================
+['ndEspecifico', 'multiplicadorTesouro', 'usarMesa', 'separarPorCriatura', 'nivelBusca', 'bonusSalaTesouro', 'bonusDinheiroAtrai'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', salvarConfigLocal);
+});
+document.querySelectorAll('input[name="modoRecompensa"]').forEach(function (input) {
+    input.addEventListener('change', salvarConfigLocal);
+});
+document.querySelectorAll('input[name="sucessosBusca"]').forEach(function (input) {
+    input.addEventListener('change', salvarConfigLocal);
+});
+
+// ===================== BOTÃO "LIMPAR DADOS" =====================
+var btnClearData = document.getElementById('btnClearData');
+if (btnClearData) {
+    btnClearData.addEventListener('click', function () {
+        if (!confirm('Limpar todos os dados salvos do Espólio (configurações, último baú aberto e histórico)?')) return;
+        try {
+            localStorage.removeItem(CONFIG_STORAGE_KEY);
+            localStorage.removeItem(ULTIMO_BAU_STORAGE_KEY);
+            localStorage.removeItem(HISTORY_STORAGE_KEY);
+        } catch (e) { }
+        location.reload();
+    });
+}
+
+restaurarConfigLocal();
+restaurarUltimoBauLocal();
