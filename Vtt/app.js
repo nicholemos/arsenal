@@ -334,53 +334,455 @@ function efetuarRolagem(faces, qtd, mod, label, vantagem, skip3d) {
   return textRes;
 }
 
-function rolarDados3d(faces, qtd, rolls, total, mod, label) {
-  const overlay = document.getElementById('diceOverlay');
-  const tray = document.getElementById('diceTray');
-  const resultDiv = document.getElementById('diceResult');
-  tray.innerHTML = ''; resultDiv.style.display = 'none'; resultDiv.innerHTML = '';
-  overlay.style.display = 'flex';
-  overlay.onclick = function (e) { if (e.target === this) fecharDados3d(); };
+// ═══════════════════════════════════════════════════════
+//  DADOS 3D FACETADOS & ANIMAÇÃO ÉPICA (PADRÃO APP DADOS)
+// ═══════════════════════════════════════════════════════
 
-  let revealed = 0;
-  for (let i = 0; i < qtd; i++) criarDado3d(faces, rolls[i], tray, i, qtd, () => {
-    revealed++;
-    if (revealed === qtd) {
-      setTimeout(() => {
-        const ms = mod !== 0 ? (mod > 0 ? ' + ' + mod : ' ' + mod) : '';
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<div style="margin-bottom:4px;opacity:0.8;font-size:1rem;">' + label + qtd + 'd' + faces + ms + '</div><div style="font-size:3rem;font-weight:700;color:#ffd700;text-shadow:0 0 30px rgba(255,215,0,0.4);">' + total + '</div>';
-      }, 200);
+let vttAudioCtx = null;
+let vttAudioEnabled = false;
+
+function initVttAudio() {
+  if (vttAudioEnabled && vttAudioCtx) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      vttAudioCtx = new AudioCtx();
+      vttAudioEnabled = true;
     }
-  });
+  } catch (e) {}
 }
 
-function criarDado3d(faces, valor, tray, idx, total, onReveal) {
-  const c = document.createElement('div');
-  c.style.cssText = 'width:80px;height:80px;perspective:400px;opacity:0;transform:scale(0.5) translateY(-40px);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);';
-  c.innerHTML = '<div class="d3i" style="position:relative;width:100%;height:100%;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1);transform-style:preserve-3d;">'
-    + '<div class="d3f" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;background:linear-gradient(145deg,#f5f0e8,#e8dcc8);border:2px solid #8b6b3e;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:\'Cinzel\',serif;box-shadow:inset 0 0 15px rgba(0,0,0,0.08);">'
-    + '<span class="d3n" style="font-size:2rem;font-weight:700;color:#2a1f14;">?</span>'
-    + '<span style="font-size:0.65rem;color:#8b6b3e;margin-top:2px;">d' + faces + '</span></div>'
-    + '<div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(145deg,#ffd700,#e8a800);border:2px solid #b8860b;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:\'Cinzel\',serif;box-shadow:0 0 25px rgba(255,215,0,0.2);">'
-    + '<span style="font-size:2rem;font-weight:700;color:#2a1f14;">' + valor + '</span>'
-    + '<span style="font-size:0.65rem;color:#6b4f00;">d' + faces + '</span></div></div>';
-  tray.appendChild(c);
+function playVttDiceTick() {
+  if (!vttAudioCtx) return;
+  try {
+    if (vttAudioCtx.state === 'suspended') vttAudioCtx.resume();
+    const ctx = vttAudioCtx;
+    const now = ctx.currentTime;
+    // Transient click
+    const clickOsc = ctx.createOscillator();
+    const clickGain = ctx.createGain();
+    clickOsc.type = 'triangle';
+    clickOsc.frequency.setValueAtTime(700 + Math.random() * 500, now);
+    clickGain.gain.setValueAtTime(0.08, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+    clickOsc.connect(clickGain);
+    clickGain.connect(ctx.destination);
+    clickOsc.start(now);
+    clickOsc.stop(now + 0.015);
 
-  setTimeout(() => { c.style.opacity = '1'; c.style.transform = 'scale(1) translateY(0)'; }, idx * 120);
+    // Resonant body thud
+    const resOsc = ctx.createOscillator();
+    const resGain = ctx.createGain();
+    resOsc.type = 'sine';
+    resOsc.frequency.setValueAtTime(140 + Math.random() * 100, now);
+    resOsc.frequency.exponentialRampToValueAtTime(55, now + 0.07);
+    resGain.gain.setValueAtTime(0.15, now);
+    resGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    resOsc.connect(resGain);
+    resGain.connect(ctx.destination);
+    resOsc.start(now);
+    resOsc.stop(now + 0.09);
+  } catch (e) {}
+}
 
-  const nEl = c.querySelector('.d3n'), inner = c.querySelector('.d3i');
-  const dur = 400 + Math.random() * 200, intv = 50, cyc = Math.floor(dur / intv);
-  let cc = 0;
-  const t = setInterval(() => {
-    cc++; nEl.textContent = Math.floor(Math.random() * faces) + 1;
-    if (cc >= cyc) { clearInterval(t); inner.style.transform = 'rotateY(180deg)'; setTimeout(onReveal, 500); }
-  }, intv);
+function playVttDiceCrit() {
+  if (!vttAudioCtx) return;
+  try {
+    if (vttAudioCtx.state === 'suspended') vttAudioCtx.resume();
+    const ctx = vttAudioCtx;
+    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+    notes.forEach((f, i) => {
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = 'sine';
+      const t = ctx.currentTime + i * 0.06;
+      osc.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.14, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.4);
+    });
+  } catch (e) {}
+}
+
+function playVttDiceFumble() {
+  if (!vttAudioCtx) return;
+  try {
+    if (vttAudioCtx.state === 'suspended') vttAudioCtx.resume();
+    const ctx = vttAudioCtx;
+    const freqs = [78, 82, 120];
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(f, ctx.currentTime);
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(220, ctx.currentTime);
+      filter.frequency.linearRampToValueAtTime(70, ctx.currentTime + 0.65);
+      g.gain.setValueAtTime(0.18 - (i * 0.03), ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc.connect(filter); filter.connect(g); g.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.85);
+    });
+  } catch (e) {}
+}
+
+// ── Partículas & Efeitos de Tela ──
+function spawnVttDiceParticles(cx, cy, isCrit) {
+  const container = document.getElementById('dice-particles-container');
+  if (!container) return;
+  const colors = ['#e8bc60', '#c9933a', '#fffbe0', '#d4a843', '#ffffff', '#ffd700'];
+  const count = isCrit ? 36 : 16;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'dice-particle';
+    const sz = isCrit ? 3 + Math.random() * 8 : 2 + Math.random() * 5;
+    const ang = Math.random() * Math.PI * 2;
+    const spd = isCrit ? 90 + Math.random() * 180 : 50 + Math.random() * 100;
+    const dur = 0.5 + Math.random() * 0.5;
+    p.style.cssText = `left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;
+      background:${colors[Math.floor(Math.random() * colors.length)]};
+      border-radius:${Math.random() > 0.4 ? '50%' : '2px'};transform:translate(-50%,-50%);
+      transition:transform ${dur}s ease-out,opacity ${dur}s ease-out; z-index:999;`;
+    container.appendChild(p);
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(calc(-50% + ${Math.cos(ang) * spd}px),calc(-50% + ${Math.sin(ang) * spd - (isCrit ? 110 : 60)}px))`;
+      p.style.opacity = '0';
+    });
+    setTimeout(() => p.remove(), (dur + 0.1) * 1000);
+  }
+}
+
+function triggerVttScreenFlash(type) {
+  const overlay = document.getElementById('screen-effect-overlay');
+  if (!overlay) return;
+  overlay.className = '';
+  void overlay.offsetWidth;
+  overlay.classList.add(type === 'success' ? 'flash-success' : 'flash-fumble');
+  document.body.classList.remove('shake-screen');
+  void document.body.offsetWidth;
+  document.body.classList.add('shake-screen');
+  setTimeout(() => document.body.classList.remove('shake-screen'), 450);
+}
+
+// ── Drifting Stars / Embers Canvas ──
+let vttStarsInitialized = false;
+function initVttStarsCanvas() {
+  if (vttStarsInitialized) return;
+  const canvas = document.getElementById('dice-stars-canvas');
+  if (!canvas) return;
+  vttStarsInitialized = true;
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  function createStars() {
+    stars = [];
+    for (let i = 0; i < 60; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 1.4 + 0.3,
+        alpha: Math.random() * 0.75 + 0.1,
+        speed: Math.random() * 0.04 + 0.012,
+        vx: (Math.random() - 0.5) * 0.16,
+        vy: -Math.random() * 0.22 - 0.06
+      });
+    }
+  }
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    createStars();
+  }
+  function animate() {
+    const overlay = document.getElementById('diceOverlay');
+    if (overlay && overlay.style.display !== 'none') {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(s => {
+        s.y += s.vy; s.x += s.vx;
+        if (s.y < 0) { s.y = canvas.height; s.x = Math.random() * canvas.width; }
+        if (s.x < 0 || s.x > canvas.width) { s.x = Math.random() * canvas.width; }
+        s.alpha += s.speed;
+        if (s.alpha > 0.85 || s.alpha < 0.08) s.speed = -s.speed;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(212, 175, 55, ${Math.max(0, s.alpha)})`;
+        ctx.fill();
+      });
+    }
+    requestAnimationFrame(animate);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  animate();
+}
+
+// ── Modelos Facetados SVG dos Dados ──
+function getDieFacetedSvgHtml(faces) {
+  switch (faces) {
+    case 4:
+      return `<polygon points="100,15 15,165 100,115" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>
+              <polygon points="100,15 185,165 100,115" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>
+              <polygon points="15,165 185,165 100,115" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>`;
+    case 6:
+      return `<polygon points="40,40 65,15 185,15 160,40" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>
+              <polygon points="160,40 185,15 185,135 160,160" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>
+              <rect x="40" y="40" width="120" height="120" rx="8" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="2"/>`;
+    case 8:
+      return `<polygon points="100,15 15,100 100,100" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>
+              <polygon points="100,15 185,100 100,100" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>
+              <polygon points="100,185 15,100 100,100" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>
+              <polygon points="100,185 185,100 100,100" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>`;
+    case 10:
+      return `<polygon points="100,15 20,85 100,105" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,15 180,85 100,105" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="20,85 45,145 100,105" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="180,85 155,145 100,105" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="45,145 100,185 100,105" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="155,145 100,185 100,105" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>`;
+    case 12:
+      return `<polygon points="57,86 100,55 138,47 100,15 62,47" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,55 143,86 162,120 181,74 138,47" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="143,86 126,136 100,165 150,169 162,120" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="126,136 74,136 38,120 50,169 100,165" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="74,136 57,86 62,47 19,74 38,120" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,55 143,86 126,136 74,136 57,86" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>`;
+    case 100:
+      return `<polygon points="100,15 150,31 138,47 100,35" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="150,31 181,74 162,80 138,47" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="181,74 181,126 162,120 162,80" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="181,126 150,169 138,153 162,120" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="150,169 100,185 100,165 138,153" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,185 50,169 62,153 100,165" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="50,169 19,126 38,120 62,153" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="19,126 19,74 38,80 38,120" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="19,74 50,31 62,47 38,80" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="50,31 100,15 100,35 62,47" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,35 138,47 162,80 162,120 138,153 100,165 62,153 38,120 38,80 62,47" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>`;
+    case 20:
+    default:
+      return `<polygon points="100,10 100,60 22,55" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,10 178,55 100,60" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="178,55 143,135 100,60" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="178,55 178,145 143,135" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="178,145 100,190 143,135" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,190 57,135 143,135" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,190 22,145 57,135" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="22,145 22,55 57,135" fill="url(#vttFacGrad3)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="22,55 100,60 57,135" fill="url(#vttFacGrad2)" stroke="url(#vttEdgeGrad)" stroke-width="1.2"/>
+              <polygon points="100,60 143,135 57,135" fill="url(#vttFacGrad1)" stroke="url(#vttEdgeGrad)" stroke-width="1.5"/>`;
+  }
+}
+
+function getDieConfig(faces) {
+  switch (faces) {
+    case 4: return { numY: 118, labelY: 158, fs: 50 };
+    case 6: return { numY: 100, labelY: 158, fs: 62 };
+    case 8: return { numY: 100, labelY: 158, fs: 60 };
+    case 10: return { numY: 108, labelY: 162, fs: 56 };
+    case 12: return { numY: 105, labelY: 160, fs: 56 };
+    case 100: return { numY: 100, labelY: 155, fs: 42 };
+    case 20:
+    default: return { numY: 112, labelY: 150, fs: 52 };
+  }
+}
+
+// ── Rolagem 3D Principal ──
+let vttDiceRollTimeout = null;
+
+function rolarDados3d(faces, qtd, rolls, total, mod, label) {
+  initVttAudio();
+  initVttStarsCanvas();
+
+  const overlay = document.getElementById('diceOverlay');
+  const heroWrapper = document.getElementById('die-svg-wrapper');
+  const heroSvg = document.getElementById('die-svg');
+  const heroShapes = document.getElementById('vtt-die-shapes');
+  const heroNumber = document.getElementById('die-number');
+  const heroLabel = document.getElementById('die-label');
+  const multiTray = document.getElementById('dice-multi-tray');
+  const critLabel = document.getElementById('diceCritLabel');
+  const resultDiv = document.getElementById('diceResult');
+
+  if (vttDiceRollTimeout) clearTimeout(vttDiceRollTimeout);
+
+  // Reset visual states
+  heroWrapper.classList.remove('crit', 'fumble', 'rolling');
+  heroSvg.classList.remove('rolling', 'settle');
+  critLabel.className = 'dice-crit-label';
+  resultDiv.style.display = 'none';
+  resultDiv.innerHTML = '';
+  overlay.style.display = 'flex';
+
+  const cfg = getDieConfig(faces);
+
+  if (qtd === 1) {
+    // ── Modo 1 Dado (Hero Die épico) ──
+    multiTray.style.display = 'none';
+    heroWrapper.style.display = 'flex';
+    heroShapes.innerHTML = getDieFacetedSvgHtml(faces);
+    heroNumber.setAttribute('y', cfg.numY);
+    heroNumber.setAttribute('font-size', cfg.fs);
+    heroNumber.textContent = '?';
+    heroLabel.setAttribute('y', cfg.labelY);
+    heroLabel.textContent = 'D' + faces;
+
+    heroWrapper.classList.add('rolling');
+    heroSvg.classList.add('rolling');
+
+    const start = Date.now();
+    const interval = setInterval(() => {
+      if (Date.now() - start < 800) {
+        heroNumber.textContent = Math.floor(Math.random() * faces) + 1;
+        playVttDiceTick();
+      } else {
+        clearInterval(interval);
+        finalizeSingle();
+      }
+    }, 70);
+
+    function finalizeSingle() {
+      heroWrapper.classList.remove('rolling');
+      heroSvg.classList.remove('rolling');
+      heroSvg.classList.add('settle');
+      setTimeout(() => heroSvg.classList.remove('settle'), 500);
+
+      const val = rolls[0];
+      heroNumber.textContent = val;
+
+      let isCrit = false;
+      let isFumble = false;
+
+      if (faces === 20) {
+        if (val === 20) {
+          isCrit = true;
+          setTimeout(() => {
+            heroWrapper.classList.add('crit');
+            critLabel.textContent = '⚔ CRÍTICO! ⚔';
+            critLabel.className = 'dice-crit-label show success';
+            playVttDiceCrit();
+            triggerVttScreenFlash('success');
+          }, 80);
+        } else if (val === 1) {
+          isFumble = true;
+          setTimeout(() => {
+            heroWrapper.classList.add('fumble');
+            critLabel.textContent = '☠ FALHA CRÍTICA! ☠';
+            critLabel.className = 'dice-crit-label show fumble';
+            playVttDiceFumble();
+            triggerVttScreenFlash('fumble');
+          }, 80);
+        }
+      }
+
+      const rect = heroWrapper.getBoundingClientRect();
+      spawnVttDiceParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, isCrit);
+
+      // Render Result Card
+      setTimeout(() => {
+        const ms = mod !== 0 ? (mod > 0 ? ' + ' + mod : ' - ' + Math.abs(mod)) : '';
+        const modStr = mod !== 0 ? `<div style="font-size:0.75rem;color:var(--text-muted);font-style:italic;margin-top:2px;">Modificador: ${ms}</div>` : '';
+        resultDiv.className = 'dice-result-card';
+        resultDiv.style.display = 'flex';
+        resultDiv.innerHTML = `
+          <div class="dice-result-header">${label ? escHTML(label) + ' &bull; ' : ''}1d${faces}${ms}</div>
+          <div class="dice-result-total">${total}</div>
+          ${modStr}
+        `;
+      }, 250);
+    }
+  } else {
+    // ── Modo Múltiplos Dados (> 1) ──
+    heroWrapper.style.display = 'none';
+    multiTray.style.display = 'flex';
+    multiTray.innerHTML = '';
+
+    const miniDiceEls = [];
+    for (let i = 0; i < qtd; i++) {
+      const card = document.createElement('div');
+      card.className = 'mini-die-card rolling';
+      card.innerHTML = `
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+          ${getDieFacetedSvgHtml(faces)}
+          <text class="mini-die-num" x="100" y="${cfg.numY}" text-anchor="middle" dominant-baseline="middle" font-family="Cinzel, serif" font-weight="700" font-size="${cfg.fs}" fill="#e8bc60" filter="url(#vttNumGlow)">?</text>
+          <text x="100" y="${cfg.labelY}" text-anchor="middle" dominant-baseline="middle" font-family="Cinzel, serif" font-weight="700" font-size="14" fill="#e8bc60" letter-spacing="2">D${faces}</text>
+        </svg>
+      `;
+      multiTray.appendChild(card);
+      miniDiceEls.push({ card, numEl: card.querySelector('.mini-die-num'), targetVal: rolls[i] });
+    }
+
+    const start = Date.now();
+    const interval = setInterval(() => {
+      if (Date.now() - start < 800) {
+        miniDiceEls.forEach(d => { d.numEl.textContent = Math.floor(Math.random() * faces) + 1; });
+        playVttDiceTick();
+      } else {
+        clearInterval(interval);
+        finalizeMulti();
+      }
+    }, 75);
+
+    function finalizeMulti() {
+      let maxRollCount = 0;
+      miniDiceEls.forEach((d, idx) => {
+        setTimeout(() => {
+          d.card.classList.remove('rolling');
+          d.card.classList.add('settle');
+          d.numEl.textContent = d.targetVal;
+          if (d.targetVal === faces) {
+            d.card.classList.add('crit');
+            maxRollCount++;
+          } else if (d.targetVal === 1) {
+            d.card.classList.add('fumble');
+          }
+        }, idx * 60);
+      });
+
+      if (maxRollCount > 0 && faces === 20) {
+        setTimeout(() => {
+          playVttDiceCrit();
+          triggerVttScreenFlash('success');
+        }, 150);
+      }
+
+      // Chips de detalhe
+      const chipsHtml = rolls.map(r => {
+        const cls = r === faces ? 'max' : r === 1 ? 'min' : '';
+        return `<span class="dice-chip ${cls}">${r}</span>`;
+      }).join('');
+
+      setTimeout(() => {
+        const ms = mod !== 0 ? (mod > 0 ? ' + ' + mod : ' - ' + Math.abs(mod)) : '';
+        const modStr = mod !== 0 ? `<div style="font-size:0.75rem;color:var(--text-muted);font-style:italic;margin-top:2px;">Modificador: ${ms}</div>` : '';
+        resultDiv.className = 'dice-result-card';
+        resultDiv.style.display = 'flex';
+        resultDiv.innerHTML = `
+          <div class="dice-result-header">${label ? escHTML(label) + ' &bull; ' : ''}${qtd}d${faces}${ms}</div>
+          <div class="dice-result-total">${total}</div>
+          <div class="dice-result-chips">${chipsHtml}</div>
+          ${modStr}
+        `;
+      }, qtd * 60 + 200);
+    }
+  }
 }
 
 function fecharDados3d() {
-  document.getElementById('diceOverlay').style.display = 'none';
+  const overlay = document.getElementById('diceOverlay');
+  if (overlay) overlay.style.display = 'none';
 }
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const overlay = document.getElementById('diceOverlay');
+    if (overlay && overlay.style.display !== 'none') {
+      fecharDados3d();
+    }
+  }
+});
+
+window.addEventListener('pointerdown', () => {
+  initVttAudio();
+}, { once: true });
 
 // ─────────── Atalhos de Dados ───────────
 function abrirDialogDados(faces) {

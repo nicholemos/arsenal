@@ -1512,11 +1512,82 @@
   </div>
 </div>
 
-<!-- ═══ Dados 3D ═══ -->
-<div id="diceOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:5000;background:rgba(0,0,0,0.65);justify-content:center;align-items:center;flex-direction:column;">
-  <div id="diceTray" style="background:linear-gradient(135deg,#2a1f14,#3d2b1a);border:2px solid #8b6b3e;border-radius:16px;padding:30px 40px;box-shadow:0 0 60px rgba(0,0,0,0.7),inset 0 0 40px rgba(139,107,62,0.1);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:20px;min-width:200px;min-height:140px;position:relative;"></div>
-  <div id="diceResult" style="display:none;margin-top:20px;font-family:'Cinzel',serif;color:#e8d5a3;font-size:1.5rem;text-shadow:0 0 20px rgba(232,213,163,0.3);text-align:center;"></div>
-  <button onclick="fecharDados3d()" style="margin-top:20px;background:rgba(139,107,62,0.3);border:1px solid #8b6b3e;color:#e8d5a3;padding:8px 24px;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;font-size:0.9rem;">✕ Fechar</button>
+<!-- ═══ Dados 3D (Faceted & Runic Arena) ═══ -->
+<div id="diceOverlay" onclick="if(event.target===this)fecharDados3d()">
+  <canvas id="dice-stars-canvas"></canvas>
+  <div id="dice-particles-container"></div>
+  <div id="screen-effect-overlay"></div>
+
+  <!-- SVG Global Definitions -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+    <defs>
+      <linearGradient id="vttDieGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#3a2c16"/>
+        <stop offset="60%" style="stop-color:#1c1307"/>
+        <stop offset="100%" style="stop-color:#0d0802"/>
+      </linearGradient>
+      <linearGradient id="vttEdgeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#ffe494"/>
+        <stop offset="50%" style="stop-color:#c9933a"/>
+        <stop offset="100%" style="stop-color:#70501a"/>
+      </linearGradient>
+      <linearGradient id="vttFacGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#4a371c"/>
+        <stop offset="100%" style="stop-color:#1e1408"/>
+      </linearGradient>
+      <linearGradient id="vttFacGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#322411"/>
+        <stop offset="100%" style="stop-color:#140e05"/>
+      </linearGradient>
+      <linearGradient id="vttFacGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#201509"/>
+        <stop offset="100%" style="stop-color:#0a0602"/>
+      </linearGradient>
+      <filter id="vttNumGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur"/>
+        <feFlood flood-color="#e8bc60" flood-opacity="0.85" result="color"/>
+        <feComposite in="color" in2="blur" operator="in" result="glow"/>
+        <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="dice-stage-box" id="diceStageBox">
+    <!-- Single Hero Die Arena (quando 1 dado) -->
+    <div id="die-svg-wrapper">
+      <div id="die-glow"></div>
+      <div id="runic-ring-container">
+        <svg id="runic-ring" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="130" cy="130" r="120" fill="none" stroke="rgba(201, 144, 58, 0.2)" stroke-width="1.2" />
+          <circle cx="130" cy="130" r="113" fill="none" stroke="rgba(201, 144, 58, 0.35)" stroke-width="1.8" stroke-dasharray="10 7" />
+          <circle cx="130" cy="130" r="102" fill="none" stroke="rgba(201, 144, 58, 0.15)" stroke-width="1" />
+          <g fill="rgba(201, 144, 58, 0.65)">
+            <path d="M 130 6 L 133 9 L 130 12 L 127 9 Z" />
+            <path d="M 130 248 L 133 251 L 130 254 L 127 251 Z" />
+            <path d="M 6 130 L 9 133 L 12 130 L 9 127 Z" />
+            <path d="M 248 130 L 251 133 L 254 130 L 251 127 Z" />
+            <path d="M 44 44 L 48 48" stroke="rgba(201, 144, 58, 0.6)" stroke-width="1.5"/>
+            <path d="M 216 44 L 212 48" stroke="rgba(201, 144, 58, 0.6)" stroke-width="1.5"/>
+            <path d="M 44 216 L 48 212" stroke="rgba(201, 144, 58, 0.6)" stroke-width="1.5"/>
+            <path d="M 216 216 L 212 212" stroke="rgba(201, 144, 58, 0.6)" stroke-width="1.5"/>
+          </g>
+        </svg>
+      </div>
+      <svg id="die-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+        <g id="vtt-die-shapes"></g>
+        <text id="die-number" x="100" y="110" text-anchor="middle" dominant-baseline="middle" font-family="Cinzel, serif" font-weight="700" font-size="52" fill="#e8bc60" filter="url(#vttNumGlow)">?</text>
+        <text id="die-label" x="100" y="152" text-anchor="middle" dominant-baseline="middle" font-family="Cinzel, serif" font-weight="700" font-size="14" fill="#e8bc60" letter-spacing="3" style="text-shadow: 0 0 6px rgba(232,188,96,0.55); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.85));">D20</text>
+      </svg>
+    </div>
+
+    <!-- Multi-Dice Tray (quando > 1 dado) -->
+    <div id="dice-multi-tray" style="display:none;"></div>
+
+    <div class="dice-crit-label" id="diceCritLabel">⚔ CRÍTICO! ⚔</div>
+    <div id="diceResult" style="display:none;"></div>
+
+    <button onclick="fecharDados3d()" class="btn btn-sm" style="margin-top:8px; background:rgba(34,28,22,0.8); border:1px solid var(--border); color:var(--text-dim); padding:6px 20px; font-family:'Cinzel',serif; border-radius:6px; cursor:pointer;">✕ Fechar</button>
+  </div>
 </div>
 
 <!-- Custom Context Menu for Shapes (Triggers) -->
