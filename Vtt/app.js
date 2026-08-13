@@ -305,6 +305,9 @@ function processarRolagem(text, skip3d) {
   return efetuarRolagem(faces, qtd, mod, label, 0, skip3d);
 }
 
+// Histórico de rolagens do usuário (para repetir)
+let rollHistory = [];
+
 function efetuarRolagem(faces, qtd, mod, label, vantagem, skip3d) {
   let rolls = [], total = 0;
   for (let i = 0; i < qtd; i++) {
@@ -321,6 +324,12 @@ function efetuarRolagem(faces, qtd, mod, label, vantagem, skip3d) {
   const lb = label ? label + ': ' : '';
   const adv = vantagem === 1 ? ' (vantagem)' : vantagem === -1 ? ' (desvantagem)' : '';
   const textRes = `${lb}${qtd}d${faces}${modStr}${adv} → **${total}**${det}`;
+  try {
+    rollHistory.push({ qtd, faces, mod, label: label || '', vantagem: vantagem || 0, res: textRes, time: formatTime() });
+    if (rollHistory.length > 30) rollHistory.shift();
+    const rv = document.getElementById('chatRollsView');
+    if (rv && rv.style.display !== 'none') renderRollHistory();
+  } catch (e) {}
   if (!skip3d) rolarDados3d(faces, qtd, rolls, total, mod, lb);
   return textRes;
 }
@@ -559,6 +568,8 @@ function configurarConexaoMestre(conn) {
       if (data.type === 'join') {
         players[conn.peer] = { name: data.name, role: 'jogador' }; renderPlayers();
         conn.send({ type: 'room-info', roomTitle, players });
+        // Pedir a ficha do jogador para o mestre ter PV/PM sem precisar de token vinculado
+        conn.send({ type: 'ficha-resumo-request' });
         conn.send({
           type: 'scenes-update',
           scenes: getScenesMetadata(),
@@ -618,6 +629,10 @@ function configurarConexaoMestre(conn) {
           addMsg({ type: 'system', text: '📋 Ficha de ' + data.playerName + ' recebida.' });
         }
       } else if (data.type === 'solicitar-criar-token') {
+        if (jogadorJaTemToken(conn.peer)) {
+          try { conn.send({ type: 'vtt-notify', text: '⚠️ Você já possui um token no mapa. Apenas um token por jogador.' }); } catch (e) { }
+          return;
+        }
         const entry = fichasJogadores[conn.peer];
         const r = entry?.resumo;
         adicionarTokenNaCena({
@@ -640,6 +655,7 @@ function configurarConexaoMestre(conn) {
             } else {
               t.gx = data.gx;
               t.gy = data.gy;
+              if (getParMontaria(t)) seguirMontaria(t);
               boardSave();
               boardRender();
               syncBoardTokensToPlayers();
@@ -658,6 +674,7 @@ function configurarConexaoMestre(conn) {
               } else {
                 t.gx = data.gx;
                 t.gy = data.gy;
+                if (getParMontaria(t, scene.tokens)) seguirMontaria(t, scene.tokens);
                 saveScenesLocally();
                 const filtered = scene.tokens.filter(tk => (tk.layer || 'players') !== 'gm');
                 broadcast({ type: 'board-tokens', tokens: filtered }, null);
@@ -770,6 +787,31 @@ function configurarConexaoMestre(conn) {
             }
           }
         }
+      } else if (data.type === 'montaria-update') {
+        const applyMontaria = (list) => {
+          const t = (list || []).find(tk => tk.id === data.tokenId);
+          if (!t || t.controlledBy !== conn.peer) return false;
+          if (data.mount) t.mount = data.mount;
+          else delete t.mount;
+          if (data.gx !== undefined) t.gx = data.gx;
+          if (data.gy !== undefined) t.gy = data.gy;
+          if (data.z !== undefined) t.z = data.z;
+          return true;
+        };
+        if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+          if (applyMontaria(BOARD.tokens)) {
+            boardSave();
+            boardRender();
+            syncBoardTokensToPlayers();
+          }
+        } else {
+          const scene = SCENES.find(s => s.id === PLAYERS_SCENE_ID);
+          if (scene && scene.tokens && applyMontaria(scene.tokens)) {
+            saveScenesLocally();
+            const filtered = scene.tokens.filter(tk => (tk.layer || 'players') !== 'gm');
+            broadcast({ type: 'board-tokens', tokens: filtered }, null);
+          }
+        }
       }
     });
     conn.on('close', () => {
@@ -789,6 +831,7 @@ function entrarNoAmbiente() {
   document.getElementById('room-title-text').textContent = roomTitle || 'Mesa Virtual';
   document.getElementById('display-room-id').textContent = roomId;
   aplicarRoleVisual();
+  atualizarBotaoSelecaoPropria();
   if (myRole === 'mestre') {
     document.getElementById('invite-area').style.display = 'block';
     document.getElementById('invite-link-box').textContent = gerarLinkConvite();
@@ -824,12 +867,18 @@ function entrarNoAmbiente() {
   if (myRole === 'mestre') initBoardCombatButton();
   if (myRole === 'jogador') {
     document.getElementById('master-panel').style.display = 'flex';
-    ['encontros', 'combate', 'fichas', 'notas'].forEach(t => {
+    ['encontros', 'combate', 'cenas', 'notas'].forEach(t => {
       const btn = document.getElementById('tab-' + t);
       if (btn) btn.style.display = 'none';
     });
     const bestBtn = document.getElementById('bau-subtab-bestiary');
     if (bestBtn) bestBtn.style.display = 'none';
+    const impMaster = document.getElementById('ficha-import-mestre');
+    if (impMaster) impMaster.style.display = 'none';
+    const fichasMestre = document.getElementById('fichas-mestre-section');
+    if (fichasMestre) fichasMestre.style.display = 'none';
+    const btnMinhaFicha = document.getElementById('btn-abrir-minha-ficha');
+    if (btnMinhaFicha) btnMinhaFicha.style.display = 'inline-block';
     currentBauSubtab = 'equip';
     switchTab('bau');
     switchBauSubtab('equip');
@@ -988,32 +1037,83 @@ function getSelectedTokenForInit() {
 
 // Detecta uma rolagem de iniciativa em um texto e, se houver, processa-a
 // (mestre rola para si mesmo / jogador pede ao mestre via P2P).
-// Usado tanto pelo envio normal de chat quanto por mensagens vindas da ficha.
-function detectarERolarIniciativa(text) {
+// Usado tanto pelo envio normal de chat quanto por mensagens vindas da ficha
+// e pelo atalho de perícias dos tokens.
+function detectarERolarIniciativa(text, nomeHint) {
   if (!isInitiativeRoll(text)) return;
   const initTotal = extractInitiativeTotal(text);
   if (initTotal === null) return;
   if (myRole === 'mestre' || amIHost) {
-    processarIniciativaRoll(myName, initTotal, myPeerId);
+    let nomePersonagem = nomeHint || myName;
+    if (!nomeHint) {
+      const selToken = getSelectedTokenForInit();
+      if (selToken) {
+        nomePersonagem = selToken.tokenName;
+      } else if (currentMasterFichaId) {
+        const fichas = getMasterFichas();
+        const f = fichas.find(x => x.id === currentMasterFichaId);
+        if (f && f.name) nomePersonagem = f.name;
+      }
+    }
+    processarIniciativaRoll(nomePersonagem, initTotal, myPeerId);
   } else if (masterConn) {
     const selToken = getSelectedTokenForInit();
-    if (!selToken) {
-      toast('Selecione seu token no mapa para rolar iniciativa.');
-    } else {
-      try {
-        masterConn.send({
-          type: 'solicitar-iniciativa',
-          name: selToken.tokenName,
-          initTotal: initTotal,
-          tokenId: selToken.tokenId
-        });
-      } catch (err) { }
-    }
+    const nomePersonagem = nomeHint || (selToken ? selToken.tokenName : (localFichaUpdateData?.charName || myName));
+    try {
+      masterConn.send({
+        type: 'solicitar-iniciativa',
+        name: nomePersonagem,
+        initTotal: initTotal,
+        tokenId: selToken ? selToken.tokenId : null
+      });
+    } catch (err) { }
   }
 }
 
 // Process an initiative roll — adds or updates the combatant in combatState
 // Called on the MASTER side only
+// Preenche PV/PM do combatente a partir da ficha do jogador, do token no board (por controlador ou nome) ou da ficha do mestre
+function _preencherPVPMToken(comb, playerName, peerId) {
+  let hpCur = 0, hpMax = 0, mpCur = 0, mpMax = 0, imgUrl = '';
+  const entry = fichasJogadores[peerId];
+  if (entry && entry.resumo) {
+    const st = (entry.resumo.fullData && entry.resumo.fullData.status) || {};
+    hpCur = parseInt(entry.resumo.pvC != null ? entry.resumo.pvC : st.pvC) || 0;
+    hpMax = parseInt(entry.resumo.pvM != null ? entry.resumo.pvM : st.pvM) || hpCur;
+    mpCur = parseInt(entry.resumo.pmC != null ? entry.resumo.pmC : st.pmC) || 0;
+    mpMax = parseInt(entry.resumo.pmM != null ? entry.resumo.pmM : st.pmM) || mpCur;
+    imgUrl = entry.resumo.charImage || '';
+  }
+  if (hpMax <= 0 && typeof BOARD !== 'undefined' && BOARD.tokens) {
+    let tok = BOARD.tokens.find(t => t.controlledBy === peerId);
+    if ((!tok || !tok.hpMax) && playerName) tok = BOARD.tokens.find(t => t.name === playerName);
+    if (tok) {
+      hpCur = parseInt(tok.hp) || 0;
+      hpMax = parseInt(tok.hpMax) || hpCur;
+      mpCur = parseInt(tok.pm) || 0;
+      mpMax = parseInt(tok.pmMax) || mpCur;
+      imgUrl = imgUrl || tok.imageUrl || '';
+    }
+  }
+  if (hpMax <= 0 && peerId === myPeerId && currentMasterFichaId) {
+    const fichas = getMasterFichas();
+    const f = fichas.find(x => x.id === currentMasterFichaId && x.name === playerName);
+    if (f) {
+      const st = (f.fullData && f.fullData.status) || {};
+      hpCur = parseInt(f.pvC != null ? f.pvC : st.pvC) || 0;
+      hpMax = parseInt(f.pvM != null ? f.pvM : st.pvM) || hpCur;
+      mpCur = parseInt(f.pmC != null ? f.pmC : st.pmC) || 0;
+      mpMax = parseInt(f.pmM != null ? f.pmM : st.pmM) || mpCur;
+      imgUrl = f.imageUrl || imgUrl;
+    }
+  }
+  comb.hpCur = parseInt(comb.hpCur) || hpCur;
+  comb.hpMax = parseInt(comb.hpMax) || hpMax;
+  comb.mpCur = parseInt(comb.mpCur) || mpCur;
+  comb.mpMax = parseInt(comb.mpMax) || mpMax;
+  if (!comb.imageUrl && imgUrl) comb.imageUrl = imgUrl;
+}
+
 function processarIniciativaRoll(playerName, initTotal, peerId) {
   if (!combatState) combatState = combatDefaultState();
 
@@ -1022,32 +1122,25 @@ function processarIniciativaRoll(playerName, initTotal, peerId) {
   if (existing) {
     existing.init = initTotal;
     existing.name = playerName; // update name in case it changed
+    // Se o combatente foi criado antes sem PV/PM, tenta preencher agora
+    if (!existing.hpMax) _preencherPVPMToken(existing, playerName, peerId);
     combatLogAdd(`🎲 ${playerName} atualizou iniciativa: ${initTotal}`);
   } else {
-    // Look for HP info from fichasJogadores
-    let hp = 0;
-    let imgUrl = '';
-    const entry = fichasJogadores[peerId];
-    if (entry && entry.resumo) {
-      hp = entry.resumo.pvM || 0;
-      imgUrl = entry.resumo.charImage || '';
-    }
     const id = 'c' + Date.now() + Math.floor(Math.random() * 99999);
-    combatState.combatants.push({
+    const combatant = {
       id,
       name: playerName,
       init: initTotal,
-      hpCur: parseInt(hp) || 0,
-      hpMax: parseInt(hp) || 0,
-      mpCur: 0,
-      mpMax: 0,
+      hpCur: 0, hpMax: 0, mpCur: 0, mpMax: 0,
       notes: '',
       conditions: [],
       stats: { def: '', res: '', cd: '' },
       open: false,
-      imageUrl: imgUrl,
+      imageUrl: '',
       controlledBy: peerId
-    });
+    };
+    _preencherPVPMToken(combatant, playerName, peerId);
+    combatState.combatants.push(combatant);
     if (!combatState.activeId) combatState.activeId = id;
     combatLogAdd(`🎲 ${playerName} entrou no combate com iniciativa ${initTotal}`);
   }
@@ -2653,6 +2746,7 @@ function _handleFichaMsg(data) {
     }
     if (myRole === 'jogador') {
       fichasJogadores[myPeerId] = { playerName: myName, resumo: resumo, ts: Date.now() };
+      renderFichasJogadores();
       if (amIHost) {
         receberResumoFicha({ peerId: myPeerId, playerName: myName, resumo: resumo });
       } else if (masterConn) {
@@ -2704,7 +2798,18 @@ function _handleFichaMsg(data) {
     rotearMensagem(msgData);
     if (data.command) adicionarAoHistorico(data.command);
     if (data.dmgCommand) adicionarAoHistorico(data.dmgCommand);
-    detectarERolarIniciativa(data.text);
+    // Usa o nome do personagem (e não o apelido) para a iniciativa entrar no tracker
+    var nomeChar = myName;
+    if (myRole === 'mestre') {
+      if (currentMasterFichaId) {
+        var fichas = getMasterFichas();
+        var fichaM = fichas.find(function(x) { return x.id === currentMasterFichaId; });
+        if (fichaM && fichaM.name) nomeChar = fichaM.name;
+      }
+    } else if (localFichaUpdateData && localFichaUpdateData.charName) {
+      nomeChar = localFichaUpdateData.charName;
+    }
+    detectarERolarIniciativa(data.text, nomeChar);
     return;
   }
 }
@@ -2829,6 +2934,12 @@ function criarTokenDaFicha() {
       toast('Nenhuma ficha aberta no momento.');
     }
   } else if (myRole === 'jogador') {
+    // Impede que o jogador crie mais de um token controlado
+    const jaTemToken = (typeof BOARD !== 'undefined' && BOARD.tokens) ? BOARD.tokens.some(t => t.controlledBy === myPeerId) : false;
+    if (jaTemToken) {
+      toast('⚠️ Você já possui um token no mapa. Apenas um token por jogador.');
+      return;
+    }
     if (localFichaUpdateData) {
       let localImg = '';
       try {
@@ -2905,6 +3016,16 @@ function adicionarTokenAutomatico(opts) {
   toast(`Token de ${opts.name} criado no mapa!`);
 }
 
+// Verifica se um jogador já possui um token controlado (evita criar mais de um)
+function jogadorJaTemToken(peerId) {
+  if (!peerId) return false;
+  if (PLAYERS_SCENE_ID === ACTIVE_SCENE_ID) {
+    return (typeof BOARD !== 'undefined' && BOARD.tokens) ? BOARD.tokens.some(t => t.controlledBy === peerId) : false;
+  }
+  const scene = SCENES.find(s => s.id === PLAYERS_SCENE_ID);
+  return scene && scene.tokens ? scene.tokens.some(t => t.controlledBy === peerId && (t.layer || 'players') !== 'gm') : false;
+}
+
 function adicionarTokenNaCena(opts, sceneId) {
   if (sceneId === ACTIVE_SCENE_ID) {
     adicionarTokenAutomatico(opts);
@@ -2958,6 +3079,49 @@ function temControleToken(t) {
   return t && t.controlledBy === myPeerId;
 }
 
+// ══════════════════════════════════════════════════════
+//  MODO "SÓ O SEU TOKEN" (jogadores)
+//  Padrão: o jogador só pode selecionar o próprio token,
+//  evitando seleção acidental de tokens dos outros.
+//  Desative para poder selecionar qualquer token (mirar/atacar).
+// ══════════════════════════════════════════════════════
+let selecaoPropriaJogador = localStorage.getItem('vtt_selecao_propria') !== '0';
+let selecaoPropriaLastToast = 0;
+
+function toggleSelecaoPropria() {
+  if (myRole !== 'jogador') return;
+  selecaoPropriaJogador = !selecaoPropriaJogador;
+  localStorage.setItem('vtt_selecao_propria', selecaoPropriaJogador ? '1' : '0');
+  if (selecaoPropriaJogador) {
+    [...BOARD.selectedTokens].forEach(id => {
+      const t = BOARD.tokens.find(tk => tk.id === id);
+      if (t && !temControleToken(t)) BOARD.selectedTokens.delete(id);
+    });
+    BOARD.mountPendingId = null;
+    atualizarBotoesTokenSelected();
+    boardRender();
+    atualizarVisaoJogadorPorSelecao();
+  }
+  atualizarBotaoSelecaoPropria();
+}
+
+function atualizarBotaoSelecaoPropria() {
+  const btn = document.getElementById('btnSelecaoPropria');
+  const mob = document.getElementById('mobSelecaoPropriaBtn');
+  const isJogador = myRole === 'jogador';
+  [btn, mob].forEach(el => { if (el) el.style.display = isJogador ? '' : 'none'; });
+  if (btn) {
+    btn.classList.toggle('active', selecaoPropriaJogador);
+    btn.title = selecaoPropriaJogador
+      ? '🛡 Só o seu token — clique para poder selecionar qualquer token (ex.: mirar/atacar)'
+      : '🛡 Seleção livre — clique para voltar a só o seu token';
+  }
+  if (mob) {
+    mob.style.display = isJogador ? '' : 'none';
+    mob.textContent = selecaoPropriaJogador ? '🛡 Só eu (ON)' : '🛡 Só eu (OFF)';
+  }
+}
+
 function solicitarMoverToken(tokenId, gx, gy) {
   if (masterConn) {
     masterConn.send({
@@ -2994,6 +3158,7 @@ function moverTokenPorSeta(key) {
     }
     t.gx = newGx;
     t.gy = newGy;
+    if (getParMontaria(t)) seguirMontaria(t);
   });
 
   if (myRole === 'mestre' || amIHost) {
@@ -3004,8 +3169,25 @@ function moverTokenPorSeta(key) {
       boardRender();
     }
     syncBoardTokensToPlayers();
-  } else if (tokens.length === 1) {
-    solicitarMoverToken(tokens[0].id, tokens[0].gx, tokens[0].gy);
+  } else {
+    // Montaria: garante que o par inteiro seja enviado ao mestre
+    const enviarIds = new Set();
+    let montariaEnvolvida = false;
+    tokens.forEach(t => {
+      enviarIds.add(t.id);
+      const par = getParMontaria(t);
+      if (par) {
+        enviarIds.add(par.rider.id);
+        enviarIds.add(par.mount.id);
+        montariaEnvolvida = true;
+      }
+    });
+    if (montariaEnvolvida || tokens.length === 1) {
+      enviarIds.forEach(id => {
+        const tk = BOARD.tokens.find(t => t.id === id);
+        if (tk) solicitarMoverToken(tk.id, tk.gx, tk.gy);
+      });
+    }
   }
   tokens.forEach(t => setTimeout(() => verificarGatilhosToken(t), 50));
   setTimeout(atualizarFogJogador, 50);
@@ -3094,7 +3276,9 @@ function renderFichasJogadores() {
   if (!container) return;
   const entries = Object.entries(fichasJogadores);
   if (entries.length === 0) {
-    container.innerHTML = '<div class="ficha-sem-dados">Nenhuma ficha recebida ainda.<br>Peça aos jogadores clicarem em "📋 Ficha".</div>';
+    container.innerHTML = myRole === 'jogador'
+      ? '<div class="ficha-sem-dados">Você ainda não carregou sua ficha.<br>Clique em "📋 Abrir / Carregar minha ficha" acima (ou no botão "📋 Ficha" no topo).</div>'
+      : '<div class="ficha-sem-dados">Nenhuma ficha recebida ainda.<br>Peça aos jogadores clicarem em "📋 Ficha".</div>';
     return;
   }
   container.innerHTML = '';
@@ -3291,7 +3475,7 @@ function renderMasterFichas() {
 }
 
 function switchTab(name) {
-  ['encontros', 'combate', 'fichas', 'bau', 'notas', 'cenas'].forEach(t => {
+  ['encontros', 'combate', 'fichas', 'bau', 'cenas'].forEach(t => {
     document.getElementById('tab-' + t)?.classList.toggle('active', t === name);
     document.getElementById('content-' + t)?.classList.toggle('active', t === name);
   });
@@ -3594,8 +3778,17 @@ function toggleBestiarioFolder(nd) {
   buscarBestiario();
 }
 
+function garantirBestiarioCarregado() {
+  if (bestiarioCache && Array.isArray(bestiarioCache)) return true;
+  if (typeof AMEACAS_DB !== 'undefined' && Array.isArray(AMEACAS_DB) && AMEACAS_DB.length > 0) {
+    bestiarioCache = AMEACAS_DB;
+    return true;
+  }
+  return false;
+}
+
 function mostrarDetalhesCriatura(nome) {
-  if (!bestiarioCache) return;
+  if (!garantirBestiarioCarregado()) return;
   const c = bestiarioCache.find(x => x.nome === nome);
   if (!c) return;
 
@@ -3769,7 +3962,7 @@ function escalarFormulaDados(formula, mult) {
 }
 
 function rolarValorBestiario(nomeEnc, rotulo, valorStr) {
-  if (!bestiarioCache) return;
+  if (!garantirBestiarioCarregado()) return;
   const nome = decodeURIComponent(nomeEnc);
   const bonus = parseInt(valorStr) || 0;
   const roll = Math.floor(Math.random() * 20) + 1;
@@ -3785,6 +3978,53 @@ function rolarValorBestiario(nomeEnc, rotulo, valorStr) {
   } else if (masterConn) {
     masterConn.send(msgData);
   }
+
+  // Iniciativa no bestiário: já adiciona/atualiza a criatura no tracker de combate (só mestre)
+  const rotuloNorm = String(rotulo || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (rotuloNorm.includes('iniciativa') && (myRole === 'mestre' || amIHost)) {
+    const c = bestiarioCache.find(x => x.nome === nome);
+    if (c) adicionarIniciativaBestiarioAoCombate(c, total);
+  }
+}
+
+function adicionarIniciativaBestiarioAoCombate(c, initTotal) {
+  if (!c) return;
+  if (!combatState) combatState = combatDefaultState();
+  const nome = c.nome || 'Criatura';
+
+  // Se a criatura já está no combate, só atualiza a iniciativa
+  const existing = combatState.combatants.find(x => x.name === nome);
+  if (existing) {
+    existing.init = initTotal;
+    combatLogAdd(`🎲 ${nome} atualizou iniciativa: ${initTotal}`);
+  } else {
+    const id = 'c' + Date.now() + Math.floor(Math.random() * 99999);
+    const def = c.defesa + (c.defesaObs ? ` (${c.defesaObs})` : '');
+    const res = `Fort ${c.fort || '+0'}, Ref ${c.ref || '+0'}, Von ${c.von || '+0'}`;
+    let notes = `Tipo: ${c.tipo || '—'} | ND: ${c.nd || '—'}\nDeslocamento: ${c.desl || '—'}\n`;
+    if (c.atributos) { const a = c.atributos; notes += `FOR ${a.for || '—'}, DES ${a.des || '—'}, CON ${a.con || '—'}, INT ${a.int || '—'}, SAB ${a.sab || '—'}, CAR ${a.car || '—'}\n`; }
+    notes += '\n--- ATAQUES ---\n';
+    if (Array.isArray(c.ataques)) c.ataques.forEach(a => { notes += `• ${a.nome}: ${a.tipo || ''} ${a.bonus || ''} (${a.dano || ''})${a.desc ? ' - ' + a.desc : ''}\n`; });
+    notes += '\n--- HABILIDADES ---\n';
+    if (Array.isArray(c.habilidades)) c.habilidades.forEach(h => { notes += `• ${h.nome} (${h.tipo || ''}): ${h.desc || ''}\n`; });
+    combatState.combatants.push({
+      id, name: nome, init: initTotal,
+      hpCur: parseInt(c.pv) || 0, hpMax: parseInt(c.pv) || 0,
+      mpCur: parseInt(c.pm) || 0, mpMax: parseInt(c.pm) || 0,
+      notes, conditions: [], stats: { def, res, cd: '' }, open: false, imageUrl: c.img || ''
+    });
+    if (!combatState.activeId) combatState.activeId = id;
+    combatLogAdd(`🎲 ${nome} entrou no combate com iniciativa ${initTotal}`);
+  }
+
+  if (combatState.autoSort) {
+    combatState.combatants.sort((a, b) => (parseInt(b.init) || 0) - (parseInt(a.init) || 0));
+  }
+
+  combatSave();
+  combatRender();
+  syncCombatToPlayers();
+  toast(`⚔ ${nome} no combate com iniciativa ${initTotal}`);
 }
 
 function exibirHabilidadeBestiario(nomeEnc, habIdx) {
@@ -3809,6 +4049,16 @@ function exibirHabilidadeBestiario(nomeEnc, habIdx) {
   }
 }
 
+function tamanhoTokenDoBestiario(tipo) {
+  const t = String(tipo || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  let size = 1;
+  if (t.includes('minusculo') || t.includes('pequeno')) size = 0.5;
+  else if (t.includes('colossal')) size = 4;
+  else if (t.includes('enorme')) size = 3;
+  else if (t.includes('grande')) size = 2;
+  return size;
+}
+
 function criarTokenDoBestiario() {
   const nome = window._bestiarioCriaturaAtual;
   if (!nome || !bestiarioCache) return;
@@ -3819,7 +4069,8 @@ function criarTokenDoBestiario() {
   abrirFormToken(undefined, undefined, {
     name: c.nome,
     hp: parseInt(c.pv) || 0,
-    imageUrl: c.img || ''
+    imageUrl: c.img || '',
+    size: tamanhoTokenDoBestiario(c.tipo)
   });
 }
 
@@ -4711,11 +4962,12 @@ function onBestiaryDrop(e) {
   const hp = parseInt(c.pv) || 0;
   const cor = bestiarioNdColors[c.nd] || '#c94040';
   const imgUrl = c.img || '';
+  const size = tamanhoTokenDoBestiario(c.tipo);
 
   BOARD.tokens.push({
     id: 'tk' + Date.now() + Math.floor(Math.random() * 9999),
     name: nomeToken, hp, hpMax: hp,
-    size: 1, sizeX: 1, sizeY: 1,
+    size, sizeX: size, sizeY: size,
     color: cor,
     imageUrl: imgUrl,
     controlledBy: null,
@@ -4742,6 +4994,7 @@ function fecharDetalhesItem() {
 
 // ── Pergaminhos (Notas do Mestre) ──
 let vttNotas = [];
+let vttNotasRecebidas = [];
 
 function syncNotasToPlayers() {
   if (myRole !== 'mestre' && !amIHost) return;
@@ -4750,16 +5003,10 @@ function syncNotasToPlayers() {
 }
 
 function renderNotas() {
-  const list = document.getElementById('notasList');
-  const empty = document.getElementById('notasEmpty');
-  if (!list) return;
-  if (vttNotas.length === 0) {
-    list.innerHTML = '';
-    if (empty) empty.style.display = 'block';
-    return;
-  }
-  if (empty) empty.style.display = 'none';
-  list.innerHTML = vttNotas.map(n => {
+  const listas = [...document.querySelectorAll('.notas-list')];
+  document.querySelectorAll('.notas-empty').forEach(el => el.style.display = vttNotas.length === 0 ? 'block' : 'none');
+  if (listas.length === 0) return;
+  const cards = vttNotas.map(n => {
     const preview = (n.content || '').substring(0, 80).replace(/\n/g, ' ');
     return `<div style="background:var(--parch3);border:1px solid ${n.visible ? 'var(--gold)' : 'var(--border)'};border-radius:4px;padding:0.4rem 0.5rem;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:0.3rem;">
@@ -4773,6 +5020,88 @@ function renderNotas() {
       ${preview ? `<div style="font-size:0.6rem;color:var(--text-muted);margin-top:0.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHTML(preview)}</div>` : ''}
     </div>`;
   }).join('');
+  listas.forEach(list => { list.innerHTML = cards; });
+}
+
+function alternarColunaChat(tab) {
+  const isChat = tab === 'diario';
+  const isNotas = tab === 'notas';
+  const isRolls = tab === 'rolls';
+  const tabD = document.getElementById('chatTabDiario');
+  const tabN = document.getElementById('chatTabNotas');
+  const tabR = document.getElementById('chatTabRolls');
+  if (tabD) tabD.classList.toggle('active', isChat);
+  if (tabN) tabN.classList.toggle('active', isNotas);
+  if (tabR) tabR.classList.toggle('active', isRolls);
+  const title = document.getElementById('chatHeaderTitle');
+  if (title) title.textContent = isChat ? 'Diário da Mesa' : isNotas ? 'Notas' : 'Histórico de Rolagens';
+  const notasView = document.getElementById('chatNotasView');
+  if (notasView) notasView.style.display = isNotas ? 'flex' : 'none';
+  const rollsView = document.getElementById('chatRollsView');
+  if (rollsView) rollsView.style.display = isRolls ? 'flex' : 'none';
+  const msgs = document.getElementById('chat-messages');
+  const vis = document.getElementById('chatVisibilityRow');
+  const footer = document.getElementById('chatFooter');
+  if (msgs) msgs.style.display = isChat ? '' : 'none';
+  if (vis) vis.style.display = isChat ? '' : 'none';
+  if (footer) footer.style.display = isChat ? '' : 'none';
+  if (isNotas) {
+    if (myRole === 'mestre' || amIHost) renderNotas();
+    else renderChatNotasJogador();
+  } else if (isRolls) {
+    renderRollHistory();
+  }
+}
+
+function renderRollHistory() {
+  const list = document.getElementById('chatRollsList');
+  if (!list) return;
+  const empty = document.getElementById('chatRollsEmpty');
+  if (rollHistory.length === 0) {
+    if (empty) empty.style.display = 'block';
+    list.innerHTML = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  list.innerHTML = rollHistory.map((e, i) => `
+    <div style="background:var(--parch3);border:1px solid var(--border);border-radius:4px;padding:0.4rem 0.5rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:0.3rem;">
+        <span style="font-size:0.7rem;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Cinzel',serif;">${escHTML((e.res || '').replace(/\*\*/g, ''))}</span>
+        <button onclick="repetirRolagem(${i})" style="background:none;border:none;cursor:pointer;color:var(--gold);font-size:0.75rem;flex-shrink:0;" title="Repetir esta rolagem">🔄</button>
+      </div>
+      <div style="font-size:0.6rem;color:var(--text-muted);margin-top:0.15rem;">${escHTML(e.time || '')}</div>
+    </div>
+  `).join('');
+}
+
+function repetirRolagem(index) {
+  const entry = rollHistory[index];
+  if (!entry) {
+    toast('Nenhuma rolagem no histórico.');
+    return;
+  }
+  if (myRole === 'expectador') { toast('Expectadores não podem rolar dados.'); return; }
+  if (myRole === 'cego') return;
+  const res = efetuarRolagem(entry.faces, entry.qtd, entry.mod, entry.label || '', entry.vantagem || 0, false);
+  if (!res) return;
+  const msgData = { type: 'roll', name: myName, role: myRole, text: res, time: formatTime(), visibility: chatVisibility };
+  rotearMensagem(msgData);
+}
+
+function renderChatNotasJogador() {
+  const list = document.getElementById('chatNotasList');
+  if (!list) return;
+  const empty = document.getElementById('chatNotasEmpty');
+  const header = document.getElementById('chatNotasHeader');
+  if (header) header.style.display = 'none';
+  const notas = vttNotasRecebidas || [];
+  if (empty) { empty.style.display = notas.length === 0 ? 'block' : 'none'; empty.textContent = 'Nenhum pergaminho compartilhado pelo mestre.'; }
+  list.innerHTML = notas.map(n => `
+    <div style="background:var(--parch3);border:1px solid var(--border);border-radius:4px;padding:0.5rem;">
+      <div style="font-family:'Cinzel',serif;font-size:0.7rem;color:var(--gold);margin-bottom:0.3rem;">${escHTML(n.title)}</div>
+      <div style="font-size:0.75rem;color:var(--text);white-space:pre-wrap;word-wrap:break-word;line-height:1.4;">${escHTML(n.content)}</div>
+    </div>
+  `).join('');
 }
 
 function criarPergaminho() {
@@ -4827,6 +5156,8 @@ function receberPergaminhos(notas) {
   const panelContent = document.getElementById('notasPlayerContent');
   const panelWrap = document.getElementById('notasPlayerPanel');
   if (!panelContent) return;
+  vttNotasRecebidas = notas || [];
+  renderChatNotasJogador();
   if (!notas || notas.length === 0) {
     if (btn) btn.style.display = 'none';
     if (mobBtn) mobBtn.style.display = 'none';
@@ -6634,6 +6965,16 @@ function onBoardMouseDown(e) {
       e.preventDefault();
       return;
     }
+    // Modo "só o seu token": jogador não seleciona tokens dos outros
+    if (myRole === 'jogador' && selecaoPropriaJogador && !temControleToken(token)) {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - selecaoPropriaLastToast > 4000) {
+        selecaoPropriaLastToast = now;
+        toast('🛡 Apenas o seu token é selecionável. Desative "Só eu" na barra de ferramentas para mirar/atacar outros.');
+      }
+      return;
+    }
     if (e.shiftKey) {
       if (BOARD.selectedTokens.has(token.id)) {
         BOARD.selectedTokens.delete(token.id);
@@ -6674,8 +7015,14 @@ function onBoardMouseDown(e) {
     }
 
     if (!BOARD.selectedTokens.has(token.id)) {
-      BOARD.selectedTokens.clear();
-      BOARD.selectedTokens.add(token.id);
+      if (BOARD.mountPendingId && token.id !== BOARD.mountPendingId) {
+        BOARD.mountPendingId = null;
+        BOARD.selectedTokens.add(token.id);
+      } else {
+        BOARD.mountPendingId = null;
+        BOARD.selectedTokens.clear();
+        BOARD.selectedTokens.add(token.id);
+      }
       boardRender();
       atualizarVisaoJogadorPorSelecao();
     }
@@ -6756,6 +7103,7 @@ function onBoardMouseDown(e) {
 
     if (!e.shiftKey) {
       BOARD.selectedTokens.clear();
+      BOARD.mountPendingId = null;
       boardRender();
       atualizarVisaoJogadorPorSelecao();
     }
@@ -7014,6 +7362,11 @@ function onBoardMouseMove(e) {
       });
     }
 
+    // Montaria: o par arrasta junto (fixa o parceiro no centro do token puxado)
+    if (getParMontaria(BOARD.dragging)) {
+      seguirMontaria(BOARD.dragging);
+    }
+
     if (emVisaoJogador()) {
       atualizarFogJogador();
     } else {
@@ -7101,6 +7454,18 @@ function finalizarArrastoToken() {
       else toast('🚫 Movimento bloqueado por uma parede!');
       boardRender();
       return;
+    }
+
+    // Montaria: se o par terminar a mais de 3 quadrados, desmonta automaticamente
+    if (getParMontaria(token)) {
+      const par = getParMontaria(token);
+      if (distanciaMontaria(par.mount, par.rider) > 3) {
+        par.rider.z = par.mount.z || 0;
+        delete par.mount.mount;
+        delete par.rider.mount;
+        _sincronizarMontariaMestre([par.mount, par.rider]);
+        toast('🐴 Montaria desfeita — tokens distantes demais.');
+      }
     }
 
     if (myRole === 'mestre' || amIHost) {
@@ -7375,12 +7740,14 @@ function finalizeMarqueeSelection(additive) {
 
   if (!additive) {
     BOARD.selectedTokens.clear();
+    BOARD.mountPendingId = null;
   }
 
   tokens.forEach(t => {
     const layer = t.layer || 'players';
     if ((myRole !== 'mestre' || emVisaoJogador()) && layer === 'gm') return;
     if (myRole === 'mestre' && !emVisaoJogador() && layer !== activeLayer) return;
+    if (myRole === 'jogador' && selecaoPropriaJogador && !temControleToken(t)) return;
 
     const sizeW = (t.sizeX || t.size || 1) * gridSize;
     const sizeH = (t.sizeY || t.size || 1) * gridSize;
@@ -7426,6 +7793,9 @@ function onBoardDblClick(e) {
     }
     // Mobile: duplo clique no token seleciona e abre ficha vinculada
     if (token) {
+      if (myRole === 'jogador' && selecaoPropriaJogador && !temControleToken(token)) {
+        return;
+      }
       BOARD.selectedTokens.clear();
       BOARD.selectedTokens.add(token.id);
       atualizarVisaoJogadorPorSelecao();
@@ -7586,6 +7956,13 @@ function onBoardContextMenu(e) {
       }
       document.getElementById('ctxAlignGrid').style.display = isMestre ? '' : 'none';
 
+      const ctxMontaria = document.getElementById('ctxMontaria');
+      if (ctxMontaria) {
+        ctxMontaria.style.display = (isMestre || temControleToken(token)) && !isObject ? '' : 'none';
+        const txt = document.getElementById('ctxMontariaText');
+        if (txt) txt.textContent = token.mount ? 'Desmontar' : 'Montar';
+      }
+
       const gs = BOARD.gridSize;
       const sz = (token.size || 1) * gs;
       const { cx, cy } = gridToCanvas(token.gx, token.gy);
@@ -7712,6 +8089,7 @@ function toggleChatMobile() {
 
 function fecharContextMenu() {
   document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
+  _esconderCtxCondTooltip();
   contextTokenId = null;
   contextShapeId = null;
 }
@@ -8620,6 +8998,14 @@ function contextDeleteToken() {
   if (token) {
     if (confirm(`Remover token "${token.name}"?`)) {
       snapshotBoard();
+      if (token.mount) {
+        const par = getParMontaria(token);
+        if (par) {
+          delete par.mount.mount;
+          delete par.rider.mount;
+          par.rider.z = par.mount.z || 0;
+        }
+      }
       BOARD.tokens = BOARD.tokens.filter(t => t.id !== token.id);
       BOARD.selectedTokens.delete(token.id);
       if (BOARD.followTokenId === token.id) BOARD.followTokenId = null;
@@ -8631,6 +9017,40 @@ function contextDeleteToken() {
     }
   }
   fecharContextMenu();
+}
+
+function apagarTokensSelecionados() {
+  if (!BOARD.selectedTokens || BOARD.selectedTokens.size === 0) return;
+  const alvos = [...BOARD.selectedTokens].map(id => BOARD.tokens.find(t => t.id === id)).filter(Boolean);
+  const permitidos = alvos.filter(t => t && temControleToken(t) && !t.locked);
+  if (permitidos.length === 0) {
+    toast('Nenhum token selecionado pode ser apagado.');
+    return;
+  }
+  const nomes = permitidos.slice(0, 3).map(t => `"${t.name || 'Token'}"`).join(', ');
+  const resto = permitidos.length > 3 ? ` (+${permitidos.length - 3} outros)` : '';
+  if (!confirm(`Remover ${permitidos.length === 1 ? 'o token' : `${permitidos.length} tokens`} ${nomes}${resto}?`)) return;
+  snapshotBoard();
+  const ids = new Set(permitidos.map(t => t.id));
+  permitidos.forEach(token => {
+    if (token.mount) {
+      const par = getParMontaria(token);
+      if (par) {
+        delete par.mount.mount;
+        delete par.rider.mount;
+        par.rider.z = par.mount.z || 0;
+      }
+    }
+  });
+  BOARD.tokens = BOARD.tokens.filter(t => !ids.has(t.id));
+  permitidos.forEach(t => BOARD.selectedTokens.delete(t.id));
+  if (BOARD.followTokenId && ids.has(BOARD.followTokenId)) BOARD.followTokenId = null;
+  if (BOARD.playerViewTokenId && ids.has(BOARD.playerViewTokenId)) exitPlayerView();
+  atualizarVisaoJogadorPorSelecao();
+  boardSave();
+  boardRender();
+  syncBoardTokensToPlayers();
+  toast(`${permitidos.length} token${permitidos.length > 1 ? 's' : ''} removido${permitidos.length > 1 ? 's' : ''}!`);
 }
 
 function contextSubirToken() {
@@ -9080,6 +9500,7 @@ function atualizarMiniaturasSelecionados() {
 
 function atualizarBotoesTokenSelected() {
   atualizarMiniaturasSelecionados();
+  atualizarBotaoMontaria();
   const btnSkills = document.getElementById('token-skills-btn');
   const btnAttacks = document.getElementById('token-attacks-btn');
   const btnMagias = document.getElementById('token-magias-btn');
@@ -9103,6 +9524,259 @@ function atualizarBotoesTokenSelected() {
   if (btnAttacks) btnAttacks.style.display = 'none';
   if (btnMagias) btnMagias.style.display = 'none';
   if (btnPowers) btnPowers.style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════
+//  MONTARIA (Mount)
+//  Dois tokens de tamanhos diferentes formam uma criatura
+//  montada: o menor fica +2 no eixo Z, sempre sobre o maior,
+//  e ambos se movem juntos (até 3 quadrados de distância).
+// ══════════════════════════════════════════════════════
+
+function _spanToken(t) {
+  return { x: t.sizeX || t.size || 1, y: t.sizeY || t.size || 1 };
+}
+
+function getParMontaria(t, tokens) {
+  if (!t || !t.mount) return null;
+  const list = tokens || BOARD.tokens;
+  const other = list.find(x => x.id === (t.mount.riderId || t.mount.mountId));
+  if (!other || !other.mount) return null;
+  const isRider = !!t.mount.mountId;
+  return isRider ? { mount: other, rider: t } : { mount: t, rider: other };
+}
+
+function moverRiderParaCentro(mount, rider) {
+  // O motor desenha/ancora tokens no centro da 1ª célula (tokenWorldPos),
+  // então alinhar gx/gy centraliza o cavaleiro sobre a montaria.
+  rider.gx = Math.max(0, mount.gx || 0);
+  rider.gy = Math.max(0, mount.gy || 0);
+  rider.z = (mount.z || 0) + 2;
+}
+
+function moverMountParaRider(mount, rider) {
+  mount.gx = Math.max(0, rider.gx || 0);
+  mount.gy = Math.max(0, rider.gy || 0);
+}
+
+function seguirMontaria(token, tokens) {
+  const par = getParMontaria(token, tokens);
+  if (!par) return false;
+  if (token.id === par.mount.id) {
+    moverRiderParaCentro(par.mount, par.rider);
+  } else {
+    moverMountParaRider(par.mount, par.rider);
+  }
+  return true;
+}
+
+function distanciaMontaria(mount, rider) {
+  const ms = _spanToken(mount), rs = _spanToken(rider);
+  const mx = mount.gx + ms.x / 2, my = mount.gy + ms.y / 2;
+  const rx = rider.gx + rs.x / 2, ry = rider.gy + rs.y / 2;
+  return Math.hypot(mx - rx, my - ry);
+}
+
+// Colide com qualquer outro token/objeto do tabuleiro (exceto o próprio token)
+function _colideComOutroToken(token, gx, gy) {
+  const rs = _spanToken(token);
+  for (const other of BOARD.tokens) {
+    if (other.id === token.id) continue;
+    if (other.hideInBoard) continue;
+    const os = _spanToken(other);
+    if (gx < other.gx + os.x && gx + rs.x > other.gx && gy < other.gy + os.y && gy + rs.y > other.gy) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Acha a célula adjacente mais próxima da montaria que esteja livre
+// (sem tokens/objetos e sem sobrepor a própria montaria)
+function _acharPosAdjacente(mount, rider) {
+  const spanM = _spanToken(mount), spanR = _spanToken(rider);
+  const minX = mount.gx - spanR.x, maxX = mount.gx + spanM.x;
+  const minY = mount.gy - spanR.y, maxY = mount.gy + spanM.y;
+  let best = null, bestDist = Infinity;
+  for (let rx = minX; rx <= maxX; rx++) {
+    for (let ry = minY; ry <= maxY; ry++) {
+      if (rx < 0 || ry < 0) continue;
+      if (rx >= mount.gx && rx < mount.gx + spanM.x && ry >= mount.gy && ry < mount.gy + spanM.y) continue;
+      if (_colideComOutroToken(rider, rx, ry)) continue;
+      const dx = Math.max(mount.gx, rx) - Math.min(mount.gx + spanM.x, rx + spanR.x);
+      const dy = Math.max(mount.gy, ry) - Math.min(mount.gy + spanM.y, ry + spanR.y);
+      const dist = Math.max(0, dx) + Math.max(0, dy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = { gx: rx, gy: ry };
+      }
+    }
+  }
+  return best;
+}
+
+function atualizarBotaoMontaria() {
+  const btn = document.getElementById('token-mount-btn');
+  if (!btn) return;
+  btn.style.display = 'none';
+  if (!BOARD.selectedTokens || BOARD.selectedTokens.size === 0) return;
+  const sel = [...BOARD.selectedTokens].map(id => BOARD.tokens.find(t => t.id === id)).filter(Boolean);
+  if (sel.length !== 2) return;
+  if (!sel.every(t => temControleToken(t))) return;
+  const [a, b] = sel;
+  const mounted = !!(a.mount && b.mount &&
+    ((a.mount.mountId === b.id && b.mount.riderId === a.id) ||
+     (a.mount.riderId === b.id && b.mount.mountId === a.id)));
+  btn.style.display = 'flex';
+  btn.classList.toggle('mounted', mounted);
+  btn.innerHTML = mounted
+    ? '🐴<span style="font-size:0.5rem;font-weight:bold;">DESMONTAR</span>'
+    : '🐴<span style="font-size:0.5rem;font-weight:bold;">MONTAR</span>';
+  btn.title = mounted
+    ? 'Desmontar o par'
+    : 'Montar (tokens de tamanhos diferentes, até 3 quadrados de distância)';
+}
+
+function montar() {
+  if (!BOARD.selectedTokens || BOARD.selectedTokens.size !== 2) {
+    toast('🐴 Selecione exatamente 2 tokens para montar.'); return;
+  }
+  const sel = [...BOARD.selectedTokens].map(id => BOARD.tokens.find(t => t.id === id)).filter(Boolean);
+  if (sel.length !== 2) return;
+  if (!sel.every(t => temControleToken(t))) {
+    toast('🐴 Você só pode montar tokens que controla.'); return;
+  }
+  const [a, b] = sel;
+  const areaA = _spanToken(a).x * _spanToken(a).y;
+  const areaB = _spanToken(b).x * _spanToken(b).y;
+  if (areaA === areaB) {
+    toast('🐴 Os tokens precisam ter tamanhos diferentes.'); return;
+  }
+  if (a.mount || b.mount) {
+    toast('🐴 Um dos tokens já está em uma montaria.'); return;
+  }
+  const mount = areaA > areaB ? a : b;
+  const rider = areaA > areaB ? b : a;
+  if (distanciaMontaria(mount, rider) > 3) {
+    toast('🐴 Os tokens precisam estar a até 3 quadrados de distância.'); return;
+  }
+  snapshotBoard();
+  moverRiderParaCentro(mount, rider);
+  mount.mount = { riderId: rider.id };
+  rider.mount = { mountId: mount.id };
+  boardSave();
+  boardRender();
+  syncBoardTokensToPlayers();
+  _sincronizarMontariaMestre([mount, rider]);
+  atualizarBotaoMontaria();
+  toast(`🐴 ${rider.name || 'Token'} montou em ${mount.name || 'Token'}!`);
+}
+
+function desmontar() {
+  if (!BOARD.selectedTokens) return;
+  let par = null;
+  const sel = [...BOARD.selectedTokens].map(id => BOARD.tokens.find(t => t.id === id)).filter(Boolean);
+  if (sel.length === 2) {
+    par = getParMontaria(sel[0]);
+    if (par && par.rider.id !== sel[1].id && par.mount.id !== sel[1].id) par = null;
+  } else if (sel.length === 1 && sel[0].mount) {
+    par = getParMontaria(sel[0]);
+  }
+  if (!par) {
+    toast('🐴 Selecione o par montado para desmontar.'); return;
+  }
+  if (!temControleToken(par.rider) || !temControleToken(par.mount)) {
+    toast('🐴 Você só pode desmontar tokens que controla.'); return;
+  }
+  snapshotBoard();
+  // Coloca o cavaleiro numa célula adjacente livre (fora da montaria)
+  const pos = _acharPosAdjacente(par.mount, par.rider);
+  if (pos) {
+    par.rider.gx = pos.gx;
+    par.rider.gy = pos.gy;
+    par.rider.z = par.mount.z || 0;
+  } else {
+    // Sem espaço adjacente: mantém onde está, mas acima da montaria
+    par.rider.z = (par.mount.z || 0) + 2;
+    toast('🐴 Sem espaço adjacente — o cavaleiro permaneceu em cima da montaria.');
+  }
+  delete par.mount.mount;
+  delete par.rider.mount;
+  boardSave();
+  boardRender();
+  syncBoardTokensToPlayers();
+  _sincronizarMontariaMestre([par.mount, par.rider]);
+  atualizarBotaoMontaria();
+  toast('🐴 Montaria desfeita.');
+}
+
+function toggleMontaria() {
+  const btn = document.getElementById('token-mount-btn');
+  if (btn && btn.classList.contains('mounted')) desmontar();
+  else montar();
+}
+
+// Jogador → Mestre: propaga estado/posição da montaria (master aplica e re-sincroniza)
+function _sincronizarMontariaMestre(tokens) {
+  if (myRole === 'mestre' || amIHost || !masterConn) return;
+  tokens.forEach(t => {
+    if (!t) return;
+    try {
+      masterConn.send({ type: 'montaria-update', tokenId: t.id, mount: t.mount || null, gx: t.gx, gy: t.gy, z: t.z });
+    } catch (e) {}
+  });
+}
+
+function contextMontaria() {
+  if (!contextTokenId) return;
+  const token = BOARD.tokens.find(t => t.id === contextTokenId);
+  if (token) {
+    if (token.mount) {
+      BOARD.mountPendingId = null;
+      BOARD.selectedTokens.clear();
+      BOARD.selectedTokens.add(token.id);
+      desmontar();
+    } else {
+      BOARD.mountPendingId = token.id;
+      BOARD.selectedTokens.clear();
+      BOARD.selectedTokens.add(token.id);
+      boardRender();
+      toast('🐴 Agora clique no outro token (tamanho diferente) para montar.');
+    }
+  }
+  fecharContextMenu();
+}
+
+function contextLuz(preset) {
+  if (!contextTokenId) return;
+  const token = BOARD.tokens.find(t => t.id === contextTokenId);
+  if (!token) { fecharContextMenu(); return; }
+  if (!token.auras) token.auras = [];
+  snapshotBoard();
+  if (preset === 'none') {
+    token.auras = token.auras.map(a => a.light ? Object.assign({}, a, { active: false }) : a);
+  } else {
+    const radius = Number(preset);
+    const idx = token.auras.findIndex(a => a.light && a.active);
+    if (idx !== -1) {
+      token.auras[idx].radius = radius;
+      token.auras[idx].active = true;
+      token.auras[idx].name = 'Luz';
+    } else {
+      const livre = token.auras.find(a => !a.active);
+      if (livre) Object.assign(livre, { active: true, name: 'Luz', radius, light: true });
+      else if (token.auras.length < 2) token.auras.push({ active: true, name: 'Luz', radius, light: true });
+      else Object.assign(token.auras[0], { active: true, name: 'Luz', radius, light: true });
+    }
+  }
+  const temLuz = token.auras.some(a => a.light && a.active);
+  const presets = { 6: 'Tocha (6m)', 9: 'Lanterna (9m)', 12: 'Fogueira (12m)' };
+  boardSave();
+  boardRender();
+  syncBoardTokensToPlayers();
+  setTimeout(atualizarFogJogador, 50);
+  toast(temLuz ? `🔦 "${token.name}": ${presets[preset] || 'luz'} ativada.` : `🔦 Luz removida de "${token.name}".`);
+  fecharContextMenu();
 }
 
 // State variables for VTT selectors locks
@@ -9809,7 +10483,7 @@ function abrirSeletorPericiasToken(isLockToggle) {
     const level = parseInt(fullData.charLevel || 1) || 1;
     const halfLevel = Math.floor(level / 2);
     const trainBonus = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
-    const TRAINED_ONLY_SKILLS = ["Adestramento", "Atuação", "Conhecimento", "Guerra", "Iniciativa", "Ladinagem", "Misticismo", "Nobreza", "Ofício", "Pilotagem", "Religião"];
+    const TRAINED_ONLY_SKILLS = ["Adestramento", "Conhecimento", "Guerra", "Jogatina", "Ladinagem", "Misticismo", "Nobreza", "Pilotagem", "Religião"];
 
     fullData.skills.forEach(s => {
       let attrVal = parseInt((fullData.attrs && fullData.attrs[s.a]) || 0) || 0;
@@ -9908,6 +10582,7 @@ function abrirSeletorPericiasToken(isLockToggle) {
           var bonusStr = item.total >= 0 ? '+' + item.total : item.total;
           var text = item.name + ': 2d20' + advLabel + bonusStr + ' → **' + totalRoll + '** [' + r1 + ', ' + r2 + ']';
           rotearMensagem({ type: 'roll', name: rollerName, role: myRole, text: text, time: formatTime(), visibility: chatVisibility });
+          detectarERolarIniciativa(text);
           if (chatVisibility === 'global') {
             rolarDados3d(20, 2, [r1, r2], chosen + item.total, item.total, item.name + ': ');
           }
@@ -10677,8 +11352,36 @@ function popularCtxCondicoes(token) {
     div.textContent = `${emoji} ${checked}${c}`;
     div.onclick = (e) => { e.stopPropagation(); toggleTokenCondition(contextTokenId, c); };
     if (ativas.includes(c)) div.classList.add('active');
+    // Tooltip com a descrição da condição ao passar o mouse
+    const desc = CONDITION_INFO[c];
+    if (desc) {
+      div.addEventListener('mouseenter', () => { _mostrarCtxCondTooltip(div, c, desc); });
+      div.addEventListener('mouseleave', _esconderCtxCondTooltip);
+    }
     sub.appendChild(div);
   });
+}
+
+function _mostrarCtxCondTooltip(el, nome, desc) {
+  const tip = document.getElementById('ctxCondTooltip');
+  if (!tip) return;
+  tip.innerHTML = `<strong>${escHTML(nome)}</strong><br><span class="ctx-cond-tip-desc">${escHTML(desc)}</span>`;
+  tip.style.display = 'block';
+  const rect = el.getBoundingClientRect();
+  let x = rect.right + 8;
+  let y = rect.top;
+  tip.style.left = '0px';
+  tip.style.top = '0px';
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  if (x + w > window.innerWidth - 8) x = rect.left - w - 8;
+  if (y + h > window.innerHeight - 8) y = window.innerHeight - h - 8;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+
+function _esconderCtxCondTooltip() {
+  const tip = document.getElementById('ctxCondTooltip');
+  if (tip) tip.style.display = 'none';
 }
 
 // Mapeamento: nomes das condições do board → chaves das condições da ficha
@@ -11448,7 +12151,8 @@ function boardRender() {
       if (t.auras && t.auras.length > 0) {
         t.auras.forEach(aura => {
           if (!aura.light) return;
-          const auraRadiusPx = (aura.radius || 0) * gridSize * zoom;
+          const scaleVal = BOARD.gridScaleVal || 1.5;
+          const auraRadiusPx = ((aura.radius || 0) / scaleVal) * gridSize * zoom;
           if (auraRadiusPx > 0) {
             const grad = lctx.createRadialGradient(sx, sy, 0, sx, sy, auraRadiusPx);
             grad.addColorStop(0, 'rgba(255,255,255,1)');
@@ -11524,7 +12228,8 @@ function boardRender() {
       if (t.auras && t.auras.length > 0) {
         t.auras.forEach(aura => {
           if (!aura.light) return;
-          const auraRadiusPx = (aura.radius || 0) * gridSize * zoom;
+          const scaleVal = BOARD.gridScaleVal || 1.5;
+          const auraRadiusPx = ((aura.radius || 0) / scaleVal) * gridSize * zoom;
           if (auraRadiusPx > 0) {
             dvCtx.beginPath();
             dvCtx.arc(sx, sy, auraRadiusPx, 0, Math.PI * 2);
@@ -14674,7 +15379,7 @@ function abrirFormToken(cx, cy, prefillOpts) {
   document.getElementById('tfPMMax').value = '';
   document.getElementById('tfDefesa').value = '';
   document.getElementById('tfDefesaMax').value = '';
-  document.getElementById('tfSize').value = '1';
+  document.getElementById('tfSize').value = String(prefillOpts?.size || 1);
   selectTokenColorByValue('#c94040');
   popularControleSelect('');
   definirImagemToken(prefillOpts?.imageUrl || '');
@@ -15108,7 +15813,7 @@ function confirmarToken() {
   const pmMax = parseInt(document.getElementById('tfPMMax').value) || 0;
   const defesa = parseInt(document.getElementById('tfDefesa').value) || 0;
   const defesaMax = parseInt(document.getElementById('tfDefesaMax').value) || 0;
-  const size = parseInt(document.getElementById('tfSize').value) || 1;
+  const size = parseFloat(document.getElementById('tfSize').value) || 1;
   const ehJogador = (myRole !== 'mestre');
   const controlledBy = ehJogador ? null : (document.getElementById('tfControlledBy').value || null);
   const imageUrl = tfSelectedImage || '';
@@ -16520,7 +17225,20 @@ function entrarSala() {
         }
         // FICHA
         else if (data.type === 'ficha-resumo-request') {
+          // Reenvia o último resumo conhecido direto (não depende do iframe estar carregado)
+          if (myRole === 'jogador' && localFichaUpdateData) {
+            const resumo = localFichaUpdateData;
+            fichasJogadores[myPeerId] = { playerName: myName, resumo: resumo, ts: Date.now() };
+            if (amIHost) {
+              receberResumoFicha({ peerId: myPeerId, playerName: myName, resumo: resumo });
+            } else if (masterConn) {
+              try { masterConn.send({ type: 'ficha-resumo', peerId: myPeerId, playerName: myName, resumo: resumo }); } catch (err) { }
+            }
+          }
           document.getElementById('ficha-iframe')?.contentWindow?.postMessage({ type: 'vtt-request-resume' }, '*');
+        }
+        else if (data.type === 'vtt-notify') {
+          if (data.text) toast(data.text);
         }
         // PERGAMINHOS
         else if (data.type === 'pergaminhos') {
@@ -16681,6 +17399,7 @@ function executarMacro(cmd) {
     msgData = { type: 'chat', name: rollerName, role: myRole, text, time: formatTime(), visibility: chatVisibility };
   }
   rotearMensagem(msgData);
+  if (msgData.type === 'roll') detectarERolarIniciativa(msgData.text);
 }
 
 function abrirConfigMacros(index) {
@@ -17123,6 +17842,11 @@ function aplicarCegoVisual() {
   const params = new URLSearchParams(window.location.search);
   const sala = params.get('sala');
   if (sala) {
+    // Link de convite: oculta a opção de abrir uma nova mesa (entrar como mestre)
+    const createPanel = document.getElementById('panel-create');
+    if (createPanel) createPanel.style.display = 'none';
+    const divider = document.getElementById('lobby-divider');
+    if (divider) divider.style.display = 'none';
     document.getElementById('room-code').value = sala;
     document.getElementById('player-name').focus();
     // Mostrar toast após curto delay
@@ -17256,6 +17980,105 @@ function aplicarCegoVisual() {
       if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
       e.preventDefault();
       moverTokenPorSeta(e.key);
+    }
+    // Delete: apagar token(s) selecionado(s) (só mestre)
+    if (e.key === 'Delete') {
+      const ativo = document.activeElement;
+      if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
+      if (myRole === 'mestre' && BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        e.preventDefault();
+        apagarTokensSelecionados();
+      }
+      return;
+    }
+    // M: montar/desmontar com os tokens selecionados
+    if (e.key === 'm' || e.key === 'M') {
+      const ativo = document.activeElement;
+      if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        e.preventDefault();
+        const sel = [...BOARD.selectedTokens].map(id => BOARD.tokens.find(t => t.id === id)).filter(Boolean);
+        if (sel.length === 2) {
+          const [a, b] = sel;
+          const pareado = a.mount && b.mount &&
+            ((a.mount.mountId === b.id && b.mount.riderId === a.id) ||
+             (a.mount.riderId === b.id && b.mount.mountId === a.id));
+          if (pareado) desmontar(); else montar();
+        } else if (sel.length === 1 && sel[0].mount) {
+          desmontar();
+        } else {
+          montar();
+        }
+      }
+      return;
+    }
+    // F: seguir/câmera no token selecionado
+    if (e.key === 'f' || e.key === 'F') {
+      const ativo = document.activeElement;
+      if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        e.preventDefault();
+        const selId = BOARD.selectedTokens.values().next().value;
+        toggleSeguirToken(selId);
+        boardRender();
+      }
+      return;
+    }
+    // C: centralizar câmera no token selecionado
+    if (e.key === 'c' || e.key === 'C') {
+      const ativo = document.activeElement;
+      if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        e.preventDefault();
+        const selId = BOARD.selectedTokens.values().next().value;
+        centralizarEmToken(BOARD.tokens.find(t => t.id === selId));
+        boardRender();
+      }
+      return;
+    }
+    // E: editar token selecionado
+    if (e.key === 'e' || e.key === 'E') {
+      const ativo = document.activeElement;
+      if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
+      if (BOARD.selectedTokens && BOARD.selectedTokens.size > 0) {
+        e.preventDefault();
+        const selId = BOARD.selectedTokens.values().next().value;
+        const token = BOARD.tokens.find(t => t.id === selId);
+        if (token) {
+          if (token.locked) {
+            toast(`🔒 "${token.name}" está travado.`);
+          } else {
+            const { cx, cy } = gridToCanvas(token.gx, token.gy);
+            abrirFormTokenEdit(token, cx, cy);
+          }
+        }
+      }
+      return;
+    }
+    // V: mestre alterna visão de jogador
+    if (e.key === 'v' || e.key === 'V') {
+      const ativo = document.activeElement;
+      if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
+      if (myRole === 'mestre') {
+        e.preventDefault();
+        if (emVisaoJogador()) {
+          exitPlayerView();
+          boardRender();
+        } else {
+          atualizarVisaoJogadorPorSelecao();
+          boardRender();
+        }
+      }
+      return;
+    }
+    // B: abrir bestiário
+    if (e.key === 'b' || e.key === 'B') {
+      const ativo = document.activeElement;
+      if (ativo && (ativo.tagName === 'INPUT' || ativo.tagName === 'TEXTAREA' || ativo.contentEditable === 'true')) return;
+      e.preventDefault();
+      switchTab('bau');
+      switchBauSubtab('bestiario');
+      return;
     }
   });
 
