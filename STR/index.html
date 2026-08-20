@@ -12,8 +12,10 @@
     <canvas id="particleCanvas"></canvas>
 
     <header class="header">
-        <h1 class="header-title">STR</h1>
-        <p class="header-subtitle">Supremo Tribunal Regreiro</p>
+        <button class="header-switch" id="headerSwitch" title="Trocar para Breves Jornadas">
+            <span class="header-title" id="headerTitle">STR</span>
+            <span class="header-subtitle" id="headerSubtitle">Supremo Tribunal Regreiro</span>
+        </button>
         <div class="header-btns">
             <a href="../index.html" class="header-home-btn" title="Hub Central"><i class="fa-solid fa-dungeon"></i> <span>Hub</span></a>
             <!-- Theme Switcher -->
@@ -70,6 +72,12 @@
             <div id="sticky-text">Carregando conteúdo…</div>
         </div>
 
+        <div class="edition-nav" id="editionNav" style="display:none;">
+            <button id="editionPrev" title="Edição anterior"><i class="fa-solid fa-arrow-left"></i></button>
+            <span class="edition-nav-label" id="editionNavLabel"></span>
+            <button id="editionNext" title="Próxima edição"><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
     </main>
 
     <button id="backToTop" title="Voltar ao topo"><i class="fa-solid fa-arrow-up"></i></button>
@@ -87,6 +95,7 @@
     </footer>
 
     <script src="database.js"></script>
+    <script src="breves_jornadas.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
