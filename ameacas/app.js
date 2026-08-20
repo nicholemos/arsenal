@@ -2,6 +2,8 @@
 
 // Global State
 let currentTheme = 'blood'; // 'blood' | 'dark' | 'classic'
+let dbGeral = true;
+let dbJornadas = false;
 let allThreats = [];
 let filteredThreats = [];
 let encounterList = [];
@@ -153,14 +155,17 @@ function initCanvas() {
 
 // 2. Load and Prepare Threat Data
 function loadThreats() {
-    // AMEACAS_DB is loaded from global scope (loaded via script tag)
+    // AMEACAS_DB and JORNADAS_DB are loaded from global scope (loaded via script tags)
     const dbData = typeof AMEACAS_DB !== 'undefined' ? AMEACAS_DB : [];
+    const jornadasData = typeof JORNADAS_DB !== 'undefined' ? JORNADAS_DB : [];
     
     // Load homebrews
     const homebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
     
-    // Combine
-    allThreats = [...homebrews, ...dbData];
+    // Combine based on selected database checkboxes
+    allThreats = [];
+    if (dbGeral) allThreats.push(...homebrews, ...dbData);
+    if (dbJornadas) allThreats.push(...jornadasData);
 
     // Apply custom threat images from local storage
     try {
@@ -187,6 +192,11 @@ function loadThreats() {
     populateTypeFilters();
     populateSizeFilters();
     populateSourceFilters();
+}
+
+function handleDatabaseChange() {
+    loadThreats();
+    resetFilters();
 }
 
 function getBaseType(tipoStr) {
@@ -343,8 +353,8 @@ function filterAndSortThreats() {
         // Search filter
         if (activeFilters.search) {
             const q = activeFilters.search.toLowerCase();
-            const nameMatch = threat.nome.toLowerCase().includes(q);
-            const typeMatch = threat.tipo.toLowerCase().includes(q);
+            const nameMatch = (threat.nome || "").toLowerCase().includes(q);
+            const typeMatch = (threat.tipo || "").toLowerCase().includes(q);
             const sourceMatch = (threat.fonte || "").toLowerCase().includes(q);
             
             const attackMatch = (threat.ataques || []).some(a => 
@@ -442,7 +452,7 @@ function updateThreatsGrid() {
                     <span class="nd-badge" title="Nível de Desafio">ND ${threat.nd}</span>
                 </div>
                 <div class="card-type-row">
-                    <span>${threat.tipo}</span>
+                    <span>${threat.tipo || '—'}</span>
                     <div style="display: flex; gap: 0.3rem; align-items: center;">
                         <span class="size-tag" title="Tamanho: ${getSizeFromTipo(threat.tipo)}"><i class="${SIZE_ICONS[getSizeFromTipo(threat.tipo)] || 'fa-solid fa-person'}"></i></span>
                         ${threat.isHomebrew ? '<span class="homebrew-tag">Homebrew</span>' : ''}
@@ -663,7 +673,7 @@ function showDetail(threatNome) {
         <div class="t20-stat-block">
             <div class="t20-header">
                 <h2 class="t20-title">${threat.nome}</h2>
-                <div class="t20-subtitle">ND ${threat.nd} &bull; ${threat.tipo}</div>
+                <div class="t20-subtitle">ND ${threat.nd} &bull; ${threat.tipo || '—'}</div>
                 <div class="t20-subtitle" style="font-size: 0.75rem; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center;">
                     <span><i class="fa-solid fa-book-bookmark"></i> ${threat.fonte || 'Desconhecida'}</span>
                 </div>
@@ -701,7 +711,7 @@ function showDetail(threatNome) {
             <div class="t20-vitals-row">
                 <div class="vital-box pv-box">
                     <span class="label">Pontos de Vida</span>
-                    <span class="val">${threat.pv} PV</span>
+                    <span class="val">${threat.pv || '—'} PV</span>
                 </div>
                 <div class="vital-box pm-box">
                     <span class="label">Pontos de Mana</span>
@@ -1562,6 +1572,22 @@ function setupEventListeners() {
     document.getElementById("sort-select").addEventListener("change", () => {
         updateThreatsGrid();
     });
+    
+    // Database Source Checkboxes
+    const dbGeralCheck = document.getElementById("db-check-geral");
+    const dbJornadasCheck = document.getElementById("db-check-jornadas");
+    if (dbGeralCheck) {
+        dbGeralCheck.addEventListener("change", () => {
+            dbGeral = dbGeralCheck.checked;
+            handleDatabaseChange();
+        });
+    }
+    if (dbJornadasCheck) {
+        dbJornadasCheck.addEventListener("change", () => {
+            dbJornadas = dbJornadasCheck.checked;
+            handleDatabaseChange();
+        });
+    }
     
     // Collapsible Panel Toggles
     const collapseHeaders = document.querySelectorAll('.filter-collapse-header');

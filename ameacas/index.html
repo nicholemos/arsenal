@@ -81,6 +81,21 @@
                     </button>
                 </div>
 
+                <!-- Database Source Selector -->
+                <div class="filter-group">
+                    <h3><i class="fa-solid fa-database"></i> Bestiário</h3>
+                    <label class="checkbox-container">
+                        Geral
+                        <input type="checkbox" class="database-checkbox" id="db-check-geral" checked>
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">
+                        Breves Jornadas
+                        <input type="checkbox" class="database-checkbox" id="db-check-jornadas">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+
                 <!-- ND Filters (Nível de Desafio) -->
                 <div class="filter-group">
                     <h3><i class="fa-solid fa-shield-halved"></i> Nível de Desafio (ND)</h3>
@@ -471,6 +486,7 @@
 
     <!-- Scripts -->
     <script src="ameacas_db.js"></script>
+    <script src="jornadas.js"></script>
     <script src="app.js"></script>
 </body>
 
