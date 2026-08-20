@@ -1517,8 +1517,377 @@ const perigos = [
         <li><strong>Procurar Caminho (Percepção CD 20):</strong> Analisa o terreno e encontra rotas de fuga. Se passar, recebe <strong>+5 em testes de Correr e Carregar Outro</strong> durante o desafio.</li>
       </ul>
     `
-  }
+  },
 
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Desafio Furtivo",
+    nome: "Travessia das Estalactites",
+    imagem: "https://i.redd.it/s474etbymngf1.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Atravessar a área sofrendo o mínimo de dano possível.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Os personagens agem na ordem de sua Iniciativa, e cada um deve acumular <strong>três sucessos</strong> na ação <strong>Travessia Silenciosa</strong> para sair da área perigosa.</li>
+        <li>Entretanto, assim que acontecer a <strong>primeira falha</strong> na ação Travessia Silenciosa, as estalactites do teto começam a cair, causando <strong>1d6</strong> pontos de dano de perfuração por falhas subsequentes à primeira.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Travessia Silenciosa (Furtividade CD 15):</strong> O personagem dá passos lentos e calmos em direção à saída.</li>
+        <li><strong>Correr à Toda (Atletismo CD 15):</strong> Um personagem percorre todo o caminho (efetivamente conseguindo os três sucessos), mas sofre <strong>2d6</strong> pontos de dano de perfuração. Caso ninguém tenha falhado ainda, usar essa ação conta como uma falha.</li>
+        <li><strong>Interpor-se (Nenhum):</strong> Um personagem usa sua rodada para sofrer o dano que um outro de menor iniciativa sofreria.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Missão de Salvamento",
+    nome: "Resgate nas Chamas",
+    imagem: "https://i.ibb.co/d4nF3LYw/az3ecs.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Salvar as pessoas no interior do prédio antes que ele desabe.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>O prédio queima durante <strong>cinco rodadas</strong>, ao final das quais desmorona. É possível atrasar o desabamento com a ação <strong>Apagar</strong>.</li>
+        <li>Role iniciativa para os personagens para definir em que ordem agem durante o perigo.</li>
+        <li>No início de cada um de seus turnos dentro do salão, cada personagem deve fazer um teste de <strong>Fortitude (CD 10 + 1 por teste anterior)</strong> para resistir aos efeitos da fumaça (Tormenta20, p. 319).</li>
+        <li>Soluções criativas para se proteger, como um pano úmido no rosto, fornecem <strong>+2</strong> nesse teste.</li>
+        <li>Um personagem que fique inconsciente dentro do prédio devido à fumaça pode ser resgatado como um NPC.</li>
+        <li>Dentro do prédio existem <strong>6 NPCs</strong>. Três ocupam <strong>10 espaços</strong> cada e outros três ocupam apenas <strong>5</strong>. Um personagem sobrecarregado sofre uma penalidade de <strong>–5</strong> no teste de <strong>Resgatar</strong>.</li>
+        <li>Quando o prédio desaba, quaisquer personagens dentro dele sofrem <strong>6d6</strong> pontos de dano de fogo e ficam soterrados pelos escombros. Qualquer NPC que não tenha sido resgatado morre.</li>
+        <li>Personagens soterrados ficam imóveis e em chamas. Soltar-se (ou soltar um personagem soterrado) exige um teste de <strong>Força (CD 15)</strong>. Entretanto, cada tentativa causa <strong>1d6</strong> pontos de dano de fogo em quem estiver fazendo o teste. Vários personagens podem ajudar nesse teste.</li>
+        <li>Assim que resgatam todos, ou o tempo acaba, o prédio vem abaixo. Porém, um dos elementais em forma de mariposa avança na direção dos aventureiros.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Apagar (Destreza ou Inteligência CD 10):</strong> Você abafa focos do incêndio. Se passar, faz com que o salão resista por mais <strong>1 rodada</strong> antes do desmoronamento. Essa ação pode ser realizada apenas de fora do prédio.</li>
+        <li><strong>Escapar (Acrobacia ou Atletismo CD 10):</strong> Você sai do salão. Essa ação só pode ser usada se não estiver carregando um NPC.</li>
+        <li><strong>Localizar (Investigação ou Percepção CD 15):</strong> Você localiza um dos NPCs presos no incêndio e pode retirá-lo do salão com uma ação <strong>Resgatar</strong>.</li>
+        <li><strong>Resgatar (Atletismo CD 15):</strong> Você carrega um NPC para fora do salão, mas se falhar não consegue sair do salão nesta rodada.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "1",
+    tipo: "Desafio Social",
+    nome: "Atravessar o Salão do Baile",
+    imagem: "https://media.tenor.com/u1hbJJYB-qsAAAAM/dancing-anime.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Sair do salão.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>No início de seu turno, cada personagem deve fazer um teste de <strong>Vontade (CD 15)</strong> para evitar ser dominado pelo baile.</li>
+        <li>Se falhar, perde <strong>1 PM</strong> e fica <strong>fascinado</strong>, sendo compelido a dançar até o dia seguinte (não pode fazer ações contra o perigo enquanto está dançando).</li>
+        <li>Um personagem que passe um dia inteiro dançando fica <strong>fatigado</strong> no primeiro dia, <strong>exausto</strong> no segundo e <strong>inconsciente</strong> no terceiro. No quarto dia desperta, mas pode ser afetado novamente pelo efeito do salão.</li>
+        <li>A turba de infectos invade a vila e o castelo no fim do quinto dia.</li>
+        <li>Para sair do salão, o personagem precisa de <strong>3 sucessos</strong> nas ações <strong>Atravessar</strong> ou <strong>Puxar Outro</strong>. Esse avanço é uma representação de vários minutos (ou horas) tentando passar pelo extenso local cheio de gente.</li>
+        <li>Aventureiros fora do salão de baile não estão mais sob efeito da música e podem seguir para a próxima cena.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Atravessar (Vontade ou Outras, CD 15):</strong> O personagem tenta resistir e avançar pelo salão. Se falhar, não avança. Se passar, acumula <strong>1 sucesso</strong> para sair do baile. Os testes podem ser de Vontade ou de qualquer outra perícia que o jogador consiga justificar e que o mestre aprove. Cada perícia que não seja Vontade só pode ser usada uma vez pelo perigo.</li>
+        <li><strong>Apresentação Dissonante (Atuação CD 20):</strong> O personagem faz uma performance que, por alguns momentos, distrai o grupo inteiro do fascínio do salão. Todos os personagens recebem <strong>+5</strong> no próximo teste de Vontade para não ficar fascinado.</li>
+        <li><strong>Puxar Outro (Vontade ou Outras, CD 20):</strong> O personagem puxa um aliado próximo (com no máximo um sucesso de diferença). Isso funciona como a ação <strong>Atravessar</strong>, acima, mas com CD maior. Se passar, o personagem acumula um sucesso para si e para o aliado.</li>
+        <li><strong>Apresentação Dissonante (Atuação, CD varia):</strong> O personagem usa seu turno para distrair os companheiros com uma apresentação que combate a música do baile. O personagem faz um teste para ajudar (Tormenta20, p. 221). Todos os personagens (incluindo ele mesmo) recebem o bônus da ajuda em todos os testes contra o perigo até atravessarem o salão de baile.</li>
+        <li><strong>Balançar Outro (Nenhum teste):</strong> O personagem deixa de avançar nessa rodada, mas balança um outro personagem, removendo a condição <strong>fascinado</strong>.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Desafio de Busca",
+    nome: "Onde Está o X?",
+    imagem: "https://gifdb.com/images/thumbnail/map-pirate-ship-motion-animation-qxx1rnhy6y6zo5pe.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Procurar pelo local onde o tesouro foi enterrado.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>O grupo precisa acumular <strong>6 sucessos</strong> para encontrar o tesouro.</li>
+        <li>Para cada falha, os personagens perdem <strong>1 PM</strong> devido ao esforço mental; um personagem reduzido a 0 PM desta forma fica <strong>frustrado</strong> até o fim do dia.</li>
+        <li>Se o grupo acumular <strong>4 falhas</strong>, todos os personagens ficam frustrados até o fim do dia e só podem tentar novamente no dia seguinte (mas mantêm os sucessos acumulados).</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Analisar Terreno (Sobrevivência CD 15):</strong> O personagem vasculha o local, procurando indícios como terra diferente ou padrões de movimentação antigos.</li>
+        <li><strong>Consultar o Sobrenatural (Misticismo ou Religião CD 15):</strong> O personagem, arcano ou divino, pode usar suas habilidades para sentir as energias do local, especialmente se ligado à Dama Altiva ou Allihanna, que recebe <strong>+2</strong> neste teste. Cada personagem só pode usar esta ação uma vez.</li>
+        <li><strong>Estudar o Mapa (Conhecimento CD 18):</strong> O personagem analisa pistas e algumas notas estranhas escritas no mapa, que ajudam a identificar locais possíveis nas ruínas.</li>
+        <li><strong>Ajudar (varia CD 10):</strong> O personagem faz um teste para ajudar (Tormenta20, p. 221) um aliado. O jogador pode usar qualquer perícia que conseguir justificar — Atletismo para escalar as ruínas para melhor visão, Intuição para sentir por onde pessoas andariam etc. Este uso não conta como um sucesso.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Desafio de Infiltração",
+    nome: "Examinar a Mansão",
+    imagem: "https://media.tenor.com/PpPE0k4TAZEAAAAM/anime-angel-beats.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Obter informações sobre como invadir a propriedade.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Os personagens devem decidir como evitarão suspeitas: misturando-se às pessoas ou se sentando em um café próximo.</li>
+        <li>No início de cada rodada, os personagens que estiverem misturando-se ao resto das pessoas devem fazer um teste de <strong>Furtividade (CD 15 + 5 para cada teste anterior)</strong>.</li>
+        <li>Se um personagem falhar em três desses testes, sua atitude suspeita atrai <strong>1d6+2 guardas de cidade</strong> (Tormenta20, p. 289), que o escoltam para uma conversa em uma de suas guaridas. Se tentar fugir, começa uma perseguição (Tormenta20, p. 274), em que o personagem deve abrir uma vantagem de <strong>100m</strong> dos guardas para poder escapar. De uma forma ou de outra, não poderá mais fazer testes nesse dia.</li>
+        <li>Caso prefiram sentar-se no café, no fim de cada rodada devem gastar <strong>T$ 2d6</strong>. Se não forem capazes de pagar o valor, serão expulsos do estabelecimento. Isso atrairá atenção para o personagem, que sofrerá uma penalidade de <strong>–5</strong> em Furtividade se tentar misturar-se às pessoas. Um personagem pode deixar voluntariamente o café no início de seu turno para não ter de pagar o valor, mas não pode realizar os testes abaixo.</li>
+        <li>A cada sucesso, recebem um bônus cumulativo para a cena 4 e 5. Se um personagem passar no teste, ele decide quem recebe o bônus (ele mesmo ou um de seus aliados).</li>
+        <li>Assim que terminarem o reconhecimento da mansão (parando quando estiverem satisfeitos), ou se três personagens forem pegos pelos guardas, um alvoroço começa na porta da propriedade.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Analisar a Construção (Guerra ou Ofício adequado CD 20):</strong> O personagem observa os pontos principais do local, ajudando-o a traçar seus planos (<strong>+5</strong> em um teste à escolha do personagem).</li>
+        <li><strong>Conquistar Confiança (Diplomacia ou Enganação CD 20):</strong> O personagem convence um dos funcionários a entregar-lhe um uniforme de serviçal (permitindo substituir os testes de Furtividade na cena 4 e 5 por Enganação). Só pode ser realizado por um personagem que tenha passado na ação <strong>Seduzir Servo</strong>.</li>
+        <li><strong>Observar Movimentação (Investigação ou Percepção CD 15):</strong> O personagem presta atenção nas janelas da residência, notando que os guardas se movem apenas no primeiro andar (<strong>+2</strong> em testes de Iniciativa).</li>
+        <li><strong>Perguntas sobre a Mansão (Diplomacia ou Investigação CD 15):</strong> O personagem questiona alguém que trabalha na área sobre a mansão e descobre que há um jardim murado na parte de trás da construção (<strong>+2</strong> em testes de Atletismo para escalar).</li>
+        <li><strong>Perguntas sobre os Funcionários (Diplomacia ou Investigação CD 20):</strong> O personagem faz perguntas diretas sobre a rotina dos empregados, permitindo saber sua movimentação e que a maioria parte ao anoitecer (<strong>+2</strong> em testes de Furtividade).</li>
+        <li><strong>Seduzir Servo (Diplomacia ou Enganação CD 15):</strong> O personagem usa seu charme para conquistar um dos serviçais da mansão (fazendo com que a porta dos fundos esteja destrancada na cena 4).</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "4",
+    tipo: "Desafio de Sobrevivência",
+    nome: "Expurgo Onírico",
+    imagem: "https://giffiles.alphacoders.com/249/2492.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Expulsar a presença sombria habitando a estátua e defender a sacerdotisa.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Sylvana possui <strong>40 pontos de vida</strong>. Ela estará completamente concentrada no ritual e não pode auxiliar os personagens de qualquer forma. Ela precisa ficar <strong>cinco rodadas</strong> realizando o rito.</li>
+        <li>Assim que o ritual inicia, um verdadeiro enxame de come-sonhos se espalha pela praça, tentando impedi-la. No final de cada rodada, todos os personagens e Sylvana sofrem <strong>4d4+4</strong> pontos de dano de perfuração da mordida das criaturas, <strong>2d6</strong> de dano psíquico e perdem <strong>1d4+1 PM</strong>.</li>
+        <li>Caso os PV de Sylvana sejam reduzidos a 0, a elfa fica inconsciente. Se Sylvana sofrer qualquer dano após este, ela morre. Um personagem pode fazer a ação <strong>Continuar Ritual</strong> para mantê-lo pelas rodadas restantes. Caso falhe no teste, o ritual falha, manifestando o espectro do pesadelo.</li>
+        <li>Caso consigam manter o ritual durante cinco rodadas, ouvem um relincho espectral ao longe e os come-sonhos desaparecem.</li>
+        <li>Entretanto, se falharem, ou se tentarem simplesmente destruir a estátua, causando qualquer dano a ela, uma criatura sombria se manifesta.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Atacar Come-Sonhos (Luta ou Pontaria CD 18):</strong> O personagem golpeia uma quantidade das criaturas. Escolha um dos outros participantes do ritual, incluindo Sylvana, para não sofrer o dano no final da rodada.</li>
+        <li><strong>Continuar Ritual (Religião CD 20):</strong> Caso Sylvana tenha sido derrotada, um único personagem pode fazer esse teste em uma rodada.</li>
+        <li><strong>Distrair (Atuação ou Enganação CD 17):</strong> O personagem age de maneira inesperada, deixando os come-sonhos confusos. Reduza todo o dano causado pelas criaturas pela metade no final desta rodada.</li>
+        <li><strong>Interpor-se (Nenhum teste):</strong> O personagem coloca-se na frente de outro, sofrendo, no fim da rodada, o dobro do dano, mas evitando que outro o sofra.</li>
+        <li><strong>Lançar Magia (Vontade CD 20 + Custo em PM da magia):</strong> O personagem pode lançar uma magia que cause dano em área (com os mesmos resultados da ação <strong>Atacar Come-Sonhos</strong>), de cura para recuperar os próprios PV ou de Sylvana, ou que auxilie no perigo complexo. Se falhar no teste a magia é perdida, mas os PM são gastos mesmo assim.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "8",
+    tipo: "Fuga",
+    nome: "Desabamento dos Túneis",
+    imagem: "https://media.tenor.com/6iufT2dm3DEAAAAM/cartoon-earthquake.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Sair das cavernas.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Os túneis serão completamente destruídos em <strong>7 rodadas</strong>. Para escapar, um personagem precisa acumular <strong>5 sucessos</strong> nas ações <strong>Avançar</strong>, <strong>Correr</strong> ou <strong>Carregar Outro</strong>.</li>
+        <li>No início de cada rodada, role <strong>1d6</strong> e consulte a lista de efeitos abaixo:
+          <ul>
+            <li><strong>1-2) Destroços.</strong> Destroços caem do teto. Cada personagem deve fazer um teste de <strong>Reflexos (CD 25)</strong>. Se falhar, sofre <strong>4d6</strong> pontos de dano de impacto. Se falhar por 10 ou mais, o dano aumenta para <strong>8d6</strong>.</li>
+            <li><strong>3-4) Fenda no chão.</strong> Rachaduras se abrem no chão. Cada personagem deve fazer um teste de <strong>Acrobacia ou Atletismo (CD 25)</strong>. Se falhar, tropeça e sofre <strong>–5</strong> em sua próxima ação contra o perigo. Se falhar por 10 ou mais, cai e perde sua ação nesta rodada.</li>
+            <li><strong>5) Bloqueio.</strong> Um desabamento vai bloquear o caminho! O personagem pode desistir desta rota e procurar outra (perde a ação nesta rodada, mas age normalmente a partir da próxima) ou tentar correr antes que o desabamento termine. Nesse caso, precisa fazer um teste de <strong>Atletismo (CD 25)</strong>. Se passar, pode fazer sua ação nesta rodada. Se falhar, perde a ação e sofre <strong>8d6</strong> pontos de dano de impacto.</li>
+            <li><strong>6) Passagem livre.</strong> Este túnel é mais resistente, mas as paredes estão perto de ruir. Os personagens não sofrem qualquer efeito neste turno, mas devem continuar correndo ou serão soterrados.</li>
+          </ul>
+        </li>
+        <li>Ao fim da sétima rodada, qualquer personagem que não tenha acumulado <strong>5 sucessos</strong> será atingido pelo desabamento, sofrendo <strong>20d6</strong> pontos de dano de impacto (sem teste de resistência).</li>
+        <li>O túnel que dá acesso à superfície é bem perto do centro da vila. Antes que consigam pensar muito, todos sentem o chão tremer.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Avançar (Acrobacia ou Reflexos CD 25):</strong> O personagem avança com cuidado em direção à saída. Um sucesso por 10 ou mais (ou um <strong>20 natural</strong> no teste) conta como <strong>2 sucessos</strong>.</li>
+        <li><strong>Correr (Atletismo CD 20):</strong> O personagem corre em direção à saída sem se preocupar com os perigos em seu caminho. Ele sofre <strong>4d6</strong> pontos de dano de impacto. Um sucesso por 10 ou mais (ou um 20 natural no teste) conta como <strong>2 sucessos</strong>.</li>
+        <li><strong>Carregar Outro (Atletismo CD 30):</strong> O personagem carrega um aliado próximo (com no máximo 1 sucesso de diferença). Isto funciona como a ação <strong>Avançar</strong>. Se passar, o personagem acumula <strong>1 sucesso</strong> para si e para o aliado. Se falhar, ambos sofrem dano.</li>
+        <li><strong>Procurar Caminho (Percepção CD 20):</strong> O personagem analisa o terreno em busca de uma rota de fuga. Se passar, recebe <strong>+5</strong> em todos os testes para <strong>Avançar</strong>, <strong>Correr</strong> e <strong>Carregar Outro</strong> realizados durante o perigo.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Defesa",
+    nome: "Perigo na Cabana",
+    imagem: "https://media2.giphy.com/media/u0SQkPClLiBry/giphy.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Causar o máximo de dano contra a Horda.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>A Horda possui <strong>100 Pontos de Vida</strong>, enquanto a Cabana possui <strong>30 Pontos de Vida</strong> (mais qualquer bônus pela ação <strong>Montar Barricada</strong>, da Cena 3).</li>
+        <li>A cada rodada, os personagens devem realizar uma das ações abaixo. Ao final da rodada, quando todos os personagens já tiverem realizado suas ações, a Cabana sofre <strong>2d8+3</strong> pontos de dano.</li>
+        <li>Causando até <strong>50</strong> pontos de dano, o combate na Cena 5 ocorre assim como descrito. Causando entre <strong>51 e 99</strong> pontos de dano, remova os <strong>2 Corneteiros Amaldiçoados</strong> do combate. E, se conseguirem levar a Horda a <strong>0 Pontos de Vida</strong>, além dos 2 Corneteiros a menos, o <strong>Comandante Sem Cabeça</strong> terá apenas metade de seus Pontos de Vida (para um total de <strong>24 PVs</strong>).</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Ataque Corpo a Corpo (Luta CD 12):</strong> Com um sucesso, o personagem causa o dano de um ataque corpo a corpo com quaisquer melhorias ou habilidades, mas sofre <strong>1d8+3</strong> de Dano de Corte.</li>
+        <li><strong>Ataque à Distância (Pontaria CD 12):</strong> Com um sucesso, o personagem causa metade do dano de um ataque à distância com quaisquer melhorias ou habilidades.</li>
+        <li><strong>Reforçar Barricada (Força CD 10):</strong> Com um sucesso, a Cabana recupera <strong>5 Pontos de Vida</strong>, <strong>+5 PVs</strong> para cada 5 pontos acima da Dificuldade.</li>
+        <li><strong>Usar itens ou magias que provocam dano:</strong> Dano normal, mas efeitos em área provocam <strong>50% a mais</strong> de dano.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "4",
+    tipo: "Desafio Social",
+    nome: "Entretendo a Bruxa",
+    imagem: "https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyMnBubnJsaW9kcnhlazVmd3ZzbmhrM3Vkamttb2NmYmlwMXU1eHliaCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mrntmDtLQdILS/200w.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Convencer Sophia a ajudá-los a remover a maldição da Caçada.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Para conseguir o apoio de Sophia, o grupo como um todo deve acumular <strong>cinco sucessos</strong> nas ações <strong>Apresentação</strong>, <strong>Brincadeiras</strong> e <strong>Quitutes</strong>.</li>
+        <li>Aqueles que tiverem uma falha sentem-se julgados pela aniversariante, ficando <strong>frustrados</strong> até o final do dia.</li>
+        <li>Caso alguém acumule <strong>duas falhas</strong>, será transformado em um inofensivo <strong>pudim de ameixa</strong>, como o efeito da magia <strong>Metamorfose</strong>, mas sem direito a qualquer teste para resistir.</li>
+        <li>Se todos forem transformados em pudim de ameixa, escapam da Caçada Selvagem, ao menos por enquanto, acordando no meio da mata, esmorecidos e fatigados até conseguirem dormir por oito horas.</li>
+        <li>Tendo feito a bruxa feliz, ela concorda em ajudá-los. E para isso... terão que fazer o chá!</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Apresentação (Atuação CD 22):</strong> Dança, música ou outra forma de arte é usada para agradar a anfitriã.</li>
+        <li><strong>Brincadeiras (Jogatina CD 22):</strong> Jogos ou brincadeiras ajudam a passar o tempo.</li>
+        <li><strong>Quitutes (Ofício [Cozinheiro] CD 24):</strong> Usando as rações de viagem, ou ingredientes que tenham coletado, criam um prato capaz de agradar o paladar exigente da bruxa.</li>
+        <li><strong>Presentear:</strong> O que seria de um aniversário sem presentes? Para ser considerado um presente, é necessário que o item custe ao menos <strong>T$ 300</strong>. Esta ação cancela os efeitos de uma falha, removendo a condição frustrado ou retornando alguém à forma original.</li>
+        <li><strong>Outras ações (CD 25):</strong> Ações que tenham uma boa justificativa podem ser usadas, como fazer um belo discurso com Diplomacia ou truques de mágica com Misticismo. O CD para esses testes é <strong>25</strong>, e cada perícia não listada em uma ação só pode ser usada uma vez.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Jogo de Azar",
+    nome: "Cavilan de Marujo",
+    imagem: "https://media.tenor.com/WH5-sVVBlaEAAAAM/toss-coin-flip.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Acabar com o dinheiro dos marujos para que voltem ao navio.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>A aposta inicial é de <strong>T$ 50</strong>. Caso mais de uma pessoa entre no jogo, ambos terão de fazer a mesma aposta, considerando os tibares de cada um nas rodadas. Os piratas contam como um só, tendo <strong>T$ 150</strong>.</li>
+        <li>A cada rodada o personagem que joga deve escolher entre apostar <strong>10 ou 30 tibares</strong>, e os piratas entrarão com o <strong>triplo</strong> do valor, representando os três cobrindo a aposta. Caso não tenha tibares o suficiente para cobrir a aposta, os piratas apostam tudo que tiverem.</li>
+        <li>Quando o dinheiro acabar, os piratas se retiram, carregando o desacordado, e agradecendo pela partida. Do outro lado do aposento há mais um alçapão que leva à câmara onde o refém está sendo mantido.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Jogada Simples (Jogatina CD 16):</strong> Um turno simples, sem complicação. Se passar no teste, leva todo o valor apostado.</li>
+        <li><strong>Blefe (Enganação CD 18):</strong> Através de manipulação, você convence os outros jogadores a desistir, mesmo que tenham uma boa mão. Se passar, recebe todos os tibares apostados.</li>
+        <li><strong>Trapacear (Ladinagem CD 16):</strong> Claro que esta carta não estava no seu bolso. Se passar no teste, leva a aposta; se não, é pego no truque recebendo um soco que causa <strong>1d3+2</strong> pontos de dano de impacto.</li>
+        <li><strong>Ofender (Intimidação CD 18):</strong> Caso tenha falhado em um teste em uma rodada anterior, é possível acusar um dos marujos de trapaça, recebendo <strong>+2</strong> em seu próximo teste.</li>
+        <li><strong>Ajudar ou Atrapalhar (varia CD 20):</strong> Personagens que não estejam envolvidos no jogo podem ajudar seu colega ou atrapalhar os outros oponentes de alguma forma, fornecendo um bônus cumulativo de <strong>+2</strong> a uma pessoa que esteja jogando. Qualquer perícia justificável pode ser usada, porém apenas uma vez.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Ritual",
+    nome: "Exorcismo",
+    imagem: "https://media1.tenor.com/m/LfLwRfMn8xsAAAAd/golden-time-exorcist.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Acalmar os fantasmas e enviá-los para os mundos dos deuses.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>No início de cada rodada, cada personagem deve fazer um teste de <strong>Vontade (CD 20)</strong>. Se falhar, fica <strong>abalado</strong>. Se já está abalado, fica <strong>apavorado</strong> e, se já está apavorado, foge do prédio e só consegue retornar no amanhecer seguinte.</li>
+        <li>Ao fim de cada rodada, todos na sala sofrem <strong>2d6</strong> pontos de dano de trevas, vindos das emanações negativas dos mortos.</li>
+        <li>Para completar o ritual, o grupo precisa acumular <strong>cinco sucessos</strong> na ação <strong>Exorcizar</strong>. Caso Selin fique encarregado de realizar o ritual, será necessário protegê-lo.</li>
+        <li>Quando o ritual termina, as almas desaparecem, e o barulho é trocado por um silêncio sepulcral. Sobre o pilar, o objeto que vieram buscar.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Exorcizar (Religião CD 16):</strong> O personagem entoa cânticos religiosos para encomendar as almas penadas aos deuses. Apenas um personagem pode fazer esta ação por rodada.</li>
+        <li><strong>Interpor-se (Vontade CD 16):</strong> O personagem se posiciona para proteger quem estiver realizando a ação <strong>Exorcizar</strong>. Se passar, o personagem sofre o dano da rodada no lugar de quem ele estiver protegendo.</li>
+        <li><strong>Motivar (varia):</strong> Personagens que não estejam realizando a ação <strong>Exorcizar</strong> podem motivar quem a estiver fazendo, usando uma perícia apropriada, de acordo com o mestre, para ajudar no teste (Tormenta20, capítulo 5: Jogando). O bônus fornecido é cumulativo com testes seguintes até o fim do perigo.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Desafio Social",
+    nome: "Solidificar Reputação",
+    imagem: "https://media.tenor.com/Ynm40n9fwNMAAAAM/chainsaw-man-dance.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Aumentar a influência de Viellmont com os convidados do banquete.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Os personagens terão <strong>três rodadas</strong>, representando as primeiras horas do evento, para solidificar a posição do lorde Viellmont. Para isso, devem acumular <strong>cinco sucessos</strong> nas ações <strong>Estabelecer Presença</strong>, <strong>Performance</strong>, <strong>Politicagem</strong> e <strong>Preparar Prato</strong>. Se falharem em acumular cinco sucessos, os personagens não sofrem nenhuma consequência adicional, exceto perder a oportunidade de ajudar Viellmont.</li>
+        <li>Os personagens agem de acordo com seu Carisma. Aqueles de maior valor agem primeiro, e em caso de empate, devem decidir entre si.</li>
+        <li>Se conseguirem conquistar os cinco sucessos necessários, lorde Viellmont é chamado para o círculo onde estão os anfitriões da festa. Em sua alegria quase infantil, o nobre entrega o resto do dinheiro aos aventureiros, e diz que os premiará ainda mais quando estiverem de volta à sua residência. Entretanto, caso não consigam os sucessos, o barão começa a ser evitado nas rodas de conversa, sendo considerado patético por ter asseclas tão rudes.</li>
+        <li>Além disso, cada sucesso além dos cinco necessários rende <strong>T$ 200 tibares</strong> em presentes dados aos personagens pelos convidados.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Conduzir a Conversa (Enganação CD 15):</strong> O personagem se intromete na conversa de um colega de grupo, fazendo com que o rumo dela o favoreça. Se passar, fornece <strong>+5</strong> no próximo teste desse colega.</li>
+        <li><strong>Estabelecer Presença (Intimidação CD 25):</strong> O personagem atrai os nobres com sua presença altiva e orgulhosa.</li>
+        <li><strong>Performance (Atuação CD 25):</strong> O personagem entretém os convidados do jantar.</li>
+        <li><strong>Politicagem (Diplomacia CD 22):</strong> O personagem atrai os nobres através de conversa hábil.</li>
+        <li><strong>Preparar Prato (Ofício [Cozinheiro] CD 25):</strong> O personagem utiliza suas habilidades culinárias para impressionar os convidados.</li>
+        <li><strong>Seguir Protocolos (Nobreza CD 15):</strong> O personagem conhece e segue à risca a etiqueta ahleniense. Se passar, recebe um bônus de <strong>+5</strong> em seu próximo teste, ou fornece um bônus de <strong>+5</strong> no próximo teste de um colega.</li>
+      </ul>
+    `
+  },
+
+  {
+    origem: "Breves Jornadas",
+    nd: "2",
+    tipo: "Fuga",
+    nome: "Despistando Perseguidores",
+    imagem: "https://media.tenor.com/qqpbDvJz9pcAAAAM/correndo-anime.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Despistar os recrutas do Clã da Lotus.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Para fugir, cada personagem deve conseguir <strong>3 sucessos</strong> na ação <strong>Escapar</strong> em <strong>5 rodadas</strong>, agindo em ordem de iniciativa.</li>
+        <li>No final de cada rodada, qualquer personagem que não tenha obtido um sucesso em qualquer uma das ações abaixo sofre <strong>2d6</strong> pontos de dano de perfuração. Porém, um personagem pode escolher falhar propositalmente em sua ação na rodada para sofrer o dano no lugar de um companheiro, para um total de <strong>4d6</strong> pontos de dano.</li>
+        <li>Se no final da quinta rodada um personagem não tiver conseguido os <strong>3 sucessos</strong>, será alcançado por dois recrutas do Clã da Lotus, e um combate irá começar. Aqueles que tiverem conseguido os sucessos necessários podem retornar para auxiliar o companheiro nesse combate.</li>
+        <li>Após algum tempo correndo, ou depois de enfrentar os inimigos, os disparos cessam e fica claro que o grupo agora está livre dos perseguidores.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Escapar (Acrobacia ou Atletismo CD 20):</strong> Seja forçando suas pernas ou agilmente desviando de obstáculos, você se distancia dos inimigos.</li>
+        <li><strong>Criar Obstáculos (Força CD 10 ou Ladinagem ou Sobrevivência CD 20):</strong> Derrubando caixas ou preparando uma armadilha improvisada, você fornece <strong>+5</strong> nos testes de <strong>Escapar</strong> de outros personagens.</li>
+        <li><strong>Disparar de Volta (Pontaria CD 13):</strong> Você dispara contra um dos perseguidores, recebendo <strong>+5</strong> em seu próximo teste de <strong>Escapar</strong>.</li>
+        <li><strong>Lançar Magia (Misticismo CD 20 + Custo em PM da magia):</strong> Você recebe o benefício de uma magia, ou usa uma apropriada para atrapalhar os perseguidores, recebendo <strong>+5</strong> em seu próximo teste de <strong>Escapar</strong>.</li>
+      </ul>
+    `
+  }
 
 ];
 
@@ -1528,6 +1897,14 @@ const ndSelect = document.querySelector("#nd");
 const tipoSelect = document.querySelector("#tipo");
 const container = document.querySelector("#perigos-container");
 const ordemSelect = document.querySelector("#ordem");
+const brevesInput = document.querySelector("#incluir-breves");
+
+
+function perigosVisiveis() {
+  return brevesInput.checked
+    ? perigos
+    : perigos.filter(p => p.origem !== "Breves Jornadas");
+}
 
 
 function preencherSelect(select, opcoes) {
@@ -1546,7 +1923,8 @@ function preencherSelect(select, opcoes) {
 
 function carregarPerigos() {
   ordemSelect.addEventListener("change", filtrarPerigos);
-  const origens = Array.from(new Set(perigos.map(p => p.origem))).sort();
+  const base = perigosVisiveis();
+  const origens = Array.from(new Set(base.map(p => p.origem))).sort();
   const nds = Array.from(new Set(perigos.map(p => p.nd))).sort((a, b) => parseFloat(a) - parseFloat(b));
   const tipos = Array.from(new Set(perigos.map(p => p.tipo))).sort();
 
@@ -1558,6 +1936,11 @@ function carregarPerigos() {
   ndSelect.addEventListener("change", filtrarPerigos);
   tipoSelect.addEventListener("change", filtrarPerigos);
   buscaInput.addEventListener("input", filtrarPerigos);
+  brevesInput.addEventListener("change", () => {
+    origemSelect.innerHTML = "";
+    preencherSelect(origemSelect, Array.from(new Set(perigosVisiveis().map(p => p.origem))).sort());
+    filtrarPerigos();
+  });
 
   perigos.forEach(p => {
     p.efeito = formatarEfeito(p.efeito);
@@ -1573,7 +1956,7 @@ function filtrarPerigos() {
   const busca = buscaInput.value.toLowerCase();
   const ordem = ordemSelect.value;
 
-  let filtrados = perigos.filter(p => {
+  let filtrados = perigosVisiveis().filter(p => {
     const textoCompleto = (
       p.nome + " " +
       p.nd + " " +
