@@ -811,7 +811,7 @@ footer hr {
 }
 
 .bj-resumo {
-  grid-column: 1 / 4;
+  grid-column: 1 / -1;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.4s ease-out, padding 0.4s ease-out;
