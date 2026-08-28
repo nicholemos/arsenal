@@ -86,7 +86,7 @@ window.onload = () => {
 
 function renderStructure() {
     const attrContainer = document.getElementById('attributesArea');
-    const attrImages = { 'FOR': 'imagens/forca.png', 'DES': 'imagens/destreza.png', 'CON': 'imagens/constituicao.png', 'INT': 'imagens/inteligencia.png', 'SAB': 'imagens/sabedoria.png', 'CAR': 'imagens/carisma.png' };
+    const attrImages = { 'FOR': '../assets/imagens/forca.png', 'DES': '../assets/imagens/destreza.png', 'CON': '../assets/imagens/constituicao.png', 'INT': '../assets/imagens/inteligencia.png', 'SAB': '../assets/imagens/sabedoria.png', 'CAR': '../assets/imagens/carisma.png' };
 
     if (attrContainer) {
         attrContainer.innerHTML = attrs.map(a => {
