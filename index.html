@@ -9,7 +9,7 @@
   <style>
     @font-face {
       font-family: "Tormenta";
-      src: url("poderes/assets/fonts/Tormenta.ttf") format("truetype");
+      src: url("assets/fonts/Tormenta.ttf") format("truetype");
     }
 
     :root {
@@ -764,7 +764,7 @@
       </a>
       <a href="poderes/index.html" class="card-btn" data-id="poderes">
         <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'poderes')">★</button>
-        <img src="images/poderes.png" alt="Ícone de Poderes" class="card-icon">        
+        <img src="images/poderes.png" alt="Ícone de Poderes" class="card-icon">
         <span>Poderes</span>
       </a>
       <a href="grimorio/index.html" class="card-btn" data-id="grimorio">
@@ -782,19 +782,24 @@
         <img src="images/parceiros.png" alt="Ícone de montarias e parceiros" class="card-icon">
         <span>Montarias e Parceiros</span>
       </a>
+      <a href="compendio/index.html" class="card-btn" data-id="compendio">
+        <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'compendio')">★</button>
+        <img src="images/fichas.png" alt="Ícone do Compêndio de Raças" class="card-icon">
+        <span>Compêndio de Raças</span>
+      </a>
     </div>
 
     <div class="section-title">Planejamento</div>
     <div class="grid">
-      <a href="calculadoraND_Tormenta/index.html" class="card-btn" data-id="calculadoraND_Tormenta">
-        <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'calculadoraND_Tormenta')">★</button>
-        <img src="images/nd.png" alt="Ícone de Calculadora de ND" class="card-icon">
-        <span>Calc. de ND</span>
-      </a>
       <a href="calculadora/index.html" class="card-btn" data-id="calculadora">
         <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'calculadora')">★</button>
         <img src="images/calculadora.png" alt="Ícone de calculadora" class="card-icon">
         <span>Calc. Atributos</span>
+      </a>
+      <a href="calculadoraND_Tormenta/index.html" class="card-btn" data-id="calculadoraND_Tormenta">
+        <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'calculadoraND_Tormenta')">★</button>
+        <img src="images/nd.png" alt="Ícone de Calculadora de ND" class="card-icon">
+        <span>Calc. de ND</span>
       </a>
       <a href="EncontrosAleatorios/index.html" class="card-btn" data-id="EncontrosAleatorios">
         <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'EncontrosAleatorios')">★</button>
@@ -805,6 +810,11 @@
         <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'espolio')">★</button>
         <img src="images/inventario.png" alt="Ícone de Espólio" class="card-icon">
         <span>Espólio</span>
+      </a>
+      <a href="Gerador/index.html" class="card-btn" data-id="gerador">
+        <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'gerador')">★</button>
+        <img src="images/ameacas.png" alt="Ícone do Gerador de Ameaças" class="card-icon">
+        <span>Gerador de Ameaças</span>
       </a>
     </div>
 
@@ -822,7 +832,7 @@
       <a href="STR/index.html" class="card-btn" data-id="str">
         <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'str')">★</button>
         <img src="images/STR.png" alt="Ícone de STR" class="card-icon">
-        <span>Supremo Tribunal Regreiro</span>
+        <span><span style="font-size: 2em;">STR</span> |<br> Breves Jornadas</span>
       </a>
       <a href="libertacao/index.html" class="card-btn" data-id="libertacao">
         <button class="fav-btn" title="Favoritar" onclick="toggleFav(event, 'libertacao')">★</button>
@@ -916,7 +926,8 @@
           <div class="sig-col">
             <h4 class="sig-h4">Este projeto</h4>
 
-            <a class="sig-link" href="https://nicholemos.github.io/arsenal/combate/" target="_blank" rel="noopener noreferrer">
+            <a class="sig-link" href="https://nicholemos.github.io/arsenal/combate/" target="_blank"
+              rel="noopener noreferrer">
               <div class="sig-link-main">
                 <span class="sig-link-name">Gerenciador de Combate – Tormenta20</span>
                 <span class="sig-link-url">nicholemos.github.io/combate</span>
@@ -944,26 +955,26 @@
     (function () {
       var body = document.body;
       var key = 't20_theme'; // Sincronizado com o bestiário (ameacas)
-      
+
       function applyTheme(theme) {
         // Remove classes antigas de tema
         body.classList.remove('theme-dark', 'theme-classic');
-        
+
         // Aplica o novo tema no body (se não for o padrão 'blood')
         if (theme === 'dark') {
           body.classList.add('theme-dark');
         } else if (theme === 'classic') {
           body.classList.add('theme-classic');
         }
-        
+
         // Atualiza a classe ativa nos botões do seletor
         document.querySelectorAll('.theme-btn').forEach(function (btn) {
           btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
         });
-        
+
         localStorage.setItem(key, theme);
       }
-      
+
       // Carrega o tema salvo com fallback de migração do antigo 'hubTheme'
       var saved = localStorage.getItem(key);
       if (!saved) {
@@ -972,9 +983,9 @@
         else if (oldSaved === 'classic' || oldSaved === 'light') saved = 'classic';
         else saved = 'blood';
       }
-      
+
       applyTheme(saved);
-      
+
       // Adiciona o ouvinte de eventos aos botões
       document.querySelectorAll('.theme-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -1017,7 +1028,7 @@
       function saveFavorites(favs) {
         try {
           localStorage.setItem(FAV_KEY, JSON.stringify(favs));
-        } catch (e) {}
+        } catch (e) { }
       }
 
       window.toggleFav = function (e, id) {

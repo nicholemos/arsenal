@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── TABELA ───────────────────────────────────────────────
-    const ICONS = { forca: 'imagens/forca.png', destreza: 'imagens/destreza.png', constituicao: 'imagens/constituicao.png', inteligencia: 'imagens/inteligencia.png', sabedoria: 'imagens/sabedoria.png', carisma: 'imagens/carisma.png' };
+    const ICONS = { forca: '../assets/imagens/forca.png', destreza: '../assets/imagens/destreza.png', constituicao: '../assets/imagens/constituicao.png', inteligencia: '../assets/imagens/inteligencia.png', sabedoria: '../assets/imagens/sabedoria.png', carisma: '../assets/imagens/carisma.png' };
 
     function populateAttributeTable() {
         attributeTableBody.innerHTML = '';
@@ -288,7 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById('racial-powers-list');
         if (!list) return;
         list.innerHTML = '';
-        const all = [...(race?.racialPowers || []), ...dynamicPowers];
+
+        // Nomes dos poderes dinâmicos (para esconder duplicatas)
+        const dynamicNames = new Set(dynamicPowers.map(p => p.name.split(' (')[0]));
+
+        // Filtrar poderes estáticos que não devem aparecer quando há dinâmico
+        const staticPowers = (race?.racialPowers || []).filter(p => !dynamicNames.has(p.name));
+
+        const all = [...staticPowers, ...dynamicPowers];
         _currentRacialPowers = all; // guarda para export
 
         all.forEach(power => {
@@ -402,6 +409,294 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     }
 
+    // ── VAMPIRO ────────────────────────────────────────────────
+    function createVampiroUi(container) {
+        if (typeof VAMPIRO_BENCAOS === 'undefined') return;
+        const entries = Object.entries(VAMPIRO_BENCAOS);
+
+        const humanoidRaces = Object.entries(RACE_DATA)
+            .filter(([key, r]) => r.raca === 'Humanoide' && key !== 'vampiro')
+            .map(([key, r]) => `<option value="${key}">${r.name}</option>`)
+            .join('');
+
+        container.innerHTML = `
+        <details class="fold" style="margin-top:12px">
+            <summary class="fold-summary">Bênção Vampírica <span class="fold-hint">Escolha 1</span></summary>
+            <div class="checklist fold-body">
+            <p style="margin:0 0 8px">Escolha um dos poderes a seguir. Você pode escolher outros desses poderes no lugar de poderes de classe.</p>
+            ${entries.map(([key, b]) => `
+                <div class="bencao-item">
+                    <label class="check">
+                        <input type="checkbox" class="vampiro-bencao" data-key="${key}">
+                        <span>${b.name}</span>
+                        <span class="bencao-desc-toggle" data-toggle="${key}" title="Ver descrição">?</span>
+                    </label>
+                    <div class="bencao-desc-body" id="desc-vampiro-${key}">${b.desc}</div>
+                </div>`).join('')}
+            </div>
+        </details>
+        <details class="fold" style="margin-top:12px">
+            <summary class="fold-summary">Resquícios da Outra Vida <span class="fold-hint">ver descrição</span></summary>
+            <div class="fold-body">
+                <p style="margin:0 0 8px">Torna-se treinado em uma perícia ou recebe um poder geral. Como alternativa, pode herdar uma raça humanoide.</p>
+                <label class="check" style="margin-bottom:8px">
+                    <input type="checkbox" id="vampiro-resquicios">
+                    <span>Herdar raça humanoide</span>
+                </label>
+                <div id="vampiro-race-select" class="hidden" style="margin-bottom:8px">
+                    <label for="vampiro-race">Raça:</label>
+                    <select id="vampiro-race">
+                        <option value="">Selecione</option>
+                        ${humanoidRaces}
+                    </select>
+                </div>
+                <div id="vampiro-power-select" class="hidden" style="margin-bottom:8px">
+                    <label for="vampiro-power">Poder Herdado:</label>
+                    <select id="vampiro-power">
+                        <option value="">Selecione</option>
+                    </select>
+                </div>
+                <div id="vampiro-power-checklist" class="hidden" style="margin-bottom:8px">
+                    <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 1</span></label>
+                    <div id="vampiro-mutation-container" class="checklist"></div>
+                </div>
+                <div id="vampiro-resquicios-info" class="hidden" style="margin-top:8px;padding:10px;background:rgba(0,0,0,0.2);border-radius:6px;font-size:13px;color:var(--text-secondary)"></div>
+            </div>
+        </details>`;
+
+        container.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const desc = document.getElementById('desc-vampiro-' + btn.dataset.toggle);
+                if (desc) desc.classList.toggle('active');
+            });
+        });
+
+        container.querySelectorAll('.vampiro-bencao').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.checked) {
+                    container.querySelectorAll('.vampiro-bencao').forEach(other => {
+                        if (other !== cb) other.checked = false;
+                    });
+                }
+                updateVampiroAttributes();
+            });
+        });
+
+        // Resquícios da Outra Vida
+        const populateVampiroPowers = () => {
+            const raceKey = document.getElementById('vampiro-race')?.value;
+            const powerSelect = document.getElementById('vampiro-power');
+            const selectDiv = document.getElementById('vampiro-power-select');
+            const checklistDiv = document.getElementById('vampiro-power-checklist');
+            const checklistContainer = document.getElementById('vampiro-mutation-container');
+            const race = raceKey ? RACE_DATA[raceKey] : null;
+            const config = getInheritablePowerConfig(race);
+
+            powerSelect.innerHTML = '<option value="">Selecione</option>';
+            checklistContainer.innerHTML = '';
+            selectDiv.classList.add('hidden');
+            checklistDiv.classList.add('hidden');
+
+            if (!config) return;
+
+            if (config.type === 'checklist') {
+                checklistContainer.innerHTML = config.options.map(o => `
+                    <div class="bencao-item">
+                        <label class="check">
+                            <input type="checkbox" class="vampiro-mut" id="vampiro-mut-${o.id}" value="${o.id}">
+                            <span>${o.name}</span>
+                            <span class="bencao-desc-toggle" data-toggle="${o.id}" title="Ver descrição">?</span>
+                        </label>
+                        <div class="bencao-desc-body" id="desc-vampiro-mut-${o.id}">${o.desc || ''}</div>
+                    </div>`).join('');
+                checklistContainer.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const desc = document.getElementById('desc-vampiro-mut-' + btn.dataset.toggle);
+                        if (desc) desc.classList.toggle('active');
+                    });
+                });
+                checklistContainer.querySelectorAll('.vampiro-mut').forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        const count = checklistContainer.querySelectorAll('.vampiro-mut:checked').length;
+                        if (count > 1) {
+                            alert('Você só pode herdar até 1 poder!');
+                            cb.checked = false;
+                        }
+                        updateVampiroAttributes();
+                    });
+                });
+                checklistDiv.classList.remove('hidden');
+            } else {
+                config.options.forEach((p, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = p.name;
+                    powerSelect.appendChild(opt);
+                });
+                selectDiv.classList.remove('hidden');
+            }
+        };
+
+        container.querySelector('#vampiro-resquicios').addEventListener('change', (e) => {
+            const checked = e.target.checked;
+            document.getElementById('vampiro-race-select').classList.toggle('hidden', !checked);
+            document.getElementById('vampiro-power-select').classList.add('hidden');
+            document.getElementById('vampiro-power-checklist').classList.add('hidden');
+            updateVampiroAttributes();
+        });
+        container.querySelector('#vampiro-race').addEventListener('change', () => {
+            populateVampiroPowers();
+            updateVampiroAttributes();
+        });
+        container.querySelector('#vampiro-power').addEventListener('change', updateVampiroAttributes);
+    }
+
+    function updateVampiroAttributes() {
+        const raceId = racaSelect.value;
+        if (raceId !== 'vampiro') return;
+        const race = RACE_DATA[raceId];
+
+        applyRaceAttributes(race.attributes, race.isChoice, race.choiceCount, race.lockedChoiceAttributes, race.maxChoicePerAttribute);
+
+        const dynamicPowers = [];
+        document.querySelectorAll('.vampiro-bencao:checked').forEach(cb => {
+            const key = cb.dataset.key;
+            const bencao = VAMPIRO_BENCAOS[key];
+            if (bencao) dynamicPowers.push({ name: bencao.name, desc: bencao.desc });
+        });
+
+        // Resquícios da Outra Vida
+        const resquiciosChecked = document.getElementById('vampiro-resquicios')?.checked;
+        const resquiciosRaceKey = document.getElementById('vampiro-race')?.value;
+        const selectedRace = resquiciosRaceKey ? RACE_DATA[resquiciosRaceKey] : null;
+        const config = resquiciosChecked && selectedRace ? getInheritablePowerConfig(selectedRace) : null;
+
+        let resquiciosLabel = null;
+        if (config?.type === 'checklist') {
+            const selectedIds = Array.from(document.querySelectorAll('.vampiro-mut:checked')).map(cb => cb.value);
+            const tamanho = getInheritedTamanho(resquiciosRaceKey, null);
+            if (selectedIds.length) {
+                selectedIds.forEach(id => {
+                    const opt = config.options.find(o => o.id === id);
+                    dynamicPowers.push({
+                        name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                        desc: `Você herda a habilidade "${opt.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${opt.desc}`
+                    });
+                });
+            } else {
+                dynamicPowers.push({
+                    name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                    desc: `Você herda habilidades da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                });
+            }
+            resquiciosLabel = selectedRace.name;
+        } else if (config) {
+            const powerIndex = document.getElementById('vampiro-power')?.value;
+            const power = powerIndex !== '' ? config.options[parseInt(powerIndex)] : null;
+            const tamanho = getInheritedTamanho(resquiciosRaceKey, power);
+            dynamicPowers.push({
+                name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                desc: power
+                    ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
+                    : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+            });
+            resquiciosLabel = selectedRace.name;
+        } else if (resquiciosChecked) {
+            dynamicPowers.push({
+                name: 'Resquícios da Outra Vida',
+                desc: 'Você se torna treinado em uma perícia ou recebe um poder geral. Alternativamente, pode herdar uma raça humanoide.'
+            });
+        }
+
+        // Exibe descrição do poder herdado dentro do fold
+        const resquiciosInfo = document.getElementById('vampiro-resquicios-info');
+        if (resquiciosInfo) {
+            const resquiciosPower = dynamicPowers.find(p => p.name.startsWith('Resquícios'));
+            if (resquiciosPower) {
+                resquiciosInfo.innerHTML = `<b>${resquiciosPower.name}</b><br>${resquiciosPower.desc}`;
+                resquiciosInfo.classList.remove('hidden');
+            } else {
+                resquiciosInfo.innerHTML = '';
+                resquiciosInfo.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('bonusMessage').innerHTML =
+            'Carisma +1, +1 em dois atributos diferentes (exceto Constituição), Constituição −1' +
+            (resquiciosLabel ? `<br><b>Resquícios:</b> ${resquiciosLabel}` : '');
+
+        renderRacialPowers(race, dynamicPowers);
+        updateAll();
+    }
+
+    // ── FEÉRICO ────────────────────────────────────────────────
+    function createFeericoUi(container) {
+        if (typeof FEERICO_BENCAOS === 'undefined') return;
+        const entries = Object.entries(FEERICO_BENCAOS);
+        container.innerHTML = `
+        <details class="fold" style="margin-top:12px">
+            <summary class="fold-summary">Bênção das Fadas <span class="fold-hint">Escolha 4</span></summary>
+            <div class="checklist fold-body">
+            <p style="margin:0 0 8px">Escolha quatro bênçãos. Você pode escolher outras dessas bênçãos no lugar de poderes de classe.</p>
+            ${entries.map(([key, b]) => `
+                <div class="bencao-item">
+                    <label class="check">
+                        <input type="checkbox" class="feerico-bencao" data-key="${key}">
+                        <span>${b.name}</span>
+                        <span class="bencao-desc-toggle" data-toggle="${key}" title="Ver descrição">?</span>
+                    </label>
+                    <div class="bencao-desc-body" id="desc-feerico-${key}">${b.desc}</div>
+                </div>`).join('')}
+            </div>
+        </details>`;
+
+        container.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const desc = document.getElementById('desc-feerico-' + btn.dataset.toggle);
+                if (desc) desc.classList.toggle('active');
+            });
+        });
+
+        container.querySelectorAll('.feerico-bencao').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const checked = container.querySelectorAll('.feerico-bencao:checked');
+                if (checked.length > 4) {
+                    cb.checked = false;
+                    alert('Você só pode escolher 4 bênçãos!');
+                }
+                updateFeericoAttributes();
+            });
+        });
+    }
+
+    function updateFeericoAttributes() {
+        const raceId = racaSelect.value;
+        if (raceId !== 'feerico') return;
+        const race = RACE_DATA[raceId];
+
+        applyRaceAttributes(race.attributes, race.isChoice, race.choiceCount, race.lockedChoiceAttributes, race.maxChoicePerAttribute);
+
+        const dynamicPowers = [];
+        document.querySelectorAll('.feerico-bencao:checked').forEach(cb => {
+            const key = cb.dataset.key;
+            const bencao = FEERICO_BENCAOS[key];
+            if (bencao) dynamicPowers.push({ name: bencao.name, desc: bencao.desc });
+        });
+
+        renderRacialPowers(race, dynamicPowers);
+        updateAll();
+    }
+
+    // Vincula createCustomUi após definição (script.js carrega depois de racas_dragaobrasil.js)
+    if (RACE_DATA.vampiro) RACE_DATA.vampiro.createCustomUi = createVampiroUi;
+    if (RACE_DATA.feerico) RACE_DATA.feerico.createCustomUi = createFeericoUi;
+
     // ── UPDATE FUNÇÕES ─────────────────────────────────────────
     function updateGolemAttributes() {
         const raceId = racaSelect.value;
@@ -427,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!race?.calculateAttributes) return;
         const r = race.calculateAttributes();
         applyRaceAttributes(r.baseAttributes, r.isChoice, r.choiceCount);
-        renderRacialPowers(race, r.selectedPowers || []);
+        renderRacialPowers(race, []);
         updateAll();
     }
 
@@ -443,9 +738,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateKoboldAttributes() {
         const race = RACE_DATA.kobold;
         if (!race?.calculateAttributes) return;
-        const r = race.calculateAttributes();
-        // kobold não muda atributos raciais, só poderes
-        renderRacialPowers(race, r.selectedPowers || []);
+        race.calculateAttributes();
+        renderRacialPowers(race, []);
         updateAll();
     }
 
@@ -506,8 +800,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── RESET ─────────────────────────────────────────────────
     function smartReset() {
         if (!confirm("Deseja resetar todos os campos?")) return;
+
+        // 1. Desmarcar todos os checkboxes de raças adicionais
+        document.querySelectorAll('#race-specific-options input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+
+        // 2. Resetar todos os selects de raças adicionais
+        document.querySelectorAll('#race-specific-options select').forEach(sel => {
+            sel.selectedIndex = 0;
+        });
+
+        // 3. Voltar raça para "outros"
+        racaSelect.value = 'outros';
+        handleRaceChange();
+
+        // 4. Zerar distribuição de pontos
+        ATTRIBUTES.forEach(attr => {
+            document.getElementById(attr).value = 0;
+            document.getElementById(`${attr}_racial`).value = 0;
+            document.getElementById(`${attr}_outros`).value = 0;
+        });
+
+        // 5. Resetar pontos para o padrão
+        basePoints = 10;
+        togglePontos.checked = false;
+        pontosInput.classList.add('hidden');
+        salvarPontosBtn.classList.add('hidden');
+
+        // 6. Limpar estado salvo e atualizar
         localStorage.removeItem('t20_calc_state');
-        location.reload(); // Forma mais segura de limpar tudo e voltar ao estado original
+        updateAll();
     }
 
     // ── DRAG ──────────────────────────────────────────────────
@@ -664,13 +987,42 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateKallyanachAttributes = updateKallyanachAttributes;
     window.updateOsteonAttributes = updateOsteonAttributes;
     window.updateYidishanAttributes = updateYidishanAttributes;
+    window.updateVampiroAttributes = updateVampiroAttributes;
+    window.updateFeericoAttributes = updateFeericoAttributes;
 
     // ── INICIALIZAÇÃO ─────────────────────────────────────────
     populateAttributeTable();
     hideOutrosColumn();
     populateRaceSelect();
-    loadState();
-    handleRaceChange();
-    handleFilterChange();
+
+    const params = new URLSearchParams(window.location.search);
+    const urlRaceId = params.get('raca');
+    if (urlRaceId && RACE_DATA[urlRaceId]) {
+        applyUrlRace(urlRaceId);
+    } else {
+        loadState();
+        handleRaceChange();
+        handleFilterChange();
+    }
+
+    // ── URL: ?raca=KEY (vinda do compêndio) ──────────────────
+    function applyUrlRace(raceId) {
+        const raceType = RACE_DATA[raceId].type;
+        // Marca o checkbox de filtro correspondente ao tipo da raça
+        if (raceType && raceType !== 'base') {
+            const filterCb = document.querySelector(`.race-filter[data-race-type="${raceType}"]`);
+            if (filterCb) filterCb.checked = true;
+        }
+        handleFilterChange();
+
+        // Seta a raça no select e limpa estado salvo (a URL tem prioridade)
+        const opt = Array.from(racaSelect.options).find(o => o.value === raceId);
+        if (opt) {
+            opt.style.display = 'block';
+            racaSelect.value = raceId;
+            localStorage.removeItem('t20_calc_state');
+            handleRaceChange();
+        }
+    }
 
 });

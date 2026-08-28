@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>Compêndio de Raças – Arsenal T20</title>
+  <meta name="description" content="Compêndio consultável das raças de Tormenta20: livro básico, Ghanor, Ameaças de Arton, Heróis de Arton e outras fontes." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <!-- ═══ SISTEMA DE TEMAS ARSENAL ═══ -->
+  <link rel="stylesheet" href="../assets/templates/themes.css" />
+
+  <!-- CSS específico deste app -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════╗
+       ║  CABEÇALHO PADRÃO DO ARSENAL     ║
+       ╚══════════════════════════════════╝ -->
+  <header class="app-header" role="banner">
+
+    <a href="../index.html" class="hub-btn" title="Voltar ao Arsenal" aria-label="Voltar ao Arsenal">
+      🏰 Arsenal
+    </a>
+
+    <h1 class="app-title">Compêndio de Raças</h1>
+
+    <nav class="theme-controls" aria-label="Selecionar tema">
+      <button class="theme-btn" data-theme="blood"   title="Tema Tormenta (padrão)" aria-label="Tema Tormenta">🩸</button>
+      <button class="theme-btn" data-theme="dark"    title="Tema Sombras"           aria-label="Tema Sombras">🌑</button>
+      <button class="theme-btn" data-theme="classic" title="Tema Clássico"          aria-label="Tema Clássico">📜</button>
+    </nav>
+
+  </header>
+
+  <!-- ╔══════════════════════════════════╗
+       ║  CONTEÚDO PRINCIPAL              ║
+       ╚══════════════════════════════════╝ -->
+  <main id="app-main" role="main" class="compendio">
+
+    <!-- ── COLUNA DA ESQUERDA: busca + lista ── -->
+    <section class="pane pane-list" aria-label="Lista de raças">
+
+      <div class="list-controls">
+        <div class="search-wrap">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Buscar por nome, poder ou palavra-chave..."
+            autocomplete="off"
+            aria-label="Buscar raça"
+          />
+        </div>
+
+        <div class="source-filters" id="source-filters" role="group" aria-label="Filtrar por fonte">
+          <!-- preenchido via JS -->
+        </div>
+
+        <div class="list-meta">
+          <span id="result-count">0 raças</span>
+          <button id="clear-filters" class="link-btn" type="button">Limpar filtros</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="race-table" id="race-table">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="name">Nome<span class="sort-arrow"></span></th>
+              <th class="sortable" data-sort="attrs">Atributos<span class="sort-arrow"></span></th>
+              <th class="sortable" data-sort="tamanho">Tam.<span class="sort-arrow"></span></th>
+            </tr>
+          </thead>
+          <tbody id="race-table-body" role="listbox" aria-label="Raças de Tormenta20">
+            <!-- preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── COLUNA DA DIREITA: detalhe da raça ── -->
+    <section class="pane pane-detail" id="detail-pane" aria-label="Detalhes da raça">
+      <button id="back-to-list" class="back-btn" type="button" aria-label="Voltar para a lista">← Voltar</button>
+
+      <div id="detail-empty" class="detail-empty">
+        <div class="sigil" aria-hidden="true">
+          <svg viewBox="0 0 100 100" width="72" height="72">
+            <polygon points="50,4 90,50 50,96 10,50" fill="none" stroke="currentColor" stroke-width="2"/>
+            <polygon points="50,22 76,50 50,78 24,50" fill="none" stroke="currentColor" stroke-width="1.4"/>
+            <circle cx="50" cy="50" r="5" fill="currentColor"/>
+          </svg>
+        </div>
+        <p>Selecione uma raça na lista ao lado para consultar sua ficha completa.</p>
+      </div>
+
+      <article id="detail-content" class="detail-content hidden">
+        <!-- preenchido via JS -->
+      </article>
+    </section>
+
+  </main>
+
+  <!-- ╔══════════════════════════════════╗
+       ║  SCRIPTS                         ║
+       ╚══════════════════════════════════╝ -->
+  <script src="../assets/templates/theme-init.js"></script>
+  <script src="../calculadora/racas.js"></script>
+  <script src="../calculadora/racas_dragaobrasil.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>

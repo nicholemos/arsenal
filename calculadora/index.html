@@ -69,6 +69,7 @@
         <div class="calc-left-top">
           <button type="button" class="filter-btn" id="reset-button">Reset</button>
           <button type="button" class="filter-btn" id="enviar-ficha-button">🚀 Enviar para a Ficha</button>
+          <a href="../compendio/index.html" class="filter-btn" id="compendio-button" title="Voltar ao Compêndio de Raças">← Compêndio</a>
         </div>
 
         <div style="margin-top:6px">
@@ -97,6 +98,11 @@
               <label class="check">
                 <input type="checkbox" id="outrasCheckbox" class="race-filter" data-race-type="outraRaca">
                 <span>Raças de outros locais</span>
+              </label>
+
+              <label class="check">
+                <input type="checkbox" id="dragaobrasilCheckbox" class="race-filter" data-race-type="dragaobrasil">
+                <span>Raças do Dragão Brasil</span>
               </label>
             </div>
           </details>
@@ -243,7 +249,7 @@
               <span class="sig-ext" aria-hidden="true">↗</span>
             </a>
 
-            <a class="sig-link" href="../ficha/" target="_blank" rel="noopener noreferrer">
+            <a class="sig-link" href="../ficha/index.html" target="_blank" rel="noopener noreferrer">
               <div class="sig-link-main">
                 <span class="sig-link-name">Ficha Automática de Tormenta20</span>
                 <span class="sig-link-url">../ficha/</span>
@@ -328,6 +334,8 @@
 
   <!-- Dados das raças (RACE_DATA, SURAGEL_HERANCAS) -->
   <script src="racas.js"></script>
+  <!-- Raças do Dragão Brasil (mescla em RACE_DATA) -->
+  <script src="racas_dragaobrasil.js"></script>
   <!-- Lógica da calculadora -->
   <script src="script.js"></script>
   <!-- Toggle tema -->

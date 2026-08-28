@@ -934,29 +934,34 @@ const RACE_DATA = {
                 .join('');
 
             container.innerHTML = `
-            <div style="margin-bottom:6px">
-                <label class="check">
-                    <input type="checkbox" id="osteon-memoria">
-                    <span>Memória Póstuma: herdar raça humanoide</span>
-                </label>
-            </div>
-            <div id="osteon-race-select" class="hidden" style="margin-bottom:6px">
-                <label for="osteon-race">Raça:</label>
-                <select id="osteon-race">
-                    <option value="">Selecione</option>
-                    ${humanoidRaces}
-                </select>
-            </div>
-            <div id="osteon-power-select" class="hidden" style="margin-bottom:6px">
-                <label for="osteon-power">Poder Herdado:</label>
-                <select id="osteon-power">
-                    <option value="">Selecione</option>
-                </select>
-            </div>
-            <div id="osteon-power-checklist" class="hidden" style="margin-bottom:6px">
-                <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 2</span></label>
-                <div id="osteon-mutation-container" class="checklist"></div>
-            </div>`;
+            <details class="fold" style="margin-top:12px">
+                <summary class="fold-summary">Memória Póstuma <span class="fold-hint">ver descrição</span></summary>
+                <div class="fold-body">
+                    <p style="margin:0 0 8px">Você se torna treinado em uma perícia ou recebe um poder geral. Alternativamente, pode ser um osteon de outra raça humanoide, ganhando uma habilidade dela e seu tamanho.</p>
+                    <label class="check" style="margin-bottom:8px">
+                        <input type="checkbox" id="osteon-memoria">
+                        <span>Herdar raça humanoide</span>
+                    </label>
+                    <div id="osteon-race-select" class="hidden" style="margin-bottom:8px">
+                        <label for="osteon-race">Raça:</label>
+                        <select id="osteon-race">
+                            <option value="">Selecione</option>
+                            ${humanoidRaces}
+                        </select>
+                    </div>
+                    <div id="osteon-power-select" class="hidden" style="margin-bottom:8px">
+                        <label for="osteon-power">Poder Herdado:</label>
+                        <select id="osteon-power">
+                            <option value="">Selecione</option>
+                        </select>
+                    </div>
+                    <div id="osteon-power-checklist" class="hidden" style="margin-bottom:8px">
+                        <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 2</span></label>
+                        <div id="osteon-mutation-container" class="checklist"></div>
+                    </div>
+                    <div id="osteon-memoria-info" class="hidden" style="margin-top:8px;padding:10px;background:rgba(0,0,0,0.2);border-radius:6px;font-size:13px;color:var(--text-secondary)"></div>
+                </div>
+            </details>`;
 
             const populatePowers = () => {
                 const raceKey = document.getElementById('osteon-race')?.value;
@@ -976,10 +981,22 @@ const RACE_DATA = {
 
                 if (config.type === 'checklist') {
                     checklistContainer.innerHTML = config.options.map(o => `
-                        <label class="check">
-                            <input type="checkbox" class="osteon-mut" id="osteon-mut-${o.id}" value="${o.id}">
-                            <span>${o.name}</span>
-                        </label>`).join('');
+                        <div class="bencao-item">
+                            <label class="check">
+                                <input type="checkbox" class="osteon-mut" id="osteon-mut-${o.id}" value="${o.id}">
+                                <span>${o.name}</span>
+                                <span class="bencao-desc-toggle" data-toggle="${o.id}" title="Ver descrição">?</span>
+                            </label>
+                            <div class="bencao-desc-body" id="desc-osteon-${o.id}">${o.desc || ''}</div>
+                        </div>`).join('');
+                    checklistContainer.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const desc = document.getElementById('desc-osteon-' + btn.dataset.toggle);
+                            if (desc) desc.classList.toggle('active');
+                        });
+                    });
                     checklistContainer.querySelectorAll('.osteon-mut').forEach(cb => {
                         cb.addEventListener('change', () => {
                             const count = checklistContainer.querySelectorAll('.osteon-mut:checked').length;
@@ -1064,6 +1081,19 @@ const RACE_DATA = {
             document.getElementById('bonusMessage').innerHTML =
                 '+1 em três atributos (exceto Constituição), Constituição −1' +
                 (memoriaLabel ? `<br><b>Memória Póstuma:</b> ${memoriaLabel}` : '');
+
+            // Exibe descrição do poder herdado dentro do fold
+            const memoriaInfo = document.getElementById('osteon-memoria-info');
+            if (memoriaInfo) {
+                const memoriaPower = memoriaPowers.find(p => p.name.startsWith('Memória'));
+                if (memoriaPower) {
+                    memoriaInfo.innerHTML = `<b>${memoriaPower.name}</b><br>${memoriaPower.desc}`;
+                    memoriaInfo.classList.remove('hidden');
+                } else {
+                    memoriaInfo.innerHTML = '';
+                    memoriaInfo.classList.add('hidden');
+                }
+            }
 
             return {
                 baseAttributes: { constituicao: -1 },
@@ -1403,10 +1433,15 @@ const RACE_DATA = {
 
     // ── ABERRANTE (complexo) ──────────────────────────────────
     aberrant: {
-        name: 'Aberrante (Ghanor)', type: 'ghanor', tamanho: 'Médio', raca: 'Monstro',
+        name: 'Aberrante (Ghanor)', type: 'ghanor', tamanho: 'Médio', raca: 'Humanoide',
         attributes: {},
         bonusMessage: 'Carisma −2',
-        racialPowers: [], // tudo dinâmico
+        racialPowers: [
+            {
+                name: 'Mutação',
+                desc: 'Escolha quatro mutações da lista a seguir. Quando recebe um novo poder de classe, pode trocar este poder por uma mutação. Cada mutação só pode ser escolhida uma vez.'
+            }
+        ],
         imageUrl: 'https://media.tenor.com/3IrxSu1aWscAAAAM/resident-evil-resident-evil-2.gif',
 
         createCustomUi(container) {
@@ -1415,13 +1450,27 @@ const RACE_DATA = {
             <details class="fold" style="margin-top:12px">
                 <summary class="fold-summary">Mutações <span class="fold-hint">Escolha até 4</span></summary>
                 <div id="mutation-container" class="checklist fold-body">
+                <p style="margin:0 0 8px">Escolha 4 mutações. Você pode escolher outras mutações no lugar de poderes de classe.</p>
                 ${mutations.map(([id, m]) => `
-                    <label class="check">
-                        <input type="checkbox" id="${id}" name="mutation" value="${id}">
-                        <span>${m.name}</span>
-                    </label>`).join('')}
+                    <div class="bencao-item">
+                        <label class="check">
+                            <input type="checkbox" id="${id}" name="mutation" value="${id}">
+                            <span>${m.name}</span>
+                            <span class="bencao-desc-toggle" data-toggle="${id}" title="Ver descrição">?</span>
+                        </label>
+                        <div class="bencao-desc-body" id="desc-mut-${id}">${m.desc || ''}</div>
+                    </div>`).join('')}
                 </div>
             </details>`;
+
+            container.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const desc = document.getElementById('desc-mut-' + btn.dataset.toggle);
+                    if (desc) desc.classList.toggle('active');
+                });
+            });
 
             container.querySelectorAll('input[name="mutation"]').forEach(cb => {
                 cb.addEventListener('change', () => {
@@ -1663,7 +1712,7 @@ const RACE_DATA = {
         name: 'Kallyanach (Ameaças)', type: 'ameacas', tamanho: 'Médio', raca: 'Monstro',
         attributes: {}, isChoice: true, choiceCount: 2, maxChoicePerAttribute: 2,
         bonusMessage: '+2 em um atributo ou +1 em dois atributos',
-        racialPowers: [], // dinâmico
+        racialPowers: [],
         imageUrl: 'https://i.pinimg.com/originals/23/cc/03/23cc03827dd5eb610540f4a03ea88190.gif',
 
         createCustomUi(container) {
@@ -1683,13 +1732,27 @@ const RACE_DATA = {
             <details class="fold" style="margin-top:12px">
                 <summary class="fold-summary">Bênção de Kallyadranoch <span class="fold-hint">Escolha 2</span></summary>
                 <div id="bencao-container" class="checklist fold-body">
+                <p style="margin:0 0 8px">Escolha duas bênçãos. Você pode escolher outras dessas bênçãos no lugar de poderes de classe.</p>
                 ${Object.entries(KALLYANACH_BENCAOS).map(([id, b]) => `
-                    <label class="check">
-                        <input type="checkbox" id="${id}" name="bencao">
-                        <span>${b.name}</span>
-                    </label>`).join('')}
+                    <div class="bencao-item">
+                        <label class="check">
+                            <input type="checkbox" id="${id}" name="bencao">
+                            <span>${b.name}</span>
+                            <span class="bencao-desc-toggle" data-toggle="${id}" title="Ver descrição">?</span>
+                        </label>
+                        <div class="bencao-desc-body" id="desc-kally-${id}">${b.desc || ''}</div>
+                    </div>`).join('')}
                 </div>
             </details>`;
+
+            container.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const desc = document.getElementById('desc-kally-' + btn.dataset.toggle);
+                    if (desc) desc.classList.toggle('active');
+                });
+            });
 
             container.querySelector('#kallyanach-elemental').addEventListener('change', () => {
                 const tipo = container.querySelector('#kallyanach-elemental').value;
@@ -1887,13 +1950,27 @@ const RACE_DATA = {
     <details class="fold" style="margin-top:12px">
         <summary class="fold-summary">Talentos do Bando <span class="fold-hint">Escolha 2</span></summary>
         <div id="talent-container" class="checklist fold-body">
+        <p style="margin:0 0 8px">Escolha dois talentos do bando. Você pode escolher outros desses talentos no lugar de poderes de classe.</p>
         ${Object.entries(KOBOLD_TALENTS).map(([id, t]) => `
-            <label class="check" id="wrapper-${id}">
-                <input type="checkbox" id="${id}" name="talent" value="${id}">
-                <span>${t.name}</span>
-            </label>`).join('')}
+            <div class="bencao-item" id="wrapper-${id}">
+                <label class="check">
+                    <input type="checkbox" id="${id}" name="talent" value="${id}">
+                    <span>${t.name}</span>
+                    <span class="bencao-desc-toggle" data-toggle="${id}" title="Ver descrição">?</span>
+                </label>
+                <div class="bencao-desc-body" id="desc-kobold-${id}">${t.desc || ''}</div>
+            </div>`).join('')}
         </div>
     </details>`;
+
+            container.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const desc = document.getElementById('desc-kobold-' + btn.dataset.toggle);
+                    if (desc) desc.classList.toggle('active');
+                });
+            });
 
             const checkBoxes = container.querySelectorAll('input[name="talent"]');
 
@@ -2122,29 +2199,34 @@ const RACE_DATA = {
                 .join('');
 
             container.innerHTML = `
-            <div style="margin-bottom:6px">
-                <label class="check">
-                    <input type="checkbox" id="yidishan-natureza">
-                    <span>Natureza Orgânica: herdar outra raça</span>
-                </label>
-            </div>
-            <div id="yidishan-race-select" class="hidden" style="margin-bottom:6px">
-                <label for="yidishan-race">Raça:</label>
-                <select id="yidishan-race">
-                    <option value="">Selecione</option>
-                    ${allRaces}
-                </select>
-            </div>
-            <div id="yidishan-power-select" class="hidden" style="margin-bottom:6px">
-                <label for="yidishan-power">Poder Herdado:</label>
-                <select id="yidishan-power">
-                    <option value="">Selecione</option>
-                </select>
-            </div>
-            <div id="yidishan-power-checklist" class="hidden" style="margin-bottom:6px">
-                <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 2</span></label>
-                <div id="yidishan-mutation-container" class="checklist"></div>
-            </div>`;
+            <details class="fold" style="margin-top:12px">
+                <summary class="fold-summary">Natureza Orgânica <span class="fold-hint">ver descrição</span></summary>
+                <div class="fold-body">
+                    <p style="margin:0 0 8px">Ganha uma perícia treinada ou um poder geral. Alternativamente, pode ser de outra raça humanoide: ganha uma habilidade dela e seu tamanho.</p>
+                    <label class="check" style="margin-bottom:8px">
+                        <input type="checkbox" id="yidishan-natureza">
+                        <span>Herdar outra raça</span>
+                    </label>
+                    <div id="yidishan-race-select" class="hidden" style="margin-bottom:8px">
+                        <label for="yidishan-race">Raça:</label>
+                        <select id="yidishan-race">
+                            <option value="">Selecione</option>
+                            ${allRaces}
+                        </select>
+                    </div>
+                    <div id="yidishan-power-select" class="hidden" style="margin-bottom:8px">
+                        <label for="yidishan-power">Poder Herdado:</label>
+                        <select id="yidishan-power">
+                            <option value="">Selecione</option>
+                        </select>
+                    </div>
+                    <div id="yidishan-power-checklist" class="hidden" style="margin-bottom:8px">
+                        <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 2</span></label>
+                        <div id="yidishan-mutation-container" class="checklist"></div>
+                    </div>
+                    <div id="yidishan-natureza-info" class="hidden" style="margin-top:8px;padding:10px;background:rgba(0,0,0,0.2);border-radius:6px;font-size:13px;color:var(--text-secondary)"></div>
+                </div>
+            </details>`;
 
             const populatePowers = () => {
                 const raceKey = document.getElementById('yidishan-race')?.value;
@@ -2164,10 +2246,22 @@ const RACE_DATA = {
 
                 if (config.type === 'checklist') {
                     checklistContainer.innerHTML = config.options.map(o => `
-                        <label class="check">
-                            <input type="checkbox" class="yidishan-mut" id="yidishan-mut-${o.id}" value="${o.id}">
-                            <span>${o.name}</span>
-                        </label>`).join('');
+                        <div class="bencao-item">
+                            <label class="check">
+                                <input type="checkbox" class="yidishan-mut" id="yidishan-mut-${o.id}" value="${o.id}">
+                                <span>${o.name}</span>
+                                <span class="bencao-desc-toggle" data-toggle="${o.id}" title="Ver descrição">?</span>
+                            </label>
+                            <div class="bencao-desc-body" id="desc-yidishan-${o.id}">${o.desc || ''}</div>
+                        </div>`).join('');
+                    checklistContainer.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const desc = document.getElementById('desc-yidishan-' + btn.dataset.toggle);
+                            if (desc) desc.classList.toggle('active');
+                        });
+                    });
                     checklistContainer.querySelectorAll('.yidishan-mut').forEach(cb => {
                         cb.addEventListener('change', () => {
                             const count = checklistContainer.querySelectorAll('.yidishan-mut:checked').length;
@@ -2253,6 +2347,19 @@ const RACE_DATA = {
                 '+1 em três atributos (exceto Carisma), Carisma −2' +
                 (naturezaLabel ? `<br><b>Natureza Orgânica:</b> ${naturezaLabel}` : '');
 
+            // Exibe descrição do poder herdado dentro do fold
+            const naturezaInfo = document.getElementById('yidishan-natureza-info');
+            if (naturezaInfo) {
+                const naturezaPower = naturezaPowers.find(p => p.name.startsWith('Natureza'));
+                if (naturezaPower) {
+                    naturezaInfo.innerHTML = `<b>${naturezaPower.name}</b><br>${naturezaPower.desc}`;
+                    naturezaInfo.classList.remove('hidden');
+                } else {
+                    naturezaInfo.innerHTML = '';
+                    naturezaInfo.classList.add('hidden');
+                }
+            }
+
             return {
                 baseAttributes: { carisma: -2 },
                 isChoice: true,
@@ -2269,7 +2376,7 @@ const RACE_DATA = {
         name: 'Moreau (Ameaças)', type: 'ameacas', tamanho: 'Médio', raca: 'Humanoide',
         attributes: {},
         bonusMessage: 'Selecione uma herança',
-        racialPowers: [], // tudo dinâmico — cada animal tem seus próprios
+        racialPowers: [],
         imageUrl: 'https://i.pinimg.com/originals/b3/a6/da/b3a6daffbeef2af9e7203dd480e89000.gif',
 
         createCustomUi(container) {
@@ -2453,7 +2560,7 @@ const RACE_DATA = {
         name: 'Duende (Herois de Arton)', type: 'DHracas', tamanho: 'Variável', raca: 'Espírito',
         attributes: {},
         bonusMessage: 'Varia por Natureza e Tamanho',
-        // 1. DEIXE VAZIO AQUI para evitar a duplicação pelo sistema principal
+        // Poderes fixos canônicos (presentes dinâmicos vêm de DUENDE_PRESENTES)
         racialPowers: [],
 
         imageUrl: 'https://i.pinimg.com/originals/37/a1/d8/37a1d8584b898130605bc0b2228dbba8.gif',
@@ -2492,12 +2599,18 @@ const RACE_DATA = {
                 { id: 'presVoo', name: 'Voo' },
             ];
 
-            const presHtml = presentes.map(p => `
-            <label class="check" style="display:block">
-                <input type="checkbox" id="${p.id}" name="presente" value="${p.id}"><span>${p.name}</span>
-            </label>
+            const presHtml = presentes.map(p => {
+                const desc = DUENDE_PRESENTES[p.id]?.desc || '';
+                return `
+            <div class="bencao-item">
+                <label class="check" style="display:block">
+                    <input type="checkbox" id="${p.id}" name="presente" value="${p.id}"><span>${p.name}</span>
+                    <span class="bencao-desc-toggle" data-toggle="${p.id}" title="Ver descrição">?</span>
+                </label>
+                <div class="bencao-desc-body" id="desc-duende-${p.id}">${desc}</div>
+            </div>
             ${p.sub ? `<div style="margin:4px 0 8px 34px"><select id="${p.id}-sub" class="hidden" style="max-width:300px">${p.sub.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div>` : ''}
-        `).join('');
+        `}).join('');
 
             container.innerHTML = `
         <button id="nimbButton" class="btn-nimb" style="margin-bottom:8px">Sonhos Malucos (Modo Nimb)</button>
@@ -2526,6 +2639,15 @@ const RACE_DATA = {
             <summary class="fold-summary">Presentes de Magia e Caos <span class="fold-hint">Escolha até 3</span></summary>
             <div id="presentes-container" class="checklist fold-body">${presHtml}</div>
         </details>`;
+
+            container.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const desc = document.getElementById('desc-duende-' + btn.dataset.toggle);
+                    if (desc) desc.classList.toggle('active');
+                });
+            });
 
             // Listeners básicos
             const update = () => updateDuendeAttributes();
@@ -2627,7 +2749,9 @@ const RACE_DATA = {
             });
 
             // Adiciona poderes de Natureza
-            if (naturezaKey === 'Vegetal') {
+            if (naturezaKey === 'Animal') {
+                finalPowers.push({ name: 'Natureza Animal', desc: 'Pode adicionar +1 em um atributo à sua escolha.' });
+            } else if (naturezaKey === 'Vegetal') {
                 finalPowers.push({ name: 'Natureza Vegetal', desc: 'Imune a atordoamento e metamorfose.' });
                 finalPowers.push({ name: 'Florescer Feérico', desc: 'Pode gastar PM (limite Con) para curar 2d8 PV por PM.' });
             } else if (naturezaKey === 'Mineral') {
