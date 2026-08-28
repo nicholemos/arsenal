@@ -1,7 +1,7 @@
 /* --- GERAL & SETUP --- */
 @font-face {
     font-family: 'Tormenta20';
-    src: url('Tormenta.ttf') format('truetype');
+    src: url('../assets/fonts/Tormenta.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
