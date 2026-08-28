@@ -443,7 +443,7 @@ const DUENDE_PRESENTES = {
 
     presMaldicao: { name: 'Maldição', desc: 'Padrão e 3 PM: alvo em alcance curto sofre efeito permanente (Fort ou Von evita).' },
 
-    presMetamorfose: { name: 'Metamorfose Animal', desc: 'Pode assumir uma forma selvagem básica (Ágil ou Veloz). Pode falar e lançar magias transformado.' },
+    presMetamorfose: { name: 'Metamorfose Animal', desc: 'Escolha uma forma selvagem básica do druida (Tormenta20, p. 63). Por uma ação completa e 3 PM, você assume essa forma e ganha seus modificadores, mas mantém a capacidade de falar e lançar magias.' },
 
     presLaDoQueAqui: { name: 'Mais Lá do Que Aqui', desc: 'Padrão e 2 PM: corpo desaparece parcialmente. Ganha camuflagem leve e +5 em Furtividade.' },
 
@@ -2561,16 +2561,13 @@ const RACE_DATA = {
         attributes: {},
         bonusMessage: 'Varia por Natureza e Tamanho',
         // Poderes fixos canônicos (presentes dinâmicos vêm de DUENDE_PRESENTES)
-        racialPowers: [],
-
-        imageUrl: 'https://i.pinimg.com/originals/37/a1/d8/37a1d8584b898130605bc0b2228dbba8.gif',
-
-        // Mantemos as definições fixas aqui para consulta
-        fixedPowers: [
+        racialPowers: [
             { name: 'Aversão a Ferro', desc: 'Sofre +1 de dano por dado de ataques de ferro/aço. Sofre 1d6 de dano por rodada se empunhar ou vestir metal.' },
             { name: 'Aversão a Sinos', desc: 'Fica alquebrado e esmorecido se ouvir badalar de sinos (rolar 1d6 em cidades, 1 = ouviu).' },
             { name: 'Tabu', desc: 'Escolha uma perícia (Diplomacia, Iniciativa, Luta ou Percepção) para sofrer –5. Desrespeitar causa fadiga/morte.' }
         ],
+
+        imageUrl: 'https://i.pinimg.com/originals/37/a1/d8/37a1d8584b898130605bc0b2228dbba8.gif',
 
         natureData: {
             Animal: { isChoice: true, choiceCount: 1, maxChoicePerAttribute: 1, bonusText: 'Pode adicionar +1 em um atributo à sua escolha.', imageUrl: 'https://i.redd.it/z92c1bu4c8251.gif' },
@@ -2734,8 +2731,8 @@ const RACE_DATA = {
             }
 
             // --- CONSTRUÇÃO DA LISTA DE PODERES (ÚNICA) ---
-            // Começamos com os fixos que salvamos em fixedPowers
-            const finalPowers = [...this.fixedPowers];
+            // Começamos com os fixos que salvamos em racialPowers
+            const finalPowers = [...this.racialPowers];
 
             // Adiciona os Presentes selecionados buscando no constante global
             document.querySelectorAll('input[name="presente"]:checked').forEach(cb => {

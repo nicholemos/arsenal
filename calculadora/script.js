@@ -679,17 +679,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const raceId = racaSelect.value;
         if (raceId !== 'feerico') return;
         const race = RACE_DATA[raceId];
+        if (!race?.calculateAttributes) return;
 
-        applyRaceAttributes(race.attributes, race.isChoice, race.choiceCount, race.lockedChoiceAttributes, race.maxChoicePerAttribute);
+        const { baseAttributes, isChoice, choiceCount, selectedPowers } = race.calculateAttributes();
 
-        const dynamicPowers = [];
-        document.querySelectorAll('.feerico-bencao:checked').forEach(cb => {
-            const key = cb.dataset.key;
-            const bencao = FEERICO_BENCAOS[key];
-            if (bencao) dynamicPowers.push({ name: bencao.name, desc: bencao.desc });
-        });
+        applyRaceAttributes(baseAttributes, isChoice, choiceCount);
 
-        renderRacialPowers(race, dynamicPowers);
+        renderRacialPowers(race, selectedPowers);
         updateAll();
     }
 

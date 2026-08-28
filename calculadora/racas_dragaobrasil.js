@@ -88,7 +88,8 @@ const FEERICO_BENCAOS = {
     },
     duroComoPedra: {
         name: 'Duro Como Pedra',
-        desc: 'Recebe +1 em Constituição e resistência a magia +2.'
+        desc: 'Recebe +1 em Constituição e resistência a magia +2.',
+        attr: 'constituicao'
     },
     falanteComoUmGrilo: {
         name: 'Falante Como um Grilo',
@@ -96,7 +97,8 @@ const FEERICO_BENCAOS = {
     },
     forteComoUmTouro: {
         name: 'Forte Como um Touro',
-        desc: 'Recebe +1 em Força e +5 de capacidade de carga.'
+        desc: 'Recebe +1 em Força e +5 de capacidade de carga.',
+        attr: 'forca'
     },
     magicoComoUmaBorboleta: {
         name: 'Mágico Como uma Borboleta',
@@ -108,11 +110,13 @@ const FEERICO_BENCAOS = {
     },
     rapidoComoUmCoelho: {
         name: 'Rápido Como um Coelho',
-        desc: 'Recebe +1 em Destreza e deslocamento +3m.'
+        desc: 'Recebe +1 em Destreza e deslocamento +3m.',
+        attr: 'destreza'
     },
     sabioComoUmaCoruja: {
         name: 'Sábio Como uma Coruja',
-        desc: 'Recebe +1 em Sabedoria e +3 PM.'
+        desc: 'Recebe +1 em Sabedoria e +3 PM.',
+        attr: 'sabedoria'
     },
     sagazComoUmFalcao: {
         name: 'Sagaz Como um Falcão',
@@ -234,7 +238,7 @@ const RACE_DATA_DRAGAOBRASIL = {
         name: 'Feérico',
         type: 'dragaobrasil',
         tamanho: 'Médio', raca: '-',
-        attributes: {}, isChoice: true, choiceCount: 3, maxChoicePerAttribute: 1,
+        attributes: {},
         bonusMessage: '+1 em Três Atributos Diferentes',
         racialPowers: [
             {
@@ -242,7 +246,25 @@ const RACE_DATA_DRAGAOBRASIL = {
                 desc: 'Escolha quatro bênçãos da lista de bênçãos feéricas disponíveis (cada uma só pode ser escolhida uma vez). Ao receber um novo poder de classe, pode trocá-lo por uma bênção adicional.'
             }
         ],
-        imageUrl: 'https://media1.giphy.com/media/v1.Y2lkPTZjMDliOTUycDZhNnE3b2NraDIzem90azV2c3JxcGt1OXEzc2VxbmRtaWp4Y24xMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/LURDTf4W7Er0KVbuH7/giphy.gif'
+        imageUrl: 'https://media1.giphy.com/media/v1.Y2lkPTZjMDliOTUycDZhNnE3b2NraDIzem90azV2c3JxcGt1OXEzc2VxbmRtaWp4Y24xMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/LURDTf4W7Er0KVbuH7/giphy.gif',
+
+        calculateAttributes() {
+            const attrs = { forca: 0, destreza: 0, constituicao: 0, inteligencia: 0, sabedoria: 0, carisma: 0 };
+            const selectedPowers = [];
+
+            document.querySelectorAll('.feerico-bencao:checked').forEach(cb => {
+                const key = cb.dataset.key;
+                const bencao = FEERICO_BENCAOS[key];
+                if (!bencao) return;
+                if (bencao.attr) attrs[bencao.attr] = (attrs[bencao.attr] || 0) + 1;
+                selectedPowers.push({ name: bencao.name, desc: bencao.desc || '' });
+            });
+
+            const bencaoNames = selectedPowers.map(p => p.name).join(', ') || 'Nenhuma';
+            document.getElementById('bonusMessage').innerHTML = `Bênçãos: ${bencaoNames}`;
+
+            return { baseAttributes: attrs, isChoice: false, choiceCount: 0, selectedPowers };
+        }
     },
 
     medusaDraconica: {
