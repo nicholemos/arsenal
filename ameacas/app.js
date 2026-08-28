@@ -4,6 +4,8 @@
 let currentTheme = 'blood'; // 'blood' | 'dark' | 'classic'
 let dbGeral = true;
 let dbJornadas = false;
+let dbGuerra = false;
+let dbDueloDragoes = false;
 let allThreats = [];
 let filteredThreats = [];
 let encounterList = [];
@@ -158,6 +160,8 @@ function loadThreats() {
     // AMEACAS_DB and JORNADAS_DB are loaded from global scope (loaded via script tags)
     const dbData = typeof AMEACAS_DB !== 'undefined' ? AMEACAS_DB : [];
     const jornadasData = typeof JORNADAS_DB !== 'undefined' ? JORNADAS_DB : [];
+    const guerraData = typeof GUERRA_DB !== 'undefined' ? GUERRA_DB : [];
+    const dueloDragoesData = typeof DUELO_DRAGOES_DB !== 'undefined' ? DUELO_DRAGOES_DB : [];
     
     // Load homebrews
     const homebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
@@ -166,6 +170,8 @@ function loadThreats() {
     allThreats = [];
     if (dbGeral) allThreats.push(...homebrews, ...dbData);
     if (dbJornadas) allThreats.push(...jornadasData);
+    if (dbGuerra) allThreats.push(...guerraData);
+    if (dbDueloDragoes) allThreats.push(...dueloDragoesData);
 
     // Apply custom threat images from local storage
     try {
@@ -1576,6 +1582,8 @@ function setupEventListeners() {
     // Database Source Checkboxes
     const dbGeralCheck = document.getElementById("db-check-geral");
     const dbJornadasCheck = document.getElementById("db-check-jornadas");
+    const dbGuerraCheck = document.getElementById("db-check-guerra");
+    const dbDueloDragoesCheck = document.getElementById("db-check-duelo-dragoes");
     if (dbGeralCheck) {
         dbGeralCheck.addEventListener("change", () => {
             dbGeral = dbGeralCheck.checked;
@@ -1585,6 +1593,18 @@ function setupEventListeners() {
     if (dbJornadasCheck) {
         dbJornadasCheck.addEventListener("change", () => {
             dbJornadas = dbJornadasCheck.checked;
+            handleDatabaseChange();
+        });
+    }
+    if (dbGuerraCheck) {
+        dbGuerraCheck.addEventListener("change", () => {
+            dbGuerra = dbGuerraCheck.checked;
+            handleDatabaseChange();
+        });
+    }
+    if (dbDueloDragoesCheck) {
+        dbDueloDragoesCheck.addEventListener("change", () => {
+            dbDueloDragoes = dbDueloDragoesCheck.checked;
             handleDatabaseChange();
         });
     }
