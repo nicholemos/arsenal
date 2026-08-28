@@ -320,9 +320,11 @@ function restaurarUltimoBauLocal() {
     var btnCopiar = document.getElementById('btnCopyResult');
     var btnReroll = document.getElementById('btnReroll');
     var btnRerollCoins = document.getElementById('btnRerollCoins');
+    var btnRerollItems = document.getElementById('btnRerollItems');
     if (btnCopiar) btnCopiar.style.display = _ultimoResultado ? '' : 'none';
     if (btnReroll) btnReroll.style.display = _ultimaRodada ? '' : 'none';
     if (btnRerollCoins) btnRerollCoins.style.display = _ultimaRodada ? '' : 'none';
+    if (btnRerollItems) btnRerollItems.style.display = _ultimaRodada ? '' : 'none';
     atualizarLegendaAsteriscos();
 }
 
@@ -1249,6 +1251,8 @@ function rollChest() {
     if (btnReroll) btnReroll.style.display = '';
     var btnRerollCoins = document.getElementById('btnRerollCoins');
     if (btnRerollCoins) btnRerollCoins.style.display = '';
+    var btnRerollItems = document.getElementById('btnRerollItems');
+    if (btnRerollItems) btnRerollItems.style.display = '';
 
     _ultimaRodada = {
         modo: modo,
@@ -1380,6 +1384,140 @@ function rolarSoMoedas() {
     salvarUltimoBauLocal();
 }
 
+// "Só itens": refaz apenas os Itens, mantendo o dinheiro da última rolagem
+function rolarSoItens() {
+    if (!_ultimaRodada) return;
+    var cfg = _ultimaRodada;
+
+    _registroRolagens = [];
+    _capturandoRolagens = true;
+
+    var moedasTotais = {};
+    var acum = { riquezas: 0, itensValor: 0 };
+    var itensRenderizados = [];
+    var dinheiroChaves = [];
+
+    if (cfg.modo === 'missao') {
+        var plano = cfg.planoMesa || null;
+        for (var i = 0; i < cfg.qtd; i++) {
+            var ndAtual = plano ? plano[i] : cfg.ndChave;
+            var res = rolarMissao(ndAtual, cfg.multiplicador, cfg.bonusPct);
+            if (i === 0) {
+                agregarMoedas(res.dinheiro, moedasTotais);
+                dinheiroChaves = Object.keys(moedasTotais);
+            }
+            if (cfg.separar) itensRenderizados.push(criarTituloGrupoCriatura(i, res.dinheiro, plano ? ndAtual : null));
+            itensRenderizados = itensRenderizados.concat(renderizarItensResolvidos(
+                res.dinheiro,
+                'Riqueza — coluna Dinheiro (ND ' + ndAtual + ').',
+                'var(--ouro)',
+                acum
+            ));
+            var elsItens = renderizarItensResolvidos(
+                res.itens,
+                'Resultado da coluna Itens (ND ' + ndAtual + ').',
+                'var(--ouro)',
+                acum
+            );
+            itensRenderizados.push.apply(itensRenderizados, elsItens);
+            _ultimaRodadaItensEls = _ultimaRodadaItensEls.concat(elsItens);
+        }
+    } else {
+        for (var j = 0; j < cfg.qtd; j++) {
+            var busca = rolarBusca(cfg.nivelChave, cfg.sucessos, cfg.bonusPct);
+            if (j === 0) {
+                agregarMoedas(busca.tesouro.dinheiro, moedasTotais);
+                dinheiroChaves = Object.keys(moedasTotais);
+            }
+            busca.efeitos.forEach(function (efeito) {
+                var cor = efeito.tipo === 'castigo' ? 'var(--rubi)' : 'var(--ouro)';
+                var badge = efeito.tipo === 'castigo' ? 'Castigo' : 'Recompensa';
+                var elEfeito = criarItemEl(emojiParaEfeito(efeito.nome), efeito.nome, badge, 1, efeito.desc, cor);
+                itensRenderizados.push(elEfeito);
+                _ultimaRodadaItensEls.push(elEfeito);
+            });
+            itensRenderizados.push.apply(itensRenderizados, renderizarItensResolvidos(
+                busca.tesouro.dinheiro,
+                'Riqueza — recompensa de Busca (Nível ' + cfg.nivelChave + ').',
+                'var(--ouro)',
+                acum
+            ));
+            var elsItensBusca = renderizarItensResolvidos(
+                busca.tesouro.itens,
+                'Item de recompensa (Nível ' + cfg.nivelChave + ').',
+                'var(--ouro)',
+                acum
+            );
+            itensRenderizados.push.apply(itensRenderizados, elsItensBusca);
+            _ultimaRodadaItensEls = _ultimaRodadaItensEls.concat(elsItensBusca);
+        }
+    }
+
+    _capturandoRolagens = false;
+
+    var moedasEmT$ = 0;
+    dinheiroChaves.forEach(function (m) { moedasEmT$ += moedaParaT$(m, moedasTotais[m]); });
+    var totalEmT$ = moedasEmT$ + acum.riquezas + (acum.itensValor || 0);
+
+    document.getElementById('resMoedas').textContent = dinheiroChaves.length
+        ? dinheiroChaves.map(function (m) { return moedasTotais[m] + ' ' + m; }).join(' / ')
+        : '—';
+    document.getElementById('resItens').textContent = itensRenderizados.length;
+    document.getElementById('resValor').textContent = totalEmT$ > 0
+        ? fmtTibares(totalEmT$)
+            + ' (moedas ' + (moedasEmT$ > 0 ? fmtTibares(moedasEmT$) : '—')
+            + ' + riquezas ' + (acum.riquezas > 0 ? fmtTibares(acum.riquezas) : '—')
+            + ' + itens ' + (acum.itensValor > 0 ? fmtTibares(acum.itensValor) : '—') + ')'
+        : '—';
+
+    var coinRow = document.getElementById('coinRow');
+    coinRow.innerHTML = '';
+    dinheiroChaves.forEach(function (moeda) {
+        var el = document.createElement('span');
+        el.className = 'coin-chip';
+        el.innerHTML = '<span class="coin-emoji">🪙</span>' + moedasTotais[moeda] + ' ' + moeda;
+        coinRow.appendChild(el);
+    });
+
+    var list = document.getElementById('treasureList');
+    list.innerHTML = '';
+    if (itensRenderizados.length === 0 && dinheiroChaves.length === 0) {
+        var vazio = document.createElement('p');
+        vazio.className = 'message text-muted';
+        vazio.textContent = 'Nada digno de nota desta vez.';
+        list.appendChild(vazio);
+    } else {
+        var delayBase = 0;
+        itensRenderizados.forEach(function (el, i) {
+            el.style.animationDelay = (i * 0.06) + 's';
+            list.appendChild(el);
+        });
+    }
+
+    var resumoBase = cfg.modo === 'missao'
+        ? (cfg.planoMesa ? '<strong>Mesa</strong> — ' + descreverMesa(cfg.gruposMesa) : '<strong>Recompensa de Missão</strong> — ND ' + cfg.ndChave)
+        : '<strong>Recompensa de Busca</strong> — ' + BUSCA_CONSEQUENCIAS[cfg.sucessos].rotulo;
+    var rolagensHtml = _registroRolagens.length
+        ? '<span class="history-rolls">🎲 ' + _registroRolagens.join(' · ') + '</span>'
+        : '';
+    adicionarAoHistorico(resumoBase + ' <em>(só itens)</em>', rolagensHtml, totalEmT$);
+
+    var moedasTexto = dinheiroChaves.length
+        ? dinheiroChaves.map(function (m) { return moedasTotais[m] + ' ' + m; }).join(' / ')
+        : '';
+    _ultimoResultado = {
+        resumo: resumoBase.replace(/<[^>]+>/g, '') + ' (só itens)',
+        moedasTexto: moedasTexto,
+        totalTexto: totalEmT$ > 0 ? fmtTibares(totalEmT$) : '',
+        totalItens: itensRenderizados.length,
+        itensTexto: _ultimaRodadaItensEls.map(linhaDesdeElemento).filter(function (l) { return l !== ''; })
+    };
+
+    showToast('💎 Itens rolados de novo — dinheiro mantido!', 'toast-sucesso');
+    atualizarLegendaAsteriscos();
+    salvarUltimoBauLocal();
+}
+
 function capitalizar(texto) {
     if (!texto) return texto;
     return texto.charAt(0).toUpperCase() + texto.slice(1);
@@ -1457,6 +1595,7 @@ function copiarResultado() {
 document.getElementById('btnRollChest').addEventListener('click', rollChest);
 document.getElementById('btnReroll').addEventListener('click', rollChest);
 document.getElementById('btnRerollCoins').addEventListener('click', rolarSoMoedas);
+document.getElementById('btnRerollItems').addEventListener('click', rolarSoItens);
 document.getElementById('btnCopyResult').addEventListener('click', copiarResultado);
 document.getElementById('ndEspecifico').addEventListener('change', atualizarReferenciaND);
 document.getElementById('multiplicadorTesouro').addEventListener('change', atualizarReferenciaND);
