@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: "Tormenta";
-  src: url("Tormenta.ttf") format("truetype");
+  src: url("../assets/fonts/Tormenta.ttf") format("truetype");
 }
 
 /* ===== CSS VARIABLES ===== */
