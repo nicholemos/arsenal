@@ -119,13 +119,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <label for="bjLevelFilter">Nível:</label>
                 <select id="bjLevelFilter" class="filter-select">
                     <option value="all">Todos</option>
-                    <option value="1">1</option>
-                    <option value="1 ou 2">1 ou 2</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="8">8</option>
+                    ${[...new Set(BJ_DATABASE.map(i => i.nivel))].sort((a, b) => {
+                        const numA = parseInt(a) || 0;
+                        const numB = parseInt(b) || 0;
+                        return numA - numB;
+                    }).map(lv => `<option value="${lv}">${lv}</option>`).join('')}
                 </select>
             </div>
             <div class="bj-chips" id="bjChips"></div>
