@@ -7,6 +7,8 @@ const classFiltersDiv = document.getElementById('classFilters');
 const classSelector = document.getElementById('classSelector');
 const togglePathsBtn = document.getElementById('togglePathsBtn');
 const pathsWrap = document.getElementById('pathsWrap');
+const racialFiltersDiv = document.getElementById('racialFilters');
+const raceSelector = document.getElementById('raceSelector');
 
 // MODAL
 const modal = document.getElementById('powerModal');
@@ -15,6 +17,24 @@ const modalType = document.getElementById('modalType');
 const modalReq = document.getElementById('modalReq');
 const modalDesc = document.getElementById('modalDesc');
 const closeBtn = document.querySelector('.close-btn');
+
+// Extrai todas as raças únicas dos poderes raciais e popula o select
+function populateRaceSelector() {
+    const racialPowers = powersData.filter(p => p.type === 'raca');
+    const allRaces = new Set();
+    racialPowers.forEach(p => {
+        const cats = (p.category || '').split(',').map(s => s.trim());
+        cats.forEach(c => { if (c) allRaces.add(c); });
+    });
+    const sorted = [...allRaces].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    sorted.forEach(race => {
+        const opt = document.createElement('option');
+        opt.value = race;
+        opt.textContent = race;
+        raceSelector.appendChild(opt);
+    });
+}
+if (raceSelector && powersData) populateRaceSelector();
 
 // --- CONFIGURAÇÃO: Quais botões aparecem para qual classe ---
 const classPaths = {
@@ -74,7 +94,8 @@ let state = {
     complicationFilter: 'all',
     godType: 'all',
     selectedGod: 'all',
-    source: 'all'
+    source: 'all',
+    selectedRace: 'all'
 };
 
 // --- Verifica se poder já está no carrinho ---
@@ -268,6 +289,12 @@ function filterPowers() {
             if (state.selectedGod !== 'all' && !cats.includes(state.selectedGod)) return false;
         }
 
+        // 3.5 Filtro de Raça
+        if (state.mainFilter === 'raca' && state.selectedRace !== 'all') {
+            const cats = (power.category || '').split(',').map(s => s.trim());
+            if (!cats.includes(state.selectedRace)) return false;
+        }
+
         // 4. Filtro de Fonte
         if (state.source !== 'all') {
             const powerSource = power.source || 't20';
@@ -324,6 +351,14 @@ filterBtns.forEach(btn => {
             state.selectedGod = 'all';
         }
 
+        if (state.mainFilter === 'raca') {
+            racialFiltersDiv.style.display = 'flex';
+        } else {
+            racialFiltersDiv.style.display = 'none';
+            state.selectedRace = 'all';
+            if (raceSelector) raceSelector.value = 'all';
+        }
+
         // Sempre mostra o filtro de fonte para poderes
         if (sourceFiltersDiv) {
             sourceFiltersDiv.style.display = 'flex';
@@ -366,6 +401,14 @@ subFilterBtns.forEach(btn => {
         filterPowers();
     });
 });
+
+// Filtro de Raça
+if (raceSelector) {
+    raceSelector.addEventListener('change', () => {
+        state.selectedRace = raceSelector.value;
+        filterPowers();
+    });
+}
 
 // Caminhos (Bruxo, Alquimista, etc)
 pathBtns.forEach(btn => {
