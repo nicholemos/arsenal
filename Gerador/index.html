@@ -234,7 +234,10 @@
       <div class="step-body"><div class="step-body-inner">
         <p class="lore">O <strong>valor de ataque</strong> e o <strong>dano médio total</strong> já vêm da tabela. Divida esse dano entre 1 a 3 ataques (evite mais que isso, exceto em chefões). Escolha os dados e a ferramenta calcula o bônus numérico necessário para bater a média-alvo — a mesma conta do manual: soma-se o menor e o maior resultado possível e divide-se por dois.</p>
         <div id="atk-list"></div>
-        <button class="add-btn" onclick="addAttack()">+ adicionar ataque</button>
+        <div class="atk-actions">
+          <button class="add-btn" onclick="addAttack()">+ adicionar ataque</button>
+          <button class="add-btn add-btn-distribute" onclick="distributeTarget()">÷ distribuir média-alvo</button>
+        </div>
         <div class="dano-calc" id="dano-total-info"></div>
       </div></div>
     </section>

@@ -188,21 +188,57 @@ let attackRows = [];
 let attackSeq  = 0;
 
 const DICE_OPTS = [
-  {label:"1d3",n:1,s:3},{label:"1d4",n:1,s:4},{label:"1d6",n:1,s:6},
-  {label:"1d8",n:1,s:8},{label:"1d10",n:1,s:10},{label:"1d12",n:1,s:12},
-  {label:"2d6",n:2,s:6},{label:"2d8",n:2,s:8},{label:"2d10",n:2,s:10},
-  {label:"3d6",n:3,s:6},{label:"3d8",n:3,s:8},{label:"4d6",n:4,s:6},
-  {label:"4d8",n:4,s:8},{label:"6d6",n:6,s:6},{label:"6d8",n:6,s:8}
+  /* Tabela 3-2: Dano de Armas — todos os dados únicos, ordem crescente de média */
+  {label:"1",    n:1, s:1  },  /* dano fixo 1 (média = 1)   */
+  {label:"1d2",  n:1, s:2  },  /* média 1,5  */
+  {label:"1d3",  n:1, s:3  },  /* média 2    */
+  {label:"1d4",  n:1, s:4  },  /* média 2,5  */
+  {label:"1d6",  n:1, s:6  },  /* média 3,5  */
+  {label:"1d8",  n:1, s:8  },  /* média 4,5  */
+  {label:"2d4",  n:2, s:4  },  /* média 5    */
+  {label:"1d10", n:1, s:10 },  /* média 5,5  */
+  {label:"1d12", n:1, s:12 },  /* média 6,5  */
+  {label:"2d6",  n:2, s:6  },  /* média 7    */
+  {label:"3d4",  n:3, s:4  },  /* média 7,5  */
+  {label:"2d8",  n:2, s:8  },  /* média 9    */
+  {label:"3d6",  n:3, s:6  },  /* média 10,5 */
+  {label:"2d10", n:2, s:10 },  /* média 11   */
+  {label:"3d8",  n:3, s:8  },  /* média 13,5 */
+  {label:"4d6",  n:4, s:6  },  /* média 14   */
+  {label:"3d10", n:3, s:10 },  /* média 16,5 */
+  {label:"4d8",  n:4, s:8  },  /* média 18   */
+  {label:"4d10", n:4, s:10 },  /* média 22   */
+  {label:"4d12", n:4, s:12 },  /* média 26   (máximo da tabela) */
 ];
 
 function addAttack(atkVal, targetAvg) {
   const id = attackSeq++;
-  attackRows.push({ id, nome:"Corpo a Corpo", atk: atkVal ?? "", dice: "1d8", target: targetAvg ?? "", nota:"" });
+  const last = attackRows[attackRows.length - 1];
+  const novo = {
+    id,
+    nome: "Corpo a Corpo",
+    atk: atkVal ?? (last?.atk ?? ""),
+    dice: last?.dice ?? "1d8",
+    qty: last?.qty ?? 1,
+    target: targetAvg ?? (last?.target ?? ""),
+    nota: ""
+  };
+  attackRows.push(novo);
   renderAttackList();
 }
 function removeAttack(id) {
   attackRows = attackRows.filter(r => r.id !== id);
   renderAttackList();
+}
+function attackDamageCalc(r) {
+  /* Retorna o dano médio real de um ataque: (diceAvg + bonus) * qty */
+  const avg  = diceAvg(r.dice);
+  const tgt  = parseFloat(r.target);
+  const qty  = parseInt(r.qty) || 1;
+  if (!r.target || r.target === '' || isNaN(tgt)) return null;
+  const bonus = Math.round(tgt - avg);  /* bônus fixo sugerido */
+  const damagePerHit = Math.round(avg + bonus); /* = tgt arredondado */
+  return { avg, bonus, qty, damagePerHit, total: damagePerHit * qty };
 }
 function renderAttackList() {
   const list = document.getElementById('atk-list');
@@ -210,6 +246,7 @@ function renderAttackList() {
   attackRows.forEach(r => {
     const card = document.createElement('div');
     card.className = "atk-card";
+    card.id = `atk-card-${r.id}`;
     card.innerHTML = `
       <div class="atk-row">
         <div class="field"><label>Arma / ataque</label>
@@ -218,24 +255,51 @@ function renderAttackList() {
           <input type="number" value="${r.atk}" oninput="updateAttack(${r.id},'atk',this.value)"></div>
         <div class="field"><label>Dado de dano</label>
           <select onchange="updateAttack(${r.id},'dice',this.value)">
-            ${DICE_OPTS.map(d=>`<option value="${d.label}" ${d.label===r.dice?"selected":""}>${d.label}</option>`).join("")}
+            ${DICE_OPTS.map(d=>`<option value="${d.label}" ${d.label===r.dice?'selected':''}>${d.label}</option>`).join('')}
           </select></div>
+        <div class="field atk-field-qty"><label>Qtd.</label>
+          <input type="number" min="1" max="10" value="${r.qty ?? 1}" oninput="updateAttack(${r.id},'qty',this.value)"></div>
         <div class="field"><label>Média-alvo</label>
           <input type="number" value="${r.target}" placeholder="ex.: 19" oninput="updateAttack(${r.id},'target',this.value)"></div>
         <button class="remove-btn" onclick="removeAttack(${r.id})">✕</button>
       </div>
+      <div class="atk-dmg-row" id="atk-dmg-${r.id}"></div>
       <div class="atk-row2">
         <div class="field"><label>Margem de ameaça / crítico / efeitos extras</label>
           <input value="${r.nota||""}" placeholder="ex.: 19/x3, mais 1d8 de ácido" oninput="updateAttack(${r.id},'nota',this.value)"></div>
       </div>
     `;
     list.appendChild(card);
+    refreshAttackPreview(r);  /* preenche o preview após inserir no DOM */
   });
+  updateDanoTotalInfo();
   renderSheet();
+}
+/* Atualiza apenas o preview de dano de um card específico (sem recriar o DOM) */
+function refreshAttackPreview(r) {
+  const el = document.getElementById(`atk-dmg-${r.id}`);
+  if (!el) return;
+  const calc = attackDamageCalc(r);
+  if (calc) {
+    el.style.display = '';
+    el.innerHTML = `<span class="atk-dmg-preview">`
+      + (calc.qty > 1 ? `${calc.qty}×` : '')
+      + `${calc.damagePerHit} <span class="atk-dmg-eq">(${r.dice}${calc.bonus >= 0 ? '+' : ''}${calc.bonus})</span>`
+      + (calc.qty > 1 ? ` = <b>${calc.total}</b>` : '')
+      + `</span>`;
+  } else {
+    el.style.display = 'none';
+    el.innerHTML = '';
+  }
 }
 function updateAttack(id, field, value) {
   const r = attackRows.find(r => r.id === id);
-  if (r) { r[field] = value; renderAttackList(); }
+  if (!r) return;
+  r[field] = value;
+  /* Só atualiza o preview e o total — não recria o DOM, preservando o foco */
+  refreshAttackPreview(r);
+  updateDanoTotalInfo();
+  renderSheet();
 }
 function diceAvg(label) {
   const d = DICE_OPTS.find(d => d.label === label);
@@ -245,14 +309,79 @@ function diceAvg(label) {
 function bonusNeeded(target, diceLabel) {
   return Math.round(target - diceAvg(diceLabel));
 }
+/* Monta a string do ataque para exibição/cópia: "Nome" + qtd se >1, +atk, e dano */
+function formatAttackLine(r) {
+  const b       = r.target ? bonusNeeded(parseFloat(r.target), r.dice) : null;
+  const danoTxt = b === null ? r.dice : `${r.dice}${b >= 0 ? ("+" + b) : b}`;
+  const qty     = parseInt(r.qty) || 1;
+  const qtyStr  = qty > 1 ? ` x${qty}` : "";
+  const nota    = r.nota ? `, ${r.nota}` : "";
+  return {
+    nome: r.nome || "Ataque",
+    atk: r.atk || "?",
+    qtyStr,
+    danoTxt,
+    nota,
+    line: `${r.nome || "Ataque"}${qtyStr} +${r.atk || "?"} (${danoTxt}${nota})`
+  };
+}
 function updateDanoTotalInfo() {
   const nd = ndSel.value;
-  const danoTotal = TABLES[state.role][nd][1];
+  const danoMeta = TABLES[state.role][nd][1];
+
+  /* Calcula a soma real de todos os ataques configurados */
+  let somaReal = 0;
+  let todosCalculados = attackRows.length > 0;
+  const partes = [];
+  attackRows.forEach(r => {
+    const calc = attackDamageCalc(r);
+    if (calc) {
+      somaReal += calc.total;
+      const qty = calc.qty;
+      partes.push(`${qty > 1 ? qty + '×' : ''}(${r.dice}${calc.bonus >= 0 ? '+' : ''}${calc.bonus})`);
+    } else {
+      todosCalculados = false;
+    }
+  });
+
+  let somaHtml = '';
+  if (attackRows.length > 0 && todosCalculados) {
+    const diff = somaReal - danoMeta;
+    const absDiff = Math.abs(diff);
+    const pct = danoMeta > 0 ? absDiff / danoMeta : 1;
+    let cls, icon;
+    if (pct <= 0.05)       { cls = 'dmg-sum-ok';   icon = '✓'; }
+    else if (pct <= 0.15)  { cls = 'dmg-sum-near'; icon = '≈'; }
+    else                   { cls = 'dmg-sum-far';  icon = '⚠'; }
+    const diffStr = diff === 0 ? '' : (diff > 0 ? ` (+${diff})` : ` (${diff})`);
+    somaHtml = ` — <span class="${cls}"><b>${icon} Soma atual: ${somaReal}</b>${diffStr}</span>`;
+    if (partes.length > 1) {
+      somaHtml += `<span class="atk-dmg-formula"> [${partes.join(' + ')}]</span>`;
+    }
+  } else if (attackRows.length > 0 && !todosCalculados) {
+    somaHtml = ` — <span class="dmg-sum-near">preencha todas as médias-alvo para ver a soma</span>`;
+  }
+
   document.getElementById('dano-total-info').innerHTML =
-    `Dano médio total para ND ${nd} (${roleLabel()}): <b>${danoTotal}</b>. Divida entre os ataques abaixo — a soma das médias-alvo deve chegar perto desse número.`;
+    `Dano médio para ND ${nd} (${roleLabel()}): <b>${danoMeta}</b>${somaHtml}`;
 }
 function roleLabel() {
   return state.role === "solo" ? "Solo" : (state.role === "lacaio" ? "Lacaio" : "Especial");
+}
+
+/* Divide o dano médio da tabela igualmente entre todos os ataques configurados.
+   Considera a qtd de cada ataque: target = (danoTotal / soma de qty) arredondado. */
+function distributeTarget() {
+  if (attackRows.length === 0) {
+    addAttack();
+  }
+  const nd = ndSel.value;
+  const danoMeta = TABLES[state.role][nd][1];
+  const somaQty = attackRows.reduce((s, r) => s + (parseInt(r.qty) || 1), 0);
+  if (somaQty <= 0) return;
+  const perHit = Math.round(danoMeta / somaQty);
+  attackRows.forEach(r => { r.target = perHit; });
+  renderAttackList();
 }
 
 /* ============= Habilidades ============= */
@@ -1196,10 +1325,8 @@ function renderSheet() {
     atkBox.innerHTML = `<span class="sheet-empty">nenhum ataque definido</span>`;
   } else {
     atkBox.innerHTML = attackRows.map(r => {
-      const b       = r.target ? bonusNeeded(parseFloat(r.target), r.dice) : null;
-      const danoTxt = b === null ? r.dice : `${r.dice}${b>=0?("+"+b):b}`;
-      const nota    = r.nota ? `, ${r.nota}` : "";
-      return `<div class="sheet-line"><b>${r.nome||"Ataque"}</b> +${r.atk||"?"} (${danoTxt}${nota})</div>`;
+      const a = formatAttackLine(r);
+      return `<div class="sheet-line"><b>${a.nome}${a.qtyStr}</b> +${a.atk} (${a.danoTxt}${a.nota})</div>`;
     }).join("");
   }
 
@@ -1272,10 +1399,8 @@ function copySheet() {
   const rd = val('in-rd').trim();
   if (rd) out += `${rd}\n`;
   attackRows.forEach(r => {
-    const b       = r.target ? bonusNeeded(parseFloat(r.target), r.dice) : null;
-    const danoTxt = b === null ? r.dice : `${r.dice}${b>=0?("+"+b):b}`;
-    const nota    = r.nota ? `, ${r.nota}` : "";
-    out += `${r.nome||"Ataque"} +${r.atk||"?"} (${danoTxt}${nota})\n`;
+    const a = formatAttackLine(r);
+    out += `${a.line}\n`;
   });
   abilityRows.forEach(r => {
     if (!r.nome && !r.texto) return;

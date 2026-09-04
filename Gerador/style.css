@@ -336,11 +336,25 @@ textarea { resize: vertical; min-height: 4.2rem; font-family: var(--serif); }
 }
 .theme-classic .atk-card { background: #f8f6f0; }
 .atk-row {
-  display: grid; grid-template-columns: 1.3fr 0.7fr 0.9fr 0.9fr auto;
+  display: grid; grid-template-columns: 1.3fr 0.7fr 0.9fr 0.55fr 0.9fr auto;
   gap: 0.5rem; align-items: end;
 }
 .atk-row .field { min-width: 0; }
+.atk-field-qty input { text-align: center; }
 .atk-row2 { display: grid; grid-template-columns: 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+/* Preview de dano calculado dentro do card */
+.atk-dmg-row {
+  margin: 0.35rem 0 0.1rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  padding: 0.25rem 0.4rem;
+  background: rgba(184,147,63,0.06);
+  border-left: 2px solid var(--gold);
+  border-radius: 1px;
+}
+.atk-dmg-preview b { color: var(--gold); }
+.atk-dmg-eq { opacity: 0.7; }
 .remove-btn {
   background: none; border: 1px solid var(--line); color: var(--ink-faint);
   cursor: pointer; padding: 0.55rem 0.6rem; border-radius: 2px; font-family: var(--mono);
@@ -358,8 +372,38 @@ textarea { resize: vertical; min-height: 4.2rem; font-family: var(--serif); }
   border-radius: 2px;
 }
 .add-btn:hover { background: rgba(184,147,63,0.1); }
-.dano-calc { margin-top: 0.5rem; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-faint); }
+.atk-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.add-btn-distribute {
+  border-color: var(--blood-bright);
+  color: var(--blood-bright);
+}
+.add-btn-distribute:hover { background: rgba(184, 60, 60, 0.1); }
+/* Barra de dano total */
+.dano-calc {
+  margin-top: 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--bg-raised);
+  line-height: 1.6;
+}
 .dano-calc b { color: var(--gold); }
+/* Estados da soma de dano */
+.dmg-sum-ok   { color: #6aad6a; }
+.dmg-sum-ok b { color: #6aad6a; }
+.dmg-sum-near   { color: var(--gold); }
+.dmg-sum-near b { color: var(--gold); }
+.dmg-sum-far   { color: var(--blood-bright); }
+.dmg-sum-far b { color: var(--blood-bright); }
+.atk-dmg-formula { opacity: 0.65; margin-left: 0.3rem; }
 
 /* --------------------------------------------------------------------------
    Habilidades
