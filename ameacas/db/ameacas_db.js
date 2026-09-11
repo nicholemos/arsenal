@@ -4689,7 +4689,7 @@ const AMEACAS_DB = [
             {
                 "nome": "Oração",
                 "tipo": "Padrão",
-                "desc": "7 PM, sustentada. O bispo e seus aliados em alcance curto recebem +4 em testes de perícia e rolagens de dano, e todos os inimigos em alcance curto recebem –4 em testes de perícia e rolagens de dano."
+                "desc": "7 PM, sustentada. O bispo e seus aliados em alcance curto recebem +3 em testes de perícia e rolagens de dano, e todos os inimigos em alcance curto recebem –3 em testes de perícia e rolagens de dano. Esse efeito é cumulativo com outras magias."
             },
             {
                 "nome": "Soco de Arsenal",
@@ -10386,7 +10386,7 @@ const AMEACAS_DB = [
             {
                 "nome": "Magia: Escuridão",
                 "tipo": "Padrão",
-                "desc": "Custos: 5 PM. Objeto curto projeta escuridão total em raio de 6m até o encerramento da cena."
+                "desc": "Custos: 5 PM. Objeto curto projeta escuridão total em raio de 9m até o encerramento da cena."
             },
             {
                 "nome": "Magia: Enxame de Pestes",
@@ -11019,7 +11019,7 @@ const AMEACAS_DB = [
     },
     {
         "nome": "Demônio da Pólvora",
-        "tipo": "Espírito (demônio) Médio",
+        "tipo": "Espírito (abissal) Médio",
         "nd": "12",
         "iniciativa": "+23",
         "percepcao": "+12",
@@ -14171,7 +14171,7 @@ const AMEACAS_DB = [
         "desl": "12m (8q)",
         "pm": "0",
         "atributos": {
-            "for": "4",
+            "for": "6",
             "des": "-1",
             "con": "4",
             "int": "-4",
@@ -18899,7 +18899,7 @@ const AMEACAS_DB = [
             {
                 "nome": "Arremessar Rochas",
                 "tipo": "Completa",
-                "desc": "Arremessa rochas cobrindo um quadrado de 3m em alcance curto. Criaturas na área sofrem 2d6+14 pontos de dano (Ref CD 20 metade)."
+                "desc": "Arremessa rochas cobrindo um quadrado de 3m em alcance curto. Criaturas na área sofrem 2d6+14 pontos de dano de impacto (Ref CD 20 metade)."
             },
             {
                 "nome": "Monte de Ossos",
