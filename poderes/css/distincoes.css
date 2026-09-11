@@ -182,6 +182,23 @@
     padding-bottom: 6px;
 }
 
+/* Destaque inline do arsenal (ex.: Exaurir) */
+.arsenal-destaque {
+    background: color-mix(in srgb, var(--str-accent) 12%, transparent);
+    border-left: 3px solid var(--str-accent);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-main);
+}
+
+.arsenal-destaque strong {
+    color: var(--str-accent);
+    margin-right: 4px;
+}
+
 /* Grid de itens do arsenal */
 .arsenal-grid {
     display: grid;
