@@ -1852,8 +1852,8 @@ const RACE_DATA = {
         bonusMessage: 'Constituição +2, Destreza +1, Inteligência −1',
         racialPowers: [
             {
-                name: 'Empunhadura Poderosa',
-                desc: 'Penalidade para usar armas de categoria de tamanho maior diminui para –2. Se ganhar de novo, a penalidade cai para 0.'
+                name: 'Mão de Rato.',
+                desc: 'Você pode usar armas para duas categorias de tamanho maior que a sua (como uma arma aumentada mesmo sendo Pequeno). Se fizer isso, sofre uma penalidade de –2 nos testes de ataque com ela. Se possuir Empunhadura Poderosa, em vez de seu efeito normal, esse poder diminui esta penalidade para 0.'
             },
             {
                 name: 'Pequeno, Mas Não Metade',
@@ -2453,7 +2453,7 @@ const RACE_DATA = {
             },
             {
                 name: 'Inocência Dissimulada',
-                desc: '+2 em Enganação. Uma vez por cena, pague 2 PM para substituir um teste de perícia por um de Enganação.'
+                desc: '+2 em Enganação. Pode gastar 2 PM para substituir um teste de perícia originalmente baseada em Inteligência, Sabedoria ou Carisma, para substituí-lo por Enganação.'
             },
             {
                 name: 'Presentes de Sszzaas',
@@ -2481,7 +2481,7 @@ const RACE_DATA = {
             },
             {
                 name: 'Inocência Dissimulada',
-                desc: '+2 em Enganação. Uma vez por cena, pague 2 PM para substituir um teste de perícia por um de Enganação.'
+                desc: '+2 em Enganação. Pode gastar 2 PM para substituir um teste de perícia originalmente baseada em Inteligência, Sabedoria ou Carisma, para substituí-lo por Enganação.'
             },
             {
                 name: 'Presentes de Sszzaas',
