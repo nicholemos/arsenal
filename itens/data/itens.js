@@ -1986,12 +1986,12 @@ const itensData = {
         },
         {
             nome: "Garra Feroz",
-            preco: "T$ 60",
+            preco: "T$ 20",
             espacos: "1",
             categoria: "Item Geral",
             tipo: "Vestuário",
             contaComoArma: true,
-            descricao: "Estas pinças de insetos gigantes, presas com tiras de couro, funcionam como uma manopla, mas seus benefícios também se aplicam a uma garra ou a uma arma natural.",
+            descricao: "Estas pinças de insetos gigantes, presas com tiras de couro, funcionam como uma manopla, mas seus benefícios também se aplicam a uma garra ou a uma arma natural de um personagem sob efeito de habilidades como Forma Selvagem..",
             fonte: "Ameaças de Arton",
             imagem: "data/img/garra.webp"
         },
@@ -4426,14 +4426,77 @@ const itensData = {
             "descricao": "Na Véu Escarlate, o \"amor\" está à venda. Disponível apenas no submundo de Vectora — nem todos têm acesso. Algumas horas de carícias lascivas fornecem 2d6 PM temporários.",
             "fonte": "Dragão Brasil"
         },
-        {
-            "nome": "Passagem para o Submundo (Serviço)",
-            "preco": "T$ (suborno 3d10 x T$ 10)",
+{
+            "nome": "Noite de Prazeres (Serviço)",
+            "preco": "T$ 150",
             "espacos": "—",
             "categoria": "Item Geral",
             "tipo": "Serviço",
-            "descricao": "Acesso ao Mercado das Profundezas, no submundo de Vectora. Observando atentamente os movimentos das pessoas, você descobre uma entrada (alçapão sob um tapete, passagem secreta no escritório de um mestre de guilda etc.). Atravessá-la pode exigir teste de Furtividade ou Intimidação (CD 30), suborno (3d10 x T$ 10) ou outra ideia que o mestre aprove.",
+            "descricao": "Na Véu Escarlate, o \"amor\" está à venda. Disponível apenas no submundo de Vectora — nem todos têm acesso. Algumas horas de carícias lascivas fornecem 2d6 PM temporários.",
             "fonte": "Dragão Brasil"
+        },
+
+        // (Itens de Coração de Rubi - Tabela 3-6: Itens de Salistick)
+        {
+            "nome": "Antídoto Universal",
+            "preco": "T$ 15",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Preparados",
+            "descricao": "Esse líquido espesso e verde escuro tem um cheiro forte. Ingeri-lo remove uma condição de veneno. Preparado alquímico.",
+            "fonte": "Coração de Rubi",
+            "imagem": "data/img/acido.webp"
+        },
+        {
+            "nome": "Elixir de Vida",
+            "preco": "T$ 80",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Preparados",
+            "descricao": "Ingerir este tônico analgésico é uma ação padrão e recupera 4d6 pontos de vida. Preparado alquímico; a CD para fabricar este item aumenta em +5.",
+            "fonte": "Coração de Rubi",
+            "imagem": "data/img/balsamo-restaurador.webp"
+        },
+        {
+            "nome": "Lançador Alquímico",
+            "preco": "T$ 600",
+            "espacos": "2",
+            "categoria": "Item Geral",
+            "tipo": "Equipamento de Aventura",
+            "descricao": "Este cano grosso com uma empunhadura e gatilho pode ser carregado com um preparado ou poção como uma ação padrão. Exige as duas mãos e permite arremessar o item carregado em alcance médio. Além disso, aumenta em +2 a CD para resistir ao efeito do item arremessado. Equipamento de aventura.",
+            "fonte": "Coração de Rubi",
+            "imagem": "data/img/mosquete.webp"
+        },
+        {
+            "nome": "Pomada Protetora",
+            "preco": "T$ 750",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Preparados",
+            "descricao": "Uma pasta espessa e cinzenta que deixa a pele dura como pedra. Espalhar a pasta é uma ação completa e fornece redução de dano 5 por uma cena. Preparado alquímico; a CD para fabricar este item aumenta em +10.",
+            "fonte": "Coração de Rubi",
+            "imagem": "data/img/balsamo-restaurador.webp"
+        },
+        {
+            "nome": "Tônico Revigorante",
+            "preco": "T$ 60",
+            "espacos": "0,5",
+            "categoria": "Item Geral",
+            "tipo": "Preparados",
+            "descricao": "Uma bebida amarga que, ao ser ingerida, remove uma condição de fadiga. Preparado alquímico.",
+            "fonte": "Coração de Rubi",
+            "imagem": "data/img/essencia-mana.webp"
+        },
+        // ---------- ITENS ESPECIAIS ----------
+        {
+            "nome": "Fígado de Lagarto Trovão",
+            "preco": "T$ 3.000",
+            "espacos": "1",
+            "categoria": "Item Geral",
+            "tipo": "Alimento Especial",
+            "descricao": "Comer o fígado abençoado de um lagarto-trovão aumenta a Força do personagem em +1. Um personagem só pode aumentar sua Força desta forma uma vez.",
+            "fonte": "Aventuras",
+            "imagem": "https://www.casadecarnespine.com.br/wp-content/uploads/2023/01/figado-de-boi.jpg"
         }
 
     ]

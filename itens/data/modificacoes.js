@@ -684,7 +684,7 @@ const modificacoesData = {
             "espacos": "—",
             "categoria": "Item Superior",
             "tipo": "Material",
-            "descricao": "Exige 1 peça. Sempre que rolar o resultado máximo em um dado do dano básico da arma, role um dado extra, repetindo o processo a cada resultado máximo.",
+            "descricao": "Exige 1 peça. Sempre que rolar o resultado máximo em um dado do dano básico da arma, role um dado extra, repetindo até um limite de dados extras igual ao resultado máximo do dado.",
             "fonte": "Ameaças de Arton"
         },
         {

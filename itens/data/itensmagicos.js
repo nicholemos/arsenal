@@ -1193,7 +1193,7 @@ const itensMagicosData = {
             espacos: "1",
             categoria: "Item Mágico",
             tipo: "Esotérico Mágico Maior",
-            descricao: " Relógio de bolso. Ao lançar magia arcana (execução mov, padrão ou completa), pode gastar +4 PM para lançá-la como ação livre. Se possuir Magia Acelerada, o custo diminui em –2 PM.",
+            descricao: " Relógio de bolso. Uma vez por rodada, ao lançar magia arcana (execução mov, padrão ou completa), pode gastar +4 PM para lançá-la como ação livre. Se possuir Magia Acelerada, o custo diminui em –2 PM.",
             fonte: "Heróis de Arton",
             imagem: "data/img/arcanista.webp"
         },
@@ -1293,7 +1293,7 @@ const itensMagicosData = {
             espacos: "1",
             categoria: "Item Mágico",
             tipo: "Acessório Médio",
-            descricao: "Permite lançar uma magia divina (até 4º círculo) sem custo em PM. Exige realizar uma penitência (definida pelo mestre) antes de usar de novo.",
+            descricao: "Permite lançar uma magia divina (C Sab, até 4º círculo) sem custo em PM. Exige realizar uma penitência (definida pelo mestre) antes de usar de novo.",
             fonte: "Heróis de Arton",
             imagem: "data/img/anel.webp"
         },

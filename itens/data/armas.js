@@ -438,6 +438,23 @@ const armasData = {
             "descricao": "Besta poderosa que causa 1d10 de dano de perfuração (crítico 19). Alcance longo. Recarregar é ação padrão.",
             "imagem": "data/img/besta-pesada.webp"
         },
+        // ---------- ARMAS ESPECIAIS ----------
+        {
+            "nome": "Espada da Galáxia",
+            "preco": "Sem preço",
+            "dano": "4d12",
+            "critico": "17/x2",
+            "alcance": "—",
+            "tipo_dano": "Corte",
+            "espacos": "1",
+            "categoria": "Arma",
+            "tipo": "Marcial",
+            "empunhadura": "Uma Mão",
+            "descricao": "Espada feita de hidrogênio metálico com gume de espessura atômica. Extremamente densa, requer Força 10+ para empunhar. Considerada artefato para efeitos de destruição/alteração de objetos. Apenas metalianos a possuem e podem invocá-la (ação de movimento) de qualquer lugar no mesmo Plano. Não é mágica, mas pode receber encantos e melhorias apenas por armeiros lendários — nunca materiais especiais ou aumento de margem de ameaça.",
+            "requisito": "Força 10",
+            "fonte": "Guerra Artoniana",
+            "imagem": "https://pbs.twimg.com/media/GV5ocarWoAA3fv3.jpg"
+        },
         // ---------- ARMAS EXÓTICAS ----------
         {
             "nome": "Chicote",
