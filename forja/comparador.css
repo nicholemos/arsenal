@@ -1,0 +1,206 @@
+/* ─── ABAS DE PERSONAGENS ─────────────────────────────────────────────── */
+
+.aba-personagem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--borda-card);
+    border-bottom: 3px solid transparent;
+    border-radius: 10px 10px 0 0;
+    padding: 8px 10px 8px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    max-width: 240px;
+}
+
+.aba-personagem:hover {
+    border-color: var(--t20-red);
+    background: var(--bg-card-hover);
+}
+
+.aba-personagem.ativa {
+    border-bottom-color: var(--t20-red);
+    background: var(--bg-card-solid);
+}
+
+.aba-personagem .aba-nome {
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+.aba-personagem .aba-origem {
+    font-size: 0.65rem;
+    color: var(--texto-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.aba-personagem .form-check-input {
+    cursor: pointer;
+}
+
+.aba-fechar {
+    background: none;
+    border: none;
+    color: var(--texto-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 2px;
+    transition: color 0.15s ease;
+}
+
+.aba-fechar:hover {
+    color: var(--t20-red);
+}
+
+/* ─── RESUMO SOMENTE LEITURA ──────────────────────────────────────────── */
+
+.resumo-attr-box {
+    text-align: center;
+    background: var(--bg-surface);
+    border: 2px solid var(--borda-card);
+    border-radius: 10px;
+    padding: 10px 4px;
+}
+
+.resumo-attr-box .resumo-attr-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--ouro);
+    letter-spacing: 0.5px;
+    display: block;
+}
+
+.resumo-attr-box .resumo-attr-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--t20-red);
+}
+
+.badge-pericia, .badge-poder {
+    display: inline-block;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin: 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--borda-card);
+    color: var(--texto-principal);
+}
+
+.badge-poder {
+    border-color: var(--ouro);
+    color: var(--ouro);
+}
+
+/* ─── MODAL DE COMPARAÇÃO — TEMA ──────────────────────────────────────── */
+
+#modalCompararConteudo {
+    background: var(--bg-surface);
+    color: var(--texto-principal);
+    border: 1px solid var(--borda-card);
+}
+
+#modalCompararConteudo .modal-header,
+#modalCompararConteudo .modal-footer {
+    border-color: var(--borda-card);
+}
+
+#modalCompararConteudo .nav-tabs {
+    border-bottom-color: var(--borda-card);
+}
+
+/* ─── TABELA DE DIFF ──────────────────────────────────────────────────── */
+
+.tabela-diff {
+    color: var(--texto-principal);
+    border-color: var(--borda-card);
+}
+
+.tabela-diff th, .tabela-diff td {
+    vertical-align: middle;
+    border-color: var(--borda-card) !important;
+    color: var(--texto-principal);
+    background: transparent;
+}
+
+.tabela-diff thead th {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: var(--ouro);
+    border-bottom: 2px solid var(--borda-card);
+}
+
+.linha-diff td {
+    background: rgba(224, 72, 63, 0.14) !important;
+    border-left: 3px solid var(--t20-red) !important;
+    font-weight: 700;
+    color: var(--texto-principal);
+}
+
+.linha-igual td {
+    color: var(--texto-secundario);
+}
+
+.icone-tem {
+    color: var(--ouro);
+}
+
+.icone-nao-tem {
+    color: var(--texto-muted);
+    opacity: 0.6;
+}
+
+/* ─── PODERES AGRUPADOS POR FICHA ────────────────────────────────────── */
+
+.poderes-coluna {
+    background: var(--bg-surface);
+    border: 1px solid var(--borda-card);
+    border-radius: 12px;
+    padding: 14px;
+    height: 100%;
+}
+
+.poderes-coluna h6 {
+    font-family: var(--font-heading);
+    color: var(--t20-red);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--borda-card);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.badge-poder-comum {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin: 2px;
+    background: var(--bg-card-solid);
+    border: 1px solid var(--borda-card);
+    color: var(--texto-secundario);
+}
+
+.badge-poder-exclusivo {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin: 2px;
+    background: rgba(201, 147, 58, 0.16);
+    border: 1px solid var(--ouro);
+    color: var(--ouro);
+}

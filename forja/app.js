@@ -114,6 +114,8 @@ function inicializarEventos() {
     document.getElementById("btnImportarJson").addEventListener("click", importarJson);
     document.getElementById("btnResetar").addEventListener("click", resetarTudo);
     document.getElementById("btnLimparTudo").addEventListener("click", limparTudo);
+    const btnSalvarComparador = document.getElementById("btnSalvarComparador");
+    if (btnSalvarComparador) btnSalvarComparador.addEventListener("click", salvarParaComparador);
     document.getElementById("cargaAttr").addEventListener("change", atualizarTudo);
     document.getElementById("btnAddBonusPv").addEventListener("click", () => adicionarLinhaBonus("pvBonusList"));
     document.getElementById("btnAddBonusPm").addEventListener("click", () => adicionarLinhaBonus("pmBonusList"));
@@ -735,7 +737,21 @@ function carregarDaFicha(silencioso = false) {
         if (data.defense) {
             if (data.defense.armor && data.defense.armor.bonus) document.getElementById("defArmadura").value = data.defense.armor.bonus;
             if (data.defense.shield && data.defense.shield.bonus) document.getElementById("defEscudo").value = data.defense.shield.bonus;
+            if (data.defense.outros) document.getElementById("defOutros").value = data.defense.outros;
             if (data.defense.config && data.defense.config.attr) document.getElementById("defAttrSelect").value = data.defense.config.attr;
+        }
+
+        if (data.classes && Array.isArray(data.classes) && data.classes.length > 0) {
+            document.getElementById("classesList").innerHTML = "";
+            data.classes.forEach(c => adicionarLinhaClasse(c.nome, c.nivel));
+            reordenarTagsClasses();
+        }
+
+        if (data.powers && Array.isArray(data.powers)) {
+            selectedPowers = data.powers.map(p => ({ name: p.name, type: p.type, class: p.class || '' }));
+            localStorage.setItem('forja_poderes_selecionados', JSON.stringify(selectedPowers));
+            if (typeof renderizarPoderes === 'function' && typeof powersData !== 'undefined') renderizarPoderes();
+            if (typeof atualizarProficienciasPoderes === 'function') atualizarProficienciasPoderes();
         }
 
         if (data.skills && Array.isArray(data.skills)) {
@@ -768,14 +784,14 @@ function carregarDaFicha(silencioso = false) {
     }
 }
 
-function enviarParaFicha() {
-    if (!confirm("Isso irá SOBREPOR todos os dados atualmente salvos na Ficha T20. Deseja continuar?")) return;
+// Monta um snapshot completo do personagem tal como está na tela agora.
+// baseData permite preservar campos que a Forja não gerencia (ex.: magias, histórico) ao mesclar com uma ficha já existente.
+function montarSnapshotAtual(baseData = {}) {
     const classes = obterClassesConfigured();
     const nivelTotal = classes.reduce((sum, c) => sum + c.nivel, 0);
     const strClasse = classes.map(c => `${c.nome} ${c.nivel}`).join(" / ");
 
-    let raw = localStorage.getItem("t20SheetData");
-    let data = raw ? JSON.parse(raw) : {};
+    const data = baseData || {};
 
     data.charName = document.getElementById("nomePersonagem").value;
     data.playerName = document.getElementById("nomeJogador").value;
@@ -821,6 +837,12 @@ function enviarParaFicha() {
     };
     data.defense.armor.bonus = parseInt(document.getElementById("defArmadura").value) || 0;
     data.defense.shield.bonus = parseInt(document.getElementById("defEscudo").value) || 0;
+    data.defense.outros = parseInt(document.getElementById("defOutros").value) || 0;
+    data.defTotal = parseInt(document.getElementById("defTotal").value) || 10;
+
+    // Classes e Poderes (necessários para o Comparador de Fichas)
+    data.classes = obterClassesConfigured().map(c => ({ nome: c.nome, nivel: c.nivel }));
+    data.powers = selectedPowers.map(p => ({ name: p.name, type: p.type, class: p.class || '' }));
 
     data.skills = [];
     document.querySelectorAll("#listaPericias .pericia-linha").forEach((row, i) => {
@@ -861,8 +883,46 @@ function enviarParaFicha() {
         }
     });
 
+    return data;
+}
+
+function enviarParaFicha() {
+    if (!confirm("Isso irá SOBREPOR todos os dados atualmente salvos na Ficha T20. Deseja continuar?")) return;
+    let raw = localStorage.getItem("t20SheetData");
+    let baseData = raw ? JSON.parse(raw) : {};
+    const data = montarSnapshotAtual(baseData);
     localStorage.setItem("t20SheetData", JSON.stringify(data));
     mostrarToast("Ficha atualizada com os dados da Forja! Clique em 'Abrir Ficha' para visualizar.", "success");
+}
+
+// ─── COMPARADOR DE FICHAS ──────────────────────────────────────────────────
+// Salva o personagem atual da Forja como um "slot" local, para ser aberto
+// em uma aba do Comparador de Fichas (comparador.html), sem precisar exportar/importar JSON.
+const CHAVE_PERSONAGENS_SALVOS = "forja_personagens_salvos";
+
+function obterPersonagensSalvos() {
+    try {
+        return JSON.parse(localStorage.getItem(CHAVE_PERSONAGENS_SALVOS) || "[]");
+    } catch (e) {
+        return [];
+    }
+}
+
+function salvarParaComparador() {
+    const nomeAtual = document.getElementById("nomePersonagem").value.trim() || "Personagem sem nome";
+    const nomeSlot = prompt("Nome para salvar esta ficha no Comparador:", nomeAtual);
+    if (nomeSlot === null) return;
+
+    const snapshot = montarSnapshotAtual({});
+    const lista = obterPersonagensSalvos();
+    lista.push({
+        id: `pj_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        nome: nomeSlot.trim() || nomeAtual,
+        salvoEm: new Date().toISOString(),
+        data: snapshot
+    });
+    localStorage.setItem(CHAVE_PERSONAGENS_SALVOS, JSON.stringify(lista));
+    mostrarToast(`"${nomeSlot.trim() || nomeAtual}" salvo para o Comparador de Fichas!`, "success");
 }
 
 function exportarJson() {
