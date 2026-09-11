@@ -537,7 +537,7 @@ const powersData = [
         subType: "power",
         req: "Bárbaro",
         pathReq: "all",
-        desc: "Pague 1 PM para somar seu nível em um teste de Força ou Atletismo. Pode usar após rolar, mas antes do resultado."
+        desc: "Quando faz um teste de Força ou Atletismo, você pode gastar 1 PM para somar seu nível nele."
     },
     {
         name: "Frenesi",
@@ -1461,7 +1461,7 @@ const powersData = [
         subType: "power",
         req: "Treinado em Furtividade",
         pathReq: "all",
-        desc: "Na primeira rodada do combate, pode gastar 2 PM para realizar uma ação padrão adicional."
+        desc: "Uma vez na primeira rodada de cada combate, você pode gastar 2 PM para executar uma ação padrão adicional em seu turno."
     },
     {
         name: "Empatia Selvagem",
@@ -1981,7 +1981,7 @@ const powersData = [
         subType: "ability",
         req: "Nível 20",
         pathReq: "clerigo-base", // EXCLUSIVO PADRÃO
-        desc: "Ação completa e 15 PM. Lança 3 magias divinas quaisquer (conhecidas ou não) como ação livre e sem custo de PM (apenas custos extras/aprimoramentos). Fica atordoado por 1d4 rodadas após o uso."
+        desc: "Ação completa e 15 PM. Lança 3 magias divinas com execução de ação de movimento, padrão ou completa (conhecidas ou não) como ação livre e sem custo de PM (apenas custos extras/aprimoramentos). Fica atordoado por 1d4 rodadas após o uso."
     },
 
     // ========================================================================
@@ -3390,7 +3390,7 @@ const powersData = [
         subType: "power",
         req: "Treinado em Furtividade",
         pathReq: "all",
-        desc: "Na primeira rodada do combate, gaste 2 PM para executar uma ação padrão adicional."
+        desc: "Uma vez na primeira rodada de cada combate, você pode gastar 2 PM para executar uma ação padrão adicional em seu turno."
     },
     {
         name: "Escapista",
@@ -4629,7 +4629,7 @@ const powersData = [
         type: "combat",
         category: "Geral",
         req: "For 3",
-        desc: "Ao usar arma de uma categoria de tamanho maior que a sua, a penalidade de ataque cai para –2 (o normal é –5)."
+        desc: "Ao usar arma de uma categoria de tamanho maior que a sua, a penalidade de ataque cai para –2 (o normal é –5). Caso receba esta habilidade novamente, a penalidade por usar uma arma para uma categoria maior que a sua diminui para 0 e você pode usar armas para até três categorias de tamanho maiores que a sua com uma penalidade de –5 nos testes de ataque."
     },
     {
         name: "Encouraçado",

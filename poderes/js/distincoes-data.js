@@ -1416,6 +1416,9 @@ const distincoesData = [
             titulo: 'Regras de Mutagênicos e Biochoque',
             conteudo: 'Mutagênicos duram 1 dia e só funcionam no fabricante. Ao ingerir, deve-se passar em Fortitude (CD 10 + 5 por teste no dia) ou sofrer Biochoque. Estágio 1: Enjoado; Estágio 2: Perda de 1d12 PV; Estágio 3: Confuso e em Fúria; Estágio 4: Mutações fatais e morte.',
             arsenal: [
+                { n: 'Exaurir.', d: 'Ação livre para exaurir um mutagênico não exaurido em seu corpo. Seu efeito aumenta, mas termina ao fim da cena.', type: 'linha' },
+                { n: 'Sobrecarga.', d: 'Ao ingerir um mutagênico acima do limite, teste biochoque para manter os efeitos anteriores. Falha perde todos os efeitos sobrecarregados. Limite de sobrecarga = limite de mutagênicos.', type: 'linha' },
+                { n: 'Uso Exclusivo.', d: 'Se outra criatura ingerir seu mutagênico, não recebe o efeito e sofre 2d12 PV por veneno.', type: 'linha' },
                 { n: 'Tonificante (T$ 60)', d: 'Fornece +1 em um atributo. Exaurir: Bônus aumenta para +2.' },
                 { n: 'Energizante (T$ 90)', d: 'Lança uma magia de 1º círculo específica (Magia Simulada, Atrib: Con). Exaurir: Custo –1 PM.' },
                 { n: 'Despersonalizante (T$ 150)', d: 'Ganha uma habilidade de raça específica. Exaurir: +1 em um atributo positivo dessa raça.' }
@@ -2558,13 +2561,13 @@ const distincoesData = [
         admissao: 'O candidato deve cursar teoria e filosofia arcana em institutos prestigiados como a Academia Arcana, Wynlla ou Ubani, dedicando-se exclusivamente aos estudos por meses. Em seguida, deve ser aceito em um templo de Wynna ou Kallyadranoch que possua centros de estudo teórico (raros) e imergir em tarefas e estudos por mais um mês. O processo termina com a defesa de uma tese original que una a origem das magias arcana e divina perante uma banca de estudiosos, sem ser desacreditado.',
         marca: {
             name: 'Marca da Distinção: Princípio Hermético',
-            desc: 'Você é considerado um conjurador tanto arcano quanto divino, e suas magias são consideradas simultaneamente arcanas e divinas.'
+            desc: 'Você é considerado um conjurador tanto arcano quanto divino, e suas magias são consideradas simultaneamente arcanas e divinas. Entretanto, restrições de um tipo de magia (como armaduras para arcanistas) passam a afetar ambos os tipos.'
         },
         poderes: [
             {
                 name: 'Conjuração Unificada',
                 req: 'Misticismo e Religião, Magias (arcanas) e Magias (divinas)',
-                desc: 'Escolha um atributo-chave de magia para usar em todas as suas magias e habilidades (exceto cálculo de PM). Restrições de um tipo de magia (como armaduras para arcanistas) passam a afetar ambos os tipos.'
+                desc: 'Escolha um atributo-chave de magia para usar em todas as suas magias e habilidades (exceto cálculo de PM).'
             },
             {
                 name: 'Conhecimento Adaptável',

@@ -84,8 +84,13 @@ function renderPoderesDaDistincao(dist) {
             </summary>
             <div class="distinction-rules-box">
                 <p style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px;">${dist.detalhes.conteudo}</p>
+                ${dist.detalhes.arsenal.filter(a => a.type === 'linha').map(a => `
+                    <div class="arsenal-destaque">
+                        <strong>${a.n}</strong> <span>${a.d}</span>
+                    </div>
+                `).join('')}
                 <div class="arsenal-grid">
-                    ${dist.detalhes.arsenal.map(a => `
+                    ${dist.detalhes.arsenal.filter(a => a.type !== 'linha').map(a => `
                         <div class="arsenal-item">
                             <strong>${a.n}</strong>
                             <span>${a.d}</span>

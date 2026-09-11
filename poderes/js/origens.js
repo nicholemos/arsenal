@@ -1091,7 +1091,7 @@ const origensData = [
     autoTraining: [],
     uniqueBenefit: {
       name: 'Versatilidade Urbana',
-      desc: 'Ganha um poder geral ou de classe (cumprindo requisitos). Pode trocar esse poder por outro após um descanso (uma vez por aventura).'
+      desc: 'Você pode usar um poder geral ou de classe que tenha pelo menos dois níveis (cumprindo requisitos, exceto poderes concedidos ou da Tormenta). Pode trocar esse poder por outro após um descanso (uma vez por aventura).'
     }
   },
 
@@ -1132,7 +1132,7 @@ const origensData = [
     source: 'Atlas',
     region: 'Galrasia',
     desc: 'Adotado por dragoas-caçadoras, você foi criado de acordo com as tradições e valores selvagens dessas predadoras.',
-    items: 'Uma arma simples, armadura leve e lança.',
+    items: 'Uma arma simples, lança e armadura leve comum de até T$ 500.',
     autoTraining: [],
     uniqueBenefit: {
       name: 'Instinto Voraz',
