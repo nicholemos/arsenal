@@ -203,7 +203,7 @@ const SPELLS_DB = [
             },
             {
                 "cost": 2,
-                "desc": "muda o bônus de dano do aprimoramento acima para +2d4. Apenas Devotos de Lin-Wu."
+                "desc": "muda o bônus de dano do primero aprimoramento para +2d4. Apenas Devotos de Lin-Wu."
             }
         ]
     },
@@ -641,6 +641,14 @@ const SPELLS_DB = [
             {
                 "cost": 14,
                 "desc": "aumenta o tamanho do monstro para Colossal. Ele tem For 15, Des 0, 180 PV, deslocamento 15m e seu ataque causa 4d12+20 pontos de dano com 9m de alcance. Requer 5º círculo."
+            },
+            {
+                "cost": 1,
+                "desc": "[Ameaças de Arton] em vez de um monstro, você invoca 4 kobolds Pequenos capangas, que têm For 1, Des 1, Def 12, 1 PV cada e causam, cada um, 1d6-1 pontos de dano com uma ordem atacar. Você pode comandar todos os kobolds com a mesma ação padrão, mas eles devem receber o mesmo tipo de ordem e não podem seguir a ordem lançar magia. Você pode usar este aprimoramento mais vezes para aumentar o número de kobolds em +1, mas não pode usá-lo em conjunto com outros aprimoramentos."
+            },
+            {
+                "cost": 3,
+                "desc": "[Ameaças de Arton] como acima, mas cada kobold tem For 4, Des 1, Def 19, 15 PV e causa 2d6+1 pontos de dano de corte com uma ordem atacar. Requer 2º círculo.."
             }
         ]
     },
@@ -2535,19 +2543,7 @@ const SPELLS_DB = [
             {
                 "cost": 5,
                 "desc": "muda o alvo para área: esfera com 6m de raio centrada em você e a resistência para Fortitude reduz à metade. Em vez do normal, você suga energia das criaturas vivas na área, causando 1d10 pontos de dano de trevas e recebendo PV temporários iguais ao dano total causado. Os PV temporários desaparecem ao final da cena. Requer 2º círculo."
-            },
-            {
-                "cost": 1,
-                "desc": "aumenta o dano em +1d6."
-            },
-            {
-                "cost": 2,
-                "desc": "aumenta o tamanho da criatura a ser agarrada para Grande. Requer 2° Círculo."
-            },
-            {
-                "cost": 4,
-                "desc": "aumenta o tamanho da criatura a ser agarrada para Enorme. Requer 3° Círculo."
-            }
+            }            
         ]
     },
     {
@@ -2894,15 +2890,31 @@ const SPELLS_DB = [
         "aprimoramentos": [
             {
                 "cost": 2,
-                "desc": "aumenta o número de mortos-vivos conjurados em +1. +2 PM (Apenas Arcanos) (AA): em vez de esqueletos, conjura soterrados. Requer 3° círculo. Soterrado: como esqueletos, mas causam dano de frio. Além disso, criaturas atingidas por um soterrado devem passar num teste de fortitude ou ficam enredadas por uma rodada. +3 PM (AA): em vez de esqueletos, conjura criaturas de um tipo definido por sua devoção. Requer 3º círculo. Fúria de Tauron (Tauron): como esqueletos, mas têm tamanho Pequeno, deslocamento de voo 12m, a habilidade incorpóreo, Des 5, Defesa 18 e causam 1d6 pontos de dano de trevas mais 1d6 pontos de dano de fogo. Além disso, criaturas vivas atingidas ficam desprevenidas por uma rodada e em chamas (Fort CD igual a da magia evita). Guerreiro Perpétuo (Apenas Devotos de Arsenal): como esqueletos, mas têm For 5, Des 4, Defesa 33, a habilidade incorpóreo e causam 3d6 pontos de dano de impacto duas vezes por rodada. Zumbi Peçonha (Apenas Devotos de SSzzaaz): como esqueletos, mas têm For 3, Des 1, Defesa 25 e causam 1d8+1 pontos de dano de trevas mais perda de 2d6 PV por veneno. Além disso, criaturas atingidas por um zumbi peçonha devem passar num teste de Fortitude ou ficam atordoadas por 1 rodada e depois fracas. Uma criatura que passe no teste de resistência fica fraca por 1 rodada e imune ao atordoamento dos zumbis peçonha até o fim da cena."
+                "desc": "aumenta o número de mortos-vivos conjurados em +1."
             },
             {
                 "cost": 3,
-                "desc": "em vez de esqueletos, conjura carniçais. Requer 3º círculo. Carniçal: como esqueletos, mas têm For 3, Des 3, Defesa 27 e causam 1d8+3 pontos de dano de trevas mais perda de 1d8 PV por veneno. Além disso, criaturas atingidas por um carniçal devem passar num teste de Fortitude ou ficam paralisadas por 1 rodada. Uma criatura que passe no teste de resistência fica imune à paralisia dos carniçais por um dia."
+                "desc": "em vez de esqueletos, conjura carniçais. Requer 3º círculo. \n *Carniçal*: como esqueletos, mas têm For 3, Des 3, Defesa 27 e causam 1d8+3 pontos de dano de trevas mais perda de 1d8 PV por veneno. Além disso, criaturas atingidas por um carniçal devem passar num teste de Fortitude ou ficam paralisadas por 1 rodada. Uma criatura que passe no teste de resistência fica imune à paralisia dos carniçais por um dia."
             },
             {
                 "cost": 7,
-                "desc": "em vez de esqueletos, conjura sombras. Requer 4º círculo. Sombra: como esqueletos, mas têm Des 4, Defesa 35, são incorpóreas e causam 2d10 pontos de dano de trevas. Além disso, criaturas vivas atingidas por uma sombra devem passar num teste de Fortitude ou perdem 1d4 PM. Sombras perdem a habilidade incorpóreo quando expostas à luz do sol."
+                "desc": "em vez de esqueletos, conjura sombras. Requer 4º círculo. \n *Sombra*: como esqueletos, mas têm Des 4, Defesa 35, são incorpóreas e causam 2d10 pontos de dano de trevas. Além disso, criaturas vivas atingidas por uma sombra devem passar num teste de Fortitude ou perdem 1d4 PM. Sombras perdem a habilidade incorpóreo quando expostas à luz do sol."
+            },
+            {
+                "cost": 2,
+                "desc": "[Ameaças de Arton] (Apenas Arcanos) em vez de esqueletos, conjura soterrados. Requer 3° círculo. \n *Soterrado*: como esqueletos, mas causam dano de frio. Além disso, criaturas atingidas por um soterrado devem passar num teste de Fortitude ou ficam enredadas por 1 rodada."
+            },
+            {
+                "cost": 3,
+                "desc": "[Ameaças de Arton] em vez de esqueletos, conjura fúrias de Tauron. Requer 3º círculo. \n *Fúria de Tauron*: como esqueletos, mas têm tamanho Pequeno, deslocamento de voo 12m, a habilidade incorpóreo, Des 5, Defesa 18 e causam 1d6 pontos de dano de trevas mais 1d6 pontos de dano de fogo. Além disso, criaturas vivas atingidas ficam desprevenidas por 1 rodada e em chamas (Fort CD igual à da magia evita)."
+            },
+            {
+                "cost": 3,
+                "desc": "[Ameaças de Arton] (Apenas Devotos de Arsenal): em vez de esqueletos, conjura guerreiros perpétuos. Requer 3º círculo.\n *Guerreiro Perpétuo*: como esqueletos, mas têm For 5, Des 4, Defesa 33, a habilidade incorpóreo e causam 3d6 pontos de dano de impacto duas vezes por ação"
+            },
+            {
+                "cost": 3,
+                "desc": "[Ameaças de Arton] (Apenas Devotos de Sszzaas): em vez de esqueletos, conjura zumbis peçonha. Requer 3º círculo. \n *Zumbi Peçonha*: como esqueletos, mas têm For 3, Des 1, Defesa 25 e causam 1d8+1 pontos de dano de trevas mais perda de 2d6 PV por veneno. Além disso, criaturas atingidas por um zumbi peçonha ficam atordoadas por 1 rodada (apenas uma vez por cena) e depois fracas (Fort reduz para fracas por 1 rodada)."
             }
         ]
     },
@@ -3510,7 +3522,7 @@ const SPELLS_DB = [
         "al": "cubo de 30m",
         "d": "sustentada",
         "r": "veja texto",
-        "desc": "Uma nuvem rubra surge acima do conjurador. Uma vez por turno, você pode gastar uma ação de movimento para fazer a nuvem manifestar um dos fenômenos a seguir. Chuva ácida. Gotas corrosivas causam 6d4 pontos de dano de ácido em todas as criaturas na área. Neblina venenosa. Uma neblina faz com que todas as criaturas na área percam 2d12 PV (Fortitude evita). Raios escarlates. Até 6 inimigos aleatórios na área sofrem 6d8 pontos de dano de eletricidade (Reflexos reduz à metade). Pesadelos reais. Cada criatura na área sofre 4d6 pontos de dano psíquico e perde 1d4 PM (Vontade reduz o dano à metade e evita a perda de PM). Esta magia só pode ser aprendida e lançada por conjuradores que tenham observado uma área de Tormenta pelo menos uma vez. Sua divulgação é proibida e seu uso é permitido apenas em áreas controladas na Academia Arcana e outros lugares restritos, para estudar o fenômeno da Tormenta. Usar esta magia em qualquer outro ponto do Reinado é crime punido com a morte!",
+        "desc": "[Deuses & Heróis] Uma nuvem rubra surge acima do conjurador. Uma vez por turno, você pode gastar uma ação de movimento para fazer a nuvem manifestar um dos fenômenos a seguir. \n *Chuva ácida*. Gotas corrosivas causam 6d4 pontos de dano de ácido em todas as criaturas na área. \n *Neblina venenosa*. Uma neblina faz com que todas as criaturas na área percam 2d12 PV (Fortitude anula). \n *Raios escarlates*. Até 6 inimigos aleatórios na área sofrem 6d8 pontos de dano de eletricidade (Reflexos reduz à metade). \n *Pesadelos reais*. Cada criatura na área sofre 4d6 pontos de dano psíquico e perde 1d4 PM (Vontade reduz o dano à metade e evita a perda de PM). \n Esta magia só pode ser aprendida e lançada por conjuradores que tenham observado uma área de Tormenta pelo menos uma vez. Sua divulgação é proibida e seu uso é permitido apenas em áreas controladas na Academia Arcana e outros lugares restritos, para estudar o fenômeno da Tormenta. Usar esta magia em qualquer outro ponto do Reinado é crime punido com a morte!",
         "aprimoramentos": [
             {
                 "cost": 3,
@@ -3522,7 +3534,7 @@ const SPELLS_DB = [
             },
             {
                 "cost": 5,
-                "desc": "muda a área para círculo de 1km de raio. Apenas devotos de Aharadak. Deuses & Heróis"
+                "desc": "muda a área para círculo de 1km de raio. Apenas devotos de Aharadak."
             }
         ]
     },

@@ -28,7 +28,7 @@ const STATE = {
     
     // Spell Details Selection State
     selectedSpell: null,
-    selectedUpgrades: new Set() // Indices of selected upgrades
+    selectedUpgrades: new Map() // Indices of selected upgrades -> count
 };
 
 // Map circle levels to Base PM cost in T20
@@ -506,18 +506,34 @@ function openSpellDetails(spell) {
         `;
         
         spell.aprimoramentos.forEach((upg, index) => {
-            html += `
-                <div class="upgrade-item" data-index="${index}">
-                    <div class="upgrade-checkbox-wrapper">
-                        <input type="checkbox" id="upg-check-${index}" value="${index}">
-                        <span class="upgrade-checkmark"></span>
+            const isRepeatable = upg.desc.toLowerCase().startsWith('aumenta');
+            const count = STATE.selectedUpgrades.get(index) || 0;
+            if (isRepeatable) {
+                html += `
+                    <div class="upgrade-item" data-index="${index}">
+                        <div class="upgrade-checkbox-wrapper">
+                            <input type="number" id="upg-check-${index}" value="${count}" min="0" step="1" class="upgrade-number">
+                        </div>
+                        <div class="upgrade-details-wrapper">
+                            <span class="upgrade-cost-badge">+${upg.cost} PM</span>
+                            <p class="upgrade-desc">${formatSpellDescription(upg.desc)} <span class="repeatable-tag">(repetível)</span></p>
+                        </div>
                     </div>
-                    <div class="upgrade-details-wrapper">
-                        <span class="upgrade-cost-badge">+${upg.cost} PM</span>
-                        <p class="upgrade-desc">${formatSpellDescription(upg.desc)}</p>
+                `;
+            } else {
+                html += `
+                    <div class="upgrade-item" data-index="${index}">
+                        <div class="upgrade-checkbox-wrapper">
+                            <input type="checkbox" id="upg-check-${index}" value="${index}" ${count > 0 ? 'checked' : ''}>
+                            <span class="upgrade-checkmark"></span>
+                        </div>
+                        <div class="upgrade-details-wrapper">
+                            <span class="upgrade-cost-badge">+${upg.cost} PM</span>
+                            <p class="upgrade-desc">${formatSpellDescription(upg.desc)}</p>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         });
         
         html += `
@@ -572,25 +588,32 @@ function openSpellDetails(spell) {
         });
     }
     
-    // Checkbox upgrade changes
+    // Upgrade changes (checkbox or number)
     const upgradeItems = content.querySelectorAll(".upgrade-item");
     upgradeItems.forEach(item => {
         const index = parseInt(item.getAttribute("data-index"));
         const checkbox = item.querySelector("input[type='checkbox']");
+        const numberInput = item.querySelector("input[type='number']");
         
-        // Clicks anywhere on the card toggles it
-        item.addEventListener("click", (e) => {
-            if (e.target !== checkbox && !checkbox.contains(e.target)) {
-                checkbox.checked = !checkbox.checked;
-            }
-            toggleUpgradeSelection(index, checkbox.checked, item);
-        });
+        if (checkbox) {
+            item.addEventListener("click", (e) => {
+                if (e.target !== checkbox && !checkbox.contains(e.target)) {
+                    checkbox.checked = !checkbox.checked;
+                }
+                toggleUpgradeSelection(index, checkbox.checked ? 1 : 0, item);
+            });
+        } else if (numberInput) {
+            numberInput.addEventListener("input", () => {
+                const val = parseInt(numberInput.value) || 0;
+                toggleUpgradeSelection(index, val, item);
+            });
+        }
     });
 }
 
-function toggleUpgradeSelection(index, isChecked, itemElement) {
-    if (isChecked) {
-        STATE.selectedUpgrades.add(index);
+function toggleUpgradeSelection(index, value, itemElement) {
+    if (value > 0) {
+        STATE.selectedUpgrades.set(index, value);
         itemElement.classList.add("selected");
     } else {
         STATE.selectedUpgrades.delete(index);
@@ -607,9 +630,9 @@ function recalculateSpellPM() {
     const basePM = CIRCLE_PM_COSTS[spell.c] || 1;
     let upgradesPM = 0;
     
-    STATE.selectedUpgrades.forEach(index => {
+    STATE.selectedUpgrades.forEach((count, index) => {
         if (spell.aprimoramentos && spell.aprimoramentos[index]) {
-            upgradesPM += spell.aprimoramentos[index].cost;
+            upgradesPM += spell.aprimoramentos[index].cost * count;
         }
     });
     
@@ -667,6 +690,12 @@ function formatSpellDescription(text) {
         const regex = new RegExp(`\\b(${term})\\b`, 'gi');
         formatted = formatted.replace(regex, '<b>$1</b>');
     });
+    
+    // 3. Convert *text* to italic
+    formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    // 4. Convert \n to line breaks
+    formatted = formatted.replace(/\n/g, '<br>');
     
     return formatted;
 }
