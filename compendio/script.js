@@ -883,6 +883,39 @@
     }
 
     function renderDetail(key) {
+      // Verificar se é um poder individual (resultado de busca - chave começa com 'power-')
+      if (key && key.indexOf('power-') === 0) {
+        var RAW = (typeof powersData !== 'undefined')
+          ? powersData.filter(function (p) { return p.type !== 'class'; })
+          : [];
+        var foundPower = null;
+        var foundType = null;
+        for (var j = 0; j < RAW.length; j++) {
+          var pKey = 'power-' + RAW[j].name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+          if (pKey === key) {
+            foundPower = RAW[j];
+            foundType = RAW[j].type;
+            break;
+          }
+        }
+        if (foundPower) {
+          var meta = TYPE_META[foundType];
+          var req = foundPower.req ? '<p class="power-req">Requer: ' + escapeHtml(foundPower.req) + '</p>' : '';
+          var catTag = foundPower.category ? '<p class="power-req">' + escapeHtml(foundPower.category) + '</p>' : '';
+          return '' +
+            '<header class="detail-header">' +
+            '<div class="detail-heading" style="width:100%">' +
+            '<h2 class="detail-name">' + escapeHtml(foundPower.name) + '</h2>' +
+            '<div class="detail-badges">' +
+            '<span class="badge source" style="--source-color:' + meta.color + '">' + escapeHtml(meta.label) + '</span>' +
+            '</div>' +
+            '</div>' +
+            '</header>' +
+            '<div class="power-grid">' + powerCard(foundPower.name, req + catTag + '<p class="power-desc">' + (foundPower.desc || '') + '</p>') + '</div>' +
+            '<p class="detail-footnote">Dados extraídos do compêndio de poderes do Arsenal T20 — consulte o mestre para eventuais erratas ou regras de mesa.</p>';
+        }
+      }
+
       var cat = null;
       for (var i = 0; i < items.length; i++) { if (items[i].key === key) { cat = items[i]; break; } }
       if (!cat) return '';
@@ -928,19 +961,44 @@
       items: items,
       sourceMeta: TYPE_META,
       sourceOrder: TYPE_ORDER,
-      getSourceKey: function (d) { return d.type; },
+      getSourceKey: function (d) {
+        if (d._isIndividualPower) return d.type;
+        return d.type;
+      },
       columns: [
         {
           key: 'name', label: 'Categoria',
-          sortValue: function (d) { return TYPE_ORDER.indexOf(d.type); },
-          cellHtml: function (d, meta) { return '<span class="source-dot" style="--source-color:' + meta.color + '"></span><span class="name-text">' + escapeHtml(meta.label) + '</span>'; },
-          title: function (d, meta) { return meta.label; }
+          sortValue: function (d) {
+            if (d._isIndividualPower) return d.power ? d.power.name : '';
+            return TYPE_ORDER.indexOf(d.type);
+          },
+          cellHtml: function (d, meta) {
+            if (d._isIndividualPower) {
+              var p = d.power;
+              var pMeta = TYPE_META[d.type];
+              return '<span class="source-dot" style="--source-color:' + pMeta.color + '"></span><span class="name-text">' + escapeHtml(p.name) + '</span>';
+            }
+            return '<span class="source-dot" style="--source-color:' + meta.color + '"></span><span class="name-text">' + escapeHtml(meta.label) + '</span>';
+          },
+          title: function (d, meta) {
+            if (d._isIndividualPower) return d.power ? d.power.name : '';
+            return meta.label;
+          }
         },
         {
           key: 'qtd', label: 'Qtd.',
-          sortValue: function (d) { return d.powers.length; },
-          cellHtml: function (d) { return d.powers.length + ' poderes'; },
-          title: function (d) { return d.powers.length + ' poderes nesta categoria'; }
+          sortValue: function (d) {
+            if (d._isIndividualPower) return 0;
+            return d.powers.length;
+          },
+          cellHtml: function (d) {
+            if (d._isIndividualPower) return d.power ? (d.power.category || '—') : '—';
+            return d.powers.length + ' poderes';
+          },
+          title: function (d) {
+            if (d._isIndividualPower) return d.power ? (d.power.category || 'Categoria') : '';
+            return d.powers.length + ' poderes nesta categoria';
+          }
         }
       ],
       renderDetail: renderDetail
@@ -1238,6 +1296,39 @@
     var col = current();
     var st = cState();
     var q = stripAccents(st.query.trim());
+
+    // Para "outros-poderes" com busca ativa, retorna poderes individuais
+    if (state.activeId === 'outros-poderes' && q) {
+      var TYPE_META = {
+        combat: { label: 'Poder de Combate', short: 'Combate', color: '#b5384f' },
+        magic: { label: 'Poder Mágico', short: 'Mágico', color: '#4a72b0' },
+        destiny: { label: 'Poder de Destino', short: 'Destino', color: '#8a63b5' },
+        grupo: { label: 'Poder de Grupo', short: 'Grupo', color: '#4f9d69' },
+        conceded: { label: 'Poder Concedido', short: 'Concedido', color: '#c9933a' },
+        raca: { label: 'Poder Racial', short: 'Racial', color: '#e07b39' },
+        tormenta: { label: 'Poder da Tormenta', short: 'Tormenta', color: '#7a2848' },
+        complication: { label: 'Complicação', short: 'Complicação', color: '#666666' }
+      };
+      var RAW = (typeof powersData !== 'undefined')
+        ? powersData.filter(function (p) { return p.type !== 'class'; })
+        : [];
+      function stripTags(str) { return (str || '').replace(/<[^>]*>/g, ' '); }
+      var results = [];
+      RAW.forEach(function (p) {
+        if (!p || !p.name) return;
+        var typeKey = p.type;
+        if (!st.activeSources.has(typeKey)) return;
+        var blob = stripAccents(p.name + ' | ' + (p.category || '') + ' | ' + (p.req || '') + ' | ' + stripTags(p.desc || '') + ' | ' + (TYPE_META[typeKey] ? TYPE_META[typeKey].label : ''));
+        if (q && blob.indexOf(q) === -1) return;
+        results.push({
+          key: 'power-' + p.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase(),
+          data: { _isIndividualPower: true, power: p, type: typeKey },
+          _blob: blob
+        });
+      });
+      return results;
+    }
+
     return col.items.filter(function (r) {
       if (!st.activeSources.has(col.getSourceKey(r.data))) return false;
       if (q && r._blob.indexOf(q) === -1) return false;
@@ -1277,11 +1368,17 @@
     var col = current();
     var st = cState();
     var filtered = getFiltered();
-    resultCountEl.textContent = filtered.length + ' ' + (filtered.length === 1 ? col.labelSingular : col.labelPlural);
+    // Mostrar "poderes" quando são resultados individuais de busca
+    var isIndividualSearch = state.activeId === 'outros-poderes' && st.query.trim();
+    var countLabel = isIndividualSearch
+      ? (filtered.length === 1 ? 'poder' : 'poderes')
+      : (filtered.length === 1 ? col.labelSingular : col.labelPlural);
+    resultCountEl.textContent = filtered.length + ' ' + countLabel;
     renderSortIndicators();
 
     if (!filtered.length) {
-      tableBodyEl.innerHTML = '<tr><td colspan="' + col.columns.length + '" class="no-results">Nenhuma ' + col.labelSingular + ' encontrada com esses filtros.</td></tr>';
+      var noResultsLabel = isIndividualSearch ? 'poder' : col.labelSingular;
+      tableBodyEl.innerHTML = '<tr><td colspan="' + col.columns.length + '" class="no-results">Nenhum ' + noResultsLabel + ' encontrada com esses filtros.</td></tr>';
       return;
     }
 
@@ -1290,7 +1387,9 @@
       var vb = sortValue(col, b, st.sortKey);
       if (va < vb) return -1 * st.sortDir;
       if (va > vb) return 1 * st.sortDir;
-      return a.data.name.localeCompare(b.data.name, 'pt-BR');
+      var nameA = a.data._isIndividualPower ? (a.data.power ? a.data.power.name : '') : a.data.name;
+      var nameB = b.data._isIndividualPower ? (b.data.power ? b.data.power.name : '') : b.data.name;
+      return nameA.localeCompare(nameB, 'pt-BR');
     });
 
     var html = filtered.map(function (r) {
