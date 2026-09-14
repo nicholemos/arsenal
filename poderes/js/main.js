@@ -210,17 +210,65 @@ function renderPowers(powers) {
     });
 }
 
+// Mapa de classes para nome legível em português
+const CLASS_NAMES = {
+    'arcanista': 'Arcanista', 'barbaro': 'Bárbaro', 'bardo': 'Bardo',
+    'bucaneiro': 'Bucaneiro', 'cacador': 'Caçador', 'cavaleiro': 'Cavaleiro',
+    'clerigo': 'Clérigo', 'druida': 'Druida', 'guerreiro': 'Guerreiro',
+    'inventor': 'Inventor', 'ladino': 'Ladino', 'lutador': 'Lutador',
+    'nobre': 'Nobre', 'paladino': 'Paladino', 'treinador': 'Treinador',
+    'frade': 'Frade'
+};
+
+// Mapa de caminhos/variantes para nome legível
+const PATH_NAMES = {
+    'bruxo': 'Bruxo', 'feiticeiro': 'Feiticeiro', 'mago': 'Mago', 'necromante': 'Necromante',
+    'alquimista': 'Alquimista', 'atleta': 'Atleta', 'burgues': 'Burguês',
+    'duelista': 'Duelista', 'ermitao': 'Ermitão', 'inovador': 'Inovador',
+    'machadodepedra': 'Machado de Pedra', 'magimarcialista': 'Magimarcialista',
+    'santo': 'Santo', 'seteiro': 'Seteiro', 'vassalo': 'Vassalo',
+    'ventanista': 'Ventanista', 'usurpador': 'Usurpador'
+};
+
+// Mapa de tipos gerais (não-classe) para nome legível
+const GENERAL_TYPE_NAMES = {
+    'combat':      'Combate',
+    'destiny':     'Destino',
+    'magic':       'Magia',
+    'conceded':    'Concedido',
+    'tormenta':    'Tormenta',
+    'raca':        'Racial',
+    'grupo':       'Grupo',
+    'complication':'Complicação'
+};
+
 function translateType(power) {
     if (power.type === 'class') {
-        let text = power.subType === 'ability' ? 'Habilidade' : 'Poder';
-        if (power.pathReq && power.pathReq !== 'all' && power.pathReq !== 'inventor-base') {
-            text += ` (${capitalize(power.pathReq)})`;
+        const isAbility = power.subType === 'ability';
+        const prefix = isAbility ? 'Hab.' : 'Poder';
+        const className = CLASS_NAMES[power.class] || capitalize(power.class || '');
+
+        // Variante específica (ex: Bruxo, Mago…)
+        const path = power.pathReq;
+        if (path && path !== 'all' && !path.endsWith('-base')) {
+            const pathName = PATH_NAMES[path] || capitalize(path);
+            return `${prefix} de ${className} (${pathName})`;
         }
-        return text;
+
+        return `${prefix} de ${className}`;
     }
+
     if (power.type === 'complication') {
-        return power.class ? `Complicação (${capitalize(power.class)})` : 'Complicação Geral';
+        return power.class
+            ? `Complicação (${CLASS_NAMES[power.class] || capitalize(power.class)})`
+            : 'Complicação Geral';
     }
+
+    // Poderes gerais: usa o mapa de tipos
+    const typeName = GENERAL_TYPE_NAMES[power.type];
+    if (typeName) return `Poder de ${typeName}`;
+
+    // Fallback: category ou type bruto
     return power.category || power.type;
 }
 
