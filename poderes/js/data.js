@@ -12170,7 +12170,7 @@ const powersData = [
             { deity: 'Marah', desc: '+2 em Adestramento, Atuação e Diplomacia. Aura de calmaria de 9m: criaturas na área sofrem –2 em testes de ataque e rolagens de dano.' },
             { deity: 'Megalokk', desc: 'Aparência feral. Arma natural à escolha (dano 1d6, crítico x2). Uma vez por rodada, ao agredir com outra arma, gaste 1 PM para um ataque extra com a arma natural.' },
             { deity: 'Nimb', desc: 'Característica estética que muda. Gaste 1 PM para receber +2 em um atributo aleatório até o fim da cena.' },
-            { deity: 'Oceano', desc: 'Guelras e membranas entre os dedos. Pode respirar debaixo d\'água e recebe deslocamento de natação igual ao deslocamento normal.' },
+            { deity: 'Oceano', desc: 'Guelras e membranas entre os dedos. Pode respirar debaixo d\'água e recebe deslocamento de natação igual ao deslocamento normal. (se já tem um deslocamento de natação, em vez disso recebe camuflagem total dentro d’água).' },
             { deity: 'Ragnar', desc: 'Traços goblinoides. +1 em rolagens de dano. Uma vez por rodada, ao reduzir inimigo a 0 PV, recupera 1 PM.' },
             { deity: 'Sszzaas', desc: 'Olhos serpentinos no escuro. +2 em Furtividade. Ao passar por 10+ em Furtividade contra um lacaio, ele esquece que você esteve presente.' },
             { deity: 'Tanna-Toh', desc: 'Mecha branca nos cabelos. Uma vez por cena, ao passar em Conhecimento/Guerra/Misticismo/Nobreza/Religião, recebe +1d6 para usar como bônus em outro teste relacionado.' },
