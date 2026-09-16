@@ -82,6 +82,7 @@ const materialEspecialPlaceholder = {
 
 // ===== ESTADO GLOBAL =====
 let allItems = []; // Itens base (armas, armaduras, etc.)
+let allCulinaria = [];
 let filteredItems = [];
 let inventory = [];
 let currentModalItem = null;
@@ -219,7 +220,8 @@ function loadItems() {
             ...(typeof itensMagicosData !== 'undefined' ? (itensMagicosData.item || []) : []),
             ...(typeof modificacoesData !== 'undefined' ? (modificacoesData.modificacao || []) : []),
             ...(typeof enchantmentosData !== 'undefined' ? (enchantmentosData.encantamento || []) : []),
-            ...(typeof maldicaoData !== 'undefined' ? (maldicaoData.maldicao || []) : [])
+            ...(typeof maldicaoData !== 'undefined' ? (maldicaoData.maldicao || []) : []),
+            ...(typeof culinariaData !== 'undefined' ? (culinariaData.item || []) : [])
         ];
 
         // 2. Processa os dados
@@ -270,10 +272,13 @@ function loadItems() {
                 preco: item.preco, fonte: item.fonte, categoria: 'Maldição'
             }));
 
+        allCulinaria = combinedData.filter(item => item.categoria === 'Culinária');
+
         // 3. Limpa a lista principal "allItems"
         allItems = combinedData.filter(item =>
             item.categoria !== 'Item Superior' &&
-            item.categoria !== 'Maldição' && // <-- ADICIONADO
+            item.categoria !== 'Maldição' &&
+            item.categoria !== 'Culinária' &&
             !allEnchantments.some(enc => enc.nome === item.nome) &&
             !allEsotericEnchantments.some(enc => enc.nome === item.nome) &&
             !allAccessoryEnchantments.some(enc => enc.nome === item.nome)
@@ -714,11 +719,60 @@ function isVestido(item) {
 }
 
 // ===== FILTROS ESPECÍFICOS =====
+function renderCulinariaFilters() {
+    const filters = [
+        { value: 'Ingredientes', label: 'Ingredientes' },
+        { value: 'Pratos', label: 'Pratos' }
+    ];
+
+    const hint = document.createElement('span');
+    hint.className = 'subfilter-hint';
+    hint.textContent = 'Filtrar por:';
+    specificFiltersContainer.appendChild(hint);
+
+    filters.forEach(filter => {
+        const btn = document.createElement('button');
+        const isSelected = selectedTypes.length === 0 || selectedTypes.includes(filter.value);
+        btn.className = 'filter-btn' + (isSelected ? ' active' : '');
+        btn.textContent = filter.label;
+        btn.addEventListener('click', () => {
+            if (selectedTypes.includes(filter.value)) {
+                selectedTypes = selectedTypes.filter(type => type !== filter.value);
+            } else {
+                selectedTypes.push(filter.value);
+            }
+            updateSpecificFilters();
+            applyFilters();
+        });
+        specificFiltersContainer.appendChild(btn);
+    });
+}
+
+function isCulinariaPrato(item) {
+    return String(item.tipo || '').startsWith('Pratos');
+}
+
+function getCulinariaTypePriority(item) {
+    return isCulinariaPrato(item) ? 0 : 1;
+}
+
+function getCulinariaGroups() {
+    return [
+        { title: 'Pratos', items: filteredItems.filter(isCulinariaPrato) },
+        { title: 'Ingredientes', items: filteredItems.filter(item => item.tipo === 'Ingredientes') }
+    ].filter(group => group.items.length > 0);
+}
+
 function updateSpecificFilters() {
     specificFiltersContainer.innerHTML = '';
 
     const noSubFilter = ['todos'];
     if (noSubFilter.includes(currentCategory)) {
+        return;
+    }
+
+    if (currentCategory === 'Culinária') {
+        renderCulinariaFilters();
         return;
     }
 
@@ -921,6 +975,8 @@ function applyFilters() {
         sourceList = allModifications.concat(allMaterials);
     } else if (currentCategory === 'Item Mágico') {
         sourceList = allItems.filter(i => i.categoria === 'Item Mágico');
+    } else if (currentCategory === 'Culinária') {
+        sourceList = allCulinaria;
     } else if (currentCategory === 'Maldição') {
         sourceList = allCurses;
     } else if (currentCategory !== 'todos') {
@@ -931,8 +987,17 @@ function applyFilters() {
 
     let filtered = sourceList;
 
+    if (currentCategory === 'Culinária' && selectedTypes.length > 0) {
+        filtered = filtered.filter(item => {
+            const isPrato = isCulinariaPrato(item);
+            const isIngrediente = item.tipo === 'Ingredientes';
+            return (selectedTypes.includes('Pratos') && isPrato) ||
+                (selectedTypes.includes('Ingredientes') && isIngrediente);
+        });
+    }
+
 // 2. Filtros
-    if (currentView === 'grid' && selectedTypes.length > 0) {
+    if (currentView === 'grid' && selectedTypes.length > 0 && currentCategory !== 'Culinária') {
         if (currentCategory === 'Item Geral') {
             const foodSubtypes = ['Básico', 'Pratos Especiais', 'Pratos Especiais Divinos', 'Bebidas'];
             const alquimicoSubtypes = ['Preparados', 'Catalisador', 'Venenos'];
@@ -986,6 +1051,11 @@ function applyFilters() {
     // NOVO: LÓGICA DE ORDENAÇÃO
     // =======================================================
     filtered.sort((a, b) => {
+        if (currentCategory === 'Culinária') {
+            const priorityDiff = getCulinariaTypePriority(a) - getCulinariaTypePriority(b);
+            if (priorityDiff !== 0) return priorityDiff;
+        }
+
         switch (currentSort) {
             case 'name-asc':
                 return a.nome.localeCompare(b.nome);
@@ -1011,7 +1081,11 @@ function applyFilters() {
 // ===== RENDERIZAÇÃO DE ITENS (Controlador) =====
 function renderItems() {
     if (currentView === 'table') {
-        specificFiltersContainer.innerHTML = '';
+        if (currentCategory === 'Culinária') {
+            updateSpecificFilters();
+        } else {
+            specificFiltersContainer.innerHTML = '';
+        }
         empunhaduraFiltersContainer.style.display = 'none';
     } else {
         updateSpecificFilters();
@@ -1028,17 +1102,74 @@ function renderItems() {
 }
 
 function renderAsGrid() {
-    itemsGrid.style.display = 'grid';
     itemsGrid.classList.add('items-grid');
     itemsGrid.classList.remove('table-view-container');
 
     if (filteredItems.length === 0) {
+        itemsGrid.style.display = 'grid';
         itemsGrid.innerHTML = '<div class="no-results">Nenhum item encontrado.</div>';
         return;
     }
 
+    if (currentCategory === 'Culinária') {
+        // Empilha as sections verticalmente ocupando a largura toda
+        itemsGrid.style.display = 'flex';
+        itemsGrid.style.flexDirection = 'column';
+        const groups = getCulinariaGroups();
+
+        itemsGrid.innerHTML = groups.map(group => {
+            const key = 'cul-collapsed-' + group.title;
+            const isCollapsed = localStorage.getItem(key) === 'true';
+            return `
+            <section class="culinaria-group${isCollapsed ? ' collapsed' : ''}" data-cul-key="${key}">
+                <button class="culinaria-group-header" type="button" aria-expanded="${!isCollapsed}">
+                    <span class="culinaria-group-title">${group.title}</span>
+                    <span class="culinaria-group-count">${group.items.length} ${group.items.length === 1 ? 'item' : 'itens'}</span>
+                    <svg class="culinaria-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+                <div class="culinaria-group-body">
+                    <div class="culinaria-group-grid">
+                        ${group.items.map(item => {
+                            const index = filteredItems.indexOf(item);
+                            const sourceBadge = item.fonte ? `<span class="badge badge-fonte">${item.fonte}</span>` : '';
+                            return `
+                                <div class="item-card" onclick="openModal(${index})">
+                                    <div class="item-name">${item.nome}</div>
+                                    <div class="item-price">${item.preco || "—"}</div>
+                                    <div class="item-badges">
+                                        ${item.categoria ? `<span class="badge badge-cat">${item.categoria}</span>` : ''}
+                                        ${item.tipo ? `<span class="badge badge-tipo">${item.tipo}</span>` : ''}
+                                        ${isVestido(item) ? '<span class="badge badge-vestido">Vestido</span>' : ''}
+                                        ${sourceBadge}
+                                    </div>
+                                    <div class="item-spaces">Espaços: ${item.espacos || '—'}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </section>
+        `}).join('');
+
+        // Adiciona comportamento de colapsar/expandir após renderizar
+        itemsGrid.querySelectorAll('.culinaria-group-header').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.closest('.culinaria-group');
+                const isNowCollapsed = !section.classList.contains('collapsed');
+                section.classList.toggle('collapsed', isNowCollapsed);
+                btn.setAttribute('aria-expanded', !isNowCollapsed);
+                const key = section.dataset.culKey;
+                if (key) localStorage.setItem(key, isNowCollapsed);
+            });
+        });
+        return;
+    }
+
+    itemsGrid.style.display = 'grid';
+    itemsGrid.style.flexDirection = '';
     itemsGrid.innerHTML = filteredItems.map((item, index) => {
-        // NOVO: Adiciona a tag de fonte se ela existir
         const sourceBadge = item.fonte ? `<span class="badge badge-fonte">${item.fonte}</span>` : '';
 
         return ` 
