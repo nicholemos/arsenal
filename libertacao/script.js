@@ -235,28 +235,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-      const imageButton = document.createElement('button');
-      imageButton.innerText = 'Adicionar Imagem';
-      imageButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*';
-        fileInput.style.display = 'none';
-        fileInput.onchange = (event) => {
-          const file = event.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (readEvent) => {
-            npcContainer.style.backgroundImage = `url(${readEvent.target.result})`;
-            autoSaveToCache();
-          };
-          reader.readAsDataURL(file);
-        };
-        document.body.appendChild(fileInput);
-        fileInput.click();
-        document.body.removeChild(fileInput);
-      });
+       const imageButton = document.createElement('button');
+       imageButton.innerText = 'Adicionar Imagem';
+       imageButton.addEventListener('click', (e) => {
+         e.stopPropagation();
+         const url = prompt("Cole o link da imagem ou clique em Cancelar para escolher um arquivo local:");
+         if (url !== null && url.trim() !== '') {
+           npcContainer.style.backgroundImage = `url(${url.trim()})`;
+           autoSaveToCache();
+         } else if (url === null) {
+           const fileInput = document.createElement('input');
+           fileInput.type = 'file';
+           fileInput.accept = 'image/*';
+           fileInput.style.display = 'none';
+           fileInput.onchange = (event) => {
+             const file = event.target.files[0];
+             if (!file) return;
+             const reader = new FileReader();
+             reader.onload = (readEvent) => {
+               npcContainer.style.backgroundImage = `url(${readEvent.target.result})`;
+               autoSaveToCache();
+             };
+             reader.readAsDataURL(file);
+           };
+           document.body.appendChild(fileInput);
+           fileInput.click();
+           document.body.removeChild(fileInput);
+         }
+       });
 
       const removeNpcButton = document.createElement('button');
       removeNpcButton.innerText = 'Remover NPC';
@@ -290,25 +296,32 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         playerImgDiv.innerHTML = '<span class="player-img-placeholder">+</span>';
       }
-      playerImgDiv.title = 'Clique para adicionar imagem do jogador';
-      playerImgDiv.onclick = (e) => {
-        e.stopPropagation();
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = (ev) => {
-          const file = ev.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (re) => {
-            playerImgDiv.style.backgroundImage = `url(${re.target.result})`;
-            playerImgDiv.innerHTML = '';
-            autoSaveToCache();
-          };
-          reader.readAsDataURL(file);
-        };
-        input.click();
-      };
+       playerImgDiv.title = 'Clique para adicionar imagem do jogador';
+       playerImgDiv.onclick = (e) => {
+         e.stopPropagation();
+         const url = prompt("Cole o link da imagem do jogador ou clique em Cancelar para escolher um arquivo local:");
+         if (url !== null && url.trim() !== '') {
+           playerImgDiv.style.backgroundImage = `url(${url.trim()})`;
+           playerImgDiv.innerHTML = '';
+           autoSaveToCache();
+         } else if (url === null) {
+           const input = document.createElement('input');
+           input.type = 'file';
+           input.accept = 'image/*';
+           input.onchange = (ev) => {
+             const file = ev.target.files[0];
+             if (!file) return;
+             const reader = new FileReader();
+             reader.onload = (re) => {
+               playerImgDiv.style.backgroundImage = `url(${re.target.result})`;
+               playerImgDiv.innerHTML = '';
+               autoSaveToCache();
+             };
+             reader.readAsDataURL(file);
+           };
+           input.click();
+         }
+       };
 
       const playerTitle = document.createElement('h3');
       playerTitle.innerHTML = `${playerData.name} <span class="toggle-arrow">▼</span>`;
@@ -548,27 +561,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
           }
 
-          const newEstab = {
-            nome,
-            descricao,
-            servicos,
-            honrarias,
-            imagem: '',
-            honrariasReveladas: false
-          };
-
-          estabelecimentosList.push(newEstab);
-          createEstabCard(newEstab);
-          updateFiltroSelect();
+          addEstabData({ nome, descricao, servicos, honrarias, imagem: '', honrariasReveladas: false });
 
           nameInput.value = '';
           descInput.value = '';
           servicesInput.value = '';
           honorsInput.value = '';
-
-          autoSaveToCache();
         });
       }
+    }
+
+    // Adiciona um estabelecimento a partir de dados estruturados (form manual ou catálogo de Candeh'ssa)
+    function addEstabData(newEstab) {
+      estabelecimentosList.push(newEstab);
+      createEstabCard(newEstab);
+      updateFiltroSelect();
+      autoSaveToCache();
+    }
+
+    function jaExisteEstab(nome) {
+      return estabelecimentosList.some(e => e.nome.toLowerCase() === nome.toLowerCase());
     }
 
     function updateFiltroSelect() {
@@ -660,24 +672,31 @@ document.addEventListener('DOMContentLoaded', () => {
         autoSaveToCache();
       };
 
-      card.querySelector('.btn-img-estab').onclick = (e) => {
-        e.stopPropagation();
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = ev => {
-          const file = ev.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = readEv => {
-            card.querySelector('img').src = readEv.target.result;
-            estabData.imagem = readEv.target.result;
-            autoSaveToCache();
-          };
-          reader.readAsDataURL(file);
-        };
-        input.click();
-      };
+       card.querySelector('.btn-img-estab').onclick = (e) => {
+         e.stopPropagation();
+         const url = prompt("Cole o link da imagem do estabelecimento ou clique em Cancelar para escolher um arquivo local:");
+         if (url !== null && url.trim() !== '') {
+           card.querySelector('img').src = url.trim();
+           estabData.imagem = url.trim();
+           autoSaveToCache();
+         } else if (url === null) {
+           const input = document.createElement('input');
+           input.type = 'file';
+           input.accept = 'image/*';
+           input.onchange = ev => {
+             const file = ev.target.files[0];
+             if (!file) return;
+             const reader = new FileReader();
+             reader.onload = readEv => {
+               card.querySelector('img').src = readEv.target.result;
+               estabData.imagem = readEv.target.result;
+               autoSaveToCache();
+             };
+             reader.readAsDataURL(file);
+           };
+           input.click();
+         }
+       };
 
       card.querySelector('.btn-remove-estab').onclick = (e) => {
         e.stopPropagation();
@@ -707,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     init();
-    return { getSaveData, loadSaveData };
+    return { getSaveData, loadSaveData, addEstabData, jaExisteEstab };
   })();
 
   // =================================================================
@@ -800,6 +819,11 @@ document.addEventListener('DOMContentLoaded', () => {
       autoSaveToCache();
     });
 
+    function addMissionData(nome, descricao, recompensa) {
+      createCustomMissionCard({ id: ++missaoIdCounter, nome, descricao, recompensa, completa: false });
+      autoSaveToCache();
+    }
+
     function getSaveData() {
       const data = [];
       missionList.querySelectorAll('.custom-mission-card').forEach(card => {
@@ -818,7 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
       (data || []).forEach(d => createCustomMissionCard({ nome: d.nome, descricao: d.descricao, recompensa: d.recompensa, completa: d.completa }));
     }
 
-    return { getSaveData, loadSaveData };
+    return { getSaveData, loadSaveData, addMissionData };
   })();
 
   // =================================================================
@@ -943,20 +967,27 @@ document.addEventListener('DOMContentLoaded', () => {
       autoSaveToCache();
     };
 
-    // Lógica de Imagem (Reutilizando seu leitor de arquivos)
-    card.querySelector('.btn-img-ally').onclick = () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.onchange = e => {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          card.querySelector('img').src = ev.target.result;
-          autoSaveToCache();
-        };
-        reader.readAsDataURL(e.target.files[0]);
-      };
-      input.click();
-    };
+     // Lógica de Imagem (Aceita link ou arquivo local)
+     card.querySelector('.btn-img-ally').onclick = () => {
+       const url = prompt("Cole o link da imagem do aliado ou clique em Cancelar para escolher um arquivo local:");
+       if (url !== null && url.trim() !== '') {
+         card.querySelector('img').src = url.trim();
+         autoSaveToCache();
+       } else if (url === null) {
+         const input = document.createElement('input');
+         input.type = 'file';
+         input.accept = 'image/*';
+         input.onchange = e => {
+           const reader = new FileReader();
+           reader.onload = ev => {
+             card.querySelector('img').src = ev.target.result;
+             autoSaveToCache();
+           };
+           reader.readAsDataURL(e.target.files[0]);
+         };
+         input.click();
+       }
+     };
 
     card.querySelector('.btn-remove-ally').onclick = () => {
       if (confirm("Remover aliado?")) { card.remove(); autoSaveToCache(); }
@@ -1016,6 +1047,175 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // =================================================================
+  // BANCO DE DADOS E GERADOR ALEATÓRIO DE CANDEH'SSA
+  // =================================================================
+  const candehssaModule = (() => {
+    const db = window.CANDEHSSA_DB || { estabelecimentos: [], npcs: [] };
+
+    function jaExisteAlly(nome) {
+      return Array.from(document.querySelectorAll('#ally-npc-list .solicitante-card h5'))
+        .some(h5 => h5.textContent.trim().toLowerCase() === nome.toLowerCase());
+    }
+
+    function addNpcFromCatalogo(npcData) {
+      if (jaExisteAlly(npcData.nome)) {
+        alert(`${npcData.nome} já está na lista de aliados.`);
+        return false;
+      }
+      const desc = `${npcData.descricao}\nGosta de: ${npcData.gostos}\nNão gosta de: ${npcData.desgostos}\nLocal: ${npcData.estabelecimento}`;
+      const bonus = `Última Demanda: ${npcData.ultimaDemanda}\n${npcData.beneficios}`;
+      createAllyNpc({ name: npcData.nome, desc, bonus, image: '' });
+      autoSaveToCache();
+      return true;
+    }
+
+    function addEstabFromCatalogo(estabData) {
+      if (estabelecimentosModule.jaExisteEstab(estabData.nome)) {
+        alert(`${estabData.nome} já está na lista de estabelecimentos.`);
+        return false;
+      }
+      estabelecimentosModule.addEstabData({
+        nome: estabData.nome,
+        descricao: estabData.descricao,
+        servicos: estabData.servicos,
+        honrarias: estabData.honrarias,
+        imagem: '',
+        honrariasReveladas: false
+      });
+      return true;
+    }
+
+    function sortearNpc() {
+      const disponiveis = db.npcs.filter(n => !jaExisteAlly(n.nome));
+      if (disponiveis.length === 0) {
+        alert('Todos os NPCs de Candeh\'ssa já foram adicionados!');
+        return;
+      }
+      const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+      addNpcFromCatalogo(escolhido);
+    }
+
+    function sortearEstab() {
+      const disponiveis = db.estabelecimentos.filter(e => !estabelecimentosModule.jaExisteEstab(e.nome));
+      if (disponiveis.length === 0) {
+        alert('Todos os estabelecimentos de Candeh\'ssa já foram adicionados!');
+        return;
+      }
+      const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+      addEstabFromCatalogo(escolhido);
+    }
+
+    function rolarDado(lados) {
+      return Math.floor(Math.random() * lados) + 1;
+    }
+
+    function sortearMissao() {
+      const tabela = db.missoesAleatorias;
+      if (!tabela) return;
+
+      const rolagemSolicitante = rolarDado(8) + rolarDado(8); // 2d8 => 2 a 16
+      const rolagemObjetivo = rolarDado(8); // 1d8
+      const rolagemRecompensa = rolarDado(6); // 1d6
+
+      const solicitante = tabela.solicitantePorRolagem[rolagemSolicitante];
+      const objetivo = tabela.objetivos[rolagemObjetivo];
+      const recompensa = tabela.recompensas[rolagemRecompensa];
+
+      const nome = `${objetivo.nome} — ${solicitante}`;
+      const descricao = `Solicitante: ${solicitante}. ${objetivo.descricao}`;
+      const recompensaTexto = `${recompensa.nome}. ${recompensa.descricao}`;
+
+      missoesCustomModule.addMissionData(nome, descricao, recompensaTexto);
+    }
+
+    // ------- Modal de Catálogo (busca/navegação manual) -------
+    const modal = document.getElementById('catalogo-modal');
+    const modalTitle = document.getElementById('catalogo-modal-title');
+    const modalList = document.getElementById('catalogo-modal-list');
+    const searchInput = document.getElementById('catalogo-search');
+    let catalogoAtual = null; // 'npcs' ou 'estabelecimentos'
+
+    function renderCatalogoList(filtro = '') {
+      modalList.innerHTML = '';
+      const itens = catalogoAtual === 'npcs' ? db.npcs : db.estabelecimentos;
+      const filtroLower = filtro.trim().toLowerCase();
+      const filtrados = itens.filter(i => i.nome.toLowerCase().includes(filtroLower));
+
+      if (filtrados.length === 0) {
+        modalList.innerHTML = '<p>Nenhum resultado encontrado.</p>';
+        return;
+      }
+
+      filtrados.forEach(item => {
+        const jaAdicionado = catalogoAtual === 'npcs' ? jaExisteAlly(item.nome) : estabelecimentosModule.jaExisteEstab(item.nome);
+        const row = document.createElement('div');
+        row.className = 'solicitante-card';
+        row.style.cursor = 'default';
+        row.style.padding = '12px';
+
+const linhaSub = catalogoAtual === 'npcs'
+	  ? `<p style="margin:4px 0; word-break:break-word; overflow-wrap:break-word;"><strong>Local:</strong> ${item.estabelecimento}</p>
+	     <p style="margin:4px 0; font-size:0.9rem; word-break:break-word; overflow-wrap:break-word;">${item.descricao}</p>`
+	   : `<p style="margin:4px 0; word-break:break-word; overflow-wrap:break-word;"><strong>Serviços:</strong> ${item.resumo}</p>
+	     <p style="margin:4px 0; font-size:0.9rem; word-break:break-word; overflow-wrap:break-word;">${item.descricao}</p>`;
+
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+            <div style="min-width:0; overflow-wrap:break-word; word-break:break-word; flex:1;">
+              <h5 style="margin:0 0 5px 0; word-break:break-word; overflow-wrap:break-word; white-space:normal;">${item.nome}</h5>
+              ${linhaSub}
+            </div>
+            <button class="btn-add-catalogo" style="flex-shrink:0; ${jaAdicionado ? 'background-color: var(--border-color); cursor: not-allowed;' : ''}" ${jaAdicionado ? 'disabled' : ''}>
+              ${jaAdicionado ? 'Adicionado' : 'Adicionar'}
+            </button>
+          </div>
+        `;
+
+        row.querySelector('.btn-add-catalogo').onclick = () => {
+          const sucesso = catalogoAtual === 'npcs' ? addNpcFromCatalogo(item) : addEstabFromCatalogo(item);
+          if (sucesso) renderCatalogoList(searchInput.value);
+        };
+
+        modalList.appendChild(row);
+      });
+    }
+
+    function abrirCatalogo(tipo) {
+      catalogoAtual = tipo;
+      modalTitle.textContent = tipo === 'npcs' ? "Catálogo de NPCs de Candeh'ssa" : "Catálogo de Estabelecimentos de Candeh'ssa";
+      searchInput.value = '';
+      renderCatalogoList();
+      modal.style.display = 'flex';
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', () => renderCatalogoList(searchInput.value));
+    }
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+    }
+
+    const btnSortearNpc = document.getElementById('sortearNpcCandehssa');
+    if (btnSortearNpc) btnSortearNpc.addEventListener('click', sortearNpc);
+
+    const btnSortearEstab = document.getElementById('sortearEstabCandehssa');
+    if (btnSortearEstab) btnSortearEstab.addEventListener('click', sortearEstab);
+
+    const btnSortearMissao = document.getElementById('sortearMissaoCandehssa');
+    if (btnSortearMissao) btnSortearMissao.addEventListener('click', sortearMissao);
+
+    const btnCatalogoNpcs = document.getElementById('abrirCatalogoNpcs');
+    if (btnCatalogoNpcs) btnCatalogoNpcs.addEventListener('click', () => abrirCatalogo('npcs'));
+
+    const btnCatalogoEstabs = document.getElementById('abrirCatalogoEstabs');
+    if (btnCatalogoEstabs) btnCatalogoEstabs.addEventListener('click', () => abrirCatalogo('estabelecimentos'));
+
+    return {};
+  })();
+
   // Listeners
   document.getElementById('saveData').addEventListener('click', saveData);
   document.getElementById('loadData').addEventListener('change', loadData);
@@ -1028,90 +1228,8 @@ document.addEventListener('DOMContentLoaded', () => {
     container.addEventListener('click', () => setTimeout(autoSaveToCache, 500));
   }
 
-  // =================================================================
-  // DADOS DE EXEMPLO (seed inicial)
-  // =================================================================
-  function seedDefaultData() {
-    // NPCs de Jogadores de exemplo
-    const npcSeed = [
-      {
-        name: "Triunvirato",
-        image: "https://cdn.creazilla.com/cliparts/7937698/minotaur-clipart-xl.png",
-        npcs: [
-          { name: "Ash, o Caçador", hearts: 4, image: "", affinityText: "Caçador elfo, especialista em rastreio e armadilhas." },
-          { name: "Kira, a Maga", hearts: 3, image: "", affinityText: "Maga humana, estudiosa de runas antigas." },
-          { name: "Thorn, o Guerreiro", hearts: 5, image: "", affinityText: "Guerreiro anão, escudeiro implacável." }
-        ]
-      },
-      {
-        name: "Solitários",
-        image: "",
-        npcs: [
-          { name: "Lira, a Bardana", hearts: 2, image: "", affinityText: "Barda elfa, sempre coletando histórias na taverna." }
-        ]
-      }
-    ];
-    npcModule.loadSaveData(npcSeed);
-
-    // NPCs Aliados de exemplo
-    const alliesSeed = [
-      { name: "Mestre Aurélio", desc: "Sábio ancião que conhece os segredos de Candeh'ssa.", bonus: "+2 em testes de Conhecimento", image: "https://preview.redd.it/hohenheim-as-the-archetype-of-the-wise-old-man-v0-o5udiiestt391.jpg" },
-      { name: "Irmãs do Destino", desc: "Duas irmãs gêmeas que operam a casa de banho.", bonus: "Cura +1d6 por descanso", image: "" },
-      { name: "Corvo Noturno", desc: "Informante misterioso que frequenta a taverna.", bonus: "+1 dado em testes de Investigação", image: "" }
-    ];
-    alliesSeed.forEach(ally => createAllyNpc(ally));
-
-    // Estabelecimentos de exemplo
-    const estabSeed = [
-      {
-        nome: "Casa de Banho",
-        imagem: "images/casa_de_banho.png",
-        descricao: "Um local sereno de águas termais mágicas para purificação e cura dos heróis.",
-        servicos: "Recuperação completa de PV e PM por descanso.",
-        honrarias: "Banho Abençoado (Cura extra e bônus em testes de Vontade)",
-        honrariasReveladas: false
-      },
-      {
-        nome: "Taverna do Corvo",
-        imagem: "images/taverna_corvo.png",
-        descricao: "A taverna local, ponto central de boatos, fofocas e contratação de mercenários.",
-        servicos: "Obtenção de boatos sobre as masmorras e contratação de aliados temporários.",
-        honrarias: "Cliente VIP (Desconto em serviços e aliados)",
-        honrariasReveladas: false
-      },
-      {
-        nome: "Templo de Valkaria",
-        imagem: "images/templo_valkaria.png",
-        descricao: "Um suntuoso templo erguido em devoção à Deusa da Ambição e da Humanidade.",
-        servicos: "Remoção de condições negativas, maldições e ressurreição.",
-        honrarias: "Bênção da Ambição (+1 em testes de ataque e Defesa)",
-        honrariasReveladas: false
-      },
-      {
-        nome: "Laboratório Alquímico",
-        imagem: "images/laboratorio_alquimico.png",
-        descricao: "Oficina repleta de frascos borbulhantes controlada por alquimistas excêntricos.",
-        servicos: "Compra e identificação de poções, elixires e itens alquímicos.",
-        honrarias: "Desconto em Alquímicos (20% de desconto em poções)",
-        honrariasReveladas: false
-      }
-    ];
-    estabelecimentosModule.loadSaveData(estabSeed);
-
-    // Missões customizáveis de exemplo
-    const missionSeed = [
-      { nome: "O Ritual Perdido", descricao: "Encontrar os 3 fragmentos do antigo ritual nas masmorras ao norte.", recompensa: "Poção da Vitalidade + 200 PE", completa: false },
-      { nome: "A Coroa de Gelo", descricao: "Recuperar a coroa do Rei de Gelo na câmara 13 da Masmorra Glacial.", recompensa: "Arma Mágica Menor + 500 PE", completa: false },
-      { nome: "O Sumiço de Bartholomeu", descricao: "O ferreiro Bartholomeu desapareceu há 3 dias. Investigar a mina abandonada.", recompensa: "Armadura Reforçada + Favor da Guilda", completa: true }
-    ];
-    missoesCustomModule.loadSaveData(missionSeed);
-
-    autoSaveToCache();
-  }
-
   // Carregamento inicial
   loadFromCache();
-  if (document.getElementById('player-list').children.length === 0) seedDefaultData();
 
   // Modal overlay click to close
   const npcModal = document.getElementById('npc-modal');
