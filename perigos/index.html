@@ -12,7 +12,7 @@
 <body>
 
   <header class="header">
-    <h1 class="header-title">Perigos Complexos Tormenta 20</h1>
+    <h1 class="header-title" id="page-title">Perigos Complexos Tormenta 20</h1>
     <div class="header-btns">
       <a href="../index.html" class="header-home-btn" title="Arsenal do Mestre">🏠 Hub</a>
       <!-- Theme Switcher -->
@@ -26,44 +26,78 @@
 
   <div class="container py-4">
 
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <label for="busca" class="form-label">Busca por Termo</label>
-        <input type="text" id="busca" class="form-control" placeholder="Digite um termo..." />
+    <!-- Seletor de modo -->
+    <div class="d-flex justify-content-center mb-4">
+      <div class="theme-switcher modo-switcher" id="modo-switcher">
+        <button class="modo-btn active" data-modo="complexos">⚔️ Perigos Complexos</button>
+        <button class="modo-btn" data-modo="diversos">📖 Perigos Diversos</button>
       </div>
-      <div class="col-md-3">
-        <label for="origem" class="form-label">Local</label>
-        <select id="origem" class="form-select"></select>
+    </div>
+
+    <!-- ===================== MODO: PERIGOS COMPLEXOS ===================== -->
+    <div id="modo-complexos" class="modo-painel">
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <label for="busca" class="form-label">Busca por Termo</label>
+          <input type="text" id="busca" class="form-control" placeholder="Digite um termo..." />
+        </div>
+        <div class="col-md-3">
+          <label for="origem" class="form-label">Local</label>
+          <select id="origem" class="form-select"></select>
+        </div>
+        <div class="col-md-3">
+          <label for="nd" class="form-label">Nível de Desafio (ND)</label>
+          <select id="nd" class="form-select"></select>
+        </div>
+        <div class="col-md-3">
+          <label for="tipo" class="form-label">Tipo</label>
+          <select id="tipo" class="form-select"></select>
+        </div>
+        <div class="col-md-3">
+          <label for="ordem" class="form-label">Ordenar por ND</label>
+          <select id="ordem" class="form-select">
+            <option value="nenhum">Sem ordenação</option>
+            <option value="crescente">Crescente</option>
+            <option value="decrescente">Decrescente</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label d-block">Fontes</label>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="incluir-breves" />
+            <label class="form-check-label" for="incluir-breves">incluir Breves Jornadas</label>
+          </div>
+        </div>
+
       </div>
-      <div class="col-md-3">
-        <label for="nd" class="form-label">Nível de Desafio (ND)</label>
-        <select id="nd" class="form-select"></select>
-      </div>
-      <div class="col-md-3">
-        <label for="tipo" class="form-label">Tipo</label>
-        <select id="tipo" class="form-select"></select>
-      </div>
-      <div class="col-md-3">
-        <label for="ordem" class="form-label">Ordenar por ND</label>
-        <select id="ordem" class="form-select">
-          <option value="nenhum">Sem ordenação</option>
-          <option value="crescente">Crescente</option>
-          <option value="decrescente">Decrescente</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label d-block">Fontes</label>
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="incluir-breves" />
-          <label class="form-check-label" for="incluir-breves">incluir Breves Jornadas</label>
+
+      <div class="row g-4" id="perigos-container"></div>
+    </div>
+
+    <!-- ===================== MODO: PERIGOS DIVERSOS ===================== -->
+    <div id="modo-diversos" class="modo-painel d-none">
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label for="busca-diversos" class="form-label">Busca por Termo</label>
+          <input type="text" id="busca-diversos" class="form-control" placeholder="Digite um termo..." />
+        </div>
+        <div class="col-md-4">
+          <label for="categoria-diversos" class="form-label">Categoria</label>
+          <select id="categoria-diversos" class="form-select"></select>
+        </div>
+        <div class="col-md-4">
+          <label for="origem-diversos" class="form-label">Fonte</label>
+          <select id="origem-diversos" class="form-select"></select>
         </div>
       </div>
 
+      <div id="perigos-diversos-container"></div>
     </div>
-
-    <div class="row g-4" id="perigos-container"></div>
   </div>
 
+  <button id="scroll-top-btn" class="scroll-top-btn" title="Voltar ao topo">↑</button>
+
+  <script src="perigos-diversos.js"></script>
   <script src="script.js"></script>
 </body>
 

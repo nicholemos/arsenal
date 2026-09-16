@@ -854,7 +854,7 @@ const perigos = [
     nd: "14",
     tipo: "Desafio Social",
     nome: "Jogo de Influências",
-    imagem: "https://pa1.aminoapps.com/6907/1f592c2e680bb9618be717b85a4162efd389b8d8r1-500-281_hq.gif",
+    imagem: "https://i.pinimg.com/originals/74/2d/b3/742db30aa0515314d0a048045ef91bf7.gif",
     efeito: `
       <strong>Objetivo:</strong> Cair nas graças de Schaven para obter a energia elemental do fogo.
       <hr>
@@ -1084,7 +1084,7 @@ const perigos = [
     nd: "6",
     tipo: "Desafio urbano",
     nome: "Fuga de Suth Eleghar",
-    imagem: "https://j.gifs.com/w0kq6X.gif",
+    imagem: "https://giffiles.alphacoders.com/207/207201.gif",
     efeito: `
       <strong>Objetivo:</strong> Ajudar os elegharianos a fugir do ataque.
       <hr>
@@ -1493,7 +1493,7 @@ const perigos = [
     nd: "4",
     tipo: "Desafio de agilidade e resgate",
     nome: "Deslizamento",
-    imagem: "https://y.yarn.co/094a06fc-3b94-4f01-a693-3651d239472d_text.gif",
+    imagem: "https://i.imgur.com/OtTQND5.gif",
     efeito: `
       <strong>Objetivo:</strong> Escapar do deslizamento antes de ser soterrado.
       <hr>
@@ -2026,6 +2026,203 @@ function formatarEfeito(html) {
 
 
 carregarPerigos();
+
+// ================================================================
+//  PERIGOS DIVERSOS (clima, terreno, viagens, doenças, armadilhas,
+//  maldições e fenômenos rubros — regras de referência sem ND/testes)
+// ================================================================
+const buscaDiversosInput = document.querySelector("#busca-diversos");
+const categoriaDiversosSelect = document.querySelector("#categoria-diversos");
+const origemDiversosSelect = document.querySelector("#origem-diversos");
+const containerDiversos = document.querySelector("#perigos-diversos-container");
+
+const ORDEM_CATEGORIAS_DIVERSOS = [
+  "Clima", "Terrenos", "Viagens", "Perigos Ambientais",
+  "Armadilhas", "Doenças", "Fenômenos Rubros", "Maldições"
+];
+
+let diversosCarregados = false;
+
+function carregarPerigosDiversos() {
+  if (typeof perigosDiversos === "undefined") return;
+
+  perigosDiversos.forEach(p => {
+    p.efeito = formatarEfeito(p.efeito);
+  });
+
+  const categorias = ORDEM_CATEGORIAS_DIVERSOS.filter(c =>
+    perigosDiversos.some(p => p.categoria === c)
+  );
+  const origens = Array.from(new Set(perigosDiversos.map(p => p.origem))).sort();
+
+  preencherSelect(categoriaDiversosSelect, categorias);
+  preencherSelect(origemDiversosSelect, origens);
+
+  categoriaDiversosSelect.addEventListener("change", filtrarPerigosDiversos);
+  origemDiversosSelect.addEventListener("change", filtrarPerigosDiversos);
+  buscaDiversosInput.addEventListener("input", filtrarPerigosDiversos);
+
+  filtrarPerigosDiversos();
+}
+
+function filtrarPerigosDiversos() {
+  const categoria = categoriaDiversosSelect.value;
+  const origem = origemDiversosSelect.value;
+  const busca = buscaDiversosInput.value.toLowerCase();
+
+  const filtrados = perigosDiversos.filter(p => {
+    const textoCompleto = (
+      p.nome + " " +
+      p.categoria + " " +
+      (p.subcategoria || "") + " " +
+      p.origem + " " +
+      p.efeito
+    ).toLowerCase();
+
+    const pertenceCategoria = categoria === "todos" ||
+      p.categoria === categoria ||
+      (p.categorias && p.categorias.includes(categoria));
+
+    return (
+      pertenceCategoria &&
+      (origem === "todos" || p.origem === origem) &&
+      textoCompleto.includes(busca)
+    );
+  });
+
+  renderizarPerigosDiversos(filtrados);
+}
+
+function renderizarPerigosDiversos(lista) {
+  containerDiversos.innerHTML = "";
+
+  if (lista.length === 0) {
+    containerDiversos.innerHTML = `<p class="text-muted text-center py-4">Nenhum resultado encontrado.</p>`;
+    return;
+  }
+
+  const categoriaFiltro = categoriaDiversosSelect.value;
+  const filtrandoCategoria = categoriaFiltro && categoriaFiltro !== "todos";
+
+  const categoriasPresentes = ORDEM_CATEGORIAS_DIVERSOS.filter(c => {
+    if (filtrandoCategoria) {
+      return c === categoriaFiltro && lista.some(p =>
+        p.categoria === c || (p.categorias && p.categorias.includes(c))
+      );
+    }
+    return lista.some(p => p.categoria === c);
+  });
+
+  categoriasPresentes.forEach(categoria => {
+    const itensCategoria = lista.filter(p => {
+      if (filtrandoCategoria) {
+        return p.categoria === categoria || (p.categorias && p.categorias.includes(categoria));
+      }
+      return p.categoria === categoria;
+    });
+
+    const secao = document.createElement("div");
+    secao.className = "mb-4 categoria-diversos";
+
+    const titulo = document.createElement("h3");
+    titulo.className = "categoria-titulo";
+    titulo.textContent = categoria;
+    secao.appendChild(titulo);
+
+    const subcats = Array.from(new Set(itensCategoria.map(p => p.subcategoria || "")));
+    const temSubcats = subcats.length > 1 || (subcats.length === 1 && subcats[0] !== "");
+
+    if (temSubcats) {
+      subcats.forEach(sub => {
+        const itensSub = itensCategoria.filter(p => (p.subcategoria || "") === sub);
+        if (sub) {
+          const subtitulo = document.createElement("h5");
+          subtitulo.className = "subcategoria-titulo";
+          subtitulo.textContent = sub;
+          secao.appendChild(subtitulo);
+        }
+        secao.appendChild(criarListaItensDiversos(itensSub));
+      });
+    } else {
+      secao.appendChild(criarListaItensDiversos(itensCategoria));
+    }
+
+    containerDiversos.appendChild(secao);
+  });
+}
+
+function criarListaItensDiversos(itens) {
+  const row = document.createElement("div");
+  row.className = "row g-3 mb-3";
+
+  itens.forEach(p => {
+    const col = document.createElement("div");
+    col.className = "col-md-6";
+    const slug = p.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    col.innerHTML = `
+      <div id="${slug}" class="card h-100 perigo-card diverso-card" style="cursor: pointer;">
+        ${p.imagem ? `<img src="${p.imagem}" class="card-img-top" alt="${p.nome}" style="max-height:200px; object-fit:cover;">` : ""}
+        <div class="card-body">
+          <h6 class="card-title text-danger fw-bold mb-1">${p.nome}${p.nd ? ` (ND ${p.nd})` : ""}</h6>
+          <div class="card-subtitle text-warning small mb-2">${p.origem}</div>
+          <div class="efeito collapse">${p.efeito}</div>
+        </div>
+      </div>
+    `;
+    row.appendChild(col);
+  });
+
+  return row;
+}
+
+// ================================================================
+//  SCROLL TO TOP
+// ================================================================
+(function initScrollToTop() {
+  const btn = document.querySelector("#scroll-top-btn");
+  if (!btn) return;
+
+  window.addEventListener("scroll", () => {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+
+// ================================================================
+//  SELETOR DE MODO (Perigos Complexos x Perigos Diversos)
+// ================================================================
+(function initModoSwitcher() {
+  const btns = document.querySelectorAll(".modo-btn");
+  const painelComplexos = document.querySelector("#modo-complexos");
+  const painelDiversos = document.querySelector("#modo-diversos");
+  const titulo = document.querySelector("#page-title");
+  if (!btns.length) return;
+
+  btns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      btns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const modo = btn.getAttribute("data-modo");
+
+      if (modo === "diversos") {
+        painelComplexos.classList.add("d-none");
+        painelDiversos.classList.remove("d-none");
+        if (titulo) titulo.textContent = "Perigos Diversos Tormenta 20";
+        if (!diversosCarregados) {
+          carregarPerigosDiversos();
+          diversosCarregados = true;
+        }
+      } else {
+        painelDiversos.classList.add("d-none");
+        painelComplexos.classList.remove("d-none");
+        if (titulo) titulo.textContent = "Perigos Complexos Tormenta 20";
+      }
+    });
+  });
+})();
 
 // ================================================================
 //  TEMA SANGUE/SOMBRAS/CLÁSSICO
