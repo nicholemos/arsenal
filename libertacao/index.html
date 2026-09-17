@@ -37,11 +37,10 @@
     <section id="npc-progress-section" class="card">
       <header>
         <h2>Progresso com NPCs</h2>
-        <div class="player-form">
-          <input type="text" id="playerName" placeholder="Nome do Jogador">
-          <button id="addPlayer">Adicionar Jogador</button>
-        </div>
-        <button id="removePlayer" class="btn-remove">Remover Jogador Selecionado</button>
+         <div class="player-form">
+           <input type="text" id="playerName" placeholder="Nome do Jogador">
+           <button id="addPlayer">Adicionar Jogador</button>
+         </div>
       </header>
 
       <div id="player-list"></div>
@@ -108,30 +107,43 @@
     </section>
   </div>
 
-  <div id="catalogo-modal" class="modal-overlay" style="display:none;">
-    <div class="modal-content" style="width: 700px; max-width: 95%; max-height: 85vh; display: flex; flex-direction: column;">
-      <h4 id="catalogo-modal-title">Catálogo de Candeh'ssa</h4>
-      <input type="text" id="catalogo-search" placeholder="Buscar por nome..." style="width: 100%; margin-bottom: 10px; box-sizing: border-box;">
-      <div id="catalogo-modal-list" style="overflow-x: hidden; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px;"></div>
-      <button onclick="document.getElementById('catalogo-modal').style.display='none'" style="margin-top:15px; float:none; align-self:flex-end;">Fechar</button>
-    </div>
-  </div>
+   <div id="catalogo-modal" class="modal-overlay" style="display:none;">
+     <div class="modal-content">
+       <h4 id="catalogo-modal-title">Catálogo de Candeh'ssa</h4>
+       <input type="text" id="catalogo-search" placeholder="Buscar por nome...">
+       <div id="catalogo-modal-list"></div>
+       <button class="modal-footer-btn" onclick="document.getElementById('catalogo-modal').style.display='none'">Fechar</button>
+     </div>
+   </div>
 
-  <div id="npc-modal" class="modal-overlay" style="display:none;">
-    <div class="modal-content">
-      <div style="display:flex; gap:15px; align-items:start;">
-        <div id="npc-modal-image" style="width:120px; height:120px; border-radius:8px; background-size:cover; background-position:center; background-color:#333; flex-shrink:0;"></div>
-        <div style="flex:1;">
-          <h4 id="npc-modal-name"></h4>
-          <p><strong>Nível:</strong> <span id="npc-modal-nivel"></span></p>
-          <p><strong>Jogador:</strong> <span id="npc-modal-player"></span></p>
-          <p><strong>Corações:</strong> <span id="npc-modal-hearts"></span></p>
-          <p><strong>Anotações:</strong> <span id="npc-modal-notes"></span></p>
-        </div>
+   <div id="npc-modal" class="modal-overlay" style="display:none;">
+     <div class="modal-content">
+       <div style="display:flex; gap:15px; align-items:start;">
+         <div id="npc-modal-image" style="width:120px; height:120px; border-radius:8px; background-size:cover; background-position:center; background-color:#333; flex-shrink:0;"></div>
+         <div style="flex:1;">
+           <h4 id="npc-modal-name"></h4>
+           <p><strong>Nível:</strong> <span id="npc-modal-nivel"></span></p>
+           <p><strong>Jogador:</strong> <span id="npc-modal-player"></span></p>
+           <p><strong>Corações:</strong> <span id="npc-modal-hearts"></span></p>
+           <p id="npc-modal-bonus-row" style="display:none;"><strong>Bônus Atual:</strong> <span id="npc-modal-bonus"></span></p>
+           <p><strong>Anotações:</strong> <span id="npc-modal-notes"></span></p>
+         </div>
+       </div>
+       <button onclick="document.getElementById('npc-modal').style.display='none'" style="margin-top:15px;">Fechar</button>
+     </div>
+   </div>
+
+    <!-- Modal de Seleção de Imagem (Upload ou URL) -->
+    <div id="image-source-modal" class="modal-overlay" style="display:none;">
+      <div class="modal-content">
+        <h4>Adicionar Imagem</h4>
+        <button id="image-source-upload-btn">📁 Selecionar Arquivo</button>
+        <div id="image-source-divider">ou cole uma URL</div>
+        <input type="text" id="image-source-url" placeholder="https://exemplo.com/imagem.png">
+        <button id="image-source-url-btn">🔗 Usar URL</button>
+        <button class="modal-footer-btn" onclick="document.getElementById('image-source-modal').style.display='none'">Cancelar</button>
       </div>
-      <button onclick="document.getElementById('npc-modal').style.display='none'" style="margin-top:15px;">Fechar</button>
     </div>
-  </div>
 
   <script src="data-candehssa.js"></script>
   <script src="script.js"></script>

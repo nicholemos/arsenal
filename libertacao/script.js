@@ -41,6 +41,56 @@ document.addEventListener('DOMContentLoaded', () => {
   })();
 
   // =================================================================
+  // FUNÇÃO REUTILIZÁVEL DE SELEÇÃO DE IMAGEM (Upload ou URL)
+  // =================================================================
+  function openImageSourceDialog(callback) {
+    const modal = document.getElementById('image-source-modal');
+    const urlInput = document.getElementById('image-source-url');
+    const fileInput = document.getElementById('image-source-file');
+
+    urlInput.value = '';
+    modal.style.display = 'flex';
+
+    const cleanup = () => {
+      modal.style.display = 'none';
+      document.getElementById('image-source-upload-btn').onclick = null;
+      document.getElementById('image-source-url-btn').onclick = null;
+    };
+
+    // Criar input de file dinamicamente
+    document.getElementById('image-source-upload-btn').onclick = () => {
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.style.display = 'none';
+      inp.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (re) => {
+          cleanup();
+          callback(re.target.result);
+        };
+        reader.readAsDataURL(file);
+      };
+      document.body.appendChild(inp);
+      inp.click();
+      document.body.removeChild(inp);
+    };
+
+    document.getElementById('image-source-url-btn').onclick = () => {
+      const url = urlInput.value.trim();
+      if (!url) { alert('Digite uma URL válida.'); return; }
+      cleanup();
+      callback(url);
+    };
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) { cleanup(); }
+    });
+  }
+
+  // =================================================================
   // NÍVEIS DE AFINIDADE (Feature 1)
   // =================================================================
   const niveisAfinidade = [
@@ -56,6 +106,39 @@ document.addEventListener('DOMContentLoaded', () => {
     return niveisAfinidade.find(n => hearts >= n.min && hearts <= n.max) || niveisAfinidade[0];
   }
 
+  // Tiers oficiais de Pontos de Afinidade da aventura (Cordial 1-3, Leal 4-6, Íntimo 7),
+  // usados para os NPCs Aliados de Candeh'ssa, cujos corações representam PA.
+  function getTierCandehssa(hearts) {
+    if (hearts >= 7) return 'intimo';
+    if (hearts >= 4) return 'leal';
+    if (hearts >= 1) return 'cordial';
+    return null;
+  }
+
+  const TIER_LABELS = { cordial: 'Cordial (1-3 PA)', leal: 'Leal (4-6 PA)', intimo: 'Íntimo (7 PA)' };
+
+  function getBonusAtualTexto(beneficios, hearts) {
+    if (!beneficios) return null;
+    const tier = getTierCandehssa(hearts);
+    if (!tier || !beneficios[tier]) return 'Ainda sem bônus ativo (0 corações).';
+    return `${TIER_LABELS[tier]}: ${beneficios[tier]}`;
+  }
+
+  // Extrai os trechos Cordial/Leal/Íntimo de um texto de bônus vindo do catálogo de Candeh'ssa.
+  // Retorna null se o texto não seguir esse formato (bônus genérico, sem tiers).
+  function parseBeneficiosPorTier(bonusTexto) {
+    if (!bonusTexto) return null;
+    const cordial = bonusTexto.match(/Cordial:\s*([\s\S]*?)(?=\s*Leal:|$)/);
+    const leal = bonusTexto.match(/Leal:\s*([\s\S]*?)(?=\s*Íntimo:|$)/);
+    const intimo = bonusTexto.match(/Íntimo:\s*([\s\S]*)$/);
+    if (!cordial || !leal || !intimo) return null;
+    return {
+      cordial: cordial[1].trim(),
+      leal: leal[1].trim(),
+      intimo: intimo[1].trim()
+    };
+  }
+
   // =================================================================
   // FICHA RÁPIDA DE NPC (Feature 2)
   // =================================================================
@@ -69,6 +152,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('npc-modal-nivel').textContent = nivel.label;
     document.getElementById('npc-modal-nivel').style.color = nivel.cor;
     document.getElementById('npc-modal-notes').textContent = npcData.affinityText || 'Sem anotações.';
+
+    const bonusRow = document.getElementById('npc-modal-bonus-row');
+    const bonusSpan = document.getElementById('npc-modal-bonus');
+    const bonusTexto = getBonusAtualTexto(npcData.beneficios, npcData.hearts);
+    if (bonusTexto) {
+      bonusRow.style.display = '';
+      bonusSpan.textContent = bonusTexto;
+    } else {
+      bonusRow.style.display = 'none';
+    }
+
     const imgDiv = document.getElementById('npc-modal-image');
     if (npcData.image) {
       imgDiv.style.backgroundImage = `url(${npcData.image})`;
@@ -84,17 +178,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // =================================================================
   const npcModule = (() => {
     let playerCount = 0;
-    let selectedPlayer = null;
     const playerList = document.getElementById('player-list');
     const addPlayerBtn = document.getElementById('addPlayer');
     const playerNameInput = document.getElementById('playerName');
-    const removePlayerBtn = document.getElementById('removePlayer');
 
-    function createNpc(container, npcData = { name: '', hearts: 0, image: '', affinityText: '' }) {
+    function createNpc(container, npcData = { name: '', hearts: 0, image: '', affinityText: '', beneficios: null }) {
       const npcContainer = document.createElement('div');
       npcContainer.classList.add('npc-item');
       if (npcData.image) npcContainer.style.backgroundImage = `url(${npcData.image})`;
       npcContainer.dataset.affinityText = npcData.affinityText || '';
+      npcContainer.dataset.beneficios = npcData.beneficios ? JSON.stringify(npcData.beneficios) : '';
 
       const nameContainer = document.createElement('div');
       nameContainer.className = 'npc-name-container';
@@ -116,7 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
             nome: npcData.name,
             hearts: currentHearts !== undefined ? currentHearts : (npcData.hearts || 0),
             affinityText: npcData.affinityText || '',
-            image: npcData.image || ''
+            image: npcData.image || '',
+            beneficios: npcData.beneficios || null
           }, getPlayerName());
         };
         nameContainer.appendChild(nameDisplay);
@@ -145,7 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 nome: nameValue,
                 hearts: currentHearts !== undefined ? currentHearts : 0,
                 affinityText: npcContainer.dataset.affinityText || '',
-                image: npcContainer.style.backgroundImage ? npcContainer.style.backgroundImage.slice(5, -2) : ''
+                image: npcContainer.style.backgroundImage ? npcContainer.style.backgroundImage.slice(5, -2) : '',
+                beneficios: npcContainer.dataset.beneficios ? JSON.parse(npcContainer.dataset.beneficios) : null
               }, getPlayerName());
             };
             nameContainer.innerHTML = '';
@@ -175,6 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
       nivelLabel.className = 'npc-nivel-label';
       npcContainer.appendChild(nivelLabel);
 
+      const bonusAtualDisplay = document.createElement('p');
+      bonusAtualDisplay.className = 'npc-bonus-atual';
+      npcContainer.appendChild(bonusAtualDisplay);
+
       const controlDiv = document.createElement('div');
       controlDiv.classList.add('npc-controls');
       const minusButton = document.createElement('button');
@@ -194,6 +293,16 @@ document.addEventListener('DOMContentLoaded', () => {
         nivelLabel.textContent = nivel.label;
         nivelLabel.style.color = nivel.cor;
         nivelLabel.style.borderColor = nivel.cor;
+
+        const beneficios = npcContainer.dataset.beneficios ? JSON.parse(npcContainer.dataset.beneficios) : null;
+        const bonusTexto = getBonusAtualTexto(beneficios, currentHearts);
+        if (bonusTexto) {
+          bonusAtualDisplay.textContent = `🎁 ${bonusTexto}`;
+          bonusAtualDisplay.style.display = '';
+        } else {
+          bonusAtualDisplay.style.display = 'none';
+        }
+
         const trigger = container.previousElementSibling;
         if (trigger && trigger.classList.contains('npc-trigger')) {
           const heartCountSpan = trigger.querySelector('.heart-count');
@@ -235,46 +344,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-       const imageButton = document.createElement('button');
-       imageButton.innerText = 'Adicionar Imagem';
-       imageButton.addEventListener('click', (e) => {
-         e.stopPropagation();
-         const url = prompt("Cole o link da imagem ou clique em Cancelar para escolher um arquivo local:");
-         if (url !== null && url.trim() !== '') {
-           npcContainer.style.backgroundImage = `url(${url.trim()})`;
-           autoSaveToCache();
-         } else if (url === null) {
-           const fileInput = document.createElement('input');
-           fileInput.type = 'file';
-           fileInput.accept = 'image/*';
-           fileInput.style.display = 'none';
-           fileInput.onchange = (event) => {
-             const file = event.target.files[0];
-             if (!file) return;
-             const reader = new FileReader();
-             reader.onload = (readEvent) => {
-               npcContainer.style.backgroundImage = `url(${readEvent.target.result})`;
-               autoSaveToCache();
-             };
-             reader.readAsDataURL(file);
-           };
-           document.body.appendChild(fileInput);
-           fileInput.click();
-           document.body.removeChild(fileInput);
-         }
-       });
-
-      const removeNpcButton = document.createElement('button');
-      removeNpcButton.innerText = 'Remover NPC';
-      removeNpcButton.addEventListener('click', (e) => {
+      const imageButton = document.createElement('button');
+      imageButton.innerText = 'Adicionar Imagem';
+      imageButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        container.parentElement.remove();
-        autoSaveToCache();
+        openImageSourceDialog((imgUrl) => {
+          npcContainer.style.backgroundImage = `url(${imgUrl})`;
+          autoSaveToCache();
+        });
       });
 
-      actionsDiv.appendChild(affinityBtn);
-      actionsDiv.appendChild(imageButton);
-      actionsDiv.appendChild(removeNpcButton);
       npcContainer.appendChild(actionsDiv);
 
       container.appendChild(npcContainer);
@@ -296,32 +375,92 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         playerImgDiv.innerHTML = '<span class="player-img-placeholder">+</span>';
       }
-       playerImgDiv.title = 'Clique para adicionar imagem do jogador';
-       playerImgDiv.onclick = (e) => {
-         e.stopPropagation();
-         const url = prompt("Cole o link da imagem do jogador ou clique em Cancelar para escolher um arquivo local:");
-         if (url !== null && url.trim() !== '') {
-           playerImgDiv.style.backgroundImage = `url(${url.trim()})`;
-           playerImgDiv.innerHTML = '';
-           autoSaveToCache();
-         } else if (url === null) {
-           const input = document.createElement('input');
-           input.type = 'file';
-           input.accept = 'image/*';
-           input.onchange = (ev) => {
-             const file = ev.target.files[0];
-             if (!file) return;
-             const reader = new FileReader();
-             reader.onload = (re) => {
-               playerImgDiv.style.backgroundImage = `url(${re.target.result})`;
-               playerImgDiv.innerHTML = '';
-               autoSaveToCache();
-             };
-             reader.readAsDataURL(file);
-           };
-           input.click();
-         }
-       };
+      if (playerData.imagePos) {
+        playerImgDiv.style.backgroundPosition = playerData.imagePos;
+      }
+      playerImgDiv.title = 'Clique para trocar imagem | Clique com botão direito para remover';
+      playerImgDiv.onclick = (e) => {
+        e.stopPropagation();
+        if (playerImgDiv.style.backgroundImage && playerImgDiv.style.backgroundImage !== 'none') {
+          const action = confirm('Imagem já definida. Deseja trocar?');
+          if (!action) return;
+        }
+        openImageSourceDialog((imgUrl) => {
+          playerImgDiv.style.backgroundImage = `url(${imgUrl})`;
+          playerImgDiv.innerHTML = '';
+          autoSaveToCache();
+        });
+      };
+      playerImgDiv.oncontextmenu = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (playerImgDiv.style.backgroundImage && playerImgDiv.style.backgroundImage !== 'none') {
+          if (confirm('Remover imagem do jogador?')) {
+            playerImgDiv.style.backgroundImage = 'none';
+            playerImgDiv.innerHTML = '<span class="player-img-placeholder">+</span>';
+            playerImgDiv.style.backgroundPosition = 'center';
+            autoSaveToCache();
+          }
+        }
+      };
+
+      const posControls = document.createElement('div');
+      posControls.className = 'img-pos-controls';
+      posControls.innerHTML = `
+        <div style="display:flex; justify-content:center; gap:2px;">
+          <button class="pos-btn" data-dir="up" title="Mover para cima">▲</button>
+        </div>
+        <div style="display:flex; justify-content:center; gap:2px;">
+          <button class="pos-btn" data-dir="left" title="Mover para a esquerda">◀</button>
+          <button class="pos-btn" data-dir="center" title="Centralizar">●</button>
+          <button class="pos-btn" data-dir="right" title="Mover para a direita">▶</button>
+        </div>
+        <div style="display:flex; justify-content:center; gap:2px;">
+          <button class="pos-btn" data-dir="down" title="Mover para baixo">▼</button>
+        </div>
+      `;
+      posControls.style.display = 'none';
+      playerImgDiv.appendChild(posControls);
+
+      let posX = 50, posY = 50;
+      if (playerData.imagePos) {
+        const parts = playerData.imagePos.split(' ');
+        posX = parseInt(parts[0]) || 50;
+        posY = parseInt(parts[1]) || 50;
+      }
+      playerImgDiv.style.backgroundPosition = `${posX}% ${posY}%`;
+      if (playerData.imagePos) {
+        const parts = playerData.imagePos.split(' ');
+        posX = parseInt(parts[0]) || 50;
+        posY = parseInt(parts[1]) || 50;
+      }
+
+      playerImgDiv.addEventListener('mouseenter', () => {
+        if (playerImgDiv.style.backgroundImage && playerImgDiv.style.backgroundImage !== 'none') {
+          posControls.style.display = 'block';
+        }
+      });
+      playerImgDiv.addEventListener('mouseleave', () => {
+        posControls.style.display = 'none';
+      });
+
+      const updatePos = () => {
+        playerImgDiv.style.backgroundPosition = `${posX}% ${posY}%`;
+      };
+
+      posControls.querySelectorAll('.pos-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dir = btn.dataset.dir;
+          if (dir === 'up') posY = Math.max(0, posY - 10);
+          else if (dir === 'down') posY = Math.min(100, posY + 10);
+          else if (dir === 'left') posX = Math.max(0, posX - 10);
+          else if (dir === 'right') posX = Math.min(100, posX + 10);
+          else if (dir === 'center') { posX = 50; posY = 50; }
+          updatePos();
+          autoSaveToCache();
+        });
+      });
 
       const playerTitle = document.createElement('h3');
       playerTitle.innerHTML = `${playerData.name} <span class="toggle-arrow">▼</span>`;
@@ -330,8 +469,22 @@ document.addEventListener('DOMContentLoaded', () => {
         playerContainer.classList.toggle('collapsed');
       });
 
-      playerHeader.appendChild(playerImgDiv);
+       playerHeader.appendChild(playerImgDiv);
       playerHeader.appendChild(playerTitle);
+
+      const removePlayerBtn = document.createElement('button');
+      removePlayerBtn.className = 'btn-remove-player';
+      removePlayerBtn.innerText = '✕';
+      removePlayerBtn.title = 'Remover jogador';
+      removePlayerBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (confirm(`Remover "${playerData.name}"?`)) {
+          playerContainer.remove();
+          autoSaveToCache();
+        }
+      };
+      playerHeader.appendChild(removePlayerBtn);
+
       playerContainer.appendChild(playerHeader);
 
       const collapsibleContent = document.createElement('div');
@@ -349,6 +502,19 @@ document.addEventListener('DOMContentLoaded', () => {
           npcTrigger.className = 'npc-trigger';
           const heartCount = npcData.hearts || 0;
           npcTrigger.innerHTML = `<span class="npc-name">${npcData.name || 'Novo NPC'}</span><span class="heart-count">(❤️ ${heartCount}/7)</span>`;
+
+          const removeNpcButton = document.createElement('button');
+          removeNpcButton.className = 'btn-remove-npc';
+          removeNpcButton.innerText = '✕';
+          removeNpcButton.title = 'Remover NPC';
+          removeNpcButton.onclick = (e) => {
+            e.stopPropagation();
+            if (confirm('Remover este NPC?')) {
+              npcEntry.remove();
+              autoSaveToCache();
+            }
+          };
+          npcTrigger.appendChild(removeNpcButton);
 
           const npcCardContainer = document.createElement('div');
           npcCardContainer.className = 'npc-card-container collapsed';
@@ -379,6 +545,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const npcTrigger = document.createElement('h5');
         npcTrigger.className = 'npc-trigger';
         npcTrigger.innerHTML = `<span class="npc-name">Novo NPC</span> <span class="heart-count">(❤️ 0/7)</span>`;
+
+        const removeNpcButton = document.createElement('button');
+        removeNpcButton.className = 'btn-remove-npc';
+        removeNpcButton.innerText = '✕';
+        removeNpcButton.title = 'Remover NPC';
+        removeNpcButton.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm('Remover este NPC?')) {
+            npcEntry.remove();
+            autoSaveToCache();
+          }
+        };
+        npcTrigger.appendChild(removeNpcButton);
 
         const npcCardContainer = document.createElement('div');
         npcCardContainer.className = 'npc-card-container collapsed';
@@ -427,16 +606,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!matched) { alert('Aliado não encontrado.'); return; }
 
         const allyName = matched.querySelector('h5').textContent;
-        const allyDesc = matched.querySelector('.npc-desc-text').textContent;
+        const allyDescFull = matched.querySelector('.npc-desc-text').textContent;
+        const allyDescLines = allyDescFull.split('\n');
+        const allyDesc = `${allyDescLines[0]}\n${allyDescLines.filter(l => l.startsWith('Local:')).join('\n')}`;
         const allyBonus = matched.querySelector('.npc-bonus-text').textContent;
         const allyImage = matched.querySelector('img').src;
         const isPlaceholder = allyImage === 'https://via.placeholder.com/150';
 
         const npcData = {
           name: allyName,
-          hearts: 3,
+          hearts: 0,
           image: isPlaceholder ? '' : allyImage,
-          affinityText: `${allyDesc}\nBônus: ${allyBonus}`
+          affinityText: allyDesc,
+          beneficios: parseBeneficiosPorTier(allyBonus)
         };
 
         const npcEntry = document.createElement('div');
@@ -444,6 +626,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const npcTrigger = document.createElement('h5');
         npcTrigger.className = 'npc-trigger';
         npcTrigger.innerHTML = `<span class="npc-name">${npcData.name}</span> <span class="heart-count">(❤️ ${npcData.hearts}/7)</span>`;
+
+        const removeNpcButton = document.createElement('button');
+        removeNpcButton.className = 'btn-remove-npc';
+        removeNpcButton.innerText = '✕';
+        removeNpcButton.title = 'Remover NPC';
+        removeNpcButton.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm('Remover este NPC?')) {
+            npcEntry.remove();
+            autoSaveToCache();
+          }
+        };
+        npcTrigger.appendChild(removeNpcButton);
+
         const npcCardContainer = document.createElement('div');
         npcCardContainer.className = 'npc-card-container collapsed';
         npcTrigger.addEventListener('click', (ev) => {
@@ -461,15 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
       collapsibleContent.appendChild(addFromAllyBtn);
       playerContainer.appendChild(collapsibleContent);
 
-      playerContainer.addEventListener('click', (e) => {
-        if (e.target === playerContainer || e.target === playerTitle || e.target.classList.contains('toggle-arrow')) {
-          document.querySelectorAll('.player-container').forEach(p => p.classList.remove('selected'));
-          playerContainer.classList.add('selected');
-          selectedPlayer = playerContainer;
-        }
-      });
-
-      playerList.appendChild(playerContainer);
+       playerList.appendChild(playerContainer);
       playerCount++;
     }
 
@@ -482,20 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    removePlayerBtn.addEventListener('click', () => {
-      if (!selectedPlayer) {
-        alert("Selecione um jogador.");
-        return;
-      }
-      const playerName = selectedPlayer.querySelector('h3').innerText;
-      if (confirm(`Remover "${playerName}"?`)) {
-        selectedPlayer.remove();
-        selectedPlayer = null;
-        autoSaveToCache();
-      }
-    });
-
-    function getSaveData() {
+     function getSaveData() {
       const data = [];
       document.querySelectorAll('.player-container').forEach(player => {
         const playerName = player.querySelector('h3').innerText.replace(' ▼', '');
@@ -508,24 +683,26 @@ document.addEventListener('DOMContentLoaded', () => {
           let imageUrl = npc.style.backgroundImage;
           imageUrl = (imageUrl && imageUrl !== 'none') ? imageUrl.slice(5, -2) : '';
           const affinityText = npc.dataset.affinityText || '';
-          npcs.push({ name: npcName, hearts: npcHearts, image: imageUrl, affinityText: affinityText });
+          const beneficios = npc.dataset.beneficios ? JSON.parse(npc.dataset.beneficios) : null;
+          npcs.push({ name: npcName, hearts: npcHearts, image: imageUrl, affinityText: affinityText, beneficios: beneficios });
         });
         const imgDiv = player.querySelector('.player-image');
         let playerImage = '';
+        let playerImagePos = 'center';
         if (imgDiv && imgDiv.style.backgroundImage && imgDiv.style.backgroundImage !== 'none') {
           playerImage = imgDiv.style.backgroundImage.slice(5, -2);
+          playerImagePos = imgDiv.style.backgroundPosition || 'center';
         }
-        data.push({ name: playerName, npcs, image: playerImage });
+        data.push({ name: playerName, npcs, image: playerImage, imagePos: playerImagePos });
       });
       return data;
     }
 
-    function loadSaveData(data) {
-      playerList.innerHTML = '';
-      playerCount = 0;
-      selectedPlayer = null;
-      data.forEach(playerData => createPlayer(playerData));
-    }
+     function loadSaveData(data) {
+       playerList.innerHTML = '';
+       playerCount = 0;
+       data.forEach(playerData => createPlayer(playerData));
+     }
 
     return { getSaveData, loadSaveData };
   })();
@@ -615,6 +792,8 @@ document.addEventListener('DOMContentLoaded', () => {
       card.innerHTML = `
         <div class="solicitante-visible-content">
           <img src="${estabData.imagem || 'https://via.placeholder.com/150'}" alt="${estabData.nome}" style="cursor: pointer;">
+          <button class="btn-img-estab-x" title="Adicionar Imagem">🖼️</button>
+          <button class="btn-remove-estab-x" title="Remover">✕</button>
           <h5>${estabData.nome}</h5>
         </div>
         <div class="solicitante-collapsible-content" style="padding: 15px;">
@@ -626,13 +805,35 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="estab-actions" style="margin-top: 15px; display: flex; gap: 5px; flex-wrap: wrap;">
             <button class="btn-toggle-honors" style="font-size: 0.7rem; flex: 1 1 auto;">${estabData.honrariasReveladas ? 'Ocultar Honraria' : 'Revelar Honraria'}</button>
             <button class="btn-edit-estab" style="font-size: 0.7rem; flex: 1 1 auto;">Editar</button>
-            <button class="btn-img-estab" style="font-size: 0.7rem; flex: 1 1 auto;">Imagem</button>
-            <button class="btn-remove-estab" style="font-size: 0.7rem; flex: 1 1 auto; background-color: var(--fail-color); color: #fff;">Remover</button>
           </div>
         </div>
       `;
 
       card.querySelector('img').onclick = () => card.classList.toggle('collapsed');
+
+      // Botão de imagem no canto superior esquerdo
+      card.querySelector('.btn-img-estab-x').onclick = (e) => {
+        e.stopPropagation();
+        openImageSourceDialog((imgUrl) => {
+          card.querySelector('img').src = imgUrl;
+          estabData.imagem = imgUrl;
+          autoSaveToCache();
+        });
+      };
+
+      // Botão de remoção no canto superior direito
+      card.querySelector('.btn-remove-estab-x').onclick = (e) => {
+        e.stopPropagation();
+        if (confirm(`Remover estabelecimento "${estabData.nome}"?`)) {
+          card.remove();
+          const index = estabelecimentosList.indexOf(estabData);
+          if (index > -1) {
+            estabelecimentosList.splice(index, 1);
+          }
+          updateFiltroSelect();
+          autoSaveToCache();
+        }
+      };
 
       const honorsDiv = card.querySelector('.honrarias');
       const toggleHonorsBtn = card.querySelector('.btn-toggle-honors');
@@ -670,45 +871,6 @@ document.addEventListener('DOMContentLoaded', () => {
           card.querySelector('.estab-honors-text').textContent = nHonors || 'Nenhuma honraria.';
         }
         autoSaveToCache();
-      };
-
-       card.querySelector('.btn-img-estab').onclick = (e) => {
-         e.stopPropagation();
-         const url = prompt("Cole o link da imagem do estabelecimento ou clique em Cancelar para escolher um arquivo local:");
-         if (url !== null && url.trim() !== '') {
-           card.querySelector('img').src = url.trim();
-           estabData.imagem = url.trim();
-           autoSaveToCache();
-         } else if (url === null) {
-           const input = document.createElement('input');
-           input.type = 'file';
-           input.accept = 'image/*';
-           input.onchange = ev => {
-             const file = ev.target.files[0];
-             if (!file) return;
-             const reader = new FileReader();
-             reader.onload = readEv => {
-               card.querySelector('img').src = readEv.target.result;
-               estabData.imagem = readEv.target.result;
-               autoSaveToCache();
-             };
-             reader.readAsDataURL(file);
-           };
-           input.click();
-         }
-       };
-
-      card.querySelector('.btn-remove-estab').onclick = (e) => {
-        e.stopPropagation();
-        if (confirm(`Remover estabelecimento "${estabData.nome}"?`)) {
-          card.remove();
-          const index = estabelecimentosList.indexOf(estabData);
-          if (index > -1) {
-            estabelecimentosList.splice(index, 1);
-          }
-          updateFiltroSelect();
-          autoSaveToCache();
-        }
       };
 
       list.appendChild(card);
@@ -845,9 +1007,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return { getSaveData, loadSaveData, addMissionData };
   })();
 
-  // =================================================================
-  // CONTROLES DE DADOS (SAVE / LOAD / AUTOSAVE)
-  // =================================================================
+// =================================================================
+// CONTROLES DE DADOS (SAVE / LOAD / AUTOSAVE)
+// =================================================================
   const saveData = () => {
     const data = {
       npcProgress: npcModule.getSaveData(),
@@ -938,7 +1100,9 @@ document.addEventListener('DOMContentLoaded', () => {
     card.innerHTML = `
         <div class="solicitante-visible-content">
             <img src="${npcData.image || 'https://via.placeholder.com/150'}" alt="${npcData.name}" style="cursor: pointer;">
+            <button class="btn-img-ally-x" title="Adicionar Imagem">🖼️</button>
             <h5 style="pointer-events: none;">${npcData.name || 'Novo Aliado'}</h5>
+            <button class="btn-remove-ally-x" title="Remover aliado">✕</button>
         </div>
         <div class="solicitante-collapsible-content" style="padding: 10px;">
             <p><strong>Descrição:</strong> <span class="npc-desc-text">${npcData.desc || 'Clique para editar'}</span></p>
@@ -947,14 +1111,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="npc-actions" style="margin-top: 10px; display: flex; gap: 5px;">
                 <button class="btn-edit-ally" style="font-size: 0.7rem;">Editar</button>
-                <button class="btn-img-ally" style="font-size: 0.7rem;">Imagem</button>
-                <button class="btn-remove-ally" style="font-size: 0.7rem; background-color: var(--fail-color);">Remover</button>
             </div>
         </div>
     `;
 
     // Evento para expandir/recolher ao clicar na imagem
     card.querySelector('img').onclick = () => card.classList.toggle('collapsed');
+    // Botão de imagem no canto superior esquerdo
+    card.querySelector('.btn-img-ally-x').onclick = (e) => {
+      e.stopPropagation();
+      openImageSourceDialog((imgUrl) => {
+        card.querySelector('img').src = imgUrl;
+        autoSaveToCache();
+      });
+    };
 
     // Lógica de Edição
     card.querySelector('.btn-edit-ally').onclick = () => {
@@ -967,29 +1137,8 @@ document.addEventListener('DOMContentLoaded', () => {
       autoSaveToCache();
     };
 
-     // Lógica de Imagem (Aceita link ou arquivo local)
-     card.querySelector('.btn-img-ally').onclick = () => {
-       const url = prompt("Cole o link da imagem do aliado ou clique em Cancelar para escolher um arquivo local:");
-       if (url !== null && url.trim() !== '') {
-         card.querySelector('img').src = url.trim();
-         autoSaveToCache();
-       } else if (url === null) {
-         const input = document.createElement('input');
-         input.type = 'file';
-         input.accept = 'image/*';
-         input.onchange = e => {
-           const reader = new FileReader();
-           reader.onload = ev => {
-             card.querySelector('img').src = ev.target.result;
-             autoSaveToCache();
-           };
-           reader.readAsDataURL(e.target.files[0]);
-         };
-         input.click();
-       }
-     };
-
-    card.querySelector('.btn-remove-ally').onclick = () => {
+    card.querySelector('.btn-remove-ally-x').onclick = (e) => {
+      e.stopPropagation();
       if (confirm("Remover aliado?")) { card.remove(); autoSaveToCache(); }
     };
 
@@ -1063,8 +1212,8 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(`${npcData.nome} já está na lista de aliados.`);
         return false;
       }
-      const desc = `${npcData.descricao}\nGosta de: ${npcData.gostos}\nNão gosta de: ${npcData.desgostos}\nLocal: ${npcData.estabelecimento}`;
-      const bonus = `Última Demanda: ${npcData.ultimaDemanda}\n${npcData.beneficios}`;
+       const desc = `${npcData.descricao}\nGosta de: ${npcData.gostos}\nNão gosta de: ${npcData.desgostos}\nLocal: ${npcData.estabelecimento}`;
+       const bonus = `Última Demanda: ${npcData.ultimaDemanda}\n${npcData.beneficios}`;
       createAllyNpc({ name: npcData.nome, desc, bonus, image: '' });
       autoSaveToCache();
       return true;
@@ -1150,23 +1299,22 @@ document.addEventListener('DOMContentLoaded', () => {
       filtrados.forEach(item => {
         const jaAdicionado = catalogoAtual === 'npcs' ? jaExisteAlly(item.nome) : estabelecimentosModule.jaExisteEstab(item.nome);
         const row = document.createElement('div');
-        row.className = 'solicitante-card';
+        row.className = 'catalogo-item';
         row.style.cursor = 'default';
-        row.style.padding = '12px';
 
-const linhaSub = catalogoAtual === 'npcs'
-	  ? `<p style="margin:4px 0; word-break:break-word; overflow-wrap:break-word;"><strong>Local:</strong> ${item.estabelecimento}</p>
-	     <p style="margin:4px 0; font-size:0.9rem; word-break:break-word; overflow-wrap:break-word;">${item.descricao}</p>`
-	   : `<p style="margin:4px 0; word-break:break-word; overflow-wrap:break-word;"><strong>Serviços:</strong> ${item.resumo}</p>
-	     <p style="margin:4px 0; font-size:0.9rem; word-break:break-word; overflow-wrap:break-word;">${item.descricao}</p>`;
+        const linhaSub = catalogoAtual === 'npcs'
+          ? `<p style="margin:4px 0;"><strong>Local:</strong> ${item.estabelecimento}</p>
+             <p style="margin:4px 0; font-size:0.9rem;">${item.descricao}</p>`
+          : `<p style="margin:4px 0;"><strong>Serviços:</strong> ${item.resumo}</p>
+             <p style="margin:4px 0; font-size:0.9rem;">${item.descricao}</p>`;
 
         row.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
-            <div style="min-width:0; overflow-wrap:break-word; word-break:break-word; flex:1;">
-              <h5 style="margin:0 0 5px 0; word-break:break-word; overflow-wrap:break-word; white-space:normal;">${item.nome}</h5>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+            <div>
+              <h5 style="margin:0 0 5px 0;">${item.nome}</h5>
               ${linhaSub}
             </div>
-            <button class="btn-add-catalogo" style="flex-shrink:0; ${jaAdicionado ? 'background-color: var(--border-color); cursor: not-allowed;' : ''}" ${jaAdicionado ? 'disabled' : ''}>
+            <button class="btn-add-catalogo" ${jaAdicionado ? 'disabled' : ''}>
               ${jaAdicionado ? 'Adicionado' : 'Adicionar'}
             </button>
           </div>
@@ -1226,6 +1374,87 @@ const linhaSub = catalogoAtual === 'npcs'
   const container = document.querySelector('.main-container');
   if (container) {
     container.addEventListener('click', () => setTimeout(autoSaveToCache, 500));
+  }
+
+  // =================================================================
+  // DADOS DE EXEMPLO (seed inicial)
+  // =================================================================
+  function seedDefaultData() {
+    // NPCs de Jogadores de exemplo
+    const npcSeed = [
+      {
+        name: "Triunvirato",
+        image: "https://cdn.creazilla.com/cliparts/7937698/minotaur-clipart-xl.png",
+        npcs: [
+          { name: "Ash, o Caçador", hearts: 4, image: "", affinityText: "Caçador elfo, especialista em rastreio e armadilhas." },
+          { name: "Kira, a Maga", hearts: 3, image: "", affinityText: "Maga humana, estudiosa de runas antigas." },
+          { name: "Thorn, o Guerreiro", hearts: 5, image: "", affinityText: "Guerreiro anão, escudeiro implacável." }
+        ]
+      },
+      {
+        name: "Solitários",
+        image: "",
+        npcs: [
+          { name: "Lira, a Bardana", hearts: 2, image: "", affinityText: "Barda elfa, sempre coletando histórias na taverna." }
+        ]
+      }
+    ];
+    npcModule.loadSaveData(npcSeed);
+
+    // NPCs Aliados de exemplo
+    const alliesSeed = [
+      { name: "Mestre Aurélio", desc: "Sábio ancião que conhece os segredos de Candeh'ssa.", bonus: "+2 em testes de Conhecimento", image: "https://preview.redd.it/hohenheim-as-the-archetype-of-the-wise-old-man-v0-o5udiiestt391.jpg" },
+      { name: "Irmãs do Destino", desc: "Duas irmãs gêmeas que operam a casa de banho.", bonus: "Cura +1d6 por descanso", image: "" },
+      { name: "Corvo Noturno", desc: "Informante misterioso que frequenta a taverna.", bonus: "+1 dado em testes de Investigação", image: "" }
+    ];
+    alliesSeed.forEach(ally => createAllyNpc(ally));
+
+    // Estabelecimentos de exemplo
+    const estabSeed = [
+      {
+        nome: "Casa de Banho",
+        imagem: "images/casa_de_banho.png",
+        descricao: "Um local sereno de águas termais mágicas para purificação e cura dos heróis.",
+        servicos: "Recuperação completa de PV e PM por descanso.",
+        honrarias: "Banho Abençoado (Cura extra e bônus em testes de Vontade)",
+        honrariasReveladas: false
+      },
+      {
+        nome: "Taverna do Corvo",
+        imagem: "images/taverna_corvo.png",
+        descricao: "A taverna local, ponto central de boatos, fofocas e contratação de mercenários.",
+        servicos: "Obtenção de boatos sobre as masmorras e contratação de aliados temporários.",
+        honrarias: "Cliente VIP (Desconto em serviços e aliados)",
+        honrariasReveladas: false
+      },
+      {
+        nome: "Templo de Valkaria",
+        imagem: "images/templo_valkaria.png",
+        descricao: "Um suntuoso templo erguido em devoção à Deusa da Ambição e da Humanidade.",
+        servicos: "Remoção de condições negativas, maldições e ressurreição.",
+        honrarias: "Bênção da Ambição (+1 em testes de ataque e Defesa)",
+        honrariasReveladas: false
+      },
+      {
+        nome: "Laboratório Alquímico",
+        imagem: "images/laboratorio_alquimico.png",
+        descricao: "Oficina repleta de frascos borbulhantes controlada por alquimistas excêntricos.",
+        servicos: "Compra e identificação de poções, elixires e itens alquímicos.",
+        honrarias: "Desconto em Alquímicos (20% de desconto em poções)",
+        honrariasReveladas: false
+      }
+    ];
+    estabelecimentosModule.loadSaveData(estabSeed);
+
+    // Missões customizáveis de exemplo
+    const missionSeed = [
+      { nome: "O Ritual Perdido", descricao: "Encontrar os 3 fragmentos do antigo ritual nas masmorras ao norte.", recompensa: "Poção da Vitalidade + 200 PE", completa: false },
+      { nome: "A Coroa de Gelo", descricao: "Recuperar a coroa do Rei de Gelo na câmara 13 da Masmorra Glacial.", recompensa: "Arma Mágica Menor + 500 PE", completa: false },
+      { nome: "O Sumiço de Bartholomeu", descricao: "O ferreiro Bartholomeu desapareceu há 3 dias. Investigar a mina abandonada.", recompensa: "Armadura Reforçada + Favor da Guilda", completa: true }
+    ];
+    missoesCustomModule.loadSaveData(missionSeed);
+
+    autoSaveToCache();
   }
 
   // Carregamento inicial
