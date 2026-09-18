@@ -1493,7 +1493,7 @@ const perigos = [
     nd: "4",
     tipo: "Desafio de agilidade e resgate",
     nome: "Deslizamento",
-    imagem: "https://y.yarn.co/094a06fc-3b94-4f01-a693-3651d239472d_text.gif",
+    imagem: "https://media.tenor.com/DxDW_ITYniYAAAAM/ducktales-ducktales2017.gif",
     efeito: `
       <strong>Objetivo:</strong> Escapar do deslizamento antes de ser soterrado.
       <hr>
@@ -2226,4 +2226,27 @@ function criarListaItensDiversos(itens) {
       applyTheme(btn.getAttribute('data-theme'));
     });
   });
+})();
+
+// ================================================================
+//  BOTÃO SETA VOLTAR AO TOPO
+// ================================================================
+(function initScrollTop() {
+  var scrollTopBtn = document.querySelector('#scroll-top-btn');
+  if (!scrollTopBtn) return;
+
+  function toggleBtn() {
+    if (window.scrollY > 300) {
+      scrollTopBtn.classList.add('visible');
+    } else {
+      scrollTopBtn.classList.remove('visible');
+    }
+  }
+
+  scrollTopBtn.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  window.addEventListener('scroll', toggleBtn);
+  toggleBtn();
 })();
