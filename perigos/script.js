@@ -854,7 +854,7 @@ const perigos = [
     nd: "14",
     tipo: "Desafio Social",
     nome: "Jogo de Influências",
-    imagem: "https://i.pinimg.com/originals/74/2d/b3/742db30aa0515314d0a048045ef91bf7.gif",
+    imagem: "https://pa1.aminoapps.com/6907/1f592c2e680bb9618be717b85a4162efd389b8d8r1-500-281_hq.gif",
     efeito: `
       <strong>Objetivo:</strong> Cair nas graças de Schaven para obter a energia elemental do fogo.
       <hr>
@@ -1084,7 +1084,7 @@ const perigos = [
     nd: "6",
     tipo: "Desafio urbano",
     nome: "Fuga de Suth Eleghar",
-    imagem: "https://giffiles.alphacoders.com/207/207201.gif",
+    imagem: "https://j.gifs.com/w0kq6X.gif",
     efeito: `
       <strong>Objetivo:</strong> Ajudar os elegharianos a fugir do ataque.
       <hr>
@@ -1493,7 +1493,7 @@ const perigos = [
     nd: "4",
     tipo: "Desafio de agilidade e resgate",
     nome: "Deslizamento",
-    imagem: "https://i.imgur.com/OtTQND5.gif",
+    imagem: "https://y.yarn.co/094a06fc-3b94-4f01-a693-3651d239472d_text.gif",
     efeito: `
       <strong>Objetivo:</strong> Escapar do deslizamento antes de ser soterrado.
       <hr>
@@ -2079,12 +2079,8 @@ function filtrarPerigosDiversos() {
       p.efeito
     ).toLowerCase();
 
-    const pertenceCategoria = categoria === "todos" ||
-      p.categoria === categoria ||
-      (p.categorias && p.categorias.includes(categoria));
-
     return (
-      pertenceCategoria &&
+      (categoria === "todos" || p.categoria === categoria) &&
       (origem === "todos" || p.origem === origem) &&
       textoCompleto.includes(busca)
     );
@@ -2101,25 +2097,12 @@ function renderizarPerigosDiversos(lista) {
     return;
   }
 
-  const categoriaFiltro = categoriaDiversosSelect.value;
-  const filtrandoCategoria = categoriaFiltro && categoriaFiltro !== "todos";
-
-  const categoriasPresentes = ORDEM_CATEGORIAS_DIVERSOS.filter(c => {
-    if (filtrandoCategoria) {
-      return c === categoriaFiltro && lista.some(p =>
-        p.categoria === c || (p.categorias && p.categorias.includes(c))
-      );
-    }
-    return lista.some(p => p.categoria === c);
-  });
+  const categoriasPresentes = ORDEM_CATEGORIAS_DIVERSOS.filter(c =>
+    lista.some(p => p.categoria === c)
+  );
 
   categoriasPresentes.forEach(categoria => {
-    const itensCategoria = lista.filter(p => {
-      if (filtrandoCategoria) {
-        return p.categoria === categoria || (p.categorias && p.categorias.includes(categoria));
-      }
-      return p.categoria === categoria;
-    });
+    const itensCategoria = lista.filter(p => p.categoria === categoria);
 
     const secao = document.createElement("div");
     secao.className = "mb-4 categoria-diversos";
@@ -2158,13 +2141,13 @@ function criarListaItensDiversos(itens) {
   itens.forEach(p => {
     const col = document.createElement("div");
     col.className = "col-md-6";
-    const slug = p.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     col.innerHTML = `
-      <div id="${slug}" class="card h-100 perigo-card diverso-card" style="cursor: pointer;">
-        ${p.imagem ? `<img src="${p.imagem}" class="card-img-top" alt="${p.nome}" style="max-height:200px; object-fit:cover;">` : ""}
+      <div class="card h-100 perigo-card diverso-card" style="cursor: pointer;">
+        ${p.imagem ? `<img src="${p.imagem}" class="card-img-top" alt="${p.nome}" loading="lazy">` : ""}
         <div class="card-body">
           <h6 class="card-title text-danger fw-bold mb-1">${p.nome}${p.nd ? ` (ND ${p.nd})` : ""}</h6>
           <div class="card-subtitle text-warning small mb-2">${p.origem}</div>
+          ${p.descricao ? `<p class="descricao-diverso small fst-italic mb-2">${p.descricao}</p>` : ""}
           <div class="efeito collapse">${p.efeito}</div>
         </div>
       </div>
@@ -2174,22 +2157,6 @@ function criarListaItensDiversos(itens) {
 
   return row;
 }
-
-// ================================================================
-//  SCROLL TO TOP
-// ================================================================
-(function initScrollToTop() {
-  const btn = document.querySelector("#scroll-top-btn");
-  if (!btn) return;
-
-  window.addEventListener("scroll", () => {
-    btn.classList.toggle("visible", window.scrollY > 400);
-  });
-
-  btn.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-})();
 
 // ================================================================
 //  SELETOR DE MODO (Perigos Complexos x Perigos Diversos)
