@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domínios de Arton – Arsenal T20</title>
+  <meta name="description" content="Bases, Domínios e Negócios para Tormenta20 — Arsenal dos Heróis e Fim dos Tempos.">
+
+  <!-- ═══ SISTEMA DE TEMAS ARSENAL ═══ -->
+  <link rel="stylesheet" href="../assets/templates/themes.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+    }
+
+    body {
+      padding-bottom: 60px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 .5em 0;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: .4em;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      color: var(--text-primary);
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    /* ── HEADER ── */
+    header.top {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-backdrop);
+      border-bottom: 2px solid var(--border-color);
+      padding: 12px 20px 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    header.top .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header.top .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header.top .subtitle {
+      color: var(--text-secondary);
+      font-size: .85rem;
+      margin-bottom: 10px;
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hub-btn {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: .85rem;
+      padding: .4rem .7rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      transition: color var(--transition-fast), border-color var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .hub-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .theme-controls {
+      display: flex;
+      gap: .4rem;
+    }
+
+    /* ── ABAS DE SISTEMA ── */
+    nav.systems {
+      display: flex;
+      gap: 6px;
+      margin: 10px auto 0 auto;
+      max-width: 980px;
+    }
+
+    nav.systems button {
+      flex: 1 1 0;
+      min-width: 100px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      color: var(--text-secondary);
+      padding: 10px 8px;
+      font-family: var(--font-heading);
+      font-size: .95rem;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    nav.systems button.active {
+      background: var(--bg-surface);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    nav.systems button:hover:not(.active) {
+      color: var(--text-primary);
+      border-color: var(--border-glow);
+    }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    section.system {
+      display: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-top: none;
+      padding: 16px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+    }
+
+    section.system.active {
+      display: block;
+    }
+
+    /* ── SUB-TABS ── */
+    nav.subtabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    nav.subtabs button {
+      flex: 1 1 0;
+      min-width: 100px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: .85rem;
+      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    nav.subtabs button.active {
+      background: var(--accent-glow);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    nav.subtabs button:hover:not(.active) {
+      color: var(--text-primary);
+      border-color: var(--border-glow);
+    }
+
+    .pane {
+      display: none;
+    }
+
+    .pane.active {
+      display: block;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    /* ── FORMS ── */
+    label {
+      display: block;
+      font-size: .78rem;
+      color: var(--text-secondary);
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    input[type=text],
+    input[type=number],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      font-family: var(--font-body);
+      transition: border-color var(--transition-fast);
+    }
+
+    input[type=text]:focus,
+    input[type=number]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .row>div {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    /* ── BUTTONS ── */
+    button.btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: .9rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      transition: background var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    button.btn:hover {
+      background: var(--accent-alt);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    button.btn.secondary {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    button.btn.secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    button.btn.danger {
+      background: var(--accent2);
+    }
+
+    button.btn.danger:hover {
+      background: var(--accent2-alt);
+      box-shadow: 0 0 12px var(--accent2-glow);
+    }
+
+    .btnrow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    /* ── TABLES ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+
+    table th,
+    table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-color);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    table th {
+      color: var(--accent);
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: .8rem;
+    }
+
+    table tr:hover td {
+      background: var(--bg-panel-hover);
+    }
+
+    .searchbar {
+      margin-bottom: 10px;
+    }
+
+    /* ── CHECKLISTS ── */
+    .checklist {
+      max-height: 420px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
+    .checkitem {
+      display: flex;
+      gap: 10px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-color);
+      align-items: flex-start;
+      transition: background var(--transition-fast);
+    }
+
+    .checkitem:last-child {
+      border-bottom: none;
+    }
+
+    .checkitem:hover {
+      background: var(--bg-panel-hover);
+    }
+
+    .checkitem input {
+      margin-top: 3px;
+      accent-color: var(--accent);
+    }
+
+    .checkitem .meta {
+      color: var(--text-secondary);
+      font-size: .78rem;
+    }
+
+    .checkitem b {
+      color: var(--text-primary);
+    }
+
+    .checkitem .tag {
+      display: inline-block;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--accent);
+      font-size: .7rem;
+      padding: 1px 6px;
+      border-radius: 10px;
+      margin-left: 6px;
+    }
+
+    /* ── SUMMARY ── */
+    .summary {
+      background: var(--bg-base);
+      border: 1px dashed var(--border-glow);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .summary .stat {
+      display: inline-block;
+      margin: 2px 10px 2px 0;
+      font-size: .9rem;
+    }
+
+    .summary .stat b {
+      color: var(--accent);
+    }
+
+    /* ── LOG ── */
+    .log {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: .85rem;
+    }
+
+    .log .entry {
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .log .entry:last-child {
+      border-bottom: none;
+    }
+
+    .log .entry .res {
+      font-weight: 700;
+    }
+
+    .res.ok {
+      color: #5b9279;
+    }
+
+    .res.fail {
+      color: var(--accent2);
+    }
+
+    /* ── ACTIONS ── */
+    .actiondef {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      margin-bottom: 10px;
+      background: var(--bg-base);
+    }
+
+    .actiondef .heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .actiondef .desc {
+      color: var(--text-secondary);
+      font-size: .82rem;
+      margin: 4px 0 8px 0;
+    }
+
+    /* ── PILLS ── */
+    .pill {
+      display: inline-block;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: .75rem;
+      color: var(--text-primary);
+      margin-right: 6px;
+    }
+
+    /* ── GRID ── */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width:720px) {
+      .grid2 {
+        grid-template-columns: 1fr;
+      }
+
+      nav.systems button {
+        font-size: .8rem;
+      }
+    }
+
+    /* ── CATEGORY GROUPS ── */
+    .catgroup {
+      margin-bottom: 14px;
+    }
+
+    .catgroup h4 {
+      color: #5b9279;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    /* ── FOOTER ── */
+    footer.credits {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: .75rem;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="top">
+    <div class="title-row">
+      <div class="title-left">
+        <a href="../index.html" class="hub-btn" title="Voltar ao Arsenal" aria-label="Voltar ao Arsenal">🏰 Arsenal</a>
+        <h1>Domínios de Arton</h1>
+      </div>
+      <nav class="theme-controls" aria-label="Selecionar tema">
+        <button class="theme-btn" data-theme="blood" title="Tema Tormenta" aria-label="Tema Tormenta">🩸</button>
+        <button class="theme-btn" data-theme="dark" title="Tema Sombras" aria-label="Tema Sombras">🌑</button>
+        <button class="theme-btn" data-theme="classic" title="Tema Clássico" aria-label="Tema Clássico">📜</button>
+      </nav>
+    </div>
+    <div class="subtitle">Bases, Domínios e Negócios — Tormenta20 (Heróis de Arton &amp; Fim dos Tempos)</div>
+    <nav class="systems">
+      <button data-sys="bases" class="active">Bases</button>
+      <button data-sys="dominios">Domínios</button>
+      <button data-sys="negocios">Negócios</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ===================== BASES ===================== -->
+    <section class="system active" id="sys-bases">
+      <nav class="subtabs">
+        <button data-pane="ficha" class="active">Ficha</button>
+        <button data-pane="consulta">Consulta</button>
+        <button data-pane="acoes">Ações</button>
+      </nav>
+
+      <div class="pane active" data-pane="ficha">
+        <div class="card">
+          <div class="row">
+            <div><label>Nome da base</label><input type="text" id="b-nome" placeholder="Ex: Torre do Corvo"></div>
+            <div><label>Tipo</label><select id="b-tipo"></select></div>
+            <div><label>Porte</label><select id="b-porte"></select></div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" onclick="Bases.save()">Salvar ficha</button>
+            <button class="btn secondary" onclick="Bases.novaFicha()">Nova ficha</button>
+            <button class="btn secondary" onclick="exportSheet('base')">Exportar</button>
+            <button class="btn secondary" onclick="importSheet('base')">Importar</button>
+          </div>
+        </div>
+
+        <div class="summary" id="b-summary"></div>
+
+        <div class="grid2">
+          <div class="card">
+            <h3>Cômodos construídos <span class="pill" id="b-comodos-count"></span></h3>
+            <input class="searchbar" type="text" placeholder="Buscar cômodo..."
+              oninput="Bases.filterList('comodos', this.value)">
+            <div class="checklist" id="b-comodos-list"></div>
+          </div>
+          <div class="card">
+            <h3>Mobílias instaladas</h3>
+            <input class="searchbar" type="text" placeholder="Buscar mobília..."
+              oninput="Bases.filterList('mobilias', this.value)">
+            <div class="checklist" id="b-mobilias-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="consulta">
+        <div class="card">
+          <h3>Tipos de base</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Benefício</th>
+              </tr>
+            </thead>
+            <tbody id="ref-tipos"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Portes</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Porte</th>
+                <th>Custo</th>
+                <th>Manutenção</th>
+                <th>Cômodos</th>
+                <th>Exemplos</th>
+              </tr>
+            </thead>
+            <tbody id="ref-portes"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Cômodos</h3>
+          <input class="searchbar" type="text" placeholder="Buscar..."
+            oninput="filterTable('ref-comodos-body', this.value)">
+          <table>
+            <thead>
+              <tr>
+                <th>Cômodo</th>
+                <th>Benefício</th>
+                <th>Pré-requisito</th>
+              </tr>
+            </thead>
+            <tbody id="ref-comodos-body"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Mobílias</h3>
+          <input class="searchbar" type="text" placeholder="Buscar..."
+            oninput="filterTable('ref-mobilias-body', this.value)">
+          <table>
+            <thead>
+              <tr>
+                <th>Mobília</th>
+                <th>Benefício</th>
+                <th>Preço</th>
+                <th>Pré-requisito</th>
+              </tr>
+            </thead>
+            <tbody id="ref-mobilias-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="acoes">
+        <div class="card">
+          <h3>Testes de construção</h3>
+          <div class="actiondef">
+            <div class="heading"><b>Construir base mínima</b><span class="pill">Nobreza • CD 20</span></div>
+            <div class="desc">Gasta uma ação entre aventuras e T$ 1.000.</div>
+            <div class="row">
+              <div><label>Bônus na perícia</label><input type="number" id="acao-mod-1" value="0"></div>
+            </div>
+            <button class="btn" onclick="rollTest('acao-mod-1', 20, 'Construir base')">Rolar teste</button>
+          </div>
+          <div class="actiondef">
+            <div class="heading"><b>Construir cômodo</b><span class="pill">Nobreza (ou outra) • CD 20 + nº de cômodos do
+                porte</span></div>
+            <div class="desc">Gasta uma ação entre aventuras e T$ 1.000.</div>
+            <div class="row">
+              <div><label>Bônus na perícia</label><input type="number" id="acao-mod-2" value="0"></div>
+              <div><label>Cômodos do porte atual</label><input type="number" id="acao-comodos-2" value="0"></div>
+            </div>
+            <button class="btn" onclick="rollTestDynamicCD('acao-mod-2','acao-comodos-2',20,'Construir cômodo')">Rolar
+              teste</button>
+          </div>
+          <div class="actiondef">
+            <div class="heading"><b>Aumentar porte</b><span class="pill">CD 20 + nº de cômodos do novo porte</span>
+            </div>
+            <div class="desc">Gasta a diferença de custo entre o porte atual e o próximo.</div>
+            <div class="row">
+              <div><label>Bônus na perícia</label><input type="number" id="acao-mod-3" value="0"></div>
+              <div><label>Cômodos do novo porte</label><input type="number" id="acao-comodos-3" value="0"></div>
+            </div>
+            <button class="btn" onclick="rollTestDynamicCD('acao-mod-3','acao-comodos-3',20,'Aumentar porte')">Rolar
+              teste</button>
+          </div>
+          <div class="actiondef">
+            <div class="heading"><b>Reformar base (trocar tipo)</b><span class="pill">CD 20 + nº de cômodos da
+                base</span></div>
+            <div class="desc">Custo = metade do custo de construção do porte atual.</div>
+            <div class="row">
+              <div><label>Bônus na perícia</label><input type="number" id="acao-mod-4" value="0"></div>
+              <div><label>Cômodos da base</label><input type="number" id="acao-comodos-4" value="0"></div>
+            </div>
+            <button class="btn" onclick="rollTestDynamicCD('acao-mod-4','acao-comodos-4',20,'Reformar base')">Rolar
+              teste</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Registro</h3>
+          <div class="log" id="b-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DOMÍNIOS ===================== -->
+    <section class="system" id="sys-dominios">
+      <nav class="subtabs">
+        <button data-pane="ficha" class="active">Ficha</button>
+        <button data-pane="consulta">Consulta</button>
+        <button data-pane="acoes">Turno de Domínio</button>
+      </nav>
+
+      <div class="pane active" data-pane="ficha">
+        <div class="card">
+          <div class="row">
+            <div><label>Nome do domínio</label><input type="text" id="d-nome" placeholder="Ex: Feudo de Corveia"></div>
+            <div><label>Regente</label><input type="text" id="d-regente" placeholder="Nome do personagem"></div>
+            <div><label>Nível (1-7)</label><input type="number" id="d-nivel" min="1" max="7" value="1"></div>
+          </div>
+          <div class="row">
+            <div><label>Terreno</label><select id="d-terreno"></select></div>
+            <div><label>Corte</label><select id="d-corte"></select></div>
+            <div><label>Popularidade</label><select id="d-popularidade"></select></div>
+            <div><label>Tesouro (LO)</label><input type="number" id="d-tesouro" value="0"></div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" onclick="Dominios.save()">Salvar ficha</button>
+            <button class="btn secondary" onclick="Dominios.novaFicha()">Nova ficha</button>
+            <button class="btn secondary" onclick="exportSheet('dominio')">Exportar</button>
+            <button class="btn secondary" onclick="importSheet('dominio')">Importar</button>
+          </div>
+        </div>
+
+        <div class="summary" id="d-summary"></div>
+
+        <div class="card">
+          <h3>Construções <span class="pill" id="d-construcoes-count"></span></h3>
+          <input class="searchbar" type="text" placeholder="Buscar construção..."
+            oninput="Dominios.filterConstrucoes(this.value)">
+          <div class="checklist" id="d-construcoes-list"></div>
+        </div>
+
+        <div class="card">
+          <h3>Unidades militares</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Tropa</th>
+                <th>Quantidade</th>
+                <th>Poder unit.</th>
+              </tr>
+            </thead>
+            <tbody id="d-unidades-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="consulta">
+        <div class="card">
+          <h3>Terrenos</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Terreno</th>
+                <th>Nível máx.</th>
+                <th>Potencial mágico</th>
+              </tr>
+            </thead>
+            <tbody id="ref-terrenos"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Corte</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Manutenção</th>
+                <th>Benefício</th>
+              </tr>
+            </thead>
+            <tbody id="ref-cortes"></tbody>
+          </table>
+          <p class="meta" style="color:var(--muted);font-size:.82rem;">Conselheiros: bispo (Religião), capitão da guarda
+            (Guerra), embaixador (Diplomacia), espião (Enganação), falcoeiro (Sobrevivência), magistrado (Investigação),
+            mago da corte (Misticismo), menestrel (Atuação), senescal (Nobreza).</p>
+        </div>
+        <div class="card">
+          <h3>Popularidade</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Modificador em ações de domínio</th>
+              </tr>
+            </thead>
+            <tbody id="ref-popularidade"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Construções</h3>
+          <input class="searchbar" type="text" placeholder="Buscar..." oninput="filterConstrucoesRef(this.value)">
+          <div id="ref-construcoes-container"></div>
+        </div>
+        <div class="card">
+          <h3>Unidades militares</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Tropa</th>
+                <th>Construção</th>
+                <th>Custo</th>
+                <th>Manutenção</th>
+                <th>Poder</th>
+                <th>Desl.</th>
+                <th>Defesa</th>
+                <th>Dano</th>
+              </tr>
+            </thead>
+            <tbody id="ref-unidades"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Impostos (por turno de domínio)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Nível</th>
+                <th>Descrição</th>
+                <th>Baixos</th>
+                <th>Médios</th>
+                <th>Altos</th>
+              </tr>
+            </thead>
+            <tbody id="ref-impostos"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="acoes">
+        <div class="card">
+          <h3>Etapa 1 — Eventos aleatórios</h3>
+          <div class="desc" style="color:var(--muted);font-size:.85rem;margin-bottom:8px;">Só role se o domínio for
+            nível 3 ou maior.</div>
+          <button class="btn" onclick="Dominios.rollEvento()">Rolar evento (d%)</button>
+          <div id="d-evento-result" style="margin-top:8px;"></div>
+        </div>
+
+        <div class="card">
+          <h3>Etapa 2 — Impostos</h3>
+          <div class="row">
+            <div><label>Tipo de imposto</label>
+              <select id="d-imposto-tipo">
+                <option value="baixo">Baixo (popularidade +1 categoria)</option>
+                <option value="medio">Médio</option>
+                <option value="alto">Alto (popularidade -1 categoria)</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn" onclick="Dominios.rollImposto()">Rolar impostos</button>
+          <div id="d-imposto-result" style="margin-top:8px;"></div>
+        </div>
+
+        <div class="card">
+          <h3>Etapa 3 — Ações de domínio (2 por turno)</h3>
+          <div id="d-acoes-list"></div>
+        </div>
+
+        <div class="card">
+          <h3>Batalha simplificada</h3>
+          <div class="row">
+            <div><label>Guerra do regente</label><input type="number" id="bat-guerra-regente" value="0"></div>
+            <div><label>Poder das unidades (defensor)</label><input type="number" id="bat-poder-defensor" value="0">
+            </div>
+            <div><label>Fortificação do domínio</label><input type="number" id="bat-fortificacao" value="0"></div>
+          </div>
+          <div class="row">
+            <div><label>Guerra do inimigo</label><input type="number" id="bat-guerra-inimigo" value="0"></div>
+            <div><label>Poder do inimigo</label><input type="number" id="bat-poder-inimigo" value="0"></div>
+          </div>
+          <button class="btn" onclick="Dominios.rollBatalha()">Resolver batalha</button>
+          <div id="d-batalha-result" style="margin-top:8px;"></div>
+        </div>
+
+        <div class="card">
+          <h3>Registro</h3>
+          <div class="log" id="d-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== NEGÓCIOS ===================== -->
+    <section class="system" id="sys-negocios">
+      <nav class="subtabs">
+        <button data-pane="ficha" class="active">Ficha</button>
+        <button data-pane="consulta">Consulta</button>
+        <button data-pane="acoes">Ações</button>
+      </nav>
+
+      <div class="pane active" data-pane="ficha">
+        <div class="card">
+          <div class="row">
+            <div><label>Nome do negócio</label><input type="text" id="n-nome" placeholder="Ex: Empório de Armamentos">
+            </div>
+            <div><label>Proprietário</label><input type="text" id="n-dono" placeholder="Nome do personagem"></div>
+            <div><label>Nível (1-7)</label><input type="number" id="n-nivel" min="1" max="7" value="1"></div>
+          </div>
+          <div class="btnrow">
+            <button class="btn" onclick="Negocios.save()">Salvar ficha</button>
+            <button class="btn secondary" onclick="Negocios.novaFicha()">Nova ficha</button>
+            <button class="btn secondary" onclick="exportSheet('negocio')">Exportar</button>
+            <button class="btn secondary" onclick="importSheet('negocio')">Importar</button>
+          </div>
+        </div>
+
+        <div class="summary" id="n-summary"></div>
+
+        <div class="card">
+          <h3>Ativos <span class="pill" id="n-ativos-count"></span></h3>
+          <input class="searchbar" type="text" placeholder="Buscar ativo..." oninput="Negocios.filterList(this.value)">
+          <div class="checklist" id="n-ativos-list"></div>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="consulta">
+        <div class="card">
+          <h3>Ativos de negócio</h3>
+          <input class="searchbar" type="text" placeholder="Buscar..."
+            oninput="filterTable('ref-ativos-body', this.value)">
+          <table>
+            <thead>
+              <tr>
+                <th>Ativo</th>
+                <th>Benefício</th>
+                <th>Pré-requisito</th>
+              </tr>
+            </thead>
+            <tbody id="ref-ativos-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="acoes">
+        <div class="card">
+          <h3>Criar negócio</h3>
+          <div class="desc" style="color:var(--muted);font-size:.85rem;">1 mês de trabalho, T$ 1.000, teste de Ofício ou
+            Nobreza CD 20.</div>
+          <div class="row">
+            <div><label>Bônus na perícia</label><input type="number" id="acao-mod-n1" value="0"></div>
+          </div>
+          <button class="btn" onclick="rollTest('acao-mod-n1', 20, 'Criar negócio')">Rolar teste</button>
+        </div>
+        <div class="card">
+          <h3>Subir nível do negócio</h3>
+          <div class="desc" style="color:var(--muted);font-size:.85rem;">CD 20 + 2× o próximo nível. Custo: T$ 1.000 ×
+            próximo nível. 1 mês de trabalho.</div>
+          <div class="row">
+            <div><label>Bônus na perícia</label><input type="number" id="acao-mod-n2" value="0"></div>
+            <div><label>Próximo nível</label><input type="number" id="acao-proxnivel-n2" value="2"></div>
+          </div>
+          <button class="btn" onclick="Negocios.rollSubirNivel()">Rolar teste</button>
+        </div>
+        <div class="card">
+          <h3>Rendimento mensal</h3>
+          <div class="desc" style="color:var(--muted);font-size:.85rem;">Base: T$ 100 × nível. Se dedicar o mês inteiro:
+            teste de Ofício/Nobreza × 10 × nível.</div>
+          <div class="row">
+            <div><label>Bônus no teste (se dedicar o mês)</label><input type="number" id="acao-mod-n3" value="0"></div>
+          </div>
+          <div class="btnrow">
+            <button class="btn secondary" onclick="Negocios.rendimentoBase()">Rendimento base</button>
+            <button class="btn" onclick="Negocios.rendimentoDedicado()">Dedicar o mês (rolar)</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Registro</h3>
+          <div class="log" id="n-log"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="credits">Ferramenta de referência baseada em Tormenta20 — Arsenal dos Heróis e Fim dos Tempos: Arco 2
+    (Valkaria). Uso pessoal de mesa.</footer>
+
+  <script>
+    /* ============================================================
+       DADOS
+       ============================================================ */
+    const DATA = {
+      bases: {
+        tipos: [
+          { nome: "Centro de Poder", beneficio: "+1 PM para os residentes." },
+          { nome: "Empreendimento", beneficio: "1x por intervalo entre aventuras, teste de Inteligência (bônus = nº de cômodos do porte) rende tibares de ouro; dobra se gastar a ação administrando." },
+          { nome: "Esconderijo", beneficio: "+1 em testes de resistência." },
+          { nome: "Fortificação", beneficio: "+5 em Segurança; residentes recebem +1 na Defesa." },
+          { nome: "Móvel", beneficio: "É um veículo terrestre ou aquático; residentes ganham +1,5m de deslocamento." },
+          { nome: "Residência", beneficio: "Residentes recebem +3 PV; 1x por aventura, benefícios de um prato especial." }
+        ],
+        portes: [
+          { nome: "Mínima", custo: 1000, manutencao: 100, comodos: 0, exemplos: "Quarto em estalagem, tenda reforçada, carroça coberta" },
+          { nome: "Modesta", custo: 3000, manutencao: 300, comodos: 3, exemplos: "Casebre, gruta, barcaça" },
+          { nome: "Básica", custo: 6000, manutencao: 600, comodos: 6, exemplos: "Casa, torre pequena, caverna, veleiro" },
+          { nome: "Formidável", custo: 10000, manutencao: 1000, comodos: 9, exemplos: "Casarão, torre média, complexo de cavernas, nau" },
+          { nome: "Grandiosa", custo: 15000, manutencao: 1500, comodos: 12, exemplos: "Forte, torre grande, galeão" },
+          { nome: "Suprema", custo: 21000, manutencao: 2100, comodos: 15, exemplos: "Castelo, cidadela" }
+        ],
+        comodos: [
+          { nome: "Adega", beneficio: "Preparados/poções bebidas pelos residentes têm efeito +1 por dado.", prereq: "", seguranca: 0 },
+          { nome: "Ala dos Criados", beneficio: "Cada residente recebe 1d4 PM temporários por patamar no início da aventura.", prereq: "Base formidável ou melhor", seguranca: 0 },
+          { nome: "Armorial", beneficio: "Fornece proficiência com um item à escolha (pode trocar a cada aventura).", prereq: "", seguranca: 0 },
+          { nome: "Biblioteca", beneficio: "+1 em Conhecimento.", prereq: "", seguranca: 0 },
+          { nome: "Calabouço", beneficio: "+1 em Intimidação e na CD de efeitos de medo.", prereq: "", seguranca: 0 },
+          { nome: "Câmara de Meditação", beneficio: "+1 em Vontade.", prereq: "", seguranca: 0 },
+          { nome: "Chapelaria", beneficio: "Permite vestir um item adicional.", prereq: "Base formidável ou melhor", seguranca: 0 },
+          { nome: "Cozinha", beneficio: "No início da aventura, escolhe 2 pratos especiais para viagem.", prereq: "", seguranca: 0 },
+          { nome: "Despensa", beneficio: "+2 espaços no limite de carga.", prereq: "", seguranca: 0 },
+          { nome: "Domo Protetor", beneficio: "+2 na Segurança; se a base for móvel, pode ir a ambientes inóspitos sem risco.", prereq: "Gabinete místico", seguranca: 2 },
+          { nome: "Enfermaria", beneficio: "+1 em Cura e em testes para estancar sangramento ou de morte.", prereq: "", seguranca: 0 },
+          { nome: "Estábulo", beneficio: "+1 a um bônus de parceiro animal/monstro, ou +3m de deslocamento se for montaria.", prereq: "", seguranca: 0 },
+          { nome: "Estufa", beneficio: "+1 na CD de preparados e poções.", prereq: "", seguranca: 0 },
+          { nome: "Gabinete Místico", beneficio: "+1 em Misticismo.", prereq: "", seguranca: 0 },
+          { nome: "Laboratório Arcano", beneficio: "Cada residente escolhe uma magia arcana; custo reduzido em -1 PM até o fim da aventura.", prereq: "Gabinete místico", seguranca: 0 },
+          { nome: "Ginásio", beneficio: "+1 em Atletismo e em dano com ataques desarmados/armas naturais.", prereq: "", seguranca: 0 },
+          { nome: "Guarita", beneficio: "+4 na Segurança da base.", prereq: "", seguranca: 4 },
+          { nome: "Casa da Guarda", beneficio: "Bônus da guarita aumenta para +8; guardas podem acompanhar como um capanga (pelotão veterano).", prereq: "Base formidável, guarita", seguranca: 4 },
+          { nome: "Quarto do Capitão", beneficio: "Bônus da guarita/casa da guarda aumenta para +10; capitão é um parceiro veterano.", prereq: "Sala da guarda", seguranca: 2 },
+          { nome: "Jardim Ornamental", beneficio: "+1 em Enganação.", prereq: "", seguranca: 0 },
+          { nome: "Lavanderia", beneficio: "Um item de vestuário escolhido ganha +1 na perícia que modifica (cumulativo com melhorias).", prereq: "", seguranca: 0 },
+          { nome: "Memorial", beneficio: "Se um residente morrer, o próximo personagem do mesmo jogador recebe +1 em um atributo.", prereq: "", seguranca: 0 },
+          { nome: "Observatório", beneficio: "Se treinado em Misticismo, rola dois dados e usa o melhor em uma perícia por aventura.", prereq: "", seguranca: 0 },
+          { nome: "Oficina de Trabalho", beneficio: "+1 em um Ofício à escolha (pode trocar a cada aventura).", prereq: "", seguranca: 0 },
+          { nome: "Forjaria", beneficio: "+1 nas rolagens de dano com uma arma à escolha.", prereq: "Oficina de trabalho", seguranca: 0 },
+          { nome: "Oratório", beneficio: "+1 em Religião.", prereq: "", seguranca: 0 },
+          { nome: "Tabernáculo", beneficio: "Cada residente escolhe uma magia divina; custo reduzido em -1 PM até o fim da aventura.", prereq: "Oratório", seguranca: 0 },
+          { nome: "Pátio de Treinamento", beneficio: "+1 nos testes de ataque com uma arma à escolha.", prereq: "", seguranca: 0 },
+          { nome: "Sacada", beneficio: "+1 em Diplomacia.", prereq: "", seguranca: 0 },
+          { nome: "Sala de Estar", beneficio: "Pode receber os benefícios de até 3 mobílias diferentes.", prereq: "", seguranca: 0 },
+          { nome: "Sala de Guerra", beneficio: "+1 em Guerra e Iniciativa.", prereq: "", seguranca: 0 },
+          { nome: "Sala de Jogos", beneficio: "+1 em Jogatina; recupera 1 PM ao rolar 1 natural em teste relevante.", prereq: "", seguranca: 0 },
+          { nome: "Sala de Mapas", beneficio: "+2 em testes de buscas e em perigos complexos de viagem.", prereq: "", seguranca: 0 },
+          { nome: "Sala de Perigo", beneficio: "+2 em testes da ação treinamento.", prereq: "Sistema de segurança", seguranca: 0 },
+          { nome: "Sala do Tesouro", beneficio: "+5% em rolagens de d% para tesouros aleatórios.", prereq: "", seguranca: 0 },
+          { nome: "Salão de Baile", beneficio: "+1 em Nobreza.", prereq: "", seguranca: 0 },
+          { nome: "Sauna", beneficio: "1x por aventura, rola dois dados e usa o melhor em um teste de resistência.", prereq: "Base formidável ou melhor", seguranca: 0 },
+          { nome: "Sistema de Segurança", beneficio: "+4 na Segurança; residentes ganham +2 em resistência contra armadilhas.", prereq: "", seguranca: 4 },
+          { nome: "Suíte", beneficio: "Até 2 residentes que durmam juntos recebem +3 PV; descanso torna-se confortável. Pode ser construída várias vezes.", prereq: "Base básica ou melhor", seguranca: 0 },
+          { nome: "Tablado", beneficio: "+1 em Atuação.", prereq: "", seguranca: 0 },
+          { nome: "Vergel", beneficio: "+1 em Sobrevivência.", prereq: "", seguranca: 0 }
+        ],
+        mobilias: [
+          { nome: "Armadura Decorativa", beneficio: "+1 na Defesa dos residentes.", preco: 2000 },
+          { nome: "Armário de Remédios", beneficio: "Instalada em enfermaria/estufa: preparados/poções de cura recuperam +1 PV por dado.", preco: 2000 },
+          { nome: "Banheira", beneficio: "Instalada em suíte: 1x/aventura, rola dois dados em Fortitude e usa o melhor.", preco: 300 },
+          { nome: "Bar", beneficio: "+1 PM para os residentes.", preco: 1000 },
+          { nome: "Baú Reforçado", beneficio: "Instalado na despensa: bônus de carga sobe para 3 espaços.", preco: 300 },
+          { nome: "Bigorna", beneficio: "Na oficina de trabalho: +3 em Ofício. Na forjaria: +2 no dano.", preco: 500 },
+          { nome: "Colchão de Penas Exóticas", beneficio: "Instalado em suíte: PV extras aumentam em +3.", preco: 500 },
+          { nome: "Colmeia de Pergaminhos", beneficio: "Instalada em biblioteca/gabinete místico: aprende uma magia arcana de qualquer círculo que possa lançar.", preco: 2500 },
+          { nome: "Criatura Empalhada", beneficio: "Bônus em dano contra criaturas do mesmo tipo igual ao patamar da criatura (exige a carcaça).", preco: 1000 },
+          { nome: "Engenho Automatizado", beneficio: "Na oficina de trabalho: tempo de fabricação de itens não mágicos cai à metade.", preco: 3000 },
+          { nome: "Espelho de Corpo", beneficio: "Na chapelaria: +1 item vestido adicional. Em suíte: +1 em perícias de Carisma.", preco: 2000 },
+          { nome: "Gárgula Animada", beneficio: "Não ocupa cômodo; +2 cumulativo na Segurança (até 1 por porte acima de básico); pode acompanhar como parceiro fortão/guardião veterano.", preco: 10000 },
+          { nome: "Ídolo Dourado", beneficio: "Aumenta em +1 um dos bônus de perícia fornecidos pelo cômodo.", preco: 1200 },
+          { nome: "Lareira", beneficio: "Em sala de estar, cozinha ou suíte: +1 na CD de efeitos de fogo e RD de fogo 2.", preco: 2500 },
+          { nome: "Lustre de Cristal", beneficio: "Em sala de estar/salão de baile: 1x/aventura, +1 por dado em um efeito de luz.", preco: 2500 },
+          { nome: "Mapa-Múndi", beneficio: "Em sala de guerra/mapas: aumenta o bônus do cômodo em +1.", preco: 1500 },
+          { nome: "Mesa de Reuniões", beneficio: "Em sala de guerra/estar: no início do combate, pode trocar valores de iniciativa entre os personagens.", preco: 2000 },
+          { nome: "Obra de Arte", beneficio: "1x/aventura, cada residente cura PM = seu patamar × nº de obras de arte na base.", preco: 2000 },
+          { nome: "Planetário", beneficio: "No observatório: +1 uso adicional do benefício por aventura.", preco: 1500 },
+          { nome: "Prataria", beneficio: "Na cozinha: permite preparar uma refeição para viagem adicional.", preco: 2000 },
+          { nome: "Prateleiras Reforçadas", beneficio: "Na biblioteca: fornece uma perícia treinada.", preco: 2000 },
+          { nome: "Quadro de Diagramas", beneficio: "Na oficina de trabalho: fabricar itens mundanos custa 1/4 do preço; consertar custa 1/8.", preco: 3000 },
+          { nome: "Relíquia Abençoada", beneficio: "No oratório: aprende uma magia divina de qualquer círculo. Na sala de estar: +1 em resistência de todos os residentes.", preco: 2500 },
+          { nome: "Retratos", beneficio: "+5 em testes de perícia para ajudar outros residentes.", preco: 1750 },
+          { nome: "Roleta Ahleniense", beneficio: "Na sala de jogos: 1x/aventura, pode rolar novamente um teste de perícia.", preco: 2000 }
+        ]
+      },
+      dominios: {
+        terrenos: [
+          { nome: "Colinas", nivelMax: 5, potencial: 5 },
+          { nome: "Deserto", nivelMax: 4, potencial: 6 },
+          { nome: "Floresta", nivelMax: 4, potencial: 6 },
+          { nome: "Montanha", nivelMax: 3, potencial: 7 },
+          { nome: "Pântano", nivelMax: 3, potencial: 7 },
+          { nome: "Planície", nivelMax: 6, potencial: 4 },
+          { nome: "Subterrâneo", nivelMax: 2, potencial: 8 },
+          { nome: "Rio ou mar (modificador)", nivelMax: "+1", potencial: "—" },
+          { nome: "Elemento místico (modificador)", nivelMax: "—", potencial: "+1" }
+        ],
+        cortes: [
+          { nome: "Inexistente", manutencao: 0, beneficio: "-2 em ações de domínio." },
+          { nome: "Pobre", manutencao: 1, beneficio: "Sem modificadores." },
+          { nome: "Comum", manutencao: 3, beneficio: "Fornece 1 conselheiro." },
+          { nome: "Rica", manutencao: 5, beneficio: "Fornece 3 conselheiros e 1 ação de domínio extra por turno." }
+        ],
+        popularidade: [
+          { nome: "Adorado", mod: 2 },
+          { nome: "Popular", mod: 1 },
+          { nome: "Tolerado", mod: 0 },
+          { nome: "Impopular", mod: -2 },
+          { nome: "Odiado", mod: -5 }
+        ],
+        construcoes: {
+          "Nobreza": [
+            { nome: "Adega", custo: 4, beneficio: "+3 pontos de mana." },
+            { nome: "Aqueduto", custo: 15, beneficio: "Em encontros aleatórios, rola duas vezes e usa o melhor." },
+            { nome: "Banhos Públicos", custo: 7, beneficio: "+5 em testes da ação governar." },
+            { nome: "Biblioteca", custo: 10, beneficio: "Torna-se treinado em uma perícia." },
+            { nome: "Universidade", custo: 25, beneficio: "Recebe um poder geral.", prereq: "Biblioteca" },
+            { nome: "Botica", custo: 3, beneficio: "+1 em Fortitude." },
+            { nome: "Cabana de Caça", custo: 2, beneficio: "Dano de Marca da Presa aumenta em um passo." },
+            { nome: "Cadafalso", custo: 1, beneficio: "+2 em Intimidação." },
+            { nome: "Campo de Treinamento", custo: 2, beneficio: "Permite recrutar milícias." },
+            { nome: "Corte de Lei", custo: 5, beneficio: "Em testes de resistência contra efeito mental, rola dois dados e usa o melhor." },
+            { nome: "Curtume", custo: 4, beneficio: "Capangas (incluindo invocados) recebem +2 na Defesa." },
+            { nome: "Estátua", custo: 2, beneficio: "Máximo de PM gastos numa habilidade passa a ser seu nível +1." },
+            { nome: "Estrada", custo: 10, beneficio: "+2 em Iniciativa." },
+            { nome: "Estalagem", custo: 8, beneficio: "1x/aventura, pode realizar uma ação padrão adicional.", prereq: "Estrada" },
+            { nome: "Fazenda", custo: 2, beneficio: "+1d6-2 LO por turno de domínio." },
+            { nome: "Celeiro", custo: 3, beneficio: "Elimina a penalidade no ganho da fazenda.", prereq: "Fazenda" },
+            { nome: "Moinho", custo: 5, beneficio: "Ganho da fazenda muda o dado para d8.", prereq: "Fazenda" },
+            { nome: "Feira", custo: 5, beneficio: "+1d4 LO por turno de domínio." },
+            { nome: "Mercado", custo: 10, beneficio: "Ganho da feira muda para 1d8 LO.", prereq: "Feira" },
+            { nome: "Forja", custo: 6, beneficio: "Capangas recebem +1 nas rolagens de dano." },
+            { nome: "Forte", custo: 10, beneficio: "+2 na Fortificação.", fortificacao: 2 },
+            { nome: "Armorial", custo: 3, beneficio: "Custo de Orgulho diminui em -1 PM.", prereq: "Forte" },
+            { nome: "Castelo", custo: 25, beneficio: "Muda a Fortificação do forte para +5 (substitui o bônus do forte).", prereq: "Forte", fortificacao: 5, substitui: "Forte" },
+            { nome: "Ordem de Cavalaria", custo: 20, beneficio: "Custo de Baluarte diminui em -1 PM.", prereq: "Forte" },
+            { nome: "Sala do Trono", custo: 5, beneficio: "+2 em Diplomacia.", prereq: "Forte" },
+            { nome: "Madeireira", custo: 15, beneficio: "+1d8 LO por turno; -10% em rolagens de eventos aleatórios.", prereq: "Terreno floresta" },
+            { nome: "Masmorra", custo: 20, beneficio: "+2 na CD de habilidades de classe (exceto magias)." },
+            { nome: "Mina", custo: 20, beneficio: "+1d12 LO por turno; -20% em rolagens de eventos aleatórios.", prereq: "Terreno montanha ou subterrâneo" },
+            { nome: "Obra de Arte", custo: 3, beneficio: "+1 em Vontade." },
+            { nome: "Oficina", custo: 2, beneficio: "+2 em Ofício (qualquer)." },
+            { nome: "Sede de Guilda", custo: 15, beneficio: "1x/aventura, adiciona uma melhoria a um item (exceto material especial), até 4 no total.", prereq: "Oficina" },
+            { nome: "Palácio", custo: 100, beneficio: "Aumenta o limite de parceiros em +1." },
+            { nome: "Paliçada", custo: 4, beneficio: "+2 na Fortificação.", fortificacao: 2 },
+            { nome: "Muralha", custo: 10, beneficio: "Muda a Fortificação da paliçada para +5 (substitui).", prereq: "Paliçada", fortificacao: 5, substitui: "Paliçada" },
+            { nome: "Poço de Piche", custo: 6, beneficio: "+2 na CD de preparados e venenos.", prereq: "Terreno pântano" },
+            { nome: "Porto", custo: 10, beneficio: "Ganha 1d6 LO por turno de domínio." },
+            { nome: "Docas", custo: 4, beneficio: "Bônus de Audácia aumenta em +1 e pode ser usado em ataques.", prereq: "Porto" },
+            { nome: "Povoado Afastado", custo: 4, beneficio: "Permite erguer uma construção com pré-requisito de outro terreno." },
+            { nome: "Quarto Luxuoso", custo: 2, beneficio: "+5 pontos de vida." },
+            { nome: "Torre de Vigia", custo: 2, beneficio: "+2 em Percepção." }
+          ],
+          "Guerra": [
+            { nome: "Canil", custo: 4, beneficio: "Permite recrutar cães de guerra." },
+            { nome: "Estrebaria", custo: 10, beneficio: "Recebe uma montaria (cavalo de guerra veterano)." },
+            { nome: "Pista de Justa", custo: 10, beneficio: "Permite recrutar cavaleiros.", prereq: "Estrebaria" },
+            { nome: "Pátio de Treinamento", custo: 6, beneficio: "+1 em testes de ataque (ou uma proficiência à escolha)." },
+            { nome: "Liças", custo: 2, beneficio: "Bônus de Fúria/Fúria Divina em testes de ataque e dano aumenta em +1.", prereq: "Pátio de treinamento" },
+            { nome: "Salão de Guerreiros", custo: 4, beneficio: "Custo de Ataque Especial diminui em -1 PM.", prereq: "Pátio de treinamento" },
+            { nome: "Pista de Arquearia", custo: 2, beneficio: "Permite recrutar arqueiros." },
+            { nome: "Posto de Pedágio", custo: 2, beneficio: "Em impostos altos, recebe +1 LO por nível do domínio.", prereq: "Estradas" },
+            { nome: "Sala de Mapas", custo: 8, beneficio: "Recebe uma ação de movimento adicional no primeiro turno de cada combate." },
+            { nome: "Torre de Guarnição", custo: 5, beneficio: "Permite recrutar guardas." }
+          ],
+          "Enganação": [
+            { nome: "Bazar", custo: 5, beneficio: "+10% ao negociar itens mundanos." },
+            { nome: "Caravançará", custo: 10, beneficio: "Permite criar caravanas (gasta 1d4 LO/nível; retorno de 1d4+1 LO por dado gasto, ou mais em CDs altas).", prereq: "Bazar, estradas" },
+            { nome: "Empório", custo: 10, beneficio: "1x/aventura, +10% ao negociar um item especial.", prereq: "Bazar" },
+            { nome: "Esconderijo", custo: 8, beneficio: "Permite recrutar bandidos." },
+            { nome: "Taverna", custo: 10, beneficio: "1x/aventura, pode interrogar como ação livre e sem gastar dinheiro." },
+            { nome: "Antro de Jogatina", custo: 10, beneficio: "+2 em Enganação.", prereq: "Taverna" },
+            { nome: "Arena Clandestina", custo: 15, beneficio: "Recebe Ataque Furtivo +1d6 (cumulativo).", prereq: "Taverna" },
+            { nome: "Casa de Prazeres", custo: 10, beneficio: "1x/aventura, pode usar a habilidade Favor (ou +5 em Diplomacia para usá-la, se já a possuir).", prereq: "Taverna" },
+            { nome: "Palco", custo: 4, beneficio: "+2 em Atuação." },
+            { nome: "Trupe de Malabaristas", custo: 4, beneficio: "+1 em Reflexos." }
+          ],
+          "Religião": [
+            { nome: "Abadia", custo: 12, beneficio: "Aprende uma magia divina de sua lista." },
+            { nome: "Capela", custo: 5, beneficio: "+2 em Religião." },
+            { nome: "Relicário", custo: 8, beneficio: "1x/aventura, +5 num teste de resistência.", prereq: "Capela" },
+            { nome: "Mosteiro", custo: 15, beneficio: "+3 pontos de mana (apenas conjuradores divinos)." },
+            { nome: "Santuário", custo: 4, beneficio: "Fornece um poder de druida." },
+            { nome: "Bosque Sagrado", custo: 5, beneficio: "Um companheiro animal não conta no limite de parceiros.", prereq: "Santuário" },
+            { nome: "Círculo de Pedras", custo: 10, beneficio: "Forma Selvagem: aumenta um bônus de atributo em +2.", prereq: "Santuário" },
+            { nome: "Templo", custo: 15, beneficio: "Fornece um poder de clérigo." },
+            { nome: "Altar", custo: 3, beneficio: "Canalizar Energia passa a usar d8.", prereq: "Templo" },
+            { nome: "Catedral", custo: 20, beneficio: "1x/dia, os efeitos de uma Missa são dobrados.", prereq: "Templo" }
+          ],
+          "Misticismo": [
+            { nome: "Estante de Pergaminhos", custo: 12, beneficio: "Aprende uma magia arcana." },
+            { nome: "Poço de Adivinhação", custo: 10, beneficio: "1x/aventura, rola dois dados num teste e usa o melhor." },
+            { nome: "Salão dos Mistérios", custo: 15, beneficio: "+2 em Misticismo." },
+            { nome: "Pedra de Maldições", custo: 6, beneficio: "1x/aventura, alvo em alcance curto sofre -5 em sua próxima resistência.", prereq: "Salão dos mistérios" },
+            { nome: "Sala de Meditação", custo: 5, beneficio: "+3 pontos de mana (apenas conjuradores arcanos)." },
+            { nome: "Torre de Estudos", custo: 10, beneficio: "Fornece um poder de arcanista cujos pré-requisitos cumpra." },
+            { nome: "Arena Arcana", custo: 6, beneficio: "+1 ponto de dano por dado de Raio Arcano.", prereq: "Torre de estudos" },
+            { nome: "Câmara Mística", custo: 15, beneficio: "1x/aventura, pode usar um poder de aprimoramento sem possuí-lo.", prereq: "Torre de estudos" },
+            { nome: "Círculo de Poder", custo: 10, beneficio: "+1 na CD de magias arcanas.", prereq: "Torre de estudos" },
+            { nome: "Linhas Místicas", custo: 25, beneficio: "Recuperação de PM aumenta em +1 por nível.", prereq: "Círculo de poder" }
+          ]
+        },
+        unidades: [
+          { nome: "Camponeses", construcao: "— (ação convocar camponeses)", custo: "1 LO", manutencao: "—", poder: 0.5, desl: "9m", defesa: 10, dano: "1d6" },
+          { nome: "Milícia", construcao: "Campo de treinamento", custo: "1 LO", manutencao: "0,25 LO", poder: 1, desl: "9m", defesa: 16, dano: "1d8+1" },
+          { nome: "Bandidos", construcao: "Esconderijo", custo: "2 LO", manutencao: "0,5 LO", poder: 1, desl: "9m", defesa: 15, dano: "2d6" },
+          { nome: "Guardas", construcao: "Torre de guarnição", custo: "2 LO", manutencao: "0,5 LO", poder: 2, desl: "6m", defesa: 19, dano: "1d8+2" },
+          { nome: "Arqueiros", construcao: "Pista de arquearia", custo: "2 LO", manutencao: "0,5 LO", poder: 2, desl: "9m", defesa: 15, dano: "1d8 (alcance médio)" },
+          { nome: "Cães de Guerra", construcao: "Canil", custo: "2 LO", manutencao: "0,25 LO", poder: 2, desl: "15m", defesa: 14, dano: "1d6+3" },
+          { nome: "Cavaleiros", construcao: "Pista de justa", custo: "6 LO", manutencao: "1 LO", poder: 5, desl: "12m", defesa: 24, dano: "1d8+3 (+1d8 se adjacente na mesma rodada)" }
+        ],
+        impostos: [
+          { nivel: 0, descricao: "Ermos", baixo: "—", medio: "—", alto: "—" },
+          { nivel: 1, descricao: "Aldeia", baixo: "1", medio: "1d3", alto: "1d3+1" },
+          { nivel: 2, descricao: "Vilarejo", baixo: "1d3", medio: "1d3+1", alto: "2d4" },
+          { nivel: 3, descricao: "Vila pequena ou feudo", baixo: "1d4", medio: "2d4", alto: "2d6" },
+          { nivel: 4, descricao: "Vila grande ou baronato", baixo: "1d6", medio: "2d4+1", alto: "2d6+2" },
+          { nivel: 5, descricao: "Cidade pequena ou condado", baixo: "1d8", medio: "2d6", alto: "2d8+2" },
+          { nivel: 6, descricao: "Cidade grande ou ducado", baixo: "1d10", medio: "2d6+1", alto: "2d10+2" },
+          { nivel: 7, descricao: "Metrópole ou reino pequeno", baixo: "1d12", medio: "2d8+1", alto: "2d12+2" }
+        ],
+        eventos: [
+          { min: 1, max: 2, nome: "Ataque de dragão", efeito: "O domínio perde um nível, uma construção aleatória e 1d6 unidades." },
+          { min: 3, max: 7, nome: "Invasores", efeito: "Batalha simplificada. Poder = 1d12 por nível do domínio; Guerra do líder = 2d6+10." },
+          { min: 8, max: 11, nome: "Monstro", efeito: "Teste de Sobrevivência (gasta uma ação de domínio). Falhar: popularidade -1 categoria e perde uma construção aleatória." },
+          { min: 12, max: 15, nome: "Peste", efeito: "Popularidade -1 categoria; perde 1d3+1 unidades." },
+          { min: 16, max: 20, nome: "Fenômeno natural", efeito: "Role 1d6: 1) domínio perde 1 nível; 2-3) perde uma construção aleatória; 4-6) ganhos do domínio caem em 1d6 LO nesse turno." },
+          { min: 21, max: 22, nome: "Fenômeno mágico", efeito: "Role 1d6: 1) sem ações de domínio neste turno; 2-3) -5 nas ações de domínio; 4-6) -2 nas ações de domínio." },
+          { min: 23, max: 26, nome: "Questão diplomática", efeito: "Um emissário exige algo (tributo, tropas, uso de construção). Teste de Diplomacia (ação de domínio) para recusar sem consequência." },
+          { min: 27, max: 30, nome: "Levante", efeito: "Popularidade cai em 2 categorias (pode causar revolta)." },
+          { min: 31, max: 35, nome: "Intriga", efeito: "Teste de Enganação (ação de domínio). Falhar/não agir: corte e popularidade caem 1 categoria." },
+          { min: 36, max: 42, nome: "Questão de justiça", efeito: "Teste de Intuição ou Investigação (ação de domínio). Falhar/não agir: popularidade cai 2 categorias." },
+          { min: 43, max: 52, nome: "Bandidos", efeito: "Popularidade cai 1 categoria a cada turno até serem derrotados em batalha simplificada. Poder = 2d4 + nível; Guerra do líder = 2d4+5." },
+          { min: 53, max: 56, nome: "Corrupção", efeito: "Ganhos caem 1d6 LO/turno até resolvido. Teste de Intuição/Investigação (ação de domínio); se passar, corte cai 1 categoria mas a corrupção acaba." },
+          { min: 57, max: 61, nome: "Questão comercial", efeito: "Teste de Diplomacia (ação de domínio). Falhar/não agir: ganhos caem 2d6 LO nesse turno." },
+          { min: 62, max: 70, nome: "Saqueadores", efeito: "Batalha simplificada, força menor. Poder = 1d8 por nível; Guerra do líder = 2d4+10." },
+          { min: 71, max: 90, nome: "Nenhum evento", efeito: "Nada acontece neste turno." },
+          { min: 91, max: 100, nome: "Regalia", efeito: "Role 1d6: 1-2) +1d6 LO neste turno; 3-4) +2 nas ações de domínio neste turno; 5-6) popularidade +1 categoria." }
+        ],
+        acoesDominio: [
+          { nome: "Aumentar Corte", teste: "Nobreza CD 20", custo: "1 LO (ou 0 LO para trocar/diminuir)", desc: "Aumenta a corte em uma categoria; ou troca um conselheiro/diminui a corte em uma categoria (sem gastar LO)." },
+          { nome: "Construir", teste: "Perícia definida pela construção • CD 20 + nível do domínio", custo: "Definido pela construção", desc: "Ergue uma construção cujos pré-requisitos você cumpra." },
+          { nome: "Convocar Camponeses", teste: "Nenhum", custo: "1 LO", desc: "Gera 1d6 unidades de camponeses (disponíveis até o fim do turno); popularidade -1 categoria." },
+          { nome: "Extorquir", teste: "Intimidação CD 20 + nível do domínio", custo: "0 LO", desc: "Fornece 1d6 LO + nível do domínio; popularidade -1 categoria." },
+          { nome: "Festival", teste: "Atuação CD 20 + nível do domínio", custo: "1 LO", desc: "Popularidade +1 categoria." },
+          { nome: "Finanças", teste: "Nobreza CD 20", custo: "—", desc: "Converte T$ 1.000 em 1 LO, ou vice-versa." },
+          { nome: "Governar", teste: "Nobreza CD 20 + 2× o próximo nível", custo: "5 LO × o próximo nível", desc: "O domínio sobe um nível. Só pode ser feita uma vez por turno." },
+          { nome: "Recrutar Tropas", teste: "Nenhum", custo: "Definido pela unidade", desc: "Recruta até um número de unidades igual ao nível do domínio (cuja construção você possua)." }
+        ]
+      },
+      negocios: {
+        ativos: [
+          { nome: "Academia", beneficio: "Recebe um parceiro veterano humanoide à escolha (exceto montaria); é substituído se morrer.", prereq: "Negócio de nível 7" },
+          { nome: "Alfaiataria", beneficio: "Pode se beneficiar de um item vestido adicional.", prereq: "Oficina" },
+          { nome: "Alojamentos", beneficio: "Transforma as condições de descanso no negócio em confortáveis." },
+          { nome: "Altar", beneficio: "+2 pontos de mana (apenas conjuradores divinos)." },
+          { nome: "Arena", beneficio: "Proficiência em uma arma marcial à escolha (ou exótica, se já proficiente em marciais)." },
+          { nome: "Bazar", beneficio: "Muda o preço de itens mundanos em 10% a seu favor ao comprar/vender." },
+          { nome: "Botica", beneficio: "+1 em Fortitude." },
+          { nome: "Cassino", beneficio: "+1 em Jogatina. 1x/aventura (ou mês), rola um dado: par ganha TO 10 × nível² do negócio; ímpar perde metade dessa quantia." },
+          { nome: "Centro de Pesquisa", beneficio: "Quantidade de engenhocas que pode manter aumenta em +1.", prereq: "Oficina" },
+          { nome: "Círculo de Poder", beneficio: "+2 pontos de mana (apenas conjuradores arcanos)." },
+          { nome: "Clínica", beneficio: "+3 PV." },
+          { nome: "Cocheira", beneficio: "Pode ter um parceiro montaria que não conta no limite de parceiros." },
+          { nome: "Conservatório", beneficio: "Pode usar Atuação no lugar de Diplomacia." },
+          { nome: "Cozinha", beneficio: "Bônus em perícias fornecidos pelos alimentos cozinhados aumentam em +1." },
+          { nome: "Creche", beneficio: "1x/aventura (ou mês), pode sofrer um efeito nocivo no lugar de um aliado adjacente." },
+          { nome: "Dojo", beneficio: "+1 em testes de ataque com ataques desarmados ou armas naturais." },
+          { nome: "Empório", beneficio: "Negócio rende 100 TO × nível por mês (ou teste de Ofício/Nobreza × 10 × nível).", prereq: "Bazar" },
+          { nome: "Escritório", beneficio: "Custo em tibares para aumentar o nível do negócio cai à metade." },
+          { nome: "Espionagem Industrial", beneficio: "Escolhe um ativo que o negócio não tenha (mas cumpra pré-requisitos); pode trocá-lo 1x/aventura (ou mês).", prereq: "Negócio de nível 3" },
+          { nome: "Estagiários", beneficio: "Ao fabricar item não consumível, pode sofrer -5 no teste para fabricar dois itens da mesma categoria pagando o custo de ambos.", prereq: "Oficina" },
+          { nome: "Estúdio", beneficio: "CD do teste de Ofício/Nobreza para aumentar o nível do negócio cai em -5." },
+          { nome: "Fachada", beneficio: "+1 em Furtividade; pode conduzir atividades ilegais no negócio sem interações negativas." },
+          { nome: "Forjaria", beneficio: "20% de desconto para comprar ou fabricar itens superiores.", prereq: "Oficina" },
+          { nome: "Fortificação", beneficio: "Se o negócio for atacado, defensores recebem +2 na Defesa e em resistência." },
+          { nome: "Galeria de Arte", beneficio: "Pode substituir testes de Atuação por testes de Enganação." },
+          { nome: "Ginásio", beneficio: "+1 em rolagens de dano com ataques desarmados e armas naturais." },
+          { nome: "Guilda de Aventureiros", beneficio: "XP recebida aumenta em +10% (ou +2 PV/+2 PM por patamar, se usar avanço por marcos).", prereq: "Salão Comunal" },
+          { nome: "Integração", beneficio: "+2 em testes de treinamento.", prereq: "Negócio de nível 3" },
+          { nome: "Jardim", beneficio: "Custo de Forma Selvagem cai em -1 PM." },
+          { nome: "Laboratório Alquímico", beneficio: "Efeitos de preparados alquímicos aumentam em um dado.", prereq: "Oficina" },
+          { nome: "Laboratório Secreto", beneficio: "Recebe um poder da Tormenta (perda de Carisma como normal).", prereq: "Fachada, negócio de nível 5" },
+          { nome: "Livraria", beneficio: "+1 em Conhecimento." },
+          { nome: "Logística", beneficio: "Limite de carga aumenta em 5 espaços." },
+          { nome: "Mercado Multinivelado", beneficio: "A cada aventura (ou mês) em que recrutar um NPC nomeado, recebe tibares = nível × 100 (crescente a cada recrutamento adicional).", prereq: "Negócio de nível 3" },
+          { nome: "Oficina", beneficio: "+1 em Ofício." },
+          { nome: "Ourivesaria", beneficio: "No início da aventura (ou mês), um item escolhido recebe os benefícios de melhorias banhado a ouro/cravejado (sem contar no limite)." },
+          { nome: "Palco", beneficio: "Pode usar poderes de Música gastando uma ação de movimento em vez de padrão." },
+          { nome: "Pátio de Treinamento", beneficio: "+1 em testes de ataque com uma arma à escolha." },
+          { nome: "Plano de Carreira", beneficio: "+2 em testes de buscas.", prereq: "Negócio de nível 3" },
+          { nome: "Propaganda", beneficio: "+1 em Diplomacia ou Enganação.", prereq: "Negócio de nível 2" },
+          { nome: "Salão Comunal", beneficio: "Pode usar o poder Mestre dos Sussurros (ou soma o nível do negócio no teste, se já o possuir)." },
+          { nome: "Salão de Baile", beneficio: "+1 em Nobreza." },
+          { nome: "Salão de Marah", beneficio: "Total de PM aumenta em +1 por patamar." },
+          { nome: "Santuário", beneficio: "Aprende uma magia divina adicional de qualquer círculo (se devoto da divindade do santuário).", prereq: "Altar" },
+          { nome: "Torre Arcana", beneficio: "Aprende uma magia arcana adicional de qualquer círculo.", prereq: "Círculo de Poder" }
+        ]
+      }
+    };
+
+    /* ============================================================
+       HELPERS GERAIS
+       ============================================================ */
+    function rollDie(sides) { return 1 + Math.floor(Math.random() * sides); }
+    function d20() { return rollDie(20); }
+
+    function logTo(elId, html) {
+      const el = document.getElementById(elId);
+      const div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = html;
+      el.prepend(div);
+    }
+
+    function rollTest(modId, cd, label) {
+      const mod = parseInt(document.getElementById(modId).value) || 0;
+      const roll = d20();
+      const total = roll + mod;
+      const ok = total >= cd;
+      const sys = currentLogSystem();
+      logTo(sys + '-log', `<b>${label}</b>: d20(${roll}) + ${mod} = <b>${total}</b> vs CD ${cd} — <span class="res ${ok ? 'ok' : 'fail'}">${ok ? 'SUCESSO' : 'FALHA'}</span>`);
+    }
+
+    function rollTestDynamicCD(modId, extraId, base, label) {
+      const mod = parseInt(document.getElementById(modId).value) || 0;
+      const extra = parseInt(document.getElementById(extraId).value) || 0;
+      const cd = base + extra;
+      rollTest(modId, cd, label);
+    }
+
+    function currentLogSystem() {
+      if (document.getElementById('sys-bases').classList.contains('active')) return 'b';
+      if (document.getElementById('sys-dominios').classList.contains('active')) return 'd';
+      return 'n';
+    }
+
+    function filterTable(tbodyId, term) {
+      term = term.toLowerCase();
+      document.querySelectorAll('#' + tbodyId + ' tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    }
+
+    function escapeHtml(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function exportSheet(kind) {
+      const key = 't20_' + kind;
+      const data = localStorage.getItem(key);
+      if (!data) { alert('Nenhuma ficha salva ainda.'); return; }
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = kind + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importSheet(kind) {
+      const input = document.createElement('input');
+      input.type = 'file'; input.accept = 'application/json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            localStorage.setItem('t20_' + kind, reader.result);
+            if (kind === 'base') Bases.load();
+            if (kind === 'dominio') Dominios.load();
+            if (kind === 'negocio') Negocios.load();
+          } catch (err) { alert('Arquivo inválido.'); }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    /* ============================================================
+       NAVEGAÇÃO
+       ============================================================ */
+    document.querySelectorAll('nav.systems button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('nav.systems button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('section.system').forEach(s => s.classList.remove('active'));
+        document.getElementById('sys-' + btn.dataset.sys).classList.add('active');
+      });
+    });
+    document.querySelectorAll('section.system').forEach(sys => {
+      sys.querySelectorAll('nav.subtabs button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          sys.querySelectorAll('nav.subtabs button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          sys.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+          sys.querySelector('.pane[data-pane="' + btn.dataset.pane + '"]').classList.add('active');
+        });
+      });
+    });
+
+    /* ============================================================
+       BASES
+       ============================================================ */
+    const Bases = {
+      state: { nome: '', tipo: '', porte: 'Mínima', comodos: [], mobilias: [] },
+      init() {
+        const tipoSel = document.getElementById('b-tipo');
+        DATA.bases.tipos.forEach(t => tipoSel.innerHTML += `<option value="${t.nome}">${t.nome}</option>`);
+        const porteSel = document.getElementById('b-porte');
+        DATA.bases.portes.forEach(p => porteSel.innerHTML += `<option value="${p.nome}">${p.nome}</option>`);
+
+        // referência
+        document.getElementById('ref-tipos').innerHTML = DATA.bases.tipos.map(t => `<tr><td><b>${t.nome}</b></td><td>${t.beneficio}</td></tr>`).join('');
+        document.getElementById('ref-portes').innerHTML = DATA.bases.portes.map(p => `<tr><td><b>${p.nome}</b></td><td>T$ ${p.custo.toLocaleString('pt-BR')}</td><td>T$ ${p.manutencao.toLocaleString('pt-BR')}</td><td>${p.comodos}</td><td>${p.exemplos}</td></tr>`).join('');
+        document.getElementById('ref-comodos-body').innerHTML = DATA.bases.comodos.map(c => `<tr><td><b>${c.nome}</b></td><td>${c.beneficio}</td><td>${c.prereq || '—'}</td></tr>`).join('');
+        document.getElementById('ref-mobilias-body').innerHTML = DATA.bases.mobilias.map(m => `<tr><td><b>${m.nome}</b></td><td>${m.beneficio}</td><td>T$ ${m.preco.toLocaleString('pt-BR')}</td><td>${m.prereq || '—'}</td></tr>`).join('');
+
+        this.renderChecklists();
+        this.load();
+
+        document.getElementById('b-tipo').addEventListener('change', () => this.recalc());
+        document.getElementById('b-porte').addEventListener('change', () => this.recalc());
+        document.getElementById('b-nome').addEventListener('input', () => { });
+      },
+      renderChecklists() {
+        const comodosEl = document.getElementById('b-comodos-list');
+        comodosEl.innerHTML = DATA.bases.comodos.map((c, i) => `
+      <label class="checkitem">
+        <input type="checkbox" data-idx="${i}" onchange="Bases.recalc()">
+        <span><b>${c.nome}</b>${c.prereq ? `<span class="tag">${c.prereq}</span>` : ''}<br><span class="meta">${c.beneficio}</span></span>
+      </label>`).join('');
+
+        const mobEl = document.getElementById('b-mobilias-list');
+        mobEl.innerHTML = DATA.bases.mobilias.map((m, i) => `
+      <label class="checkitem">
+        <input type="checkbox" data-idx="${i}" onchange="Bases.recalc()">
+        <span><b>${m.nome}</b> <span class="tag">T$ ${m.preco.toLocaleString('pt-BR')}</span><br><span class="meta">${m.beneficio}</span></span>
+      </label>`).join('');
+      },
+      filterList(which, term) {
+        term = term.toLowerCase();
+        const containerId = which === 'comodos' ? 'b-comodos-list' : 'b-mobilias-list';
+        document.querySelectorAll('#' + containerId + ' .checkitem').forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? '' : 'none';
+        });
+      },
+      recalc() {
+        const porteName = document.getElementById('b-porte').value;
+        const porte = DATA.bases.portes.find(p => p.nome === porteName) || DATA.bases.portes[0];
+        const tipoName = document.getElementById('b-tipo').value;
+        const tipo = DATA.bases.tipos.find(t => t.nome === tipoName);
+
+        const comodosChecked = [...document.querySelectorAll('#b-comodos-list input:checked')].map(i => DATA.bases.comodos[parseInt(i.dataset.idx)]);
+        const mobiliasChecked = [...document.querySelectorAll('#b-mobilias-list input:checked')].map(i => DATA.bases.mobilias[parseInt(i.dataset.idx)]);
+
+        let seguranca = 0;
+        if (tipoName === 'Fortificação') seguranca += 5;
+        comodosChecked.forEach(c => seguranca += (c.seguranca || 0));
+        const gargulas = mobiliasChecked.filter(m => m.nome === 'Gárgula Animada').length;
+        seguranca += gargulas * 2;
+
+        document.getElementById('b-comodos-count').textContent = `${comodosChecked.length} / ${porte.comodos} cômodos`;
+
+        document.getElementById('b-summary').innerHTML = `
+      <div class="stat">Porte: <b>${porte.nome}</b></div>
+      <div class="stat">Manutenção: <b>T$ ${porte.manutencao.toLocaleString('pt-BR')}</b></div>
+      <div class="stat">Cômodos: <b>${comodosChecked.length}/${porte.comodos}</b></div>
+      <div class="stat">Segurança: <b>${seguranca}</b></div>
+      <div class="stat">Tipo: <b>${tipoName || '—'}</b>${tipo ? ` — ${tipo.beneficio}` : ''}</div>
+    `;
+      },
+      save() {
+        const state = {
+          nome: document.getElementById('b-nome').value,
+          tipo: document.getElementById('b-tipo').value,
+          porte: document.getElementById('b-porte').value,
+          comodos: [...document.querySelectorAll('#b-comodos-list input:checked')].map(i => parseInt(i.dataset.idx)),
+          mobilias: [...document.querySelectorAll('#b-mobilias-list input:checked')].map(i => parseInt(i.dataset.idx))
+        };
+        localStorage.setItem('t20_base', JSON.stringify(state));
+        logTo('b-log', 'Ficha da base salva.');
+      },
+      load() {
+        const raw = localStorage.getItem('t20_base');
+        if (!raw) { this.recalc(); return; }
+        try {
+          const state = JSON.parse(raw);
+          document.getElementById('b-nome').value = state.nome || '';
+          if (state.tipo) document.getElementById('b-tipo').value = state.tipo;
+          if (state.porte) document.getElementById('b-porte').value = state.porte;
+          document.querySelectorAll('#b-comodos-list input').forEach(i => { i.checked = (state.comodos || []).includes(parseInt(i.dataset.idx)); });
+          document.querySelectorAll('#b-mobilias-list input').forEach(i => { i.checked = (state.mobilias || []).includes(parseInt(i.dataset.idx)); });
+        } catch (e) { }
+        this.recalc();
+      },
+      novaFicha() {
+        if (!confirm('Começar uma nova ficha de base? Isso substituirá a ficha atual (não salva).')) return;
+        document.getElementById('b-nome').value = '';
+        document.getElementById('b-tipo').selectedIndex = 0;
+        document.getElementById('b-porte').selectedIndex = 0;
+        document.querySelectorAll('#b-comodos-list input, #b-mobilias-list input').forEach(i => i.checked = false);
+        this.recalc();
+      }
+    };
+
+    /* ============================================================
+       DOMÍNIOS
+       ============================================================ */
+    const Dominios = {
+      init() {
+        const terrSel = document.getElementById('d-terreno');
+        DATA.dominios.terrenos.forEach(t => terrSel.innerHTML += `<option value="${t.nome}">${t.nome}</option>`);
+        const corteSel = document.getElementById('d-corte');
+        DATA.dominios.cortes.forEach(c => corteSel.innerHTML += `<option value="${c.nome}">${c.nome}</option>`);
+        const popSel = document.getElementById('d-popularidade');
+        DATA.dominios.popularidade.forEach(p => popSel.innerHTML += `<option value="${p.nome}">${p.nome}</option>`);
+
+        document.getElementById('ref-terrenos').innerHTML = DATA.dominios.terrenos.map(t => `<tr><td><b>${t.nome}</b></td><td>${t.nivelMax}</td><td>${t.potencial}</td></tr>`).join('');
+        document.getElementById('ref-cortes').innerHTML = DATA.dominios.cortes.map(c => `<tr><td><b>${c.nome}</b></td><td>${c.manutencao} LO</td><td>${c.beneficio}</td></tr>`).join('');
+        document.getElementById('ref-popularidade').innerHTML = DATA.dominios.popularidade.map(p => `<tr><td><b>${p.nome}</b></td><td>${p.mod > 0 ? '+' : ''}${p.mod}</td></tr>`).join('');
+        document.getElementById('ref-unidades').innerHTML = DATA.dominios.unidades.map(u => `<tr><td><b>${u.nome}</b></td><td>${u.construcao}</td><td>${u.custo}</td><td>${u.manutencao}</td><td>${u.poder}</td><td>${u.desl}</td><td>${u.defesa}</td><td>${u.dano}</td></tr>`).join('');
+        document.getElementById('ref-impostos').innerHTML = DATA.dominios.impostos.map(i => `<tr><td>${i.nivel}</td><td>${i.descricao}</td><td>${i.baixo}</td><td>${i.medio}</td><td>${i.alto}</td></tr>`).join('');
+
+        this.renderConstrucoesRef();
+        this.renderConstrucoesChecklist();
+        this.renderUnidadesTable();
+        this.renderAcoesDominio();
+        this.load();
+
+        ['d-nivel', 'd-terreno', 'd-corte', 'd-popularidade', 'd-tesouro'].forEach(id => {
+          document.getElementById(id).addEventListener('input', () => this.recalc());
+          document.getElementById(id).addEventListener('change', () => this.recalc());
+        });
+      },
+      renderConstrucoesRef() {
+        const container = document.getElementById('ref-construcoes-container');
+        let html = '';
+        for (const cat in DATA.dominios.construcoes) {
+          html += `<div class="catgroup" data-cat="${cat}"><h4>${cat}</h4><table><tbody>`;
+          DATA.dominios.construcoes[cat].forEach(c => {
+            html += `<tr><td><b>${c.nome}</b> <span class="tag">${c.custo} LO</span></td><td>${c.beneficio}${c.prereq ? ` <span class="meta" style="color:var(--muted);">(Pré-requisito: ${c.prereq})</span>` : ''}</td></tr>`;
+          });
+          html += `</tbody></table></div>`;
+        }
+        container.innerHTML = html;
+      },
+      renderConstrucoesChecklist() {
+        const el = document.getElementById('d-construcoes-list');
+        let html = '';
+        let idx = 0;
+        for (const cat in DATA.dominios.construcoes) {
+          html += `<div style="padding:6px 10px;background:var(--panel2);color:var(--teal);font-family:var(--font-display);font-size:.85rem;">${cat}</div>`;
+          DATA.dominios.construcoes[cat].forEach(c => {
+            html += `<label class="checkitem">
+          <input type="checkbox" data-cat="${cat}" data-name="${c.nome}" onchange="Dominios.recalc()">
+          <span><b>${c.nome}</b> <span class="tag">${c.custo} LO</span>${c.prereq ? `<span class="tag">${c.prereq}</span>` : ''}<br><span class="meta">${c.beneficio}</span></span>
+        </label>`;
+            idx++;
+          });
+        }
+        el.innerHTML = html;
+      },
+      filterConstrucoes(term) {
+        term = term.toLowerCase();
+        document.querySelectorAll('#d-construcoes-list .checkitem').forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? '' : 'none';
+        });
+      },
+      renderUnidadesTable() {
+        const body = document.getElementById('d-unidades-body');
+        body.innerHTML = DATA.dominios.unidades.map((u, i) => `
+      <tr><td>${u.nome}</td><td><input type="number" min="0" value="0" style="width:70px" id="d-unidade-qtd-${i}" onchange="Dominios.recalc()"></td><td>${u.poder}</td></tr>
+    `).join('');
+      },
+      renderAcoesDominio() {
+        const el = document.getElementById('d-acoes-list');
+        el.innerHTML = DATA.dominios.acoesDominio.map((a, i) => `
+      <div class="actiondef">
+        <div class="heading"><b>${a.nome}</b><span class="pill">${a.teste}</span></div>
+        <div class="desc">${a.desc} ${a.custo !== '—' ? `<br><b>Custo:</b> ${a.custo}` : ''}</div>
+        <div class="row"><div><label>Bônus na perícia (se houver teste)</label><input type="number" id="dacao-mod-${i}" value="0"></div></div>
+        <button class="btn" onclick="Dominios.rollAcao(${i})">Rolar / Aplicar</button>
+      </div>
+    `).join('');
+      },
+      parseCD(str, nivel, proxNivel) {
+        // extrai CD de strings como "CD 20 + nível do domínio" ou "CD 20 + 2× o próximo nível"
+        let cd = 20;
+        if (str.includes('nível do domínio')) cd += nivel;
+        if (str.includes('2× o próximo nível')) cd += 2 * proxNivel;
+        return cd;
+      },
+      rollAcao(i) {
+        const a = DATA.dominios.acoesDominio[i];
+        const mod = parseInt(document.getElementById('dacao-mod-' + i).value) || 0;
+        const nivel = parseInt(document.getElementById('d-nivel').value) || 1;
+        if (a.teste === 'Nenhum') {
+          logTo('d-log', `<b>${a.nome}</b> aplicada — sem teste necessário.`);
+          return;
+        }
+        let cd = 20;
+        if (a.teste.includes('CD 20 + nível do domínio')) cd = 20 + nivel;
+        else if (a.teste.includes('CD 20 + 2× o próximo nível')) cd = 20 + 2 * (nivel + 1);
+        const roll = d20();
+        const total = roll + mod;
+        const ok = total >= cd;
+        logTo('d-log', `<b>${a.nome}</b>: d20(${roll}) + ${mod} = <b>${total}</b> vs CD ${cd} — <span class="res ${ok ? 'ok' : 'fail'}">${ok ? 'SUCESSO' : 'FALHA'}</span>`);
+      },
+      rollEvento() {
+        const roll = Math.floor(Math.random() * 100) + 1;
+        const ev = DATA.dominios.eventos.find(e => roll >= e.min && roll <= e.max);
+        document.getElementById('d-evento-result').innerHTML = `<div class="pill">d% = ${roll}</div><b>${ev.nome}</b><br><span class="meta" style="color:var(--muted);">${ev.efeito}</span>`;
+        logTo('d-log', `Evento aleatório (d%=${roll}): <b>${ev.nome}</b>`);
+      },
+      rollImposto() {
+        const nivel = parseInt(document.getElementById('d-nivel').value) || 1;
+        const tipo = document.getElementById('d-imposto-tipo').value;
+        const linha = DATA.dominios.impostos.find(i => i.nivel === nivel) || DATA.dominios.impostos[1];
+        const expr = tipo === 'baixo' ? linha.baixo : (tipo === 'medio' ? linha.medio : linha.alto);
+        const total = rollDiceExpr(expr);
+        document.getElementById('d-imposto-result').innerHTML = `Impostos ${tipo}(s): <b>${expr}</b> → <b>${total} LO</b>`;
+        logTo('d-log', `Impostos (${tipo}): ${expr} = <b>${total} LO</b>`);
+      },
+      rollBatalha() {
+        const guerraRegente = parseInt(document.getElementById('bat-guerra-regente').value) || 0;
+        const poderDef = parseInt(document.getElementById('bat-poder-defensor').value) || 0;
+        const fort = parseInt(document.getElementById('bat-fortificacao').value) || 0;
+        const guerraInimigo = parseInt(document.getElementById('bat-guerra-inimigo').value) || 0;
+        const poderInimigo = parseInt(document.getElementById('bat-poder-inimigo').value) || 0;
+
+        const diffPoder = poderInimigo - poderDef;
+        let bonusAtacante = 0, bonusDefensor = fort;
+        if (diffPoder > 0) bonusAtacante += diffPoder; else bonusDefensor += -diffPoder;
+
+        const rollDef = d20() + guerraRegente + bonusDefensor;
+        const rollAtk = d20() + guerraInimigo + bonusAtacante;
+        const diff = rollDef - rollAtk;
+
+        let resultado;
+        if (diff >= 10) resultado = "Vitória total! Invasores repelidos, ganha 1d6 LO de espólios.";
+        else if (diff >= 5) resultado = "Vitória! Invasores repelidos.";
+        else if (diff >= 0) resultado = "Vitória ao custo de vidas: perde 1d3 unidades.";
+        else if (diff >= -4) resultado = "Derrota: invasores saqueiam a terra. Perde 1d3+1 unidades e 2d6 LO.";
+        else if (diff >= -9) resultado = "Derrota grave: invasores queimam propriedades. Perde 1d4+1 unidades, 3d6 LO e uma construção aleatória.";
+        else resultado = "Derrota total: invasores massacram o povo. Perde 2d4+1 unidades, 4d6 LO, uma construção aleatória e um nível.";
+
+        document.getElementById('d-batalha-result').innerHTML = `Defensor: <b>${rollDef}</b> vs Atacante: <b>${rollAtk}</b> (diferença ${diff})<br><b>${resultado}</b>`;
+        logTo('d-log', `Batalha — Defensor ${rollDef} x Atacante ${rollAtk}: ${resultado}`);
+      },
+      recalc() {
+        const nivel = parseInt(document.getElementById('d-nivel').value) || 1;
+        const terrenoName = document.getElementById('d-terreno').value;
+        const terreno = DATA.dominios.terrenos.find(t => t.nome === terrenoName);
+        const corteName = document.getElementById('d-corte').value;
+        const corte = DATA.dominios.cortes.find(c => c.nome === corteName);
+        const popName = document.getElementById('d-popularidade').value;
+        const pop = DATA.dominios.popularidade.find(p => p.nome === popName);
+
+        const construcoesChecked = [...document.querySelectorAll('#d-construcoes-list input:checked')];
+        const maxConstrucoes = nivel * 3;
+
+        let fortificacao = 0;
+        const substituidas = new Set();
+        construcoesChecked.forEach(chk => {
+          const cat = chk.dataset.cat, name = chk.dataset.name;
+          const c = DATA.dominios.construcoes[cat].find(x => x.nome === name);
+          if (c && c.substitui) substituidas.add(c.substitui);
+        });
+        construcoesChecked.forEach(chk => {
+          const cat = chk.dataset.cat, name = chk.dataset.name;
+          const c = DATA.dominios.construcoes[cat].find(x => x.nome === name);
+          if (c && c.fortificacao && !substituidas.has(name)) fortificacao += c.fortificacao;
+        });
+
+        let poderUnidades = 0;
+        DATA.dominios.unidades.forEach((u, i) => {
+          const qtdEl = document.getElementById('d-unidade-qtd-' + i);
+          const qtd = qtdEl ? (parseInt(qtdEl.value) || 0) : 0;
+          poderUnidades += qtd * u.poder;
+        });
+
+        document.getElementById('d-construcoes-count').textContent = `${construcoesChecked.length} / ${maxConstrucoes} construções`;
+        document.getElementById('bat-fortificacao').value = fortificacao;
+        document.getElementById('bat-poder-defensor').value = poderUnidades;
+
+        document.getElementById('d-summary').innerHTML = `
+      <div class="stat">Nível: <b>${nivel}</b></div>
+      <div class="stat">Terreno: <b>${terrenoName || '—'}</b>${terreno ? ` (nível máx. ${terreno.nivelMax}, potencial mágico ${terreno.potencial})` : ''}</div>
+      <div class="stat">Corte: <b>${corteName || '—'}</b>${corte ? ` — ${corte.beneficio}` : ''}</div>
+      <div class="stat">Popularidade: <b>${popName || '—'}</b>${pop ? ` (${pop.mod > 0 ? '+' : ''}${pop.mod} em ações de domínio)` : ''}</div>
+      <div class="stat">Fortificação: <b>${fortificacao}</b></div>
+      <div class="stat">Poder das unidades: <b>${poderUnidades}</b></div>
+      <div class="stat">Construções: <b>${construcoesChecked.length}/${maxConstrucoes}</b></div>
+    `;
+      },
+      save() {
+        const state = {
+          nome: document.getElementById('d-nome').value,
+          regente: document.getElementById('d-regente').value,
+          nivel: document.getElementById('d-nivel').value,
+          terreno: document.getElementById('d-terreno').value,
+          corte: document.getElementById('d-corte').value,
+          popularidade: document.getElementById('d-popularidade').value,
+          tesouro: document.getElementById('d-tesouro').value,
+          construcoes: [...document.querySelectorAll('#d-construcoes-list input:checked')].map(i => i.dataset.cat + '|' + i.dataset.name),
+          unidades: DATA.dominios.unidades.map((u, i) => parseInt(document.getElementById('d-unidade-qtd-' + i).value) || 0)
+        };
+        localStorage.setItem('t20_dominio', JSON.stringify(state));
+        logTo('d-log', 'Ficha do domínio salva.');
+      },
+      load() {
+        const raw = localStorage.getItem('t20_dominio');
+        if (!raw) { this.recalc(); return; }
+        try {
+          const state = JSON.parse(raw);
+          document.getElementById('d-nome').value = state.nome || '';
+          document.getElementById('d-regente').value = state.regente || '';
+          document.getElementById('d-nivel').value = state.nivel || 1;
+          if (state.terreno) document.getElementById('d-terreno').value = state.terreno;
+          if (state.corte) document.getElementById('d-corte').value = state.corte;
+          if (state.popularidade) document.getElementById('d-popularidade').value = state.popularidade;
+          document.getElementById('d-tesouro').value = state.tesouro || 0;
+          const set = new Set(state.construcoes || []);
+          document.querySelectorAll('#d-construcoes-list input').forEach(i => {
+            i.checked = set.has(i.dataset.cat + '|' + i.dataset.name);
+          });
+          (state.unidades || []).forEach((qtd, i) => {
+            const el = document.getElementById('d-unidade-qtd-' + i);
+            if (el) el.value = qtd;
+          });
+        } catch (e) { }
+        this.recalc();
+      },
+      novaFicha() {
+        if (!confirm('Começar uma nova ficha de domínio? Isso substituirá a ficha atual (não salva).')) return;
+        document.getElementById('d-nome').value = '';
+        document.getElementById('d-regente').value = '';
+        document.getElementById('d-nivel').value = 1;
+        document.getElementById('d-terreno').selectedIndex = 0;
+        document.getElementById('d-corte').selectedIndex = 0;
+        document.getElementById('d-popularidade').selectedIndex = 2;
+        document.getElementById('d-tesouro').value = 0;
+        document.querySelectorAll('#d-construcoes-list input').forEach(i => i.checked = false);
+        DATA.dominios.unidades.forEach((u, i) => { document.getElementById('d-unidade-qtd-' + i).value = 0; });
+        this.recalc();
+      }
+    };
+
+    function filterConstrucoesRef(term) {
+      term = term.toLowerCase();
+      document.querySelectorAll('#ref-construcoes-container tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    }
+
+    function rollDiceExpr(expr) {
+      // suporta formatos como "2d6+2", "1d3", "—"
+      if (expr === '—') return 0;
+      const m = expr.match(/(\d+)d(\d+)([+-]\d+)?/);
+      if (!m) return parseInt(expr) || 0;
+      const n = parseInt(m[1]), sides = parseInt(m[2]), mod = m[3] ? parseInt(m[3]) : 0;
+      let total = 0;
+      for (let k = 0; k < n; k++) total += rollDie(sides);
+      return total + mod;
+    }
+
+    /* ============================================================
+       NEGÓCIOS
+       ============================================================ */
+    const Negocios = {
+      init() {
+        document.getElementById('ref-ativos-body').innerHTML = DATA.negocios.ativos.map(a => `<tr><td><b>${a.nome}</b></td><td>${a.beneficio}</td><td>${a.prereq || '—'}</td></tr>`).join('');
+        this.renderChecklist();
+        this.load();
+        document.getElementById('n-nivel').addEventListener('input', () => this.recalc());
+      },
+      renderChecklist() {
+        const el = document.getElementById('n-ativos-list');
+        el.innerHTML = DATA.negocios.ativos.map((a, i) => `
+      <label class="checkitem">
+        <input type="checkbox" data-idx="${i}" onchange="Negocios.recalc()">
+        <span><b>${a.nome}</b>${a.prereq ? `<span class="tag">${a.prereq}</span>` : ''}<br><span class="meta">${a.beneficio}</span></span>
+      </label>`).join('');
+      },
+      filterList(term) {
+        term = term.toLowerCase();
+        document.querySelectorAll('#n-ativos-list .checkitem').forEach(item => {
+          item.style.display = item.textContent.toLowerCase().includes(term) ? '' : 'none';
+        });
+      },
+      recalc() {
+        const nivel = parseInt(document.getElementById('n-nivel').value) || 1;
+        const ativos = [...document.querySelectorAll('#n-ativos-list input:checked')];
+        document.getElementById('n-ativos-count').textContent = `${ativos.length} / ${nivel} ativos (1 por nível)`;
+        document.getElementById('n-summary').innerHTML = `
+      <div class="stat">Nível: <b>${nivel}</b></div>
+      <div class="stat">Ativos escolhidos: <b>${ativos.length}/${nivel}</b></div>
+      <div class="stat">Rendimento base: <b>T$ ${(100 * nivel).toLocaleString('pt-BR')}</b>/mês</div>
+    `;
+      },
+      save() {
+        const state = {
+          nome: document.getElementById('n-nome').value,
+          dono: document.getElementById('n-dono').value,
+          nivel: document.getElementById('n-nivel').value,
+          ativos: [...document.querySelectorAll('#n-ativos-list input:checked')].map(i => parseInt(i.dataset.idx))
+        };
+        localStorage.setItem('t20_negocio', JSON.stringify(state));
+        logTo('n-log', 'Ficha do negócio salva.');
+      },
+      load() {
+        const raw = localStorage.getItem('t20_negocio');
+        if (!raw) { this.recalc(); return; }
+        try {
+          const state = JSON.parse(raw);
+          document.getElementById('n-nome').value = state.nome || '';
+          document.getElementById('n-dono').value = state.dono || '';
+          document.getElementById('n-nivel').value = state.nivel || 1;
+          document.querySelectorAll('#n-ativos-list input').forEach(i => { i.checked = (state.ativos || []).includes(parseInt(i.dataset.idx)); });
+        } catch (e) { }
+        this.recalc();
+      },
+      novaFicha() {
+        if (!confirm('Começar uma nova ficha de negócio? Isso substituirá a ficha atual (não salva).')) return;
+        document.getElementById('n-nome').value = '';
+        document.getElementById('n-dono').value = '';
+        document.getElementById('n-nivel').value = 1;
+        document.querySelectorAll('#n-ativos-list input').forEach(i => i.checked = false);
+        this.recalc();
+      },
+      rollSubirNivel() {
+        const mod = parseInt(document.getElementById('acao-mod-n2').value) || 0;
+        const proxNivel = parseInt(document.getElementById('acao-proxnivel-n2').value) || 2;
+        const cd = 20 + 2 * proxNivel;
+        const roll = d20();
+        const total = roll + mod;
+        const ok = total >= cd;
+        logTo('n-log', `Subir para nível ${proxNivel}: d20(${roll})+${mod} = <b>${total}</b> vs CD ${cd} — <span class="res ${ok ? 'ok' : 'fail'}">${ok ? 'SUCESSO' : 'FALHA'}</span> (custo: T$ ${(1000 * proxNivel).toLocaleString('pt-BR')}, 1 mês)`);
+      },
+      rendimentoBase() {
+        const nivel = parseInt(document.getElementById('n-nivel').value) || 1;
+        const valor = 100 * nivel;
+        logTo('n-log', `Rendimento base: <b>T$ ${valor.toLocaleString('pt-BR')}</b>`);
+      },
+      rendimentoDedicado() {
+        const nivel = parseInt(document.getElementById('n-nivel').value) || 1;
+        const mod = parseInt(document.getElementById('acao-mod-n3').value) || 0;
+        const roll = d20() + mod;
+        const valor = roll * 10 * nivel;
+        logTo('n-log', `Mês dedicado: teste ${roll} × 10 × nível(${nivel}) = <b>T$ ${valor.toLocaleString('pt-BR')}</b>`);
+      }
+    };
+
+    /* ============================================================
+       INIT
+       ============================================================ */
+    Bases.init();
+    Dominios.init();
+    Negocios.init();
+  </script>
+
+  <!-- Inicializador de tema Arsenal -->
+  <script src="../assets/templates/theme-init.js"></script>
+</body>
+
+</html>
