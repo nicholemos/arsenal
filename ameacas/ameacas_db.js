@@ -27036,98 +27036,105 @@ const AMEACAS_DB = [
         "fonte": "Livro Básico"
     },
     {
-        "nome": "Lobo do Mar",
-        "tipo": "Humanoide (meio-orc) Médio",
-        "nd": "16",
-        "iniciativa": "+20",
-        "percepcao": "+12",
-        "percepcaoObs": "+14 em subterrâneo, visão no escuro",
-        "defesa": "42",
-        "fort": "+20",
-        "ref": "+26",
-        "von": "+12",
-        "defesaObs": "evasão aprimorada, imunidade a medo, Duro como o Inferno",
-        "pv": "480",
-        "desl": "9m (6q)",
-        "pm": "0",
-        "atributos": {
-            "for": "2",
-            "des": "6",
-            "con": "3",
-            "int": "0",
-            "sab": "2",
-            "car": "3"
-        },
-        "ataques": [
-            {
-                "nome": "Adaga",
-                "tipo": "Corpo a Corpo",
-                "bonus": "+32",
-                "dano": "1d4+6 perfuração",
-                "desc": "19. Lâmina reserva."
-            },
-            {
-                "nome": "Pistola formidável",
-                "tipo": "À Distância",
-                "bonus": "+36",
-                "dano": "6d6+50 perfuração",
-                "desc": "17/x3. Disparos com vantagem (Mão Firme). Soma Bala nas Costas e Tiro à Traição se aplicável."
-            }
-        ],
-        "habilidades": [
-            {
-                "nome": "Bala nas Costas",
-                "tipo": "Qualidade",
-                "desc": "Garante +10 na margem de ameaça do primeiro ataque feito contra cada oponente na cena."
-            },
-            {
-                "nome": "Duro como o Inferno",
-                "tipo": "Qualidade",
-                "desc": "Todo dano de corte, impacto e perfuração que sofre é reduzido à metade."
-            },
-            {
-                "nome": "Mão Firme",
-                "tipo": "Qualidade",
-                "desc": "Ataca sem penalidades no corpo a corpo com pistolas e rola dois dados escolhendo o melhor resultado em jogadas de ataque à distância."
-            },
-            {
-                "nome": "Reputação",
-                "tipo": "Qualidade",
-                "desc": "Inimigos que comecem o turno em alcance médio ficam abalados devido à sua infâmia (Von CD 33 evita; nega novas tentativas)."
-            },
-            {
-                "nome": "Saque Rápido",
-                "tipo": "Qualidade",
-                "desc": "Ações livres sacam/guardam itens; recarrega a pistola gastando uma ação de movimento."
-            },
-            {
-                "nome": "Tiro à Traição",
-                "tipo": "Qualidade",
-                "desc": "Disparar contra alvos desprevenidos confere +5 na margem de ameaça e causa +6d6 de dano."
-            }
-        ],
-        "pericias": [
-            {
-                "nome": "Cavalgar",
-                "valor": "+16"
-            },
-            {
-                "nome": "Intimidação",
-                "valor": "+20"
-            },
-            {
-                "nome": "Jogatina",
-                "valor": "+13"
-            },
-            {
-                "nome": "Sobrevivência",
-                "valor": "+12"
-            }
-        ],
-        "tesouro": "Padrão (Adaga, balas x20, pistola formidável)",
-        "fonte": "Ameaças de Arton",
-        "img": "https://i.imgur.com/ASAj3C4.png"
+    "nome": "Lobo do Mar",
+    "tipo": "Humanoide (humano) Médio",
+    "nd": "16",
+    "iniciativa": "+23",
+    "percepcao": "+16",
+    "percepcaoObs": "",
+    "defesa": "54",
+    "fort": "+24",
+    "ref": "+30",
+    "von": "+16",
+    "defesaObs": "evasão aprimorada, imunidade a medo, resistência a efeitos mentais e de movimento e magia +5",
+    "pv": "690",
+    "desl": "9m (6q)",
+    "pm": "0",
+    "atributos": {
+        "for": "1",
+        "des": "7",
+        "con": "3",
+        "int": "2",
+        "sab": "2",
+        "car": "4"
     },
+    "ataques": [
+        {
+            "nome": "Florete",
+            "tipo": "Corpo a Corpo",
+            "bonus": "x2 +46",
+            "dano": "2d6+40",
+            "desc": "Margem de ameaça 15."
+        },
+        {
+            "nome": "Adaga",
+            "tipo": "Corpo a Corpo",
+            "bonus": "x2 +46",
+            "dano": "2d4+40",
+            "desc": "Margem de ameaça 15."
+        },
+        {
+            "nome": "Adaga",
+            "tipo": "À Distância",
+            "bonus": "+46",
+            "dano": "2d4+40",
+            "desc": "Margem de ameaça 15."
+        }
+    ],
+    "habilidades": [
+        {
+            "nome": "Ataque Furtivo",
+            "tipo": "Qualidade",
+            "desc": "+8d6."
+        },
+        {
+            "nome": "Bloqueio Resistente",
+            "tipo": "Reação",
+            "desc": "Uma vez por rodada, quando é atingido por um ataque, o lobo do mar pode fazer um teste de ataque com seu florete. O dano desse ataque é reduzido em um valor igual ao resultado do teste de ataque do capitão."
+        },
+        {
+            "nome": "Pirata",
+            "tipo": "Qualidade",
+            "desc": "O lobo do mar recebe todas as habilidades de piratas (veja a caixa na página 258)."
+        },
+        {
+            "nome": "Todos a Postos",
+            "tipo": "Movimento",
+            "desc": "Uma vez por cena, o lobo do mar invoca 2d4+1 marujos piratas em espaços desocupados em alcance curto. Eles agem a partir da próxima rodada do lobo do mar, têm deslocamento 9m e podem gastar uma ação padrão para causar 2d4+4 pontos de dano de corte em uma criatura adjacente. Os marujos piratas têm For 1, Des 3, Defesa 25 e 1 PV e falham automaticamente em qualquer teste oposto ou de resistência."
+        },
+        {
+            "nome": "Truque do Convés",
+            "tipo": "Movimento",
+            "desc": "Uma criatura adjacente ao lobo do mar fica desprevenida contra seu próximo ataque nesta rodada (Von CD 42 evita). Esta habilidade só pode ser usada uma vez contra cada criatura na mesma cena."
+        }
+    ],
+    "pericias": [
+        {
+            "nome": "Acrobacia",
+            "valor": "+23"
+        },
+        {
+            "nome": "Atletismo",
+            "valor": "+17"
+        },
+        {
+            "nome": "Intimidação",
+            "valor": "+21"
+        },
+        {
+            "nome": "Jogatina",
+            "valor": "+20"
+        },
+        {
+            "nome": "Pilotagem",
+            "valor": "+23"
+        }
+    ],
+    "equipamento": "Adaga precisa x3, bandana, florete formidável preciso",
+    "tesouro": "Dobro",
+    "fonte": "Ameaças de Arton",
+    "img": "https://i.imgur.com/ASAj3C4.png"
+},
     {
         "nome": "Lobo-das-Cavernas",
         "tipo": "Animal Grande",
