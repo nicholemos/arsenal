@@ -1152,6 +1152,185 @@
   }
 
   // ══════════════════════════════════════════════════════════════════
+  //  COLEÇÃO: DEUSES MENORES
+  // ══════════════════════════════════════════════════════════════════
+  function buildDeusesMenoresCollection() {
+    var SOURCE_META = {
+      'deuses-avatares': { label: 'Deuses & Avatares', short: 'D&A', color: '#7a2848' }
+    };
+    var SOURCE_ORDER = ['deuses-avatares'];
+
+    var NATUREZAS = [
+      { name: 'Conceito Vivo', desc: 'Nasce de uma ideia, ato ou evento específico que desperta fé e devoção suficientes. Não possui forma física.' },
+      { name: 'Entidade Primordial', desc: 'Ser fundamental para a existência em Arton, surgido espontaneamente nos primórdios da Criação. Só se torna deus menor ao atrair devotos.' },
+      { name: 'Dragão-Real', desc: 'Descendente de Kallyadranoch dotado de centelha divina; alguns exibem seu status abertamente, outros de forma discreta.' },
+      { name: 'Mortal Ascendido', desc: 'Caminho de mortais (de qualquer raça, ou mesmo animais) que, por seus feitos ou maestria extrema, atraem devoção suficiente.' },
+      { name: 'Objeto Desperto', desc: 'Item inanimado que se torna magicamente consciente e cultuado, geralmente parado em um santuário ou local seguro.' }
+    ];
+
+    var STATUS_DIVINO = [
+      { name: 'Status 1', desc: 'Pouco mais que um santo ou herói local. Culto restrito a uma aldeia, família, tribo ou pequeno grupo de cultistas.' },
+      { name: 'Status 2', desc: 'Poder pessoal considerável, com fiéis já além das fronteiras de sua região de origem e, por vezes, uma organização modesta.' },
+      { name: 'Status 3', desc: 'Nome conhecido em reinos inteiros ou terras distantes, com número considerável de fiéis e alguma organização de suporte ao culto.' },
+      { name: 'Status 4', desc: 'Representa grandes povos, raças, ideias poderosas ou aspectos culturais importantes de nações inteiras.' },
+      { name: 'Status 5', desc: 'Entre os seres mais poderosos de Arton. É o único nível capaz de ascender a divindade maior quando o Panteão está incompleto.' }
+    ];
+
+    var DADIVAS = [
+      { name: 'Ampliar Conhecimento', req: 'Conceito Vivo', desc: 'Torna-se treinado em até três perícias associadas ao seu conceito (aprovadas pelo mestre).' },
+      { name: 'Aprimoramento Divino', req: 'Status divino 2', desc: 'Recebe +1 em um atributo à sua escolha.' },
+      { name: 'Aptidão Divina', req: 'Entidade Primordial, Dragão-Real ou Mortal Ascendido', desc: 'Recebe +5 em uma perícia relacionada ao seu conceito (exceto Luta ou Pontaria). Pode ser escolhida novamente para perícias diferentes.' },
+      { name: 'Clero', req: 'Paróquia', desc: 'Ganha um sacerdote parceiro (adepto, magivocador ou médico) que concede +2 em Religião e em outra perícia ligada ao conceito. Torna-se veterano em status divino 3 e mestre em status divino 5.' },
+      { name: 'Defesa Divina', req: '—', desc: 'Recebe +2 na Defesa.' },
+      { name: 'Essência Divina', req: '—', desc: 'Recebe +1 Ponto de Mana por status divino.' },
+      { name: 'Imortal', req: 'Semi-Imortal', desc: 'Torna-se imune a cansaço, efeitos metabólicos e veneno. Não tem longevidade máxima, morrendo apenas por violência ou razões excepcionais.' },
+      { name: 'Intuição Divina', req: '—', desc: 'Soma o status divino em Intuição e pode repetir o teste de Intuição contra surpresa, ignorando a condição se passar.' },
+      { name: 'Manifestação Divina', req: '—', desc: 'Gasta 1 PM e uma ação de movimento para conceder +5 em um teste de perícia (ou +1 em todos os testes de uma perícia na cena) a um aliado, ou encantar um item com +1 em certos testes. Também permite pequenas manifestações narrativas ligadas ao seu conceito.' },
+      { name: 'Milagre', req: '—', desc: 'Aprende e pode lançar uma magia divina de 1º círculo (chave Sabedoria). Pode ser escolhida de novo, com círculo igual ao número de Milagres já possuídos (limitado pelo status divino).' },
+      { name: 'Paladino Único', req: 'Aceitar paladinos entre os devotos', desc: 'Ganha um paladino parceiro que evolui de iniciante a veterano (status divino 4) e mestre (status divino 5), recebendo bônus de ataque, Defesa e habilidades de paladino.' },
+      { name: 'Paróquia', req: '—', desc: 'Ganha um grupo de devotos fervorosos que auxiliam em tarefas cotidianas e melhoram a condição de descanso. Evoluem para veteranos (status divino 2) e mestres (status divino 3).' },
+      { name: 'Presença Divina', req: '—', desc: 'Recebe +5 em Diplomacia e Intimidação contra pessoas treinadas em Religião ou devotas de qualquer deus, podendo gastar 1 PM por cena para um teste extra.' },
+      { name: 'Resiliência Divina', req: '—', desc: 'Recebe +2 em testes de resistência.' },
+      { name: 'Semi-Imortal', req: 'Entidade Primordial, Dragão-Real ou Mortal Ascendido', desc: 'Recebe um bônus igual ao status divino em testes de resistência contra cansaço, efeitos metabólicos e veneno.' },
+      { name: 'Vigor Divino', req: '—', desc: 'Recebe +10 Pontos de Vida por status divino.' }
+    ];
+
+    var ROWS = [
+      { id: 'guia', name: 'Como se Tornar um Deus Menor', kind: 'Guia de Regras' },
+      { id: 'dadivas', name: 'Dádivas Divinas', kind: DADIVAS.length + ' poderes' }
+    ];
+
+    function buildBlob(row) {
+      if (row.id === 'guia') {
+        var parts = ['tornar-se deus menor', 'evoluir status divino', 'natureza', 'status divino'];
+        NATUREZAS.forEach(function (n) { parts.push(n.name, n.desc); });
+        STATUS_DIVINO.forEach(function (s) { parts.push(s.name, s.desc); });
+        return stripAccents(parts.join(' | '));
+      }
+      var parts2 = ['dadivas divinas poderes'];
+      DADIVAS.forEach(function (d) { parts2.push(d.name, d.req, d.desc); });
+      return stripAccents(parts2.join(' | '));
+    }
+
+    var items = ROWS.map(function (r) { return { key: r.id, data: r, _blob: buildBlob(r) }; });
+
+    function renderGuia() {
+      var naturezasHtml = '<div class="power-grid">' + NATUREZAS.map(function (n) {
+        return powerCard(n.name, '<p class="power-desc">' + escapeHtml(n.desc) + '</p>');
+      }).join('') + '</div>';
+
+      var statusHtml = '<div class="power-grid">' + STATUS_DIVINO.map(function (s) {
+        return powerCard(s.name, '<p class="power-desc">' + escapeHtml(s.desc) + '</p>');
+      }).join('') + '</div>';
+
+      var criarHtml = '<div class="bonus-message">' +
+        '<p><b>1. Realizar um Feito Relevante.</b> O personagem precisa realizar, em jogo, um feito que o transforme em símbolo de algo — algo grandioso ou de efeito mais restrito, desde que o mestre o considere relevante o suficiente. Não é preciso realizá-lo sozinho.</p>' +
+        '<p><b>2. Buscar a Divindade.</b> Depois do feito, o personagem executa uma Busca relacionada ao tipo de deus menor que pretende se tornar, seguindo o caminho que preferir (reunir fiéis, isolar-se em estudo, peregrinar etc.).</p>' +
+        '<p><b>3. Acumular Duas Recompensas.</b> As recompensas dessa busca não concedem outros benefícios, não precisam vir da mesma busca nem ser sequenciais.</p>' +
+        '<p><b>4. Ascender a Status Divino 1.</b> Ao reunir as duas recompensas, o personagem se torna um deus menor de status divino 1, com natureza Mortal Ascendido (salvo se for um guardião divino), perdendo devoção anterior e passando a ser devoto de si mesmo.</p>' +
+        '</div>';
+
+      var evoluirHtml = '<div class="bonus-message">' +
+        '<p>Para aumentar o status divino, o deus menor precisa de mais seguidores. Isso segue as mesmas regras de "Tornando-se Deus Menor": executa-se uma nova Busca voltada a angariar fiéis (erguer um pequeno santuário, peregrinar espalhando sua fé etc.). Ao obter as duas recompensas dessa busca, o status divino aumenta em 1.</p>' +
+        '</div>';
+
+      var dadivaRegraHtml = '<div class="bonus-message">' +
+        '<p>Dádivas não são automáticas: exigem uma busca de aprimoramento (mesmas regras de criação/evolução). Cada recompensa obtida nessa busca concede uma dádiva à escolha, entre as que o deus menor cumpra os pré-requisitos.</p>' +
+        '<p>O número máximo de dádivas é igual a duas vezes o status divino. Benefícios de dádivas contam como bônus de estrutura e não se acumulam com outros bônus de estrutura (como os de bases, domínios e negócios).</p>' +
+        '</div>';
+
+      return '' +
+        '<header class="detail-header">' +
+        '<div class="detail-heading" style="width:100%">' +
+        '<h2 class="detail-name">Como se Tornar um Deus Menor</h2>' +
+        '<div class="detail-badges">' +
+        '<span class="badge source" style="--source-color:' + SOURCE_META['deuses-avatares'].color + '">' + escapeHtml(SOURCE_META['deuses-avatares'].label) + '</span>' +
+        '</div>' +
+        '</div>' +
+        '</header>' +
+
+        '<h3 class="section-title">Naturezas</h3>' +
+        naturezasHtml +
+
+        runeDivider() +
+
+        '<h3 class="section-title">Status Divino</h3>' +
+        statusHtml +
+
+        runeDivider() +
+
+        '<h3 class="section-title">Tornando-se Deus Menor</h3>' +
+        criarHtml +
+
+        '<h3 class="section-title">Evoluindo o Status Divino</h3>' +
+        evoluirHtml +
+
+        runeDivider() +
+
+        '<h3 class="section-title">Como Funcionam as Dádivas</h3>' +
+        dadivaRegraHtml +
+
+        '<p class="detail-footnote">Dados extraídos das regras de Deuses Menores do Arsenal T20 — consulte o mestre para eventuais erratas ou regras de mesa.</p>';
+    }
+
+    function renderDadivas() {
+      var cardsHtml = '<div class="power-grid">' + DADIVAS.map(function (d) {
+        var req = d.req && d.req !== '—' ? '<p class="power-req">Pré-requisito: ' + escapeHtml(d.req) + '</p>' : '';
+        return powerCard(d.name, req + '<p class="power-desc">' + escapeHtml(d.desc) + '</p>');
+      }).join('') + '</div>';
+
+      return '' +
+        '<header class="detail-header">' +
+        '<div class="detail-heading" style="width:100%">' +
+        '<h2 class="detail-name">Dádivas Divinas</h2>' +
+        '<div class="detail-badges">' +
+        '<span class="badge source" style="--source-color:' + SOURCE_META['deuses-avatares'].color + '">' + escapeHtml(SOURCE_META['deuses-avatares'].label) + '</span>' +
+        '<span class="badge">' + DADIVAS.length + ' poderes</span>' +
+        '</div>' +
+        '</div>' +
+        '</header>' +
+
+        cardsHtml +
+
+        '<p class="detail-footnote">Dados extraídos das regras de Deuses Menores do Arsenal T20 — consulte o mestre para eventuais erratas ou regras de mesa.</p>';
+    }
+
+    function renderDetail(key) {
+      if (key === 'guia') return renderGuia();
+      if (key === 'dadivas') return renderDadivas();
+      return '';
+    }
+
+    var collection = {
+      id: 'deuses-menores',
+      navLabel: 'Deuses Menores',
+      labelSingular: 'seção',
+      labelPlural: 'seções',
+      searchPlaceholder: 'Buscar por natureza, status divino ou dádiva...',
+      items: items,
+      sourceMeta: SOURCE_META,
+      sourceOrder: SOURCE_ORDER,
+      getSourceKey: function () { return 'deuses-avatares'; },
+      columns: [
+        {
+          key: 'name', label: 'Seção',
+          sortValue: function (d) { return stripAccents(d.name); },
+          cellHtml: function (d, meta) { return '<span class="source-dot" style="--source-color:' + meta.color + '"></span><span class="name-text">' + escapeHtml(d.name) + '</span>'; },
+          title: function (d, meta) { return meta.label; }
+        },
+        {
+          key: 'kind', label: 'Conteúdo',
+          sortValue: function (d) { return d.kind; },
+          cellHtml: function (d) { return escapeHtml(d.kind); },
+          title: function (d) { return d.kind; }
+        }
+      ],
+      renderDetail: renderDetail
+    };
+    return collection;
+  }
+
+  // ══════════════════════════════════════════════════════════════════
   //  MOTOR GENÉRICO
   // ══════════════════════════════════════════════════════════════════
   var COLLECTIONS = {
@@ -1159,9 +1338,10 @@
     origens: buildOrigensCollection(),
     classes: buildClassesCollection(),
     'outros-poderes': buildOutrosPoderesCollection(),
-    distincoes: buildDistincoesCollection()
+    distincoes: buildDistincoesCollection(),
+    'deuses-menores': buildDeusesMenoresCollection()
   };
-  var COLLECTION_ORDER = ['racas', 'origens', 'classes', 'outros-poderes', 'distincoes'];
+  var COLLECTION_ORDER = ['racas', 'origens', 'classes', 'outros-poderes', 'distincoes', 'deuses-menores'];
 
   var state = {
     activeId: 'racas',
