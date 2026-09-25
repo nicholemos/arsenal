@@ -1343,7 +1343,7 @@ const origensData = [
     source: 'Atlas',
     region: 'Nova Malpetrim',
     desc: 'Batizado com nome de herói em uma cidade de heróis, seu único objetivo é superar as lendas que o cercam.',
-    items: 'Uma arma simples ou marcial com nome pomposo, gibão de peles, essência de mana (x2).',
+    items: 'Uma arma simples ou marcial com nome pomposo, essência de mana (x2).',
     autoTraining: [],
     uniqueBenefit: {
       name: 'Início Promissor',
