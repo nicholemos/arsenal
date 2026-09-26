@@ -409,13 +409,13 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     }
 
-    // ── VAMPIRO ────────────────────────────────────────────────
+     // ── VAMPIRO ────────────────────────────────────────────────
     function createVampiroUi(container) {
         if (typeof VAMPIRO_BENCAOS === 'undefined') return;
         const entries = Object.entries(VAMPIRO_BENCAOS);
 
         const humanoidRaces = Object.entries(RACE_DATA)
-            .filter(([key, r]) => r.raca === 'Humanoide' && key !== 'vampiro')
+            .filter(([key, r]) => (r.raca === 'Humanoide' || r.raca === 'Monstro') && key !== 'vampiro')
             .map(([key, r]) => `<option value="${key}">${r.name}</option>`)
             .join('');
 
@@ -438,16 +438,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <details class="fold" style="margin-top:12px">
             <summary class="fold-summary">Resquícios da Outra Vida <span class="fold-hint">ver descrição</span></summary>
             <div class="fold-body">
-                <p style="margin:0 0 8px">Torna-se treinado em uma perícia ou recebe um poder geral. Como alternativa, pode herdar uma raça humanoide.</p>
+                <p style="margin:0 0 8px">Torna-se treinado em uma perícia ou recebe um poder geral. Como alternativa, pode herdar uma raça humanoide ou monstro.</p>
                 <label class="check" style="margin-bottom:8px">
                     <input type="checkbox" id="vampiro-resquicios">
-                    <span>Herdar raça humanoide</span>
+                    <span>Herdar raça humanoide ou monstro</span>
                 </label>
                 <div id="vampiro-race-select" class="hidden" style="margin-bottom:8px">
                     <label for="vampiro-race">Raça:</label>
                     <select id="vampiro-race">
                         <option value="">Selecione</option>
-                        ${humanoidRaces}
+                        ${inheritableRaces}
                     </select>
                 </div>
                 <div id="vampiro-power-select" class="hidden" style="margin-bottom:8px">
@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (resquiciosChecked) {
             dynamicPowers.push({
                 name: 'Resquícios da Outra Vida',
-                desc: 'Você se torna treinado em uma perícia ou recebe um poder geral. Alternativamente, pode herdar uma raça humanoide.'
+                desc: 'Você se torna treinado em uma perícia ou recebe um poder geral. Alternativamente, pode herdar uma raça humanoide ou monstro.'
             });
         }
 
