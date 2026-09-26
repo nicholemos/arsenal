@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label for="vampiro-race">Raça:</label>
                     <select id="vampiro-race">
                         <option value="">Selecione</option>
-                        ${inheritableRaces}
+                        ${humanoidRaces}
                     </select>
                 </div>
                 <div id="vampiro-power-select" class="hidden" style="margin-bottom:8px">
@@ -456,8 +456,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="">Selecione</option>
                     </select>
                 </div>
+                <div id="vampiro-subpower-select" class="hidden" style="margin-bottom:8px">
+                    <label for="vampiro-subpower" id="vampiro-subpower-label">Opção:</label>
+                    <select id="vampiro-subpower">
+                        <option value="">Selecione</option>
+                    </select>
+                </div>
                 <div id="vampiro-power-checklist" class="hidden" style="margin-bottom:8px">
-                    <label><b>Poderes Herdados</b> <span class="fold-hint">Escolha até 1</span></label>
+                    <label><b id="vampiro-checklist-label">Poderes Herdados</b> <span class="fold-hint" id="vampiro-checklist-hint">Escolha até 1</span></label>
                     <div id="vampiro-mutation-container" class="checklist"></div>
                 </div>
                 <div id="vampiro-resquicios-info" class="hidden" style="margin-top:8px;padding:10px;background:rgba(0,0,0,0.2);border-radius:6px;font-size:13px;color:var(--text-secondary)"></div>
@@ -484,52 +490,166 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        const renderVampiroChecklist = (options, maxSelect, title, hintText) => {
+            const checklistDiv = document.getElementById('vampiro-power-checklist');
+            const checklistContainer = document.getElementById('vampiro-mutation-container');
+            const checklistLabel = document.getElementById('vampiro-checklist-label');
+            const checklistHint = document.getElementById('vampiro-checklist-hint');
+
+            if (checklistLabel) checklistLabel.textContent = title || 'Poderes Herdados';
+            if (checklistHint) checklistHint.textContent = hintText || `Escolha até ${maxSelect}`;
+
+            checklistContainer.innerHTML = options.map(o => `
+                <div class="bencao-item">
+                    <label class="check">
+                        <input type="checkbox" class="vampiro-mut" id="vampiro-mut-${o.id}" value="${o.id}">
+                        <span>${o.name}</span>
+                        <span class="bencao-desc-toggle" data-toggle="${o.id}" title="Ver descrição">?</span>
+                    </label>
+                    <div class="bencao-desc-body" id="desc-vampiro-mut-${o.id}">${o.desc || ''}</div>
+                </div>`).join('');
+
+            checklistContainer.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const desc = document.getElementById('desc-vampiro-mut-' + btn.dataset.toggle);
+                    if (desc) desc.classList.toggle('active');
+                });
+            });
+
+            checklistContainer.querySelectorAll('.vampiro-mut').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const count = checklistContainer.querySelectorAll('.vampiro-mut:checked').length;
+                    if (count > maxSelect) {
+                        alert(`Você só pode escolher até ${maxSelect} ${maxSelect === 1 ? 'poder' : 'poderes'}!`);
+                        cb.checked = false;
+                    }
+                    updateVampiroAttributes();
+                });
+            });
+
+            checklistDiv.classList.remove('hidden');
+        };
+
+        const onVampiroPowerChange = () => {
+            const raceKey = document.getElementById('vampiro-race')?.value;
+            const powerVal = document.getElementById('vampiro-power')?.value;
+            const subpowerDiv = document.getElementById('vampiro-subpower-select');
+            const subpowerSelect = document.getElementById('vampiro-subpower');
+            const subpowerLabel = document.getElementById('vampiro-subpower-label');
+            const checklistDiv = document.getElementById('vampiro-power-checklist');
+            const checklistContainer = document.getElementById('vampiro-mutation-container');
+
+            subpowerDiv.classList.add('hidden');
+            subpowerSelect.innerHTML = '<option value="">Selecione</option>';
+            checklistDiv.classList.add('hidden');
+            checklistContainer.innerHTML = '';
+
+            if (raceKey === 'kallyanach') {
+                if (powerVal === 'heranca') {
+                    subpowerLabel.textContent = 'Tipo da Herança:';
+                    const elementos = ['Ácido', 'Eletricidade', 'Fogo', 'Frio', 'Luz', 'Trevas'];
+                    subpowerSelect.innerHTML = '<option value="">Selecione</option>' +
+                        elementos.map(el => `<option value="${el}">${el} (RD 5)</option>`).join('');
+                    subpowerDiv.classList.remove('hidden');
+                } else if (powerVal === 'bencao') {
+                    if (typeof KALLYANACH_BENCAOS !== 'undefined') {
+                        const bencaoOptions = Object.entries(KALLYANACH_BENCAOS).map(([id, b]) => ({
+                            id,
+                            name: b.name,
+                            desc: b.desc || ''
+                        }));
+                        renderVampiroChecklist(bencaoOptions, 2, 'Bênçãos de Kallyadranoch', 'Escolha até 2');
+                    }
+                }
+            } else if (raceKey === 'kobold') {
+                if (powerVal === 'talentos') {
+                    if (typeof KOBOLD_TALENTS !== 'undefined') {
+                        const talentOptions = Object.entries(KOBOLD_TALENTS).map(([id, t]) => ({
+                            id,
+                            name: t.name,
+                            desc: t.desc || ''
+                        }));
+                        renderVampiroChecklist(talentOptions, 2, 'Talentos do Bando', 'Escolha até 2');
+                    }
+                }
+            } else if (raceKey === 'aberrant') {
+                if (powerVal === 'mutacao') {
+                    if (typeof ABERRANT_MUTATIONS !== 'undefined') {
+                        const mutOptions = Object.entries(ABERRANT_MUTATIONS).map(([id, m]) => ({
+                            id,
+                            name: m.name,
+                            desc: m.desc || ''
+                        }));
+                        renderVampiroChecklist(mutOptions, 2, 'Mutações', 'Escolha até 2');
+                    }
+                }
+            }
+
+            updateVampiroAttributes();
+        };
+
         // Resquícios da Outra Vida
         const populateVampiroPowers = () => {
             const raceKey = document.getElementById('vampiro-race')?.value;
             const powerSelect = document.getElementById('vampiro-power');
             const selectDiv = document.getElementById('vampiro-power-select');
+            const subpowerDiv = document.getElementById('vampiro-subpower-select');
+            const subpowerSelect = document.getElementById('vampiro-subpower');
             const checklistDiv = document.getElementById('vampiro-power-checklist');
             const checklistContainer = document.getElementById('vampiro-mutation-container');
             const race = raceKey ? RACE_DATA[raceKey] : null;
-            const config = getInheritablePowerConfig(race);
 
             powerSelect.innerHTML = '<option value="">Selecione</option>';
+            subpowerSelect.innerHTML = '<option value="">Selecione</option>';
             checklistContainer.innerHTML = '';
             selectDiv.classList.add('hidden');
+            subpowerDiv.classList.add('hidden');
             checklistDiv.classList.add('hidden');
 
+            if (!race) return;
+
+            if (raceKey === 'kallyanach') {
+                powerSelect.innerHTML = `
+                    <option value="">Selecione</option>
+                    <option value="heranca">Herança Dracônica</option>
+                    <option value="bencao">Bênção de Kallyadranoch (Escolha 2)</option>`;
+                selectDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (raceKey === 'kobold') {
+                const baseOptions = (race.racialPowers || []).map((p, i) => `<option value="base_${i}">${p.name}</option>`).join('');
+                powerSelect.innerHTML = `
+                    <option value="">Selecione</option>
+                    ${baseOptions}
+                    <option value="talentos">Talentos do Bando (Escolha 2)</option>`;
+                selectDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (raceKey === 'aberrant') {
+                powerSelect.innerHTML = `
+                    <option value="">Selecione</option>
+                    <option value="mutacao" selected>Mutação (Escolha 2)</option>`;
+                selectDiv.classList.remove('hidden');
+                if (typeof ABERRANT_MUTATIONS !== 'undefined') {
+                    renderVampiroChecklist(
+                        Object.entries(ABERRANT_MUTATIONS).map(([id, m]) => ({ id, name: m.name, desc: m.desc || '' })),
+                        2,
+                        'Mutações',
+                        'Escolha até 2'
+                    );
+                }
+                return;
+            }
+
+            const config = getInheritablePowerConfig(race);
             if (!config) return;
 
             if (config.type === 'checklist') {
-                checklistContainer.innerHTML = config.options.map(o => `
-                    <div class="bencao-item">
-                        <label class="check">
-                            <input type="checkbox" class="vampiro-mut" id="vampiro-mut-${o.id}" value="${o.id}">
-                            <span>${o.name}</span>
-                            <span class="bencao-desc-toggle" data-toggle="${o.id}" title="Ver descrição">?</span>
-                        </label>
-                        <div class="bencao-desc-body" id="desc-vampiro-mut-${o.id}">${o.desc || ''}</div>
-                    </div>`).join('');
-                checklistContainer.querySelectorAll('.bencao-desc-toggle').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const desc = document.getElementById('desc-vampiro-mut-' + btn.dataset.toggle);
-                        if (desc) desc.classList.toggle('active');
-                    });
-                });
-                checklistContainer.querySelectorAll('.vampiro-mut').forEach(cb => {
-                    cb.addEventListener('change', () => {
-                        const count = checklistContainer.querySelectorAll('.vampiro-mut:checked').length;
-                        if (count > 1) {
-                            alert('Você só pode herdar até 1 poder!');
-                            cb.checked = false;
-                        }
-                        updateVampiroAttributes();
-                    });
-                });
-                checklistDiv.classList.remove('hidden');
+                renderVampiroChecklist(config.options, config.maxSelect || 1, 'Poderes Herdados', `Escolha até ${config.maxSelect || 1}`);
             } else {
                 config.options.forEach((p, i) => {
                     const opt = document.createElement('option');
@@ -545,6 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const checked = e.target.checked;
             document.getElementById('vampiro-race-select').classList.toggle('hidden', !checked);
             document.getElementById('vampiro-power-select').classList.add('hidden');
+            document.getElementById('vampiro-subpower-select').classList.add('hidden');
             document.getElementById('vampiro-power-checklist').classList.add('hidden');
             updateVampiroAttributes();
         });
@@ -552,7 +673,8 @@ document.addEventListener('DOMContentLoaded', () => {
             populateVampiroPowers();
             updateVampiroAttributes();
         });
-        container.querySelector('#vampiro-power').addEventListener('change', updateVampiroAttributes);
+        container.querySelector('#vampiro-power').addEventListener('change', onVampiroPowerChange);
+        container.querySelector('#vampiro-subpower').addEventListener('change', updateVampiroAttributes);
     }
 
     function updateVampiroAttributes() {
@@ -573,38 +695,137 @@ document.addEventListener('DOMContentLoaded', () => {
         const resquiciosChecked = document.getElementById('vampiro-resquicios')?.checked;
         const resquiciosRaceKey = document.getElementById('vampiro-race')?.value;
         const selectedRace = resquiciosRaceKey ? RACE_DATA[resquiciosRaceKey] : null;
-        const config = resquiciosChecked && selectedRace ? getInheritablePowerConfig(selectedRace) : null;
 
         let resquiciosLabel = null;
-        if (config?.type === 'checklist') {
-            const selectedIds = Array.from(document.querySelectorAll('.vampiro-mut:checked')).map(cb => cb.value);
-            const tamanho = getInheritedTamanho(resquiciosRaceKey, null);
-            if (selectedIds.length) {
-                selectedIds.forEach(id => {
-                    const opt = config.options.find(o => o.id === id);
+
+        if (resquiciosChecked && selectedRace) {
+            resquiciosLabel = selectedRace.name;
+            const powerVal = document.getElementById('vampiro-power')?.value;
+
+            if (resquiciosRaceKey === 'kallyanach') {
+                if (powerVal === 'heranca') {
+                    const elemento = document.getElementById('vampiro-subpower')?.value;
+                    if (elemento) {
+                        dynamicPowers.push({
+                            name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                            desc: `Você herda a habilidade "Herança Dracônica (${elemento})" da raça ${selectedRace.name} e seu tamanho (Médio). Você é uma criatura do tipo monstro e recebe redução 5 contra dano de ${elemento.toLowerCase()}.`
+                        });
+                    } else {
+                        dynamicPowers.push({
+                            name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                            desc: `Você herda a habilidade "Herança Dracônica" da raça ${selectedRace.name} e seu tamanho (Médio). Escolha um tipo de energia.`
+                        });
+                    }
+                } else if (powerVal === 'bencao') {
+                    const selectedIds = Array.from(document.querySelectorAll('.vampiro-mut:checked')).map(cb => cb.value);
+                    if (selectedIds.length) {
+                        selectedIds.forEach(id => {
+                            const b = typeof KALLYANACH_BENCAOS !== 'undefined' ? KALLYANACH_BENCAOS[id] : null;
+                            if (b) {
+                                dynamicPowers.push({
+                                    name: `Resquícios da Outra Vida: ${b.name}`,
+                                    desc: `Você herda a bênção "${b.name}" da raça ${selectedRace.name} e seu tamanho (Médio). ${b.desc || ''}`
+                                });
+                            }
+                        });
+                    } else {
+                        dynamicPowers.push({
+                            name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                            desc: `Você herda a habilidade "Bênção de Kallyadranoch" da raça ${selectedRace.name} e seu tamanho (Médio). Escolha até 2 bênçãos.`
+                        });
+                    }
+                } else {
                     dynamicPowers.push({
                         name: `Resquícios da Outra Vida (${selectedRace.name})`,
-                        desc: `Você herda a habilidade "${opt.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${opt.desc}`
+                        desc: `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (Médio).`
                     });
-                });
+                }
+            } else if (resquiciosRaceKey === 'kobold') {
+                if (powerVal === 'talentos') {
+                    const selectedIds = Array.from(document.querySelectorAll('.vampiro-mut:checked')).map(cb => cb.value);
+                    const isGrande = selectedIds.includes('amontoados');
+                    const tamanho = isGrande ? 'Grande' : 'Médio';
+                    if (selectedIds.length) {
+                        selectedIds.forEach(id => {
+                            const t = typeof KOBOLD_TALENTS !== 'undefined' ? KOBOLD_TALENTS[id] : null;
+                            if (t) {
+                                dynamicPowers.push({
+                                    name: `Resquícios da Outra Vida: ${t.name}`,
+                                    desc: `Você herda o talento "${t.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${t.desc || ''}`
+                                });
+                            }
+                        });
+                    } else {
+                        dynamicPowers.push({
+                            name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                            desc: `Você herda a habilidade "Talentos do Bando" da raça ${selectedRace.name} e seu tamanho (Médio). Escolha até 2 talentos.`
+                        });
+                    }
+                } else if (powerVal && powerVal.startsWith('base_')) {
+                    const idx = parseInt(powerVal.replace('base_', ''));
+                    const p = selectedRace.racialPowers[idx];
+                    if (p) {
+                        dynamicPowers.push({
+                            name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                            desc: `Você herda a habilidade "${p.name}" da raça ${selectedRace.name} e seu tamanho (Médio). ${p.desc || ''}`
+                        });
+                    }
+                } else {
+                    dynamicPowers.push({
+                        name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                        desc: `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (Médio).`
+                    });
+                }
+            } else if (resquiciosRaceKey === 'aberrant') {
+                const selectedIds = Array.from(document.querySelectorAll('.vampiro-mut:checked')).map(cb => cb.value);
+                if (selectedIds.length) {
+                    selectedIds.forEach(id => {
+                        const m = typeof ABERRANT_MUTATIONS !== 'undefined' ? ABERRANT_MUTATIONS[id] : null;
+                        if (m) {
+                            dynamicPowers.push({
+                                name: `Resquícios da Outra Vida: ${m.name}`,
+                                desc: `Você herda a mutação "${m.name}" da raça ${selectedRace.name} e seu tamanho (Médio). ${m.desc || ''}`
+                            });
+                        }
+                    });
+                } else {
+                    dynamicPowers.push({
+                        name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                        desc: `Você herda mutações da raça ${selectedRace.name} e seu tamanho (Médio). Escolha até 2 mutações.`
+                    });
+                }
             } else {
-                dynamicPowers.push({
-                    name: `Resquícios da Outra Vida (${selectedRace.name})`,
-                    desc: `Você herda habilidades da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
-                });
+                const config = getInheritablePowerConfig(selectedRace);
+                if (config?.type === 'checklist') {
+                    const selectedIds = Array.from(document.querySelectorAll('.vampiro-mut:checked')).map(cb => cb.value);
+                    const selectedPower = selectedIds.length ? config.options.find(o => o.id === selectedIds[0]) : null;
+                    const tamanho = getInheritedTamanho(resquiciosRaceKey, selectedPower);
+                    if (selectedIds.length) {
+                        selectedIds.forEach(id => {
+                            const opt = config.options.find(o => o.id === id);
+                            dynamicPowers.push({
+                                name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                                desc: `Você herda a habilidade "${opt.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${opt.desc}`
+                            });
+                        });
+                    } else {
+                        dynamicPowers.push({
+                            name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                            desc: `Você herda habilidades da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                        });
+                    }
+                } else if (config) {
+                    const powerIndex = document.getElementById('vampiro-power')?.value;
+                    const power = powerIndex !== '' ? config.options[parseInt(powerIndex)] : null;
+                    const tamanho = getInheritedTamanho(resquiciosRaceKey, power);
+                    dynamicPowers.push({
+                        name: `Resquícios da Outra Vida (${selectedRace.name})`,
+                        desc: power
+                            ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
+                            : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
+                    });
+                }
             }
-            resquiciosLabel = selectedRace.name;
-        } else if (config) {
-            const powerIndex = document.getElementById('vampiro-power')?.value;
-            const power = powerIndex !== '' ? config.options[parseInt(powerIndex)] : null;
-            const tamanho = getInheritedTamanho(resquiciosRaceKey, power);
-            dynamicPowers.push({
-                name: `Resquícios da Outra Vida (${selectedRace.name})`,
-                desc: power
-                    ? `Você herda a habilidade "${power.name}" da raça ${selectedRace.name} e seu tamanho (${tamanho}). ${power.desc}`
-                    : `Você herda uma habilidade da raça ${selectedRace.name} e seu tamanho (${tamanho}).`
-            });
-            resquiciosLabel = selectedRace.name;
         } else if (resquiciosChecked) {
             dynamicPowers.push({
                 name: 'Resquícios da Outra Vida',
@@ -615,9 +836,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Exibe descrição do poder herdado dentro do fold
         const resquiciosInfo = document.getElementById('vampiro-resquicios-info');
         if (resquiciosInfo) {
-            const resquiciosPower = dynamicPowers.find(p => p.name.startsWith('Resquícios'));
-            if (resquiciosPower) {
-                resquiciosInfo.innerHTML = `<b>${resquiciosPower.name}</b><br>${resquiciosPower.desc}`;
+            const resquiciosPowers = dynamicPowers.filter(p => p.name.startsWith('Resquícios'));
+            if (resquiciosPowers.length > 0) {
+                resquiciosInfo.innerHTML = resquiciosPowers.map(p => `<b>${p.name}</b><br>${p.desc}`).join('<br><br>');
                 resquiciosInfo.classList.remove('hidden');
             } else {
                 resquiciosInfo.innerHTML = '';
