@@ -1950,7 +1950,7 @@ const RACE_DATA = {
     <details class="fold" style="margin-top:12px">
         <summary class="fold-summary">Talentos do Bando <span class="fold-hint">Escolha 2</span></summary>
         <div id="talent-container" class="checklist fold-body">
-        <p style="margin:0 0 8px">Escolha dois talentos do bando. Você pode escolher outros desses talentos no lugar de poderes de classe.</p>
+        <p style="margin:0 0 8px">Escolha dois talentos do bando. Uma vez por patamar, você pode escolher outros desses talentos no lugar de poderes de classe.</p>
         ${Object.entries(KOBOLD_TALENTS).map(([id, t]) => `
             <div class="bencao-item" id="wrapper-${id}">
                 <label class="check">
