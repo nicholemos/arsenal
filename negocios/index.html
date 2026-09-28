@@ -511,6 +511,7 @@
       padding: 20px;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 </head>
 
 <body>
@@ -557,6 +558,7 @@
             <button class="btn secondary" onclick="Bases.novaFicha()">Nova ficha</button>
             <button class="btn secondary" onclick="exportSheet('base')">Exportar</button>
             <button class="btn secondary" onclick="importSheet('base')">Importar</button>
+            <button class="btn" onclick="PdfExport.gerar('base')">Baixar PDF</button>
           </div>
         </div>
 
@@ -717,6 +719,7 @@
             <button class="btn secondary" onclick="Dominios.novaFicha()">Nova ficha</button>
             <button class="btn secondary" onclick="exportSheet('dominio')">Exportar</button>
             <button class="btn secondary" onclick="importSheet('dominio')">Importar</button>
+            <button class="btn" onclick="PdfExport.gerar('dominio')">Baixar PDF</button>
           </div>
         </div>
 
@@ -899,6 +902,7 @@
             <button class="btn secondary" onclick="Negocios.novaFicha()">Nova ficha</button>
             <button class="btn secondary" onclick="exportSheet('negocio')">Exportar</button>
             <button class="btn secondary" onclick="importSheet('negocio')">Importar</button>
+            <button class="btn" onclick="PdfExport.gerar('negocio')">Baixar PDF</button>
           </div>
         </div>
 
@@ -1833,6 +1837,195 @@
         const roll = d20() + mod;
         const valor = roll * 10 * nivel;
         logTo('n-log', `Mês dedicado: teste ${roll} × 10 × nível(${nivel}) = <b>T$ ${valor.toLocaleString('pt-BR')}</b>`);
+      }
+    };
+
+    /* ============================================================
+       EXPORTAÇÃO PARA PDF PREENCHÍVEL (pdf-lib)
+       Preenche os modelos Ficha_Base.pdf, Ficha_Dominio.pdf e
+       Ficha_Negocios.pdf (mesma pasta do app) com a ficha atual.
+       ============================================================ */
+    const PdfExport = {
+      TEMPLATES: { base: 'Ficha_Base.pdf', dominio: 'Ficha_Dominio.pdf', negocio: 'Ficha_Negocios.pdf' },
+      LOGS: { base: 'b-log', dominio: 'd-log', negocio: 'n-log' },
+      // ordem em que as opções aparecem no PDF (diferente do app na popularidade)
+      POP_ORDER: ['Adorado', 'Popular', 'Tolerado', 'Impopular', 'Odiado'],
+
+      val(id) { const el = document.getElementById(id); return el ? el.value : ''; },
+      moeda(n) { return 'T$ ' + Number(n).toLocaleString('pt-BR'); },
+
+      // preenche tabelas: campos <prefixo>_r<linha>_c<coluna>
+      linhas(texto, prefixo, limite, linhas, avisos, rotulo) {
+        linhas.slice(0, limite).forEach((cols, r) => {
+          cols.forEach((v, c) => { texto[`${prefixo}_r${r + 1}_c${c + 1}`] = v; });
+        });
+        if (linhas.length > limite) {
+          avisos.push(`${linhas.length - limite} ${rotulo} não couberam na ficha em PDF (limite de ${limite} linhas).`);
+        }
+      },
+
+      // lê o estado ATUAL da tela (não só o salvo) e devolve {texto, marcar, avisos, nome}
+      coletar(kind) {
+        const texto = {}, marcar = [], avisos = [];
+        let nome = '';
+
+        if (kind === 'base') {
+          const porte = DATA.bases.portes.find(p => p.nome === this.val('b-porte')) || DATA.bases.portes[0];
+          const tipoName = this.val('b-tipo');
+          const comodos = [...document.querySelectorAll('#b-comodos-list input:checked')].map(i => DATA.bases.comodos[parseInt(i.dataset.idx)]);
+          const mobilias = [...document.querySelectorAll('#b-mobilias-list input:checked')].map(i => DATA.bases.mobilias[parseInt(i.dataset.idx)]);
+          let seguranca = tipoName === 'Fortificação' ? 5 : 0;
+          comodos.forEach(c => seguranca += (c.seguranca || 0));
+          seguranca += mobilias.filter(m => m.nome === 'Gárgula Animada').length * 2;
+
+          nome = this.val('b-nome');
+          texto.base_nome = nome;
+          texto.base_tipo = tipoName;                 // campo de texto livre na ficha oficial
+          texto.base_seguranca = String(seguranca);
+          texto.base_comodos_max = `${comodos.length} / ${porte.comodos}`;
+          texto.base_manutencao = this.moeda(porte.manutencao) + '/mês';
+          DATA.bases.portes.forEach((p, i) => { if (p.nome === porte.nome) marcar.push(`base_porte_${i + 1}`); });
+          // a ficha oficial não tem colunas de pré-requisito/segurança por cômodo nem
+          // cômodo/preço por mobília, então dobramos essa info dentro do texto do benefício
+          this.linhas(texto, 'base_comodo', 14, comodos.map(c => {
+            const extra = [c.prereq ? `requer ${c.prereq}` : '', c.seguranca ? `+${c.seguranca} segurança` : '']
+              .filter(Boolean).join(' · ');
+            return [c.nome, '', extra ? `${c.beneficio} (${extra})` : c.beneficio, ''];
+          }), avisos, 'cômodos');
+          this.linhas(texto, 'base_mobilia', 14,
+            mobilias.map(m => [m.nome, '', `${m.beneficio} (${this.moeda(m.preco)})`]), avisos, 'mobílias');
+
+        } else if (kind === 'dominio') {
+          Dominios.recalc(); // garante fortificação e poder atualizados
+          const terreno = DATA.dominios.terrenos.find(t => t.nome === this.val('d-terreno'));
+          const corteName = this.val('d-corte');
+          const popName = this.val('d-popularidade');
+
+          nome = this.val('d-nome');
+          texto.dom_nome = nome;
+          texto.dom_regente = this.val('d-regente');
+          texto.dom_nivel = this.val('d-nivel');
+          texto.dom_terreno = this.val('d-terreno');
+          if (terreno) { texto.dom_nivel_max = String(terreno.nivelMax); texto.dom_potencial = String(terreno.potencial); }
+          texto.dom_tesouro = this.val('d-tesouro');
+          texto.dom_fortificacao = this.val('bat-fortificacao');
+          DATA.dominios.cortes.forEach((c, i) => { if (c.nome === corteName) marcar.push(`dom_corte_${i + 1}`); });
+          this.POP_ORDER.forEach((p, i) => { if (p === popName) marcar.push(`dom_pop_${i + 1}`); });
+
+          const construcoes = [...document.querySelectorAll('#d-construcoes-list input:checked')].map(chk => {
+            const c = DATA.dominios.construcoes[chk.dataset.cat].find(x => x.nome === chk.dataset.name);
+            return [c.nome, `${c.custo} LO`, chk.dataset.cat, c.beneficio];
+          });
+          this.linhas(texto, 'dom_construcao', 11, construcoes, avisos, 'construções');
+
+          const tropas = [];
+          DATA.dominios.unidades.forEach((u, i) => {
+            const qtd = parseInt(this.val('d-unidade-qtd-' + i)) || 0;
+            if (qtd > 0) tropas.push([u.nome, String(qtd), String(u.manutencao), String(u.poder), String(u.desl), String(u.defesa), String(u.dano)]);
+          });
+          this.linhas(texto, 'dom_tropa', 6, tropas, avisos, 'tipos de tropa');
+
+        } else if (kind === 'negocio') {
+          const nivel = parseInt(this.val('n-nivel')) || 1;
+          const ativos = [...document.querySelectorAll('#n-ativos-list input:checked')].map(i => DATA.negocios.ativos[parseInt(i.dataset.idx)]);
+          nome = this.val('n-nome');
+          texto.neg_nome = nome;
+          texto.neg_dono = this.val('n-dono');
+          texto.neg_nivel = String(nivel);
+          texto.neg_rendimento_mes = this.moeda(100 * nivel);
+          texto.neg_ativos_nivel = `${ativos.length} / ${nivel}`;
+          this.linhas(texto, 'neg_ativo', 15, ativos.map(a => [a.nome, a.prereq || '', a.beneficio]), avisos, 'ativos');
+        }
+        return { texto, marcar, avisos, nome };
+      },
+
+      // Helvetica só codifica WinAnsi: remove o que não couber
+      sanitizar(s) {
+        return String(s).replace(/[\r\n\t]+/g, ' ')
+          .replace(/[^\x20-\x7E\xA0-\xFF\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC]/g, '');
+      },
+
+      async aplicar(pdfDoc, mapa) {
+        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const form = pdfDoc.getForm();
+        const porNome = {};
+        form.getFields().forEach(f => { porNome[f.getName()] = f; });
+
+        for (const [nome, valor] of Object.entries(mapa.texto)) {
+          const f = porNome[nome];
+          if (!f || typeof f.setText !== 'function' || valor === '' || valor == null) continue;
+          let txt = this.sanitizar(valor);
+          const largura = f.acroField.getWidgets()[0].getRectangle().width - 4;
+          // reduz a fonte para caber em uma linha; se ainda não couber, corta com reticências
+          let tam = Math.min(7.6, largura / (font.widthOfTextAtSize(txt, 1) || 1));
+          const MIN = 4.2;
+          if (tam < MIN) {
+            tam = MIN;
+            while (txt.length > 1 && font.widthOfTextAtSize(txt + '…', tam) > largura) txt = txt.slice(0, -1);
+            txt = txt.trimEnd() + '…';
+          }
+          f.setText(txt);
+          f.setFontSize(tam);
+        }
+        // marca pelo valor "ligado" do próprio campo: preserva o visual do check do PDF
+        // (f.check() faria o pdf-lib redesenhar o checkbox bem menor)
+        mapa.marcar.forEach(nome => {
+          const f = porNome[nome];
+          if (!f || typeof f.check !== 'function') return;
+          const ligado = f.acroField.getOnValue && f.acroField.getOnValue();
+          if (ligado) f.acroField.setValue(ligado); else f.check();
+        });
+        form.updateFieldAppearances(font);
+        // as aparências já foram geradas acima; com NeedAppearances ligado os leitores
+        // redesenham os checkboxes num tamanho minúsculo
+        form.acroForm.dict.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
+      },
+
+      escolherModelo(kind) {
+        return new Promise(resolve => {
+          alert(`Não consegui abrir "${this.TEMPLATES[kind]}" automaticamente (isso acontece ao abrir o app direto do arquivo, sem servidor).\n\nSelecione o modelo em branco na próxima janela.`);
+          const input = document.createElement('input');
+          input.type = 'file'; input.accept = 'application/pdf';
+          input.onchange = () => {
+            const file = input.files[0];
+            if (!file) return resolve(null);
+            file.arrayBuffer().then(resolve);
+          };
+          input.addEventListener('cancel', () => resolve(null));
+          input.click();
+        });
+      },
+
+      async gerar(kind) {
+        const log = this.LOGS[kind];
+        if (!window.PDFLib) { alert('A biblioteca de PDF (pdf-lib) não carregou. Verifique a conexão com a internet e recarregue a página.'); return; }
+        try {
+          const mapa = this.coletar(kind);
+          let bytes;
+          try {
+            const resp = await fetch(this.TEMPLATES[kind]);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            bytes = await resp.arrayBuffer();
+          } catch (e) {
+            bytes = await this.escolherModelo(kind);
+            if (!bytes) return;
+          }
+          const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+          await this.aplicar(pdfDoc, mapa);
+          const saida = await pdfDoc.save();
+
+          const slug = (mapa.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+          const arquivo = this.TEMPLATES[kind].replace('.pdf', '') + (slug ? '_' + slug : '') + '.pdf';
+          const url = URL.createObjectURL(new Blob([saida], { type: 'application/pdf' }));
+          const a = document.createElement('a');
+          a.href = url; a.download = arquivo; a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+          logTo(log, `PDF gerado: <b>${escapeHtml(arquivo)}</b>` + (mapa.avisos.length ? '<br>⚠ ' + mapa.avisos.map(escapeHtml).join('<br>⚠ ') : ''));
+        } catch (err) {
+          console.error(err);
+          logTo(log, 'Erro ao gerar o PDF: ' + escapeHtml(err.message || String(err)));
+        }
       }
     };
 
