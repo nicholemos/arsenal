@@ -12591,6 +12591,56 @@ const powersData = [
         req: "Apenas druidas devotos de Allihanna e Megalokk podem escolher este poder.",
         desc: "Você pode usar Religião em vez de Ofício para testes relacionados a grandes estruturas de pedra, como veículos e construções, e em vez de Pilotagem para conduzir veículos de pedra. Além disso, aprende e pode lançar Transmutar Objetos (apenas em objetos de pedra) e, se puder lançar magias divinas de 3º círculo, aprende e pode lançar Controlar Terra. Caso aprenda novamente essas magias, seu custo diminui em –1 PM."
     },
+    {
+        name: "Arsenal do Deserto",
+        type: "class",
+        class: "cacador",
+        subType: "power",
+        source: "dragaobrasil",
+        req: "Caçador",
+        pathReq: "all",
+        desc: "Você recebe +2 nas rolagens de dano com azagaias, cimitarras e lanças e considera essas armas como leves."
+    },
+    {
+        name: "Escaramuça Distante",
+        type: "class",
+        class: "cacador",
+        subType: "power",
+        source: "dragaobrasil",
+        req: "Caçador",
+        pathReq: "all",
+        desc: "Você pode usar Escaramuça e Dança da Areia contra alvos em alcance médio."
+    },
+    {
+        name: "Passo Duplo",
+        type: "class",
+        class: "cacador",
+        subType: "power",
+        source: "dragaobrasil",
+        req: "Caçador, Nível 5, Dança da Areia ou Escaramuça",
+        pathReq: "all",
+        desc: "Uma vez por rodada, se estiver usando Escaramuça ou Dança da Areia e usar a ação agredir para fazer um ataque corpo a corpo com uma arma leve, você pode gastar 2 PM para fazer um ataque adicional."
+    },
+    {
+        name: "Passos Precisos",
+        type: "class",
+        class: "cacador",
+        subType: "power",
+        source: "dragaobrasil",
+        req: "Caçador",
+        pathReq: "all",
+        desc: "Enquanto estiver usando Escaramuça ou Dança da Areia, você recebe +2 na margem de ameaça de seus ataques."
+    },
+    {
+        name: "Tesouros da Natureza",
+        type: "class",
+        class: "cacador",
+        source: "dragaobrasil",
+        subType: "power",
+        req: "Caçador",
+        pathReq: "all",
+        desc: "Sempre que for bem-sucedido em montar um acampamento em terreno natural, você encontra frutos, insetos ou outros recursos naturais que ajudam a recuperar as energias. Cada personagem acampado recupera 1 PM por patamar em que você está."
+    },
 
 ];
 
