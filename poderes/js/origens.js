@@ -2690,6 +2690,52 @@ const origensData = [
       name: 'Língua de Serpente',
       desc: '• Pode substituir testes de Diplomacia por testes de Enganação.'
     }
+  },
+
+   // ──────────────────────────────────────────────────────────
+  //  DRAGAO BRASIL
+  // ──────────────────────────────────────────────────────────
+
+  {
+    id: 'crianca-do-crepusculo',
+    name: 'Criança do Crepúsculo',
+    type: 'dragaobrasil',
+    source: 'Dragão Brasil',
+    desc: 'Você nasceu no Vale do Crepúsculo e abandonou sua terra natal em busca dos perigos e aventuras de Arton.',
+    items: 'Poção mágica contendo uma magia de 1º círculo (1 PM).',
+    autoTraining: [],
+    uniqueBenefit: {
+      name: 'Equilíbrio do Dia e da Noite',
+      desc: 'Escolha duas habilidades com custo em PM, uma para o dia e outra para a noite. Sob luz solar, o custo da habilidade do dia diminui em –1 PM e o da noite aumenta em +1 PM. Sob escuridão, os modificadores se invertem. Durante o crepúsculo, ambas custam –1 PM. Uma vez por patamar acima de iniciante, pode trocar as habilidades escolhidas. Não disponível para construtos ou mortos-vivos.'
+    }
+  },
+
+  {
+    id: 'nascido-nas-estepes',
+    name: 'Nascido nas Estepes',
+    type: 'dragaobrasil',
+    source: 'Dragão Brasil',
+    desc: 'Você cresceu entre os dai-kerat, na fronteira entre os rigores do deserto e a herança tamuraniana.',
+    items: 'Arco curto, cavalo de guerra, flecha x20, veste de seda.',
+    autoTraining: [],
+    uniqueBenefit: {
+      name: 'Herança das Estepes',
+      desc: 'Recebe +2 em Cavalgar e Vontade e nas rolagens de dano com arcos curtos e katanas.'
+    }
+  },
+  {
+    id: 'nomade-ferani',
+    name: 'Nômade Ferani',
+    type: 'dragaobrasil',
+    source: 'Dragão Brasil',
+    desc: 'Você passou sua infância entre os ferani, aprendendo a percorrer os ermos de forma rápida e discreta.',
+    items: 'Lança, manto camuflado (deserto), ração de viagem x10.',
+    autoTraining: [],
+    uniqueBenefit: {
+      name: 'Astúcia dos Ermos',
+      desc: 'Recebe +2 em Fortitude e Furtividade e nas rolagens de dano contra criaturas desprevenidas. Pode atravessar terrenos difíceis sem redução de deslocamento — se já puder, em vez disso seu deslocamento aumenta em +3m.'
+    }
   }
+
 
 ];
