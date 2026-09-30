@@ -313,6 +313,31 @@ const RACE_DATA_DRAGAOBRASIL = {
             }
         ],
         imageUrl: 'https://media.tenor.com/OOcL19tPURMAAAAM/the-lizard-marvel.gif'
+    },
+    sahiri: {
+        name: "Sahiri",
+        type: "dragaobrasil",
+        tamanho: "Médio",
+        raca: "Humanoide",
+        attributes: { sabedoria: 2, destreza: 1, inteligencia: -1 },
+        isChoice: false,
+        bonusMessage: "Sabedoria +2, Destreza +1, Inteligência −1",
+        racialPowers: [
+            {
+                name: "Animar Rochas",
+                desc: "Você pode usar magia para transformar rochas em criaturas sob seu controle. Funciona como a magia Conjurar Monstro, exceto que precisa ter acesso a uma porção de terra ou rocha equivalente a uma criatura Pequena. Caso aprenda essa magia, seu custo diminui em –1 PM."
+            },
+            {
+                name: "Proteção da Terra",
+                desc: "Quando sofre dano enquanto está em contato com terra ou pedra, pode gastar 1 PM para reduzir esse dano em 5."
+            },
+            {
+                name: "Empatia Selvagem",
+                desc: "Você pode se comunicar com animais através de linguagem corporal e vocalizações. Pode usar Adestramento para mudar atitude e persuasão com animais. Caso receba esta habilidade novamente, recebe +2 em testes de Adestramento."
+            }
+        ],
+        imageUrl: "https://images.payhip.com/o_1iq7ntvl0cs718hgha51vmnfalr.gif",
+        source: "Dragão Brasil"
     }
 
 };
