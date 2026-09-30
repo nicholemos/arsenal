@@ -223,7 +223,7 @@ function renderOrigens() {
 }
 
 function buildBenefitSummary(origem) {
-  if (origem.type === 'atlas' || origem.type === 'herois' || origem.type === 'outras') {
+    if (origem.type === 'atlas' || origem.type === 'herois' || origem.type === 'outras' || origem.type === 'dragaobrasil') {
     const treinos = origem.autoTraining
       .map(s => `<span class="origin-tag origin-tag-skill">${s}</span>`).join('');
     const unique = `<span class="origin-tag origin-tag-power">${origem.uniqueBenefit.name}</span>`;
@@ -263,7 +263,12 @@ function openOrigensModal(origem) {
     origensModalBadge.className = 'power-type origin-badge-atlas';
     origensModalRegion.textContent = '· ' + (origem.region || '');
     origensModalRegion.style.display = 'inline';
-  } else {
+  } else if (origem.type === 'dragaobrasil') {
+  origensModalBadge.textContent = 'Atlas';
+  origensModalBadge.className = 'power-type origin-badge-atlas';
+  origensModalRegion.textContent = '· ' + (origem.region || '');
+  origensModalRegion.style.display = 'inline';
+} else {
     origensModalBadge.textContent = 'T20';
     origensModalBadge.className = 'power-type origin-badge-t20';
     origensModalRegion.textContent = '';
