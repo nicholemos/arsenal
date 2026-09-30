@@ -6,6 +6,7 @@ let dbGeral = true;
 let dbJornadas = false;
 let dbGuerra = false;
 let dbDueloDragoes = false;
+let dbDragaoBrasil = false;
 let allThreats = [];
 let filteredThreats = [];
 let encounterList = [];
@@ -162,6 +163,7 @@ function loadThreats() {
     const jornadasData = typeof JORNADAS_DB !== 'undefined' ? JORNADAS_DB : [];
     const guerraData = typeof GUERRA_DB !== 'undefined' ? GUERRA_DB : [];
     const dueloDragoesData = typeof DUELO_DRAGOES_DB !== 'undefined' ? DUELO_DRAGOES_DB : [];
+    const dragaobrasilData = typeof dragaobrasil_db !== 'undefined' ? dragaobrasil_db : [];
     
     // Load homebrews
     const homebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
@@ -171,9 +173,10 @@ function loadThreats() {
     if (dbGeral) allThreats.push(...homebrews, ...dbData);
     if (dbJornadas) allThreats.push(...jornadasData);
     if (dbGuerra) allThreats.push(...guerraData);
-    if (dbDueloDragoes) allThreats.push(...dueloDragoesData);
+if (dbDueloDragoes) allThreats.push(...dueloDragoesData);
+if (dbDragaoBrasil) allThreats.push(...dragaobrasilData);
 
-    // Apply custom threat images from local storage
+// Apply custom threat images from local storage
     try {
         const customImages = JSON.parse(localStorage.getItem('t20_threat_images')) || {};
         allThreats.forEach(t => {
@@ -374,7 +377,12 @@ function filterAndSortThreats() {
                 (h.desc || "").toLowerCase().includes(q)
             );
             
-            if (!nameMatch && !typeMatch && !sourceMatch && !attackMatch && !abilityMatch) {
+            const spellMatch = (threat.magias || []).some(m => 
+                (m.nome || "").toLowerCase().includes(q) || 
+                (m.efeito || "").toLowerCase().includes(q)
+            );
+            
+            if (!nameMatch && !typeMatch && !sourceMatch && !attackMatch && !abilityMatch && !spellMatch) {
                 return false;
             }
         }
@@ -667,12 +675,31 @@ function showDetail(threatNome) {
         abilitiesHtml = "<p style='font-size: 0.85rem; color: var(--text-muted);'>Nenhuma habilidade especial.</p>";
     }
     
-    // Format skills list
+    // Format skills list (supports both {nome, valor} objects and plain strings)
     let skillsHtml = "";
     if (threat.pericias && threat.pericias.length > 0) {
-        skillsHtml = threat.pericias.map(p => `<strong>${p.nome}</strong> ${p.valor}`).join(", ");
+        skillsHtml = threat.pericias.map(p => {
+            if (typeof p === 'string') return p;
+            return `<strong>${p.nome}</strong> ${p.valor}`;
+        }).join(", ");
     } else {
         skillsHtml = "Nenhuma";
+    }
+    
+    // Format spells list (magias)
+    let spellsHtml = "";
+    if (threat.magias && threat.magias.length > 0) {
+        threat.magias.forEach(m => {
+            spellsHtml += `
+                <div class="ability-block" style="border-left-color: var(--gold-accent);">
+                    <div class="ability-name"><i class="fa-solid fa-wand-sparkles" style="margin-right: 0.4rem; font-size: 0.75rem; color: var(--gold-accent);"></i>${m.nome}
+                        <span style="font-size: 0.7rem; color: var(--gold-accent); text-transform: uppercase; font-family: var(--font-body); font-weight: normal; margin-left: 0.4rem;">${m.acao || ''}</span>
+                        ${m.custo ? `<span style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-body); font-weight: normal; margin-left: 0.3rem;">• ${m.custo}</span>` : ''}
+                    </div>
+                    <div class="ability-desc">${highlightRules(m.efeito || m.desc || '')}</div>
+                </div>
+            `;
+        });
     }
     
     content.innerHTML = `
@@ -773,6 +800,11 @@ function showDetail(threatNome) {
             
             <h3 class="t20-section-title">Habilidades</h3>
             <div class="t20-abilities-list">${abilitiesHtml}</div>
+            
+            ${spellsHtml ? `
+            <h3 class="t20-section-title"><i class="fa-solid fa-wand-sparkles" style="margin-right: 0.4rem;"></i>Magias</h3>
+            <div class="t20-abilities-list">${spellsHtml}</div>
+            ` : ''}
             
             <h3 class="t20-section-title">Outros</h3>
             <div class="t20-basic-stats" style="font-size: 0.85rem;">
@@ -1607,9 +1639,16 @@ function setupEventListeners() {
             dbDueloDragoes = dbDueloDragoesCheck.checked;
             handleDatabaseChange();
         });
-    }
-    
-    // Collapsible Panel Toggles
+}
+const dbDragaoBrasilCheck = document.getElementById("db-check-dragao-brasil");
+if (dbDragaoBrasilCheck) {
+    dbDragaoBrasilCheck.addEventListener("change", () => {
+        dbDragaoBrasil = dbDragaoBrasilCheck.checked;
+        handleDatabaseChange();
+    });
+}
+
+// Collapsible Panel Toggles
     const collapseHeaders = document.querySelectorAll('.filter-collapse-header');
     collapseHeaders.forEach(header => {
         header.addEventListener("click", () => {
