@@ -12584,11 +12584,11 @@ const powersData = [
         desc: "Você recebe o poder Dom da Imortalidade, mas só pode usá-lo na primeira vez que morrer na campanha."
     },
      {
-        name: "Canção da Pedra Allihanna",
-        type: "destiny",
+        name: "Canção da Pedra",
+        type: "conceded",
         category: "Allihanna, Megalokk",
         source: "dragaobrasil",
-        req: "Apenas druidas podem escolher este poder.",
+        req: "Apenas druidas devotos de Allihanna e Megalokk podem escolher este poder.",
         desc: "Você pode usar Religião em vez de Ofício para testes relacionados a grandes estruturas de pedra, como veículos e construções, e em vez de Pilotagem para conduzir veículos de pedra. Além disso, aprende e pode lançar Transmutar Objetos (apenas em objetos de pedra) e, se puder lançar magias divinas de 3º círculo, aprende e pode lançar Controlar Terra. Caso aprenda novamente essas magias, seu custo diminui em –1 PM."
     },
 
