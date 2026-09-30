@@ -35,7 +35,7 @@ const classesDbVariantsMeta = [
     pvInicial: 16,
     pvPorNivel: 4,
     pm: 3,
-    skills: "Luta (For) ou Pontaria (Des), Sobrevivência (Des), mais 4 a sua escolha entre Acrobacia (Des), Atletismo (For), Fortitude (Con), Furtividade (Des), Guerra (Int), Iniciativa (Des), Intimidação (Car), Luta (For), Ofício (Int), Percepção (Sab), Pontaria (Des) e Reflexos (Dex).",
+    skills: "Luta (For) ou Pontaria (Des), Sobrevivência (Des), mais 4 à sua escolha entre Acrobacia (Des), Atletismo (For), Fortitude (Con), Furtividade (Des), Guerra (Int), Iniciativa (Des), Intimidação (Car), Luta (For), Ofício (Int), Percepção (Sab), Pontaria (Des) e Reflexos (Des).",
     proficiencias: "Armas marciais e escudos."
   },
   {
@@ -147,16 +147,16 @@ const classesDbPowers = [
     pathReq: "miragem",
     req: "Nível 1",
     name: "Dança da Areia",
-    desc: "Você pode gastar 2 PM para iniciar uma dança da areia. Enquanto executa essa dança, você recebe um bônus de +1d4 em suas rolagens de dano contra alvos em alcance curto. A cada quatro níveis, você pode gastar +1 PM para aumentar o dado de bônus de dano em um passo (de 1d4 para 1d6, por exemplo). A dança termina ao final da cena ou se você passar uma rodada sem percorrer pelo menos 6m sem passar pelo mesmo espaço duas vezes. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel"
+    desc: "Você pode gastar 1 PM para iniciar uma dança da areia. Enquanto executa essa dança, você recebe um bônus de +1d4 em suas rolagens de dano com armas contra alvos em alcance curto. A cada quatro níveis, você pode gastar +1 PM para aumentar o dado de bônus de dano em um passo (de 1d4 para 1d6, por exemplo). A dança termina ao final da cena ou se você passar uma rodada sem percorrer pelo menos 6m sem passar pelo mesmo espaço duas vezes. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel."
   },
   {
     type: "class",
     class: "cacador",
     subType: "ability",
     pathReq: "miragem",
-    req: "Nível 1",
+    req: "Nível 2",
     name: "Rastreador",
-    desc: "Você recebe +2 em Sobrevivência. Além disso, pode se mover com seu deslocamento normal enquanto rastreia sem sofrer penalidades no teste de Sobrevivência."
+    desc: "Você recebe +2 em Sobrevivência. Além disso, pode se mover com seu deslocamento normal enquanto rastreia sem sofrer penalidades no teste de Sobrevivência,mas não pode escolher os poderes Escaramuça e Escaramuça Superior. "
   },
   {
     type: "class",
@@ -192,7 +192,7 @@ const classesDbPowers = [
     pathReq: "miragem",
     req: "Nível 7",
     name: "Cortina de Poeira",
-    desc: "No 7º nível, você usa sua velocidade para criar uma nuvem de terra ou outros detritos para obscurecer a visão de seus inimigos. Quando usa Dança da Areia, você pode gastar +2 PM para receber camuflagem enquanto sua dança estiver ativa"
+    desc: "No 7º nível, você usa sua velocidade para criar uma nuvem de terra ou outros detritos para obscurecer a visão de seus inimigos. Quando usa Dança da Areia, você pode gastar +3 PM para receber camuflagem leve enquanto sua dança estiver ativa."
   },
   {
     type: "class",
@@ -201,7 +201,7 @@ const classesDbPowers = [
     pathReq: "miragem",
     req: "Nível 9",
     name: "Passo do Deserto",
-    desc: "A partir do 9º nível, se estiver sob areia, terra ou outro tipo de terreno que não seja rocha sólida (ou o equivalente), uma vez por rodada você pode gastar 3 PM e se teleportar para qualquer outro ponto em alcance curto sobre o mesmo tipo de terreno.*"
+    desc: "A partir do 9º nível, uma vez por rodada você pode gastar 3 PM para entrar no solo e sair em outro espaço desocupado em alcance curto. Tanto o ponto de entrada quanto o de saída devem estar em solo macio (como areia, terra ou equivalente) e conectados pelo mesmo tipo de terreno."
   },
   {
     type: "class",
@@ -210,7 +210,7 @@ const classesDbPowers = [
     pathReq: "miragem",
     req: "Nível 20",
     name: "Mestre do Deserto",
-    desc: "No 20º nível, enquanto estiver usando Dança da Areia, quando sofre dano você pode gastar 1 PM para receber RD 20 contra esse dano. Além disso, quando usa a ação agredir durante uma Dança da Areia, você pode gastar 1 PM para fazer um ataque adicional.<br><br>Fonte DB #211"
+    desc: "No 20º nível, enquanto estiver usando Dança da Areia, quando sofre dano você pode gastar 2 PM para receber RD 20 contra esse dano. Além disso, quando usa a ação agredir durante a Dança da Areia, você pode gastar 2 PM para fazer um ataque adicional.<br><br>Fonte: Dragão Brasil #231"
   },
   {
     type: "class",
