@@ -5762,8 +5762,12 @@ const SPELLS_DB = [
         "al": "você",
         "d": "sustentada.",
         "r": "Nenhuma",
-        "desc": "Essa magia invoca o poder de um dragão, causando mutações no conjurador que o tornam semelhante a uma criatura dracônica. Você recebe +2 em Força, Constituição, Inteligência e Carisma, +5 na Defesa, e redução 30 contra o elemento do sopro do dragão do qual você utilizou a escama. Uma vez por rodada, você pode gastar uma ação padrão para exalar um sopro que causa 8d6+8 pontos de dano do elemento correspondente em um cone de 9m (Reflexos reduz à metade). Componente Material:  uma peça de couro de dragão ou uma escama de dragão no valor de T$ 1000.  +2 PM: aumenta o dano do sopro em +1d6+1.",
+        "desc": "Essa magia invoca o poder de um dragão, causando mutações no conjurador que o tornam semelhante a uma criatura dracônica. Você recebe +2 em Força, Constituição, Inteligência e Carisma, +5 na Defesa, e redução 30 contra o elemento do sopro do dragão do qual você utilizou a escama. Uma vez por rodada, você pode gastar uma ação padrão para exalar um sopro que causa 8d6+8 pontos de dano do elemento correspondente em um cone de 9m (Reflexos reduz à metade). Componente Material:  uma peça de couro de dragão ou uma escama de dragão no valor de T$ 1000.",
         "aprimoramentos": [
+            {
+                "cost": 2,
+                "desc": "aumenta o dano do sopro em +1d6+1."
+            },
             {
                 "cost": 2,
                 "desc": "aumenta o bônus na Defesa em +1."

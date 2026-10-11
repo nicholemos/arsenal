@@ -1240,6 +1240,9 @@ body {
     gap: 0.6rem;
 }
 
+.upgrade-item:has(.upgrade-number) {
+    align-items: center;
+}
 .upgrade-item {
     display: flex;
     align-items: flex-start;
@@ -1265,16 +1268,37 @@ body {
 .upgrade-checkbox-wrapper {
     position: relative;
     width: 18px;
+    min-width: 18px;
     height: 18px;
     margin-top: 0.15rem;
 }
+.upgrade-checkbox-wrapper:has(.upgrade-number) {
+    width: auto;
+    min-width: 50px;
+    height: auto;
+    margin-top: 0;
+}
 
-.upgrade-checkbox-wrapper input {
+.upgrade-checkbox-wrapper input[type="checkbox"] {
     position: absolute;
     opacity: 0;
     cursor: pointer;
     height: 0;
     width: 0;
+}
+.upgrade-checkbox-wrapper input.upgrade-number {
+    position: static;
+    opacity: 1;
+    height: auto;
+    width: 50px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: text;
+    margin-top: 0;
 }
 
 .upgrade-checkmark {
@@ -1337,6 +1361,11 @@ body {
     padding: 0.1rem 0.4rem;
 }
 
+.repeatable-tag {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
 .upgrade-desc {
     font-size: 0.8rem;
     color: var(--text-secondary);
@@ -2223,3 +2252,712 @@ body {
 }
 
 
+
+
+/* ==========================================================================
+   BÔNUS ATIVOS (soma de bônus de várias magias)
+   ========================================================================== */
+
+:root {
+    --bonus-pos: #3ddc84;
+    --bonus-neg: #ff6b6b;
+    --bonus-chip-bg: rgba(127, 127, 127, 0.09);
+}
+
+.theme-classic {
+    --bonus-pos: #1f8f4e;
+    --bonus-neg: #c0392b;
+    --bonus-chip-bg: rgba(44, 62, 80, 0.06);
+}
+
+.bonus-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-backdrop);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.bonus-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem 0.6rem 1.25rem;
+}
+
+.bonus-collapse {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    cursor: pointer;
+    text-align: left;
+    padding: 0.3rem 0;
+}
+
+.bonus-title-icon {
+    color: var(--gold-primary);
+}
+
+.bonus-count {
+    min-width: 1.45rem;
+    height: 1.45rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--gold-secondary);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bonus-chevron {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    transition: transform var(--transition-fast);
+}
+
+.bonus-card.collapsed .bonus-chevron {
+    transform: rotate(-90deg);
+}
+
+.bonus-card.collapsed .bonus-card-body {
+    display: none;
+}
+
+.bonus-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bonus-icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+}
+
+.bonus-icon-btn:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--gold-primary);
+}
+
+.bonus-icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.bonus-icon-btn.small {
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.bonus-icon-btn.small:hover {
+    color: var(--bonus-neg);
+    border-color: var(--bonus-neg);
+}
+
+.bonus-add-btn {
+    background: var(--gold-secondary);
+    border-color: var(--gold-primary);
+    color: #fff;
+}
+
+.bonus-add-btn:hover:not(:disabled) {
+    background: var(--gold-primary);
+    color: #fff;
+    box-shadow: 0 0 10px var(--gold-glow);
+}
+
+.bonus-card-body {
+    padding: 1rem 1.25rem 1.2rem;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* ----- estado vazio ----- */
+.bonus-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    text-align: center;
+    padding: 0.6rem 0.5rem;
+    color: var(--text-muted);
+}
+
+.bonus-empty > i {
+    font-size: 1.6rem;
+    color: var(--gold-primary);
+    opacity: 0.7;
+}
+
+.bonus-empty p {
+    max-width: 520px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* ----- layout totais + ativas ----- */
+.bonus-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.bonus-section-title {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.7rem;
+}
+
+.bonus-cat {
+    margin-bottom: 0.9rem;
+}
+
+.bonus-cat-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+}
+
+.bonus-cat-title i {
+    color: var(--gold-primary);
+    width: 1rem;
+    text-align: center;
+}
+
+.bonus-chip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.55rem;
+}
+
+.bonus-chip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    background: var(--bonus-chip-bg);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--bonus-pos);
+    border-radius: 8px;
+    min-width: 0;
+}
+
+.bonus-chip.neg {
+    border-left-color: var(--bonus-neg);
+}
+
+.bonus-chip.zero {
+    border-left-color: var(--text-muted);
+}
+
+.bonus-chip-value {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    min-width: 2.4rem;
+    color: var(--bonus-pos);
+}
+
+.bonus-chip.neg .bonus-chip-value {
+    color: var(--bonus-neg);
+}
+
+.bonus-chip.zero .bonus-chip-value {
+    color: var(--text-muted);
+}
+
+.bonus-chip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.bonus-chip-target {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow-wrap: anywhere;
+}
+
+.bonus-chip-cond {
+    font-size: 0.7rem;
+    font-style: italic;
+    color: var(--gold-secondary);
+}
+
+.bonus-chip-src {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.bonus-chip-ign {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
+.bonus-chip-ign i {
+    font-size: 0.6rem;
+    margin-right: 0.15rem;
+}
+
+.bonus-rule-note {
+    margin-top: 0.6rem;
+    font-size: 0.7rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+}
+
+.bonus-rule-note i {
+    margin-right: 0.3rem;
+    color: var(--gold-primary);
+}
+
+.bonus-muted {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+/* ----- lista de magias ativas ----- */
+.bonus-active-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.bonus-active-row {
+    padding: 0.65rem 0.75rem;
+    background: var(--bonus-chip-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.bonus-active-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.bonus-active-name {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+}
+
+.bonus-active-name.link {
+    cursor: pointer;
+}
+
+.bonus-active-name.link:hover {
+    color: var(--gold-secondary);
+    text-decoration: underline;
+}
+
+.bonus-active-name i {
+    color: var(--gold-primary);
+    margin-right: 0.3rem;
+}
+
+.bonus-active-meta {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.bonus-active-summary {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.bonus-active-note {
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
+.bonus-active-note i {
+    margin-right: 0.25rem;
+}
+
+.bonus-variant-select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 0.35rem 0.5rem;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.theme-classic .bonus-variant-select {
+    background: #fff;
+}
+
+.bonus-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.bonus-stepper-label {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.3;
+}
+
+.bonus-stepper-ctrl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.bonus-stepper-ctrl button {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    transition: var(--transition-fast);
+}
+
+.bonus-stepper-ctrl button:hover {
+    border-color: var(--gold-primary);
+    color: var(--gold-secondary);
+}
+
+.bonus-stepper-val {
+    min-width: 1.6rem;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bonus-add-inline {
+    margin-top: 0.7rem;
+    width: 100%;
+    padding: 0.55rem;
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.bonus-add-inline:hover {
+    border-color: var(--gold-primary);
+    color: var(--gold-secondary);
+}
+
+/* ----- modal seletor ----- */
+.bonus-modal-card {
+    width: 580px;
+    max-height: 88vh;
+}
+
+.bonus-modal-body {
+    gap: 1rem;
+    overflow-y: auto;
+}
+
+.bonus-search-wrapper {
+    position: relative;
+}
+
+.bonus-search-wrapper i {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.bonus-search-wrapper input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 0.6rem 0.8rem 0.6rem 2.2rem;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.theme-classic .bonus-search-wrapper input {
+    background: #fff;
+}
+
+.bonus-search-wrapper input:focus {
+    border-color: var(--gold-primary);
+}
+
+.bonus-pick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 42vh;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.bonus-pick-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    background: var(--bonus-chip-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: var(--transition-fast);
+}
+
+.bonus-pick-item:hover {
+    border-color: var(--gold-primary);
+}
+
+.bonus-pick-item.active {
+    border-color: var(--bonus-pos);
+    background: rgba(61, 220, 132, 0.08);
+}
+
+.bonus-pick-circ {
+    flex-shrink: 0;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    border: 1px solid var(--gold-primary);
+    color: var(--gold-secondary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bonus-pick-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.bonus-pick-name {
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+}
+
+.bonus-pick-sum {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.bonus-pick-item > i {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.bonus-pick-item.active > i {
+    color: var(--bonus-pos);
+}
+
+.bonus-manual {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+}
+
+.bonus-manual summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.bonus-manual summary i {
+    color: var(--gold-primary);
+    margin-right: 0.3rem;
+}
+
+.bonus-manual-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+}
+
+.bonus-manual-form input[type="text"],
+.bonus-manual-form input[type="number"],
+.bonus-manual-form select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 0.5rem 0.6rem;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    outline: none;
+    min-width: 0;
+}
+
+.theme-classic .bonus-manual-form input[type="text"],
+.theme-classic .bonus-manual-form input[type="number"],
+.theme-classic .bonus-manual-form select {
+    background: #fff;
+}
+
+.bonus-manual-check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.bonus-modal-body .form-actions-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ----- bônus no painel de detalhes da magia ----- */
+.spell-bonus-panel {
+    background: rgba(61, 220, 132, 0.04);
+    border: 1px solid rgba(61, 220, 132, 0.2);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.spell-bonus-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.spell-bonus-title {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.spell-bonus-title i {
+    color: var(--bonus-pos);
+    margin-right: 0.3rem;
+}
+
+.spell-bonus-summary {
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    line-height: 1.45;
+}
+
+.spell-bonus-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    border: 1px solid var(--gold-primary);
+    background: transparent;
+    color: var(--gold-secondary);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.spell-bonus-toggle:hover {
+    background: var(--gold-glow);
+}
+
+.spell-bonus-toggle.active {
+    border-color: var(--bonus-pos);
+    color: var(--bonus-pos);
+    background: rgba(61, 220, 132, 0.1);
+}
+
+/* ----- responsivo ----- */
+@media (max-width: 900px) {
+    .bonus-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .bonus-card-header {
+        padding: 0.5rem 0.75rem 0.5rem 1rem;
+    }
+    .bonus-card-body {
+        padding: 0.85rem 1rem 1rem;
+    }
+    .bonus-chip-grid {
+        grid-template-columns: 1fr;
+    }
+    .bonus-manual-form {
+        grid-template-columns: 1fr;
+    }
+}

@@ -233,6 +233,29 @@
 
             <!-- Spells List Container -->
             <main class="spells-content-area">
+                <!-- Active Bonuses Card -->
+                <section class="bonus-card" id="bonus-card" aria-label="Bônus ativos">
+                    <div class="bonus-card-header">
+                        <button class="bonus-collapse" id="btn-bonus-collapse" aria-label="Recolher ou expandir bônus ativos">
+                            <i class="fa-solid fa-shield-halved bonus-title-icon"></i>
+                            <span class="bonus-title">Bônus Ativos</span>
+                            <span class="bonus-count" id="bonus-count">0</span>
+                            <i class="fa-solid fa-chevron-down bonus-chevron"></i>
+                        </button>
+                        <div class="bonus-card-actions">
+                            <button class="bonus-icon-btn" id="btn-bonus-clear" title="Limpar todos os bônus ativos">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            <button class="bonus-icon-btn bonus-add-btn" id="btn-bonus-add" title="Adicionar magia aos bônus ativos">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bonus-card-body" id="bonus-card-body">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </section>
+
                 <div class="content-header">
                     <div class="sorting-controls">
                         <label for="sort-select">Ordenar por:</label>
@@ -411,6 +434,38 @@
         </div>
     </div>
 
+    <!-- Active Bonuses Picker Modal -->
+    <div class="modal-overlay hidden" id="bonus-modal">
+        <div class="modal-card bonus-modal-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-shield-halved"></i> Adicionar aos Bônus Ativos</h2>
+                <button class="modal-close-btn" id="btn-close-bonus-modal" title="Fechar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body bonus-modal-body">
+                <div class="bonus-search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="bonus-search" placeholder="Buscar magia ou bônus (ex.: Defesa, Força)..." autocomplete="off">
+                </div>
+                <div class="bonus-pick-list" id="bonus-pick-list"></div>
+
+                <details class="bonus-manual">
+                    <summary><i class="fa-solid fa-pen-ruler"></i> Bônus manual (outras fontes, itens, homebrew)</summary>
+                    <div class="bonus-manual-form">
+                        <input type="text" id="bonus-manual-nome" placeholder="Nome (opcional)" maxlength="40">
+                        <select id="bonus-manual-alvo" aria-label="Alvo do bônus"></select>
+                        <input type="number" id="bonus-manual-valor" placeholder="Valor (ex.: 2 ou -2)" step="1">
+                        <label class="bonus-manual-check"><input type="checkbox" id="bonus-manual-cum"> Cumulativo</label>
+                        <button type="button" id="btn-bonus-manual-add" class="action-btn-secondary">Adicionar</button>
+                    </div>
+                </details>
+
+                <div class="form-actions-row">
+                    <button type="button" id="btn-bonus-done" class="action-btn-gold">Concluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scroll to Top Button -->
     <button id="btn-scroll-top" class="scroll-top-btn hidden" title="Voltar ao Topo">
         <i class="fa-solid fa-arrow-up"></i>
@@ -418,6 +473,7 @@
 
     <!-- Scripts -->
     <script src="spells_db.js"></script>
+    <script src="bonus_db.js"></script>
     <script src="app.js"></script>
 </body>
 

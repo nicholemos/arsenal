@@ -542,6 +542,9 @@ function openSpellDetails(spell) {
         `;
     }
     
+    // Append structured bonuses panel (only for spells present in BONUS_DB)
+    html += bonusDetalheHtml(spell);
+
     // Append the interactive Mana Planner Panel
     const basePM = CIRCLE_PM_COSTS[spell.c] || 1;
     html += `
@@ -586,6 +589,12 @@ function openSpellDetails(spell) {
         deleteHomebrewBtn.addEventListener("click", () => {
             deleteHomebrewSpell(spell.n);
         });
+    }
+    
+    // Toggle spell in the active bonuses card
+    const bonusBtn = document.getElementById("btn-detail-bonus");
+    if (bonusBtn) {
+        bonusBtn.addEventListener("click", () => bonusAlternarMagia(spell.n));
     }
     
     // Upgrade changes (checkbox or number)
@@ -790,6 +799,7 @@ function createNewGrimoire() {
     STATE.grimoires[name] = [];
     STATE.activeGrimoireName = name;
     saveToStorage();
+    renderBonusCard();
     
     input.value = "";
     
@@ -808,6 +818,8 @@ function deleteGrimoire(name) {
     
     if (confirm(`Tem certeza de que deseja excluir o grimório "${name}"?`)) {
         delete STATE.grimoires[name];
+        delete BONUS_STATE.porGrimorio[name];
+        saveBonusState();
         
         // If we deleted the active one, switch to another
         if (STATE.activeGrimoireName === name) {
@@ -815,6 +827,7 @@ function deleteGrimoire(name) {
         }
         
         saveToStorage();
+        renderBonusCard();
         updateGrimoireSelectDropdown();
         renderGrimoiresListInModal();
         renderSpellsGrid();
@@ -832,6 +845,7 @@ function switchActiveGrimoire(name) {
     
     STATE.activeGrimoireName = name;
     saveToStorage();
+    renderBonusCard();
     updateGrimoireSelectDropdown();
     renderSpellsGrid();
     updateStatsDashboard();
@@ -1187,12 +1201,694 @@ function resetAllFilters() {
 }
 
 // ==========================================================================
+// 8B. BÔNUS ATIVOS - SOMA DE BÔNUS DE VÁRIAS MAGIAS
+// ==========================================================================
+
+const BONUS_STORAGE_KEY = "grimorio_arton_bonuses";
+const BONUS_COLLAPSE_KEY = "grimorio_arton_bonus_collapsed";
+
+const BONUS_STATE = {
+    porGrimorio: {},   // { nomeDoGrimorio: [entradas] }
+    colapsado: false,
+    busca: ""
+};
+
+// ---------- utilidades ----------
+
+function bonusEsc(texto) {
+    return String(texto).replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+}
+
+function bonusNormalizar(texto) {
+    return String(texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function bonusFmt(valor, un) {
+    const sinal = valor > 0 ? "+" : valor < 0 ? "–" : "";
+    return `${sinal}${Math.abs(valor)}${un || ""}`;
+}
+
+function bonusNovoId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// ---------- persistência ----------
+
+function loadBonusState() {
+    try {
+        const bruto = localStorage.getItem(BONUS_STORAGE_KEY);
+        if (bruto) {
+            const dados = JSON.parse(bruto) || {};
+            Object.keys(dados).forEach(nome => {
+                dados[nome] = (dados[nome] || []).filter(e => e && (e.custom || BONUS_DB[e.magia]));
+            });
+            BONUS_STATE.porGrimorio = dados;
+        }
+        BONUS_STATE.colapsado = localStorage.getItem(BONUS_COLLAPSE_KEY) === "1";
+    } catch (e) {
+        console.error("Erro ao carregar bônus ativos:", e);
+        BONUS_STATE.porGrimorio = {};
+    }
+}
+
+function saveBonusState() {
+    try {
+        localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(BONUS_STATE.porGrimorio));
+        localStorage.setItem(BONUS_COLLAPSE_KEY, BONUS_STATE.colapsado ? "1" : "0");
+    } catch (e) {
+        console.error("Erro ao salvar bônus ativos:", e);
+    }
+}
+
+function getActiveBonuses() {
+    const nome = STATE.activeGrimoireName;
+    if (!BONUS_STATE.porGrimorio[nome]) BONUS_STATE.porGrimorio[nome] = [];
+    return BONUS_STATE.porGrimorio[nome];
+}
+
+// ---------- alvos, grupos e categorias ----------
+
+function bonusExpandirAlvos(efeito) {
+    const saida = [];
+    const exceto = efeito.exceto || [];
+    (efeito.alvos || []).forEach(alvo => {
+        (BONUS_GRUPOS[alvo] || [alvo]).forEach(membro => {
+            if (!exceto.includes(membro) && !saida.includes(membro)) saida.push(membro);
+        });
+    });
+    return saida;
+}
+
+function bonusOrdemDoAlvo(alvo) {
+    let base = 0;
+    for (const cat of BONUS_CATEGORIAS) {
+        const pos = cat.alvos.indexOf(alvo);
+        if (pos >= 0) return base + pos;
+        base += cat.alvos.length;
+    }
+    return 9999;
+}
+
+function bonusCategoriaDoAlvo(alvo) {
+    const cat = BONUS_CATEGORIAS.find(c => c.alvos.includes(alvo));
+    return cat ? cat.nome : "Outros";
+}
+
+// Troca "Fortitude, Reflexos, Vontade" por "Testes de resistência", etc.
+function bonusColapsarAlvos(alvos) {
+    const restantes = [...alvos].sort((a, b) => bonusOrdemDoAlvo(a) - bonusOrdemDoAlvo(b));
+    const rotulos = [];
+
+    Object.keys(BONUS_GRUPOS).forEach(grupo => {
+        const membros = BONUS_GRUPOS[grupo];
+        const presentes = membros.filter(m => restantes.includes(m));
+        const faltando = membros.filter(m => !restantes.includes(m));
+
+        if (faltando.length === 0) {
+            rotulos.push(grupo);
+        } else if (membros.length >= 5 && faltando.length === 1 && presentes.length >= 4) {
+            rotulos.push(`${grupo} (exceto ${faltando[0]})`);
+        } else {
+            return;
+        }
+        presentes.forEach(m => restantes.splice(restantes.indexOf(m), 1));
+    });
+
+    return rotulos.concat(restantes);
+}
+
+// ---------- efeitos de cada entrada (variante + aprimoramentos) ----------
+
+function bonusEfeitosDaEntrada(entrada) {
+    if (entrada.custom) {
+        const c = entrada.custom;
+        return {
+            nome: c.nome || "Bônus manual",
+            efeitos: [{
+                alvos: [c.alvo],
+                valor: Number(c.valor) || 0,
+                cumulativo: !!c.cumulativo,
+                un: c.alvo === "Deslocamento" ? "m" : ""
+            }]
+        };
+    }
+
+    const def = BONUS_DB[entrada.magia];
+    if (!def) return null;
+
+    let base = def.efeitos;
+    if (def.variantes) {
+        const i = Math.min(entrada.v || 0, def.variantes.length - 1);
+        base = def.variantes[i].efeitos;
+    }
+
+    const efeitos = base.map(e => Object.assign({}, e));
+    (def.ajustes || []).forEach((aj, i) => {
+        const n = (entrada.aj && entrada.aj[i]) || 0;
+        if (!n) return;
+        Object.keys(aj.deltas).forEach(idx => {
+            if (efeitos[idx]) efeitos[idx].valor += aj.deltas[idx] * n;
+        });
+    });
+
+    return { nome: entrada.magia, efeitos };
+}
+
+// ---------- MOTOR DE ACÚMULO ----------
+// Regra: bônus do mesmo tipo no mesmo alvo NÃO se acumulam (vale o maior;
+// para penalidades, vale a pior). Exceções marcadas como "cumulativo"
+// (Armadura Arcana, Oração) sempre somam. Tipos diferentes (ex.: "encanto"
+// e geral) somam entre si.
+
+function calcularBonusAtivos(entradas) {
+    const slots = new Map();
+
+    entradas.forEach(entrada => {
+        const res = bonusEfeitosDaEntrada(entrada);
+        if (!res) return;
+
+        res.efeitos.forEach(ef => {
+            const lado = ef.inimigos ? "inimigos" : "aliados";
+            const tipo = ef.tipo || "geral";
+            const cond = ef.cond || "";
+
+            bonusExpandirAlvos(ef).forEach(alvo => {
+                const chave = [lado, alvo, cond, tipo].join("|");
+                let slot = slots.get(chave);
+                if (!slot) {
+                    slot = { lado, alvo, cond, tipo, un: ef.un || "", pos: [], neg: [], cum: [] };
+                    slots.set(chave, slot);
+                }
+                const item = { fonte: res.nome, valor: ef.valor, tipo };
+                if (ef.cumulativo) slot.cum.push(item);
+                else if (ef.valor < 0) slot.neg.push(item);
+                else slot.pos.push(item);
+            });
+        });
+    });
+
+    const linhas = new Map();
+
+    slots.forEach(slot => {
+        const contam = [];
+        const ignorados = [];
+
+        if (slot.pos.length) {
+            let melhor = slot.pos[0];
+            slot.pos.forEach(i => { if (i.valor > melhor.valor) melhor = i; });
+            slot.pos.forEach(i => (i === melhor ? contam : ignorados).push(i));
+        }
+        if (slot.neg.length) {
+            let pior = slot.neg[0];
+            slot.neg.forEach(i => { if (i.valor < pior.valor) pior = i; });
+            slot.neg.forEach(i => (i === pior ? contam : ignorados).push(i));
+        }
+        slot.cum.forEach(i => contam.push(i));
+
+        const chaveLinha = [slot.lado, slot.alvo, slot.cond].join("|");
+        let linha = linhas.get(chaveLinha);
+        if (!linha) {
+            linha = { lado: slot.lado, alvo: slot.alvo, cond: slot.cond, un: slot.un, total: 0, partes: [], ignorados: [] };
+            linhas.set(chaveLinha, linha);
+        }
+        linha.total += contam.reduce((soma, i) => soma + i.valor, 0);
+        linha.partes.push(...contam);
+        linha.ignorados.push(...ignorados);
+    });
+
+    return Array.from(linhas.values());
+}
+
+// Junta alvos que têm exatamente o mesmo resultado numa única "pílula"
+function bonusMontarChips(linhas) {
+    const marca = lista => lista.map(p => `${p.fonte}:${p.valor}:${p.tipo}`).join(",");
+    const baldes = new Map();
+
+    linhas.forEach(l => {
+        const chave = [l.lado, l.cond, l.total, l.un, marca(l.partes), marca(l.ignorados)].join("#");
+        if (!baldes.has(chave)) baldes.set(chave, Object.assign({}, l, { alvos: [] }));
+        baldes.get(chave).alvos.push(l.alvo);
+    });
+
+    return Array.from(baldes.values()).map(chip => {
+        chip.rotulos = bonusColapsarAlvos(chip.alvos);
+        chip.alvoPrincipal = [...chip.alvos].sort((a, b) => bonusOrdemDoAlvo(a) - bonusOrdemDoAlvo(b))[0];
+        chip.ordem = bonusOrdemDoAlvo(chip.alvoPrincipal);
+        return chip;
+    }).sort((a, b) => a.ordem - b.ordem);
+}
+
+// ---------- RENDERIZAÇÃO DO CARD ----------
+
+function bonusRotuloEfeito(ef) {
+    const alvos = bonusColapsarAlvos(bonusExpandirAlvos(ef)).join(", ");
+    const prefixo = ef.inimigos ? "Inimigos: " : "";
+    const cond = ef.cond ? ` (${ef.cond})` : "";
+    return `${prefixo}${alvos} ${bonusFmt(ef.valor, ef.un)}${cond}`;
+}
+
+function bonusChipHtml(chip) {
+    const classe = chip.total < 0 ? "neg" : chip.total === 0 ? "zero" : "";
+    const fontes = Array.from(new Set(chip.partes.map(p => p.fonte)));
+
+    const detalhes = chip.partes.map(p =>
+        `${p.fonte}: ${bonusFmt(p.valor, chip.un)}${p.tipo !== "geral" ? ` (bônus de ${p.tipo})` : ""}`
+    );
+    const ignorados = chip.ignorados.map(i => `${i.fonte} (${bonusFmt(i.valor, chip.un)})`);
+    const titulo = detalhes.join("\n") + (ignorados.length ? `\nNão acumula: ${ignorados.join(", ")}` : "");
+
+    return `
+        <div class="bonus-chip ${classe}" title="${bonusEsc(titulo)}">
+            <span class="bonus-chip-value">${bonusFmt(chip.total, chip.un)}</span>
+            <span class="bonus-chip-body">
+                <span class="bonus-chip-target">${bonusEsc(chip.rotulos.join(", "))}</span>
+                ${chip.cond ? `<span class="bonus-chip-cond">${bonusEsc(chip.cond)}</span>` : ""}
+                <span class="bonus-chip-src">${bonusEsc(fontes.join(" + "))}</span>
+                ${ignorados.length ? `<span class="bonus-chip-ign"><i class="fa-solid fa-ban"></i> ${bonusEsc(ignorados.join(", "))} ${ignorados.length > 1 ? "não acumulam" : "não acumula"}</span>` : ""}
+            </span>
+        </div>
+    `;
+}
+
+function bonusLinhaAtivaHtml(entrada) {
+    const res = bonusEfeitosDaEntrada(entrada);
+    if (!res) return "";
+
+    // Entrada manual
+    if (entrada.custom) {
+        return `
+            <div class="bonus-active-row">
+                <div class="bonus-active-top">
+                    <span class="bonus-active-name"><i class="fa-solid fa-pen-ruler"></i> ${bonusEsc(res.nome)}</span>
+                    <button class="bonus-icon-btn small" data-act="remove" data-id="${entrada.id}" title="Remover"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="bonus-active-summary">${bonusEsc(res.efeitos.map(bonusRotuloEfeito).join(" · "))}${entrada.custom.cumulativo ? " · cumulativo" : ""}</div>
+            </div>
+        `;
+    }
+
+    const def = BONUS_DB[entrada.magia];
+    const spell = SPELLS_DB.find(s => s.n === entrada.magia);
+    const meta = spell ? `${spell.c}º círculo · ${spell.d}` : "";
+
+    let controles = "";
+
+    if (def.variantes) {
+        const sel = Math.min(entrada.v || 0, def.variantes.length - 1);
+        controles += `
+            <select class="bonus-variant-select" data-act="variante" data-id="${entrada.id}" aria-label="Escolha de ${bonusEsc(entrada.magia)}">
+                ${def.variantes.map((v, i) => `<option value="${i}" ${i === sel ? "selected" : ""}>${bonusEsc(v.label)}</option>`).join("")}
+            </select>
+        `;
+    }
+
+    (def.ajustes || []).forEach((aj, i) => {
+        const n = (entrada.aj && entrada.aj[i]) || 0;
+        const mostra = n > 0 ? `+${n}` : n < 0 ? `–${Math.abs(n)}` : "0";
+        controles += `
+            <div class="bonus-stepper">
+                <span class="bonus-stepper-label">${bonusEsc(aj.label)}</span>
+                <span class="bonus-stepper-ctrl">
+                    <button data-act="step" data-id="${entrada.id}" data-aj="${i}" data-dir="-1" aria-label="Diminuir">−</button>
+                    <span class="bonus-stepper-val">${mostra}</span>
+                    <button data-act="step" data-id="${entrada.id}" data-aj="${i}" data-dir="1" aria-label="Aumentar">+</button>
+                </span>
+            </div>
+        `;
+    });
+
+    return `
+        <div class="bonus-active-row">
+            <div class="bonus-active-top">
+                <button class="bonus-active-name link" data-act="open" data-spell="${bonusEsc(entrada.magia)}" title="Ver detalhes da magia">${bonusEsc(entrada.magia)}</button>
+                <button class="bonus-icon-btn small" data-act="remove" data-id="${entrada.id}" title="Remover dos bônus ativos"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="bonus-active-meta">${bonusEsc(meta)}</div>
+            <div class="bonus-active-summary">${bonusEsc(res.efeitos.map(bonusRotuloEfeito).join(" · "))}</div>
+            ${controles}
+            ${def.nota ? `<p class="bonus-active-note"><i class="fa-solid fa-circle-info"></i> ${bonusEsc(def.nota)}</p>` : ""}
+        </div>
+    `;
+}
+
+function renderBonusCard() {
+    const card = document.getElementById("bonus-card");
+    const corpo = document.getElementById("bonus-card-body");
+    if (!card || !corpo) return;
+
+    const entradas = getActiveBonuses();
+
+    card.classList.toggle("collapsed", BONUS_STATE.colapsado);
+    const contador = document.getElementById("bonus-count");
+    if (contador) contador.textContent = entradas.length;
+    const btnLimpar = document.getElementById("btn-bonus-clear");
+    if (btnLimpar) btnLimpar.disabled = entradas.length === 0;
+
+    if (entradas.length === 0) {
+        corpo.innerHTML = `
+            <div class="bonus-empty">
+                <i class="fa-solid fa-wand-sparkles"></i>
+                <p>Nenhuma magia ativa neste grimório. Adicione as magias que estão em efeito para ver o total de bônus, já respeitando as regras de acúmulo.</p>
+                <button class="action-btn-gold" data-act="add"><i class="fa-solid fa-plus"></i> Adicionar magia</button>
+            </div>
+        `;
+        return;
+    }
+
+    const chips = bonusMontarChips(calcularBonusAtivos(entradas));
+    const diretos = chips.filter(c => c.lado === "aliados" && !c.cond);
+    const situacionais = chips.filter(c => c.lado === "aliados" && c.cond);
+    const inimigos = chips.filter(c => c.lado === "inimigos");
+
+    // Bônus diretos por categoria
+    let totais = "";
+    const nomesCat = BONUS_CATEGORIAS.map(c => c.nome).concat("Outros");
+    nomesCat.forEach(nomeCat => {
+        const doGrupo = diretos.filter(c => bonusCategoriaDoAlvo(c.alvoPrincipal) === nomeCat);
+        if (!doGrupo.length) return;
+        const cat = BONUS_CATEGORIAS.find(c => c.nome === nomeCat);
+        totais += `
+            <div class="bonus-cat">
+                <div class="bonus-cat-title"><i class="fa-solid ${cat ? cat.icone : "fa-star"}"></i> ${nomeCat}</div>
+                <div class="bonus-chip-grid">${doGrupo.map(bonusChipHtml).join("")}</div>
+            </div>
+        `;
+    });
+
+    if (!totais) {
+        totais = `<p class="bonus-muted">Nenhum bônus direto — veja os situacionais abaixo.</p>`;
+    }
+
+    if (situacionais.length) {
+        totais += `
+            <div class="bonus-cat">
+                <div class="bonus-cat-title"><i class="fa-solid fa-bullseye"></i> Situacionais</div>
+                <div class="bonus-chip-grid">${situacionais.map(bonusChipHtml).join("")}</div>
+            </div>
+        `;
+    }
+
+    if (inimigos.length) {
+        totais += `
+            <div class="bonus-cat">
+                <div class="bonus-cat-title"><i class="fa-solid fa-skull"></i> Efeitos nos inimigos</div>
+                <div class="bonus-chip-grid">${inimigos.map(bonusChipHtml).join("")}</div>
+            </div>
+        `;
+    }
+
+    corpo.innerHTML = `
+        <div class="bonus-layout">
+            <div class="bonus-totals">
+                <h4 class="bonus-section-title">Bônus totais</h4>
+                ${totais}
+                <p class="bonus-rule-note">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    Bônus do mesmo tipo no mesmo alvo não se acumulam: vale o maior. Exceções: bônus cumulativos
+                    (Armadura Arcana, Oração) e bônus de encanto, que somam com os demais.
+                    Situacionais não entram no total direto.
+                </p>
+            </div>
+            <div class="bonus-actives">
+                <h4 class="bonus-section-title">Magias ativas</h4>
+                <div class="bonus-active-list">${entradas.map(bonusLinhaAtivaHtml).join("")}</div>
+                <button class="bonus-add-inline" data-act="add"><i class="fa-solid fa-plus"></i> Adicionar magia</button>
+            </div>
+        </div>
+    `;
+}
+
+// ---------- AÇÕES ----------
+
+function bonusAlternarMagia(nome) {
+    const lista = getActiveBonuses();
+    const idx = lista.findIndex(e => e.magia === nome);
+    if (idx >= 0) {
+        lista.splice(idx, 1);
+    } else {
+        lista.push({ id: bonusNovoId(), magia: nome, v: 0, aj: [] });
+    }
+    saveBonusState();
+    renderBonusCard();
+    bonusRenderLista();
+    bonusAtualizarBotaoDetalhe();
+}
+
+function bonusRemoverEntrada(id) {
+    const lista = getActiveBonuses();
+    const idx = lista.findIndex(e => e.id === id);
+    if (idx < 0) return;
+    lista.splice(idx, 1);
+    saveBonusState();
+    renderBonusCard();
+    bonusRenderLista();
+    bonusAtualizarBotaoDetalhe();
+}
+
+function bonusLimparTudo() {
+    const lista = getActiveBonuses();
+    if (!lista.length) return;
+    if (!confirm("Remover todos os bônus ativos deste grimório?")) return;
+    BONUS_STATE.porGrimorio[STATE.activeGrimoireName] = [];
+    saveBonusState();
+    renderBonusCard();
+    bonusRenderLista();
+    bonusAtualizarBotaoDetalhe();
+}
+
+function bonusAjustar(id, indice, direcao) {
+    const entrada = getActiveBonuses().find(e => e.id === id);
+    if (!entrada || !entrada.magia) return;
+    const aj = (BONUS_DB[entrada.magia].ajustes || [])[indice];
+    if (!aj) return;
+
+    if (!entrada.aj) entrada.aj = [];
+    const minimo = aj.min !== undefined ? aj.min : 0;
+    const maximo = aj.max !== undefined ? aj.max : 5;
+    entrada.aj[indice] = Math.max(minimo, Math.min(maximo, (entrada.aj[indice] || 0) + direcao));
+
+    saveBonusState();
+    renderBonusCard();
+}
+
+function bonusColapsar() {
+    BONUS_STATE.colapsado = !BONUS_STATE.colapsado;
+    saveBonusState();
+    renderBonusCard();
+}
+
+// ---------- SELETOR "+" (MODAL) ----------
+
+function bonusPreencherAlvosManual() {
+    const select = document.getElementById("bonus-manual-alvo");
+    if (!select || select.options.length) return;
+
+    let html = "";
+    BONUS_CATEGORIAS.forEach(cat => {
+        html += `<optgroup label="${cat.nome}">${cat.alvos.map(a => `<option value="${bonusEsc(a)}">${bonusEsc(a)}</option>`).join("")}</optgroup>`;
+    });
+    html += `<optgroup label="Grupos">${Object.keys(BONUS_GRUPOS).map(g => `<option value="${bonusEsc(g)}">${bonusEsc(g)}</option>`).join("")}</optgroup>`;
+    select.innerHTML = html;
+}
+
+function bonusAbrirModal() {
+    const modal = document.getElementById("bonus-modal");
+    if (!modal) return;
+
+    // Garante que o card esteja visível ao adicionar
+    if (BONUS_STATE.colapsado) {
+        BONUS_STATE.colapsado = false;
+        saveBonusState();
+        renderBonusCard();
+    }
+
+    BONUS_STATE.busca = "";
+    const busca = document.getElementById("bonus-search");
+    if (busca) busca.value = "";
+
+    bonusPreencherAlvosManual();
+    bonusRenderLista();
+    modal.classList.remove("hidden");
+    if (busca) setTimeout(() => busca.focus(), 50);
+}
+
+function bonusFecharModal() {
+    const modal = document.getElementById("bonus-modal");
+    if (modal) modal.classList.add("hidden");
+}
+
+function bonusRenderLista() {
+    const lista = document.getElementById("bonus-pick-list");
+    if (!lista) return;
+
+    const termo = bonusNormalizar(BONUS_STATE.busca);
+    const ativas = new Set(getActiveBonuses().filter(e => e.magia).map(e => e.magia));
+
+    const itens = Object.keys(BONUS_DB)
+        .map(nome => SPELLS_DB.find(s => s.n === nome))
+        .filter(Boolean)
+        .map(spell => {
+            const def = BONUS_DB[spell.n];
+            const resumo = def.resumo || def.efeitos.map(bonusRotuloEfeito).join(" · ");
+            return { spell, resumo };
+        })
+        .filter(({ spell, resumo }) => !termo || bonusNormalizar(`${spell.n} ${resumo} ${spell.t || ""}`).includes(termo))
+        .sort((a, b) => a.spell.c - b.spell.c || a.spell.n.localeCompare(b.spell.n, "pt-BR"));
+
+    if (!itens.length) {
+        lista.innerHTML = `<p class="bonus-muted">Nenhuma magia com bônus encontrada para essa busca.</p>`;
+        return;
+    }
+
+    lista.innerHTML = itens.map(({ spell, resumo }) => {
+        const ativa = ativas.has(spell.n);
+        return `
+            <button class="bonus-pick-item ${ativa ? "active" : ""}" data-spell="${bonusEsc(spell.n)}">
+                <span class="bonus-pick-circ">${spell.c}º</span>
+                <span class="bonus-pick-main">
+                    <span class="bonus-pick-name">${bonusEsc(spell.n)}</span>
+                    <span class="bonus-pick-sum">${bonusEsc(resumo)}</span>
+                </span>
+                <i class="fa-solid ${ativa ? "fa-check" : "fa-plus"}"></i>
+            </button>
+        `;
+    }).join("");
+}
+
+function bonusAdicionarManual() {
+    const nome = document.getElementById("bonus-manual-nome");
+    const alvo = document.getElementById("bonus-manual-alvo");
+    const valor = document.getElementById("bonus-manual-valor");
+    const cum = document.getElementById("bonus-manual-cum");
+    if (!alvo || !valor) return;
+
+    const numero = parseFloat(valor.value);
+    if (!Number.isFinite(numero) || numero === 0) {
+        valor.focus();
+        return;
+    }
+
+    getActiveBonuses().push({
+        id: bonusNovoId(),
+        custom: {
+            nome: nome ? nome.value.trim().slice(0, 40) : "",
+            alvo: alvo.value,
+            valor: numero,
+            cumulativo: !!(cum && cum.checked)
+        }
+    });
+
+    if (nome) nome.value = "";
+    valor.value = "";
+    if (cum) cum.checked = false;
+
+    saveBonusState();
+    renderBonusCard();
+}
+
+// ---------- PAINEL DE DETALHES DA MAGIA ----------
+
+function bonusDetalheHtml(spell) {
+    const def = BONUS_DB[spell.n];
+    if (!def) return "";
+
+    const ativa = getActiveBonuses().some(e => e.magia === spell.n);
+    const resumo = def.resumo || def.efeitos.map(bonusRotuloEfeito).join(" · ");
+
+    return `
+        <div class="spell-bonus-panel">
+            <div class="spell-bonus-head">
+                <span class="spell-bonus-title"><i class="fa-solid fa-shield-halved"></i> Bônus da magia</span>
+                <button id="btn-detail-bonus" class="spell-bonus-toggle ${ativa ? "active" : ""}">
+                    <i class="fa-solid ${ativa ? "fa-check" : "fa-plus"}"></i>
+                    <span>${ativa ? "Ativa nos bônus" : "Ativar nos bônus"}</span>
+                </button>
+            </div>
+            <p class="spell-bonus-summary">${bonusEsc(resumo)}</p>
+        </div>
+    `;
+}
+
+function bonusAtualizarBotaoDetalhe() {
+    const btn = document.getElementById("btn-detail-bonus");
+    if (!btn || !STATE.selectedSpell) return;
+    const ativa = getActiveBonuses().some(e => e.magia === STATE.selectedSpell.n);
+    btn.classList.toggle("active", ativa);
+    btn.innerHTML = `<i class="fa-solid ${ativa ? "fa-check" : "fa-plus"}"></i><span>${ativa ? "Ativa nos bônus" : "Ativar nos bônus"}</span>`;
+}
+
+// ---------- BIND ----------
+
+function initBonusCard() {
+    const card = document.getElementById("bonus-card");
+    if (!card) return;
+
+    document.getElementById("btn-bonus-collapse").addEventListener("click", bonusColapsar);
+    document.getElementById("btn-bonus-add").addEventListener("click", bonusAbrirModal);
+    document.getElementById("btn-bonus-clear").addEventListener("click", bonusLimparTudo);
+
+    // Ações dentro do corpo do card (delegação)
+    const corpo = document.getElementById("bonus-card-body");
+    corpo.addEventListener("click", (e) => {
+        const alvo = e.target.closest("[data-act]");
+        if (!alvo) return;
+        const acao = alvo.getAttribute("data-act");
+
+        if (acao === "add") bonusAbrirModal();
+        else if (acao === "remove") bonusRemoverEntrada(alvo.getAttribute("data-id"));
+        else if (acao === "step") {
+            bonusAjustar(alvo.getAttribute("data-id"), parseInt(alvo.getAttribute("data-aj")), parseInt(alvo.getAttribute("data-dir")));
+        } else if (acao === "open") {
+            const spell = SPELLS_DB.find(s => s.n === alvo.getAttribute("data-spell"));
+            if (spell) openSpellDetails(spell);
+        }
+    });
+
+    corpo.addEventListener("change", (e) => {
+        const sel = e.target.closest("[data-act='variante']");
+        if (!sel) return;
+        const entrada = getActiveBonuses().find(x => x.id === sel.getAttribute("data-id"));
+        if (!entrada) return;
+        entrada.v = parseInt(sel.value) || 0;
+        saveBonusState();
+        renderBonusCard();
+    });
+
+    // Modal seletor
+    const modal = document.getElementById("bonus-modal");
+    document.getElementById("btn-close-bonus-modal").addEventListener("click", bonusFecharModal);
+    document.getElementById("btn-bonus-done").addEventListener("click", bonusFecharModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) bonusFecharModal(); });
+
+    document.getElementById("bonus-search").addEventListener("input", (e) => {
+        BONUS_STATE.busca = e.target.value;
+        bonusRenderLista();
+    });
+
+    document.getElementById("bonus-pick-list").addEventListener("click", (e) => {
+        const item = e.target.closest(".bonus-pick-item");
+        if (item) bonusAlternarMagia(item.getAttribute("data-spell"));
+    });
+
+    document.getElementById("btn-bonus-manual-add").addEventListener("click", bonusAdicionarManual);
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) bonusFecharModal();
+    });
+
+    renderBonusCard();
+}
+
+// ==========================================================================
 // 9. INITIALIZATION & BINDING
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
     // A. Init storage
     loadFromStorage();
+    loadBonusState();
     updateGrimoireSelectDropdown();
     
     // B. Init particle canvas background
@@ -1425,6 +2121,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     
+    // O. Bonus card (soma de bônus de magias ativas)
+    initBonusCard();
+
     // Render initial grid and stats
     renderSpellsGrid();
     updateStatsDashboard();
