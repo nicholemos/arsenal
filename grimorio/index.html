@@ -233,29 +233,6 @@
 
             <!-- Spells List Container -->
             <main class="spells-content-area">
-                <!-- Active Bonuses Card -->
-                <section class="bonus-card" id="bonus-card" aria-label="Bônus ativos">
-                    <div class="bonus-card-header">
-                        <button class="bonus-collapse" id="btn-bonus-collapse" aria-label="Recolher ou expandir bônus ativos">
-                            <i class="fa-solid fa-shield-halved bonus-title-icon"></i>
-                            <span class="bonus-title">Bônus Ativos</span>
-                            <span class="bonus-count" id="bonus-count">0</span>
-                            <i class="fa-solid fa-chevron-down bonus-chevron"></i>
-                        </button>
-                        <div class="bonus-card-actions">
-                            <button class="bonus-icon-btn" id="btn-bonus-clear" title="Limpar todos os bônus ativos">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                            <button class="bonus-icon-btn bonus-add-btn" id="btn-bonus-add" title="Adicionar magia aos bônus ativos">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="bonus-card-body" id="bonus-card-body">
-                        <!-- Rendered dynamically -->
-                    </div>
-                </section>
-
                 <div class="content-header">
                     <div class="sorting-controls">
                         <label for="sort-select">Ordenar por:</label>
@@ -433,6 +410,31 @@
             </div>
         </div>
     </div>
+
+    <!-- Active Bonuses: floating block -->
+    <section class="bonus-card bonus-float" id="bonus-card" aria-label="Bônus ativos">
+        <div class="bonus-card-header" title="Arraste para mover · duplo clique para voltar à posição padrão">
+            <i class="fa-solid fa-grip-vertical bonus-grip"></i>
+            <button class="bonus-collapse" id="btn-bonus-collapse" aria-label="Recolher ou expandir bônus ativos">
+                <i class="fa-solid fa-shield-halved bonus-title-icon"></i>
+                <span class="bonus-title">Bônus Ativos</span>
+                <span class="bonus-count" id="bonus-count">0</span>
+                <i class="fa-solid fa-chevron-down bonus-chevron"></i>
+            </button>
+            <div class="bonus-card-actions">
+                <button class="bonus-icon-btn" id="btn-bonus-clear" title="Limpar todos os bônus ativos">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                <button class="bonus-icon-btn bonus-add-btn" id="btn-bonus-add" title="Adicionar magia aos bônus ativos">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="bonus-card-body" id="bonus-card-body">
+            <!-- Rendered dynamically -->
+        </div>
+        <div class="bonus-resize-handle" id="bonus-resize" title="Arraste para redimensionar" aria-hidden="true"></div>
+    </section>
 
     <!-- Active Bonuses Picker Modal -->
     <div class="modal-overlay hidden" id="bonus-modal">

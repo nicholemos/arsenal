@@ -572,6 +572,7 @@ function openSpellDetails(spell) {
     
     content.innerHTML = html;
     sidebar.classList.add("open");
+    document.body.classList.add("detail-open");
     
     // Add Event Listeners for the dynamic components
     
@@ -714,6 +715,7 @@ function closeSpellDetails() {
     if (sidebar) {
         sidebar.classList.remove("open");
     }
+    document.body.classList.remove("detail-open");
     STATE.selectedSpell = null;
     STATE.selectedUpgrades.clear();
 }
@@ -1207,11 +1209,19 @@ function resetAllFilters() {
 const BONUS_STORAGE_KEY = "grimorio_arton_bonuses";
 const BONUS_COLLAPSE_KEY = "grimorio_arton_bonus_collapsed";
 
+const BONUS_POS_KEY = "grimorio_arton_bonus_pos";
+const BONUS_LISTA_KEY = "grimorio_arton_bonus_lista";
+const BONUS_SIZE_KEY = "grimorio_arton_bonus_size";
+
 const BONUS_STATE = {
     porGrimorio: {},   // { nomeDoGrimorio: [entradas] }
     colapsado: false,
+    listaAberta: true,
     busca: ""
 };
+
+const BONUS_DRAG = { ativo: false, moveu: false, dx: 0, dy: 0, x0: 0, y0: 0 };
+const BONUS_RESIZE = { ativo: false, left: 0, top: 0 };
 
 // ---------- utilidades ----------
 
@@ -1247,6 +1257,7 @@ function loadBonusState() {
             BONUS_STATE.porGrimorio = dados;
         }
         BONUS_STATE.colapsado = localStorage.getItem(BONUS_COLLAPSE_KEY) === "1";
+        BONUS_STATE.listaAberta = localStorage.getItem(BONUS_LISTA_KEY) !== "0";
     } catch (e) {
         console.error("Erro ao carregar bônus ativos:", e);
         BONUS_STATE.porGrimorio = {};
@@ -1257,6 +1268,7 @@ function saveBonusState() {
     try {
         localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(BONUS_STATE.porGrimorio));
         localStorage.setItem(BONUS_COLLAPSE_KEY, BONUS_STATE.colapsado ? "1" : "0");
+        localStorage.setItem(BONUS_LISTA_KEY, BONUS_STATE.listaAberta ? "1" : "0");
     } catch (e) {
         console.error("Erro ao salvar bônus ativos:", e);
     }
@@ -1330,21 +1342,28 @@ function bonusEfeitosDaEntrada(entrada) {
                 alvos: [c.alvo],
                 valor: Number(c.valor) || 0,
                 cumulativo: !!c.cumulativo,
-                un: c.alvo === "Deslocamento" ? "m" : ""
-            }]
+                un: c.alvo === "Deslocamento" || c.alvo === "Deslocamento de voo" ? "m" : ""
+            }],
+            traits: [],
+            duracao: null
         };
     }
 
     const def = BONUS_DB[entrada.magia];
     if (!def) return null;
 
-    let base = def.efeitos;
+    let variante = null;
     if (def.variantes) {
-        const i = Math.min(entrada.v || 0, def.variantes.length - 1);
-        base = def.variantes[i].efeitos;
+        variante = def.variantes[Math.min(entrada.v || 0, def.variantes.length - 1)];
     }
 
+    const base = (variante && variante.efeitos) || def.efeitos || [];
+    let traits = ((variante && variante.traits) || def.traits || []).slice();
+    let duracao = (variante && variante.duracao) || null;
+
     const efeitos = base.map(e => Object.assign({}, e));
+
+    // Aprimoramentos numéricos (índices referem-se aos efeitos base)
     (def.ajustes || []).forEach((aj, i) => {
         const n = (entrada.aj && entrada.aj[i]) || 0;
         if (!n) return;
@@ -1353,7 +1372,57 @@ function bonusEfeitosDaEntrada(entrada) {
         });
     });
 
-    return { nome: entrada.magia, efeitos };
+    // Aprimoramentos liga/desliga: podem somar efeitos, efeitos especiais e mudar a duração
+    (def.opcoes || []).forEach((op, i) => {
+        if (!(entrada.op && entrada.op[i])) return;
+        (op.efeitos || []).forEach(e => efeitos.push(Object.assign({}, e)));
+        if (op.remove) traits = traits.filter(t => !t.id || !op.remove.includes(t.id));
+        traits = traits.concat(op.traits || []);
+        if (op.duracao) duracao = op.duracao;
+    });
+
+    return { nome: entrada.magia, efeitos, traits, duracao };
+}
+
+// Efeitos especiais (não numéricos) de todas as magias ativas, sem repetições
+function bonusColetarTraits(entradas) {
+    const mapa = new Map();
+
+    entradas.forEach(entrada => {
+        const res = bonusEfeitosDaEntrada(entrada);
+        if (!res) return;
+        res.traits.forEach(t => {
+            const tipo = BONUS_TRAIT_TIPOS[t.tipo] ? t.tipo : "outro";
+            const chave = tipo + "|" + t.texto;
+            if (!mapa.has(chave)) mapa.set(chave, { tipo, texto: t.texto, fontes: [] });
+            const item = mapa.get(chave);
+            if (!item.fontes.includes(res.nome)) item.fontes.push(res.nome);
+        });
+    });
+
+    const ordem = Object.keys(BONUS_TRAIT_TIPOS);
+    return Array.from(mapa.values()).sort((a, b) => ordem.indexOf(a.tipo) - ordem.indexOf(b.tipo));
+}
+
+// Texto completo usado na busca do seletor (efeitos numéricos, especiais, variantes e aprimoramentos)
+function bonusTextoBusca(def) {
+    const partes = [bonusResumoDef(def)];
+    const coletar = origem => {
+        (origem.efeitos || []).forEach(e => partes.push(bonusRotuloEfeito(e)));
+        (origem.traits || []).forEach(t => partes.push(t.texto));
+    };
+    coletar(def);
+    (def.variantes || []).forEach(v => { partes.push(v.label); coletar(v); });
+    (def.opcoes || []).forEach(o => { partes.push(o.label); coletar(o); });
+    return partes.join(" ");
+}
+
+function bonusResumoDef(def) {
+    if (def.resumo) return def.resumo;
+    const v0 = def.variantes ? def.variantes[0] : null;
+    const efeitos = def.efeitos || (v0 && v0.efeitos) || [];
+    const traits = def.traits || (v0 && v0.traits) || [];
+    return efeitos.map(bonusRotuloEfeito).concat(traits.map(t => t.texto)).join(" · ");
 }
 
 // ---------- MOTOR DE ACÚMULO ----------
@@ -1450,7 +1519,8 @@ function bonusRotuloEfeito(ef) {
 }
 
 function bonusChipHtml(chip) {
-    const classe = chip.total < 0 ? "neg" : chip.total === 0 ? "zero" : "";
+    const rotuloAlvos = chip.rotulos.join(", ");
+    const classe = (chip.total < 0 ? "neg" : chip.total === 0 ? "zero" : "") + (rotuloAlvos.length > 24 ? " wide" : "");
     const fontes = Array.from(new Set(chip.partes.map(p => p.fonte)));
 
     const detalhes = chip.partes.map(p =>
@@ -1463,10 +1533,23 @@ function bonusChipHtml(chip) {
         <div class="bonus-chip ${classe}" title="${bonusEsc(titulo)}">
             <span class="bonus-chip-value">${bonusFmt(chip.total, chip.un)}</span>
             <span class="bonus-chip-body">
-                <span class="bonus-chip-target">${bonusEsc(chip.rotulos.join(", "))}</span>
+                <span class="bonus-chip-target">${bonusEsc(rotuloAlvos)}</span>
                 ${chip.cond ? `<span class="bonus-chip-cond">${bonusEsc(chip.cond)}</span>` : ""}
                 <span class="bonus-chip-src">${bonusEsc(fontes.join(" + "))}</span>
                 ${ignorados.length ? `<span class="bonus-chip-ign"><i class="fa-solid fa-ban"></i> ${bonusEsc(ignorados.join(", "))} ${ignorados.length > 1 ? "não acumulam" : "não acumula"}</span>` : ""}
+            </span>
+        </div>
+    `;
+}
+
+function bonusTraitHtml(t) {
+    const info = BONUS_TRAIT_TIPOS[t.tipo] || BONUS_TRAIT_TIPOS.outro;
+    return `
+        <div class="bonus-trait" title="${bonusEsc(info.nome)}">
+            <i class="fa-solid ${info.icone} bonus-trait-icon"></i>
+            <span class="bonus-trait-body">
+                <span class="bonus-trait-text">${bonusEsc(t.texto)}</span>
+                <span class="bonus-chip-src">${bonusEsc(t.fontes.join(" + "))}</span>
             </span>
         </div>
     `;
@@ -1491,7 +1574,8 @@ function bonusLinhaAtivaHtml(entrada) {
 
     const def = BONUS_DB[entrada.magia];
     const spell = SPELLS_DB.find(s => s.n === entrada.magia);
-    const meta = spell ? `${spell.c}º círculo · ${spell.d}` : "";
+    const duracao = res.duracao || (spell ? spell.d : "");
+    const meta = spell ? `${spell.c}º círculo · ${duracao}` : "";
 
     let controles = "";
 
@@ -1503,6 +1587,16 @@ function bonusLinhaAtivaHtml(entrada) {
             </select>
         `;
     }
+
+    (def.opcoes || []).forEach((op, i) => {
+        const ligada = !!(entrada.op && entrada.op[i]);
+        controles += `
+            <label class="bonus-option">
+                <input type="checkbox" data-act="opcao" data-id="${entrada.id}" data-op="${i}" ${ligada ? "checked" : ""}>
+                <span>${bonusEsc(op.label)}</span>
+            </label>
+        `;
+    });
 
     (def.ajustes || []).forEach((aj, i) => {
         const n = (entrada.aj && entrada.aj[i]) || 0;
@@ -1526,7 +1620,7 @@ function bonusLinhaAtivaHtml(entrada) {
                 <button class="bonus-icon-btn small" data-act="remove" data-id="${entrada.id}" title="Remover dos bônus ativos"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="bonus-active-meta">${bonusEsc(meta)}</div>
-            <div class="bonus-active-summary">${bonusEsc(res.efeitos.map(bonusRotuloEfeito).join(" · "))}</div>
+            <div class="bonus-active-summary">${bonusEsc(res.efeitos.map(bonusRotuloEfeito).concat(res.traits.map(t => t.texto)).join(" · "))}</div>
             ${controles}
             ${def.nota ? `<p class="bonus-active-note"><i class="fa-solid fa-circle-info"></i> ${bonusEsc(def.nota)}</p>` : ""}
         </div>
@@ -1590,6 +1684,16 @@ function renderBonusCard() {
         `;
     }
 
+    const traits = bonusColetarTraits(entradas);
+    if (traits.length) {
+        totais += `
+            <div class="bonus-cat">
+                <div class="bonus-cat-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Efeitos especiais</div>
+                <div class="bonus-trait-list">${traits.map(bonusTraitHtml).join("")}</div>
+            </div>
+        `;
+    }
+
     if (inimigos.length) {
         totais += `
             <div class="bonus-cat">
@@ -1603,18 +1707,23 @@ function renderBonusCard() {
         <div class="bonus-layout">
             <div class="bonus-totals">
                 <h4 class="bonus-section-title">Bônus totais</h4>
-                ${totais}
+                <div class="bonus-totals-cats">${totais}</div>
                 <p class="bonus-rule-note">
                     <i class="fa-solid fa-scale-balanced"></i>
                     Bônus do mesmo tipo no mesmo alvo não se acumulam: vale o maior. Exceções: bônus cumulativos
                     (Armadura Arcana, Oração) e bônus de encanto, que somam com os demais.
-                    Situacionais não entram no total direto.
+                    Situacionais e efeitos especiais não entram no total direto.
                 </p>
             </div>
             <div class="bonus-actives">
-                <h4 class="bonus-section-title">Magias ativas</h4>
-                <div class="bonus-active-list">${entradas.map(bonusLinhaAtivaHtml).join("")}</div>
-                <button class="bonus-add-inline" data-act="add"><i class="fa-solid fa-plus"></i> Adicionar magia</button>
+                <button class="bonus-section-title toggle" data-act="toggle-lista" aria-expanded="${BONUS_STATE.listaAberta}">
+                    <i class="fa-solid fa-chevron-down ${BONUS_STATE.listaAberta ? "" : "fechada"}"></i>
+                    Magias ativas (${entradas.length})
+                </button>
+                ${BONUS_STATE.listaAberta ? `
+                    <div class="bonus-active-list">${entradas.map(bonusLinhaAtivaHtml).join("")}</div>
+                    <button class="bonus-add-inline" data-act="add"><i class="fa-solid fa-plus"></i> Adicionar magia</button>
+                ` : ""}
             </div>
         </div>
     `;
@@ -1674,6 +1783,11 @@ function bonusAjustar(id, indice, direcao) {
 }
 
 function bonusColapsar() {
+    // Um arrasto que terminou sobre o botão não conta como clique
+    if (BONUS_DRAG.moveu) {
+        BONUS_DRAG.moveu = false;
+        return;
+    }
     BONUS_STATE.colapsado = !BONUS_STATE.colapsado;
     saveBonusState();
     renderBonusCard();
@@ -1731,10 +1845,10 @@ function bonusRenderLista() {
         .filter(Boolean)
         .map(spell => {
             const def = BONUS_DB[spell.n];
-            const resumo = def.resumo || def.efeitos.map(bonusRotuloEfeito).join(" · ");
-            return { spell, resumo };
+            const resumo = bonusResumoDef(def);
+            return { spell, resumo, busca: bonusNormalizar(`${spell.n} ${bonusTextoBusca(def)}`) };
         })
-        .filter(({ spell, resumo }) => !termo || bonusNormalizar(`${spell.n} ${resumo} ${spell.t || ""}`).includes(termo))
+        .filter(({ busca }) => termo.split(/\s+/).filter(Boolean).every(palavra => busca.includes(palavra)))
         .sort((a, b) => a.spell.c - b.spell.c || a.spell.n.localeCompare(b.spell.n, "pt-BR"));
 
     if (!itens.length) {
@@ -1795,7 +1909,7 @@ function bonusDetalheHtml(spell) {
     if (!def) return "";
 
     const ativa = getActiveBonuses().some(e => e.magia === spell.n);
-    const resumo = def.resumo || def.efeitos.map(bonusRotuloEfeito).join(" · ");
+    const resumo = bonusResumoDef(def);
 
     return `
         <div class="spell-bonus-panel">
@@ -1819,6 +1933,162 @@ function bonusAtualizarBotaoDetalhe() {
     btn.innerHTML = `<i class="fa-solid ${ativa ? "fa-check" : "fa-plus"}"></i><span>${ativa ? "Ativa nos bônus" : "Ativar nos bônus"}</span>`;
 }
 
+// ---------- BLOCO FLUTUANTE: posição e arrasto ----------
+
+function bonusEhMobile() {
+    return window.matchMedia ? window.matchMedia("(max-width: 820px)").matches : false;
+}
+
+function bonusPosicionar(x, y) {
+    const card = document.getElementById("bonus-card");
+    if (!card) return;
+    const larg = card.offsetWidth || 400;
+    // Mantém sempre uma parte do cabeçalho visível para o bloco poder ser recuperado
+    const px = Math.min(Math.max(x, 80 - larg), window.innerWidth - 80);
+    const py = Math.min(Math.max(y, 0), window.innerHeight - 48);
+    card.style.left = px + "px";
+    card.style.top = py + "px";
+    card.classList.add("moved");
+}
+
+function bonusAplicarPosicao() {
+    const card = document.getElementById("bonus-card");
+    if (!card) return;
+
+    let pos = null;
+    try { pos = JSON.parse(localStorage.getItem(BONUS_POS_KEY)); } catch (e) { pos = null; }
+
+    if (!pos || bonusEhMobile()) {
+        card.classList.remove("moved");
+        card.style.left = "";
+        card.style.top = "";
+        return;
+    }
+    bonusPosicionar(pos.x, pos.y);
+}
+
+function bonusInitArrasto() {
+    const card = document.getElementById("bonus-card");
+    const cab = card.querySelector(".bonus-card-header");
+
+    cab.addEventListener("pointerdown", (e) => {
+        if (bonusEhMobile() || e.button !== 0 || e.target.closest(".bonus-card-actions")) return;
+        const r = card.getBoundingClientRect();
+        BONUS_DRAG.ativo = true;
+        BONUS_DRAG.moveu = false;
+        BONUS_DRAG.dx = e.clientX - r.left;
+        BONUS_DRAG.dy = e.clientY - r.top;
+        BONUS_DRAG.x0 = e.clientX;
+        BONUS_DRAG.y0 = e.clientY;
+    });
+
+    document.addEventListener("pointermove", (e) => {
+        if (!BONUS_DRAG.ativo) return;
+        if (!BONUS_DRAG.moveu && Math.hypot(e.clientX - BONUS_DRAG.x0, e.clientY - BONUS_DRAG.y0) < 5) return;
+        BONUS_DRAG.moveu = true;
+        card.classList.add("dragging");
+        bonusPosicionar(e.clientX - BONUS_DRAG.dx, e.clientY - BONUS_DRAG.dy);
+    });
+
+    document.addEventListener("pointerup", () => {
+        if (!BONUS_DRAG.ativo) return;
+        BONUS_DRAG.ativo = false;
+        card.classList.remove("dragging");
+        if (BONUS_DRAG.moveu) {
+            const r = card.getBoundingClientRect();
+            try { localStorage.setItem(BONUS_POS_KEY, JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) })); } catch (e) { /* ignora */ }
+        }
+    });
+
+    // Duplo clique no cabeçalho devolve o bloco à posição padrão
+    cab.addEventListener("dblclick", (e) => {
+        if (e.target.closest(".bonus-card-actions")) return;
+        try {
+            localStorage.removeItem(BONUS_POS_KEY);
+            localStorage.removeItem(BONUS_SIZE_KEY);
+        } catch (err) { /* ignora */ }
+        bonusAplicarPosicao();
+        bonusAplicarTamanho();
+    });
+
+    window.addEventListener("resize", bonusAplicarPosicao);
+    bonusAplicarPosicao();
+}
+
+// ---------- BLOCO FLUTUANTE: tamanho (arrastar o canto) ----------
+
+function bonusDimensionar(largura, altura, maxL, maxA) {
+    const card = document.getElementById("bonus-card");
+    if (!card) return;
+    const limL = maxL !== undefined ? maxL : window.innerWidth - 24;
+    const limA = maxA !== undefined ? maxA : window.innerHeight - 24;
+    const w = Math.min(Math.max(largura, 300), Math.max(300, limL));
+    const h = Math.min(Math.max(altura, 220), Math.max(220, limA));
+    card.style.width = w + "px";
+    card.style.height = h + "px";
+    card.classList.add("sized");
+}
+
+function bonusAplicarTamanho() {
+    const card = document.getElementById("bonus-card");
+    if (!card) return;
+
+    let tam = null;
+    try { tam = JSON.parse(localStorage.getItem(BONUS_SIZE_KEY)); } catch (e) { tam = null; }
+
+    if (!tam || bonusEhMobile()) {
+        card.classList.remove("sized");
+        card.style.width = "";
+        card.style.height = "";
+        return;
+    }
+    bonusDimensionar(tam.w, tam.h);
+}
+
+function bonusInitRedimensionar() {
+    const card = document.getElementById("bonus-card");
+    const alca = document.getElementById("bonus-resize");
+    if (!card || !alca) return;
+
+    alca.addEventListener("pointerdown", (e) => {
+        if (bonusEhMobile() || e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Fixa o bloco por left/top: assim o canto inferior direito acompanha o cursor
+        const r = card.getBoundingClientRect();
+        bonusPosicionar(r.left, r.top);
+        BONUS_RESIZE.ativo = true;
+        BONUS_RESIZE.left = r.left;
+        BONUS_RESIZE.top = r.top;
+        card.classList.add("resizing");
+    });
+
+    document.addEventListener("pointermove", (e) => {
+        if (!BONUS_RESIZE.ativo) return;
+        bonusDimensionar(
+            e.clientX - BONUS_RESIZE.left,
+            e.clientY - BONUS_RESIZE.top,
+            window.innerWidth - BONUS_RESIZE.left,
+            window.innerHeight - BONUS_RESIZE.top
+        );
+    });
+
+    document.addEventListener("pointerup", () => {
+        if (!BONUS_RESIZE.ativo) return;
+        BONUS_RESIZE.ativo = false;
+        card.classList.remove("resizing");
+        const r = card.getBoundingClientRect();
+        try {
+            localStorage.setItem(BONUS_SIZE_KEY, JSON.stringify({ w: Math.round(r.width), h: Math.round(r.height) }));
+            localStorage.setItem(BONUS_POS_KEY, JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) }));
+        } catch (err) { /* ignora */ }
+    });
+
+    window.addEventListener("resize", bonusAplicarTamanho);
+    bonusAplicarTamanho();
+}
+
 // ---------- BIND ----------
 
 function initBonusCard() {
@@ -1838,7 +2108,11 @@ function initBonusCard() {
 
         if (acao === "add") bonusAbrirModal();
         else if (acao === "remove") bonusRemoverEntrada(alvo.getAttribute("data-id"));
-        else if (acao === "step") {
+        else if (acao === "toggle-lista") {
+            BONUS_STATE.listaAberta = !BONUS_STATE.listaAberta;
+            saveBonusState();
+            renderBonusCard();
+        } else if (acao === "step") {
             bonusAjustar(alvo.getAttribute("data-id"), parseInt(alvo.getAttribute("data-aj")), parseInt(alvo.getAttribute("data-dir")));
         } else if (acao === "open") {
             const spell = SPELLS_DB.find(s => s.n === alvo.getAttribute("data-spell"));
@@ -1847,6 +2121,16 @@ function initBonusCard() {
     });
 
     corpo.addEventListener("change", (e) => {
+        const caixa = e.target.closest("[data-act='opcao']");
+        if (caixa) {
+            const ent = getActiveBonuses().find(x => x.id === caixa.getAttribute("data-id"));
+            if (!ent) return;
+            if (!ent.op) ent.op = [];
+            ent.op[parseInt(caixa.getAttribute("data-op"))] = caixa.checked;
+            saveBonusState();
+            renderBonusCard();
+            return;
+        }
         const sel = e.target.closest("[data-act='variante']");
         if (!sel) return;
         const entrada = getActiveBonuses().find(x => x.id === sel.getAttribute("data-id"));
@@ -1879,6 +2163,9 @@ function initBonusCard() {
     });
 
     renderBonusCard();
+
+    bonusInitArrasto();
+    bonusInitRedimensionar();
 }
 
 // ==========================================================================

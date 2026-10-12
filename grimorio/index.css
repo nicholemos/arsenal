@@ -2278,6 +2278,109 @@ body {
     overflow: hidden;
 }
 
+/* Bloco flutuante */
+.bonus-float {
+    position: fixed;
+    right: 5.5rem;
+    bottom: 1.25rem;
+    width: 430px;
+    max-width: calc(100vw - 1.5rem);
+    max-height: min(78vh, 760px);
+    display: flex;
+    flex-direction: column;
+    z-index: 105;
+    background: rgba(14, 15, 22, 0.94);
+    border: 1px solid var(--gold-primary);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 18px var(--gold-glow);
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow var(--transition-fast);
+}
+
+.theme-classic .bonus-float {
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 12px 40px rgba(44, 62, 80, 0.25);
+}
+
+.bonus-float.moved {
+    right: auto;
+    bottom: auto;
+}
+
+.bonus-float.dragging {
+    transition: none;
+    user-select: none;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75), 0 0 26px var(--gold-glow);
+}
+
+.bonus-float.collapsed {
+    width: auto !important;
+    height: auto !important;
+    min-width: 230px;
+}
+
+/* Tamanho definido pelo usuário (arrastando o canto) */
+.bonus-float.sized {
+    max-height: calc(100vh - 1.5rem);
+}
+
+.bonus-float.resizing {
+    transition: none;
+    user-select: none;
+}
+
+.bonus-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    touch-action: none;
+    z-index: 2;
+    opacity: 0.65;
+    background: linear-gradient(135deg,
+        transparent 0 48%, var(--gold-primary) 48% 56%,
+        transparent 56% 70%, var(--gold-primary) 70% 78%,
+        transparent 78%);
+    border-bottom-right-radius: 11px;
+    transition: opacity var(--transition-fast);
+}
+
+.bonus-resize-handle:hover,
+.bonus-float.resizing .bonus-resize-handle {
+    opacity: 1;
+}
+
+.bonus-float.collapsed .bonus-resize-handle {
+    display: none;
+}
+
+/* Com o painel de detalhes aberto, o bloco se afasta para não cobri-lo */
+body.detail-open .bonus-float:not(.moved) {
+    right: calc(460px + 1.25rem);
+}
+
+.bonus-float .bonus-card-header {
+    cursor: grab;
+    flex-shrink: 0;
+    touch-action: none;
+}
+
+.bonus-float.dragging .bonus-card-header {
+    cursor: grabbing;
+}
+
+.bonus-float .bonus-card-body {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.bonus-grip {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
 .bonus-card-header {
     display: flex;
     align-items: center;
@@ -2418,10 +2521,9 @@ body {
 
 /* ----- layout totais + ativas ----- */
 .bonus-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr);
-    gap: 1.5rem;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
 }
 
 .bonus-section-title {
@@ -2454,8 +2556,8 @@ body {
 
 .bonus-chip-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.55rem;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 0.5rem;
 }
 
 .bonus-chip {
@@ -2941,9 +3043,32 @@ body {
 }
 
 /* ----- responsivo ----- */
-@media (max-width: 900px) {
-    .bonus-layout {
-        grid-template-columns: 1fr;
+/* Celular / telas estreitas: o bloco vira uma gaveta no rodapé */
+@media (max-width: 820px) {
+    .bonus-float,
+    .bonus-float.moved,
+    body.detail-open .bonus-float:not(.moved) {
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        bottom: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        max-width: none;
+        max-height: 70vh;
+        border-radius: 14px 14px 0 0;
+    }
+    .bonus-resize-handle {
+        display: none;
+    }
+    .bonus-float.collapsed {
+        min-width: 0;
+    }
+    .bonus-float .bonus-card-header {
+        cursor: default;
+    }
+    .bonus-grip {
+        display: none;
     }
 }
 
@@ -2954,10 +3079,144 @@ body {
     .bonus-card-body {
         padding: 0.85rem 1rem 1rem;
     }
-    .bonus-chip-grid {
-        grid-template-columns: 1fr;
-    }
     .bonus-manual-form {
         grid-template-columns: 1fr;
+    }
+}
+
+
+/* ----- título recolhível da lista de magias ativas ----- */
+.bonus-section-title.toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+}
+
+.bonus-section-title.toggle:hover {
+    color: var(--gold-secondary);
+}
+
+.bonus-section-title.toggle i {
+    font-size: 0.65rem;
+    transition: transform var(--transition-fast);
+}
+
+.bonus-section-title.toggle i.fechada {
+    transform: rotate(-90deg);
+}
+
+/* ----- efeitos especiais (não numéricos) ----- */
+.bonus-trait-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.bonus-trait {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.5rem 0.7rem;
+    background: var(--bonus-chip-bg);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--gold-secondary);
+    border-radius: 8px;
+}
+
+.bonus-trait-icon {
+    color: var(--gold-primary);
+    font-size: 0.85rem;
+    width: 1.1rem;
+    text-align: center;
+    margin-top: 0.15rem;
+}
+
+.bonus-trait-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.bonus-trait-text {
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: var(--text-primary);
+}
+
+/* ----- aprimoramentos liga/desliga ----- */
+.bonus-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.bonus-option input {
+    margin-top: 0.12rem;
+    accent-color: var(--gold-primary);
+    cursor: pointer;
+}
+
+
+/* ==========================================================================
+   Aproveitamento do espaço no bloco flutuante (responsivo à largura do bloco)
+   ========================================================================== */
+
+.bonus-float .bonus-card-body {
+    container-type: inline-size;
+    container-name: bonus;
+}
+
+/* Categorias fluem em colunas: quanto mais largo o bloco, mais colunas */
+.bonus-totals-cats {
+    column-width: 20rem;
+    column-gap: 1.25rem;
+}
+
+.bonus-totals-cats .bonus-cat {
+    break-inside: avoid;
+    margin-bottom: 0.9rem;
+}
+
+.bonus-totals-cats .bonus-chip-grid {
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+}
+
+/* Texto longo (ex.: lista de atributos) ocupa a linha inteira da coluna */
+.bonus-chip.wide {
+    grid-column: 1 / -1;
+}
+
+.bonus-chip {
+    padding: 0.5rem 0.65rem;
+    gap: 0.55rem;
+}
+
+.bonus-chip-value {
+    min-width: 2.2rem;
+}
+
+/* Bloco largo: totais à esquerda, magias ativas à direita */
+@container bonus (min-width: 720px) {
+    .bonus-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) clamp(300px, 30%, 420px);
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .bonus-actives {
+        padding-left: 1.5rem;
+        border-left: 1px solid var(--glass-border);
     }
 }
