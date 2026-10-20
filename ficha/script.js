@@ -75,7 +75,10 @@ window.onload = () => {
         currentSkills = JSON.parse(JSON.stringify(defaultSkills));
         renderStructure();
         renderCondicoes(); // <--- ADICIONE ESTA LINHA AQUI
+        initClassLevelFolders();
+        initRaceFolders();
         loadData();
+        refreshLevelFolders();
         attachGlobalListeners();
         enableDragAndDrop();
     } catch (e) { console.error(e); }
@@ -736,9 +739,15 @@ const _toastStyle = document.createElement('style');
 _toastStyle.textContent = `@keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }`;
 document.head.appendChild(_toastStyle);
 
-function addAbility(targetId = 'abilitiesClassList', name = '', desc = '') {
-    const list = document.getElementById(targetId);
+function addAbility(targetId = 'abilitiesClassList', name = '', desc = '', level = 0, folder = '') {
+    let list = document.getElementById(targetId);
     if (!list) return;
+    // Poderes de classe ficam dentro da "pasta" do nível ou de uma pasta customizada
+    if (targetId === 'abilitiesClassList') {
+        if (folder) list = _getClassCustomFolderBody(folder);
+        else list = _getLevelFolderBody(level);
+    }
+    else if (targetId === 'abilitiesRaceList') list = _getRaceFolderBody(folder);
 
     const div = document.createElement('div');
     div.className = 'ability-row list-group-item bg-light p-2 mb-2 border rounded shadow-sm';
@@ -799,10 +808,497 @@ function addAbility(targetId = 'abilitiesClassList', name = '', desc = '') {
     });
 
     list.appendChild(div);
+    if (targetId === 'abilitiesClassList') {
+        const customFolder = list.closest('.class-custom-folder');
+        if (customFolder) {
+            if (!isLoading) _setClassCustomFolderOpen(customFolder, true, false);
+        } else {
+            if (!isLoading) _setLevelFolderOpen(list.closest('.level-folder').dataset.level, true, false);
+        }
+        refreshLevelFolders();
+    }
+    if (targetId === 'abilitiesRaceList') {
+        if (!isLoading) _setRaceFolderOpen(list.closest('.race-folder'), true, false);
+        refreshRaceFolders();
+    }
     if (!isLoading) saveData();
 }
 
 function removeAbility(btn) { if (confirm('Excluir poder?')) { btn.closest('.ability-row').remove(); saveData(); } }
+
+// ============================================================
+// PODERES POR NÍVEL — "pastas" dentro de Classe e Poderes
+// Cada pasta guarda os .ability-row daquele nível (0 = sem nível:
+// poderes antigos, importados ou vindos do Compilado de Poderes).
+// Os dados continuam em classAbilities (lista plana) com o campo "level",
+// então PDF, Roll20, Foundry e Ameaça seguem lendo do mesmo jeito.
+// ============================================================
+const MAX_LEVEL_FOLDERS = 20;
+let _openLevelFolders = new Set();
+let _showAllLevelFolders = false;
+
+function _levelFolderLabel(n) { return n === 0 ? 'Sem nível definido' : `${n}º Nível`; }
+
+function _buildLevelFolder(n) {
+    const label = _levelFolderLabel(n);
+    const folder = document.createElement('div');
+    folder.className = 'level-folder d-none';
+    folder.dataset.level = n;
+
+    const actions = n === 0 ? '' : `
+        <div class="level-folder-actions">
+            <button type="button" class="level-folder-btn level-add" title="Adicionar poder no ${label}" aria-label="Adicionar poder no ${label}"><i class="bi bi-plus-lg"></i></button>
+            <button type="button" class="level-folder-btn level-search" title="Buscar poder no BD para o ${label}" aria-label="Buscar poder no BD para o ${label}"><i class="bi bi-search"></i></button>
+            <button type="button" class="level-folder-btn level-rename" title="Renomear pasta ${label}" aria-label="Renomear pasta ${label}"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="level-folder-btn level-delete" title="Excluir pasta ${label}" aria-label="Excluir pasta ${label}"><i class="bi bi-trash"></i></button>
+        </div>`;
+
+    folder.innerHTML = `
+        <div class="level-folder-head">
+            <button type="button" class="level-folder-toggle" aria-expanded="false">
+                <i class="bi bi-chevron-right level-folder-chevron"></i>
+                <span class="level-folder-title">${label}</span>
+                <span class="level-folder-count"></span>
+            </button>${actions}
+        </div>
+        <div class="level-folder-body d-none"></div>`;
+
+    const body = folder.querySelector('.level-folder-body');
+
+    folder.querySelector('.level-folder-toggle').addEventListener('click', () => {
+        _setLevelFolderOpen(n, body.classList.contains('d-none'));
+    });
+
+    if (n > 0) {
+        folder.querySelector('.level-add').addEventListener('click', (e) => {
+            e.stopPropagation();
+            addAbility('abilitiesClassList', '', '', n);
+            const rows = body.querySelectorAll('.ability-row');
+            rows[rows.length - 1]?.querySelector('.inp-name')?.focus();
+        });
+        folder.querySelector('.level-search').addEventListener('click', (e) => {
+            e.stopPropagation();
+            abrirBuscadorPoderes('abilitiesClassList', n);
+        });
+        folder.querySelector('.level-rename').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const atual = folder.querySelector('.level-folder-title').textContent;
+            const novo = (prompt('Novo nome da pasta:', atual) || '').trim();
+            if (!novo || novo === atual) return;
+            folder.querySelector('.level-folder-title').textContent = novo;
+            folder.dataset.customLabel = novo;
+            saveData();
+        });
+        folder.querySelector('.level-delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const c = body.querySelectorAll('.ability-row').length;
+            const nome = folder.querySelector('.level-folder-title').textContent;
+            const msg = c
+                ? `Excluir a pasta "${nome}" e ${c === 1 ? 'o poder' : 'os ' + c + ' poderes'} dentro dela?`
+                : `Excluir a pasta "${nome}"?`;
+            if (!confirm(msg)) return;
+            folder.remove();
+            refreshLevelFolders();
+            saveData();
+        });
+    }
+
+    // Arrastar poderes entre níveis (e também entre Raça/Origem e Classe)
+    if (typeof Sortable !== 'undefined') {
+        new Sortable(body, {
+            ...sortableMobileOpts,
+            group: 'sharedAbilities',
+            animation: 150,
+            handle: '.ability-drag-handle',
+            filter: 'input, textarea, button, .ability-delete-btn, .ability-chevron',
+            preventOnFilter: false,
+            ghostClass: 'bg-danger-subtle',
+            onEnd: () => { refreshLevelFolders(); saveData(); }
+        });
+    }
+    return folder;
+}
+
+// Monta (ou remonta do zero) as pastas de nível dentro de #abilitiesClassList
+function initClassLevelFolders() {
+    const list = document.getElementById('abilitiesClassList');
+    if (!list) return;
+    list.innerHTML = '';
+    for (let n = 0; n <= MAX_LEVEL_FOLDERS; n++) list.appendChild(_buildLevelFolder(n));
+    refreshLevelFolders();
+}
+
+function _getLevelFolderBody(level) {
+    const list = document.getElementById('abilitiesClassList');
+    if (!list.querySelector('.level-folder')) initClassLevelFolders();
+    const n = Math.min(Math.max(parseInt(level) || 0, 0), MAX_LEVEL_FOLDERS);
+    return list.querySelector(`.level-folder[data-level="${n}"] .level-folder-body`);
+}
+
+function _setLevelFolderOpen(n, open, persist = true) {
+    n = Number(n);
+    const folder = document.querySelector(`#abilitiesClassList .level-folder[data-level="${n}"]`);
+    if (!folder) return;
+    folder.querySelector('.level-folder-body').classList.toggle('d-none', !open);
+    folder.classList.toggle('open', open);
+    folder.querySelector('.level-folder-toggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) _openLevelFolders.add(n); else _openLevelFolders.delete(n);
+    if (persist && !isLoading) saveData();
+}
+
+function _applyOpenLevelFolders() {
+    document.querySelectorAll('#abilitiesClassList .level-folder').forEach(f => {
+        const n = Number(f.dataset.level);
+        _setLevelFolderOpen(n, _openLevelFolders.has(n), false);
+    });
+}
+
+// Recalcula contagens, visibilidade e destaque do nível atual
+function refreshLevelFolders() {
+    refreshRaceFolders();
+    const list = document.getElementById('abilitiesClassList');
+    if (!list) return;
+    // Apenas pastas de nível (data-level), não as customizadas
+    const folders = list.querySelectorAll('.level-folder[data-level]');
+    if (!folders.length) return;
+
+    const charLevel = Math.min(Math.max(parseInt(document.getElementById('charLevel')?.value) || 1, 1), MAX_LEVEL_FOLDERS);
+    const counts = {};
+    let maxWithPowers = 0;
+    folders.forEach(f => {
+        if (f.classList.contains('class-custom-folder')) return;
+        const n = Number(f.dataset.level);
+        counts[n] = f.querySelectorAll('.ability-row').length;
+        if (counts[n] && n > maxWithPowers) maxWithPowers = n;
+    });
+    const lastVisible = Math.max(charLevel, maxWithPowers);
+
+    folders.forEach(f => {
+        if (f.classList.contains('class-custom-folder')) return;
+        const n = Number(f.dataset.level);
+        const c = counts[n];
+        const visible = n === 0 ? c > 0 : (_showAllLevelFolders || n <= lastVisible);
+        f.classList.toggle('d-none', !visible);
+        f.classList.toggle('has-powers', c > 0);
+        f.classList.toggle('is-current', n === charLevel);
+        f.querySelector('.level-folder-count').textContent = c ? `${c} ${c === 1 ? 'poder' : 'poderes'}` : '';
+    });
+
+    const btn = document.getElementById('btnToggleAllLevels');
+    if (btn) {
+        btn.classList.toggle('d-none', lastVisible >= MAX_LEVEL_FOLDERS && !_showAllLevelFolders);
+        btn.textContent = _showAllLevelFolders ? 'Mostrar só até o nível atual' : 'Mostrar todos os 20 níveis';
+    }
+
+    // Atualiza também as pastas customizadas de classe
+    refreshClassCustomFolders();
+}
+
+function toggleAllLevelFolders() {
+    _showAllLevelFolders = !_showAllLevelFolders;
+    refreshLevelFolders();
+}
+
+// ============================================================
+// PASTAS PERSONALIZADAS (sem nível) — "Classe e Poderes"
+// Funcionam como as pastas de raça/origem, mas ficam dentro de
+// #abilitiesClassList, após as pastas de nível.
+// ============================================================
+
+function _classCustomFolderEls() {
+    return Array.from(document.querySelectorAll('#abilitiesClassList .class-custom-folder'));
+}
+
+function _findClassCustomFolder(name) {
+    const key = (name || '').trim().toLowerCase();
+    return _classCustomFolderEls().find(f => (f.dataset.cfName || '').toLowerCase() === key);
+}
+
+function _setClassCustomFolderOpen(folder, open, persist = true) {
+    folder.querySelector('.level-folder-body').classList.toggle('d-none', !open);
+    folder.classList.toggle('open', open);
+    folder.querySelector('.level-folder-toggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (persist && !isLoading) saveData();
+}
+
+function _labelClassCustomFolder(folder) {
+    const name = folder.dataset.cfName || '';
+    folder.querySelector('.level-folder-title').textContent = name;
+    const set = (sel, text) => { const b = folder.querySelector(sel); if (b) { b.title = text; b.setAttribute('aria-label', text); } };
+    set('.level-add', `Adicionar poder em ${name}`);
+    set('.level-search', `Buscar no BD para ${name}`);
+    set('.level-rename', `Renomear pasta ${name}`);
+    set('.level-delete', `Excluir pasta ${name}`);
+}
+
+function _buildClassCustomFolder(name) {
+    const folder = document.createElement('div');
+    folder.className = 'level-folder class-custom-folder';
+    folder.dataset.cfName = name;
+
+    folder.innerHTML = `
+        <div class="level-folder-head">
+            <button type="button" class="level-folder-toggle" aria-expanded="false">
+                <i class="bi bi-chevron-right level-folder-chevron"></i>
+                <span class="level-folder-title"></span>
+                <span class="level-folder-count"></span>
+            </button>
+            <div class="level-folder-actions">
+                <button type="button" class="level-folder-btn level-add"><i class="bi bi-plus-lg"></i></button>
+                <button type="button" class="level-folder-btn level-search"><i class="bi bi-search"></i></button>
+                <button type="button" class="level-folder-btn level-rename"><i class="bi bi-pencil"></i></button>
+                <button type="button" class="level-folder-btn level-delete"><i class="bi bi-trash"></i></button>
+            </div>
+        </div>
+        <div class="level-folder-body d-none"></div>`;
+    _labelClassCustomFolder(folder);
+
+    const body = folder.querySelector('.level-folder-body');
+    folder.querySelector('.level-folder-toggle').addEventListener('click', () => {
+        _setClassCustomFolderOpen(folder, body.classList.contains('d-none'));
+    });
+
+    folder.querySelector('.level-add').addEventListener('click', (e) => {
+        e.stopPropagation();
+        addAbility('abilitiesClassList', '', '', 0, folder.dataset.cfName);
+        const rows = body.querySelectorAll('.ability-row');
+        rows[rows.length - 1]?.querySelector('.inp-name')?.focus();
+    });
+    folder.querySelector('.level-search').addEventListener('click', (e) => {
+        e.stopPropagation();
+        abrirBuscadorPoderes('abilitiesClassList', 0, folder.dataset.cfName);
+    });
+    folder.querySelector('.level-rename').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const atual = folder.dataset.cfName;
+        const novo = (prompt('Novo nome da pasta:', atual) || '').trim();
+        if (!novo || novo === atual) return;
+        const outra = _findClassCustomFolder(novo);
+        if (outra && outra !== folder) { alert('Já existe uma pasta com esse nome.'); return; }
+        folder.dataset.cfName = novo;
+        _labelClassCustomFolder(folder);
+        saveData();
+    });
+    folder.querySelector('.level-delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const c = body.querySelectorAll('.ability-row').length;
+        const nome = folder.dataset.cfName;
+        const msg = c
+            ? `Excluir a pasta "${nome}" e ${c === 1 ? 'o poder' : 'os ' + c + ' poderes'} dentro dela?`
+            : `Excluir a pasta "${nome}"?`;
+        if (!confirm(msg)) return;
+        folder.remove();
+        refreshLevelFolders();
+        saveData();
+    });
+
+    if (typeof Sortable !== 'undefined') {
+        new Sortable(body, {
+            ...sortableMobileOpts,
+            group: 'sharedAbilities',
+            animation: 150,
+            handle: '.ability-drag-handle',
+            filter: 'input, textarea, button, .ability-delete-btn, .ability-chevron',
+            preventOnFilter: false,
+            ghostClass: 'bg-danger-subtle',
+            onEnd: () => { refreshLevelFolders(); saveData(); }
+        });
+    }
+    return folder;
+}
+
+function _createClassCustomFolder(name) {
+    const list = document.getElementById('abilitiesClassList');
+    const folder = _buildClassCustomFolder(name);
+    list.appendChild(folder);
+    return folder;
+}
+
+function _getClassCustomFolderBody(name) {
+    const f = _findClassCustomFolder(name) || _createClassCustomFolder(String(name).trim());
+    return f.querySelector('.level-folder-body');
+}
+
+function novaPastaClasse() {
+    const nome = (prompt('Nome da nova pasta (ex.: Multiclasse, Itens, Poderes Extras):') || '').trim();
+    if (!nome) return;
+    if (_findClassCustomFolder(nome)) { alert('Já existe uma pasta com esse nome.'); return; }
+    const f = _createClassCustomFolder(nome);
+    _setClassCustomFolderOpen(f, true, false);
+    refreshLevelFolders();
+    saveData();
+}
+
+function refreshClassCustomFolders() {
+    _classCustomFolderEls().forEach(f => {
+        const c = f.querySelectorAll('.ability-row').length;
+        f.classList.toggle('has-powers', c > 0);
+        f.querySelector('.level-folder-count').textContent = c ? `${c} ${c === 1 ? 'poder' : 'poderes'}` : '';
+    });
+}
+
+// RAÇA, ORIGEM E OUTROS — pastas criadas pelo jogador
+// Cada pasta guarda .ability-row. A pasta de nome '' é "Sem pasta"
+// (poderes antigos ou importados) e só aparece quando tem algo dentro.
+// Dados: raceAbilities (lista plana, campo "folder") + raceFolders
+// (ordem, nomes e estado aberto/fechado das pastas).
+// ============================================================
+const DEFAULT_RACE_FOLDERS = ['Raça', 'Origem', 'Outros'];
+
+function _raceFolderEls() { return Array.from(document.querySelectorAll('#abilitiesRaceList .race-folder')); }
+
+function _findRaceFolder(name) {
+    const key = (name || '').trim().toLowerCase();
+    return _raceFolderEls().find(f => (f.dataset.name || '').toLowerCase() === key);
+}
+
+function _labelRaceFolder(folder) {
+    const name = folder.dataset.name;
+    const label = name === '' ? 'Sem pasta' : name;
+    folder.querySelector('.level-folder-title').textContent = label;
+    const set = (sel, text) => { const b = folder.querySelector(sel); if (b) { b.title = text; b.setAttribute('aria-label', text); } };
+    set('.level-add', `Adicionar habilidade em ${label}`);
+    set('.level-search', `Buscar no BD para ${label}`);
+    set('.level-rename', `Renomear pasta ${label}`);
+    set('.level-delete', `Excluir pasta ${label}`);
+}
+
+function _setRaceFolderOpen(folder, open, persist = true) {
+    folder.querySelector('.level-folder-body').classList.toggle('d-none', !open);
+    folder.classList.toggle('open', open);
+    folder.querySelector('.level-folder-toggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (persist && !isLoading) saveData();
+}
+
+function _buildRaceFolder(name) {
+    const isBucket = name === '';
+    const folder = document.createElement('div');
+    folder.className = 'level-folder race-folder' + (isBucket ? ' d-none' : '');
+    folder.dataset.name = name;
+
+    const actions = isBucket ? '' : `
+        <div class="level-folder-actions">
+            <button type="button" class="level-folder-btn level-add"><i class="bi bi-plus-lg"></i></button>
+            <button type="button" class="level-folder-btn level-search"><i class="bi bi-search"></i></button>
+            <button type="button" class="level-folder-btn level-rename"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="level-folder-btn level-delete"><i class="bi bi-trash"></i></button>
+        </div>`;
+
+    folder.innerHTML = `
+        <div class="level-folder-head">
+            <button type="button" class="level-folder-toggle" aria-expanded="false">
+                <i class="bi bi-chevron-right level-folder-chevron"></i>
+                <span class="level-folder-title"></span>
+                <span class="level-folder-count"></span>
+            </button>${actions}
+        </div>
+        <div class="level-folder-body d-none"></div>`;
+    _labelRaceFolder(folder);
+
+    const body = folder.querySelector('.level-folder-body');
+    folder.querySelector('.level-folder-toggle').addEventListener('click', () => {
+        _setRaceFolderOpen(folder, body.classList.contains('d-none'));
+    });
+
+    if (!isBucket) {
+        folder.querySelector('.level-add').addEventListener('click', (e) => {
+            e.stopPropagation();
+            addAbility('abilitiesRaceList', '', '', 0, folder.dataset.name);
+            const rows = body.querySelectorAll('.ability-row');
+            rows[rows.length - 1]?.querySelector('.inp-name')?.focus();
+        });
+        folder.querySelector('.level-search').addEventListener('click', (e) => {
+            e.stopPropagation();
+            abrirBuscadorPoderes('abilitiesRaceList', 0, folder.dataset.name);
+        });
+        folder.querySelector('.level-rename').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const atual = folder.dataset.name;
+            const novo = (prompt('Novo nome da pasta:', atual) || '').trim();
+            if (!novo || novo === atual) return;
+            const outra = _findRaceFolder(novo);
+            if (outra && outra !== folder) { alert('Já existe uma pasta com esse nome.'); return; }
+            folder.dataset.name = novo;
+            _labelRaceFolder(folder);
+            saveData();
+        });
+        folder.querySelector('.level-delete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const c = body.querySelectorAll('.ability-row').length;
+            const nome = folder.dataset.name;
+            const msg = c
+                ? `Excluir a pasta "${nome}" e ${c === 1 ? 'a habilidade' : 'as ' + c + ' habilidades'} dentro dela?`
+                : `Excluir a pasta "${nome}"?`;
+            if (!confirm(msg)) return;
+            folder.remove();
+            saveData();
+        });
+    }
+
+    if (typeof Sortable !== 'undefined') {
+        new Sortable(body, {
+            ...sortableMobileOpts,
+            group: 'sharedAbilities',
+            animation: 150,
+            handle: '.ability-drag-handle',
+            filter: 'input, textarea, button, .ability-delete-btn, .ability-chevron',
+            preventOnFilter: false,
+            ghostClass: 'bg-warning-subtle',
+            onEnd: () => { refreshLevelFolders(); saveData(); }
+        });
+    }
+    return folder;
+}
+
+function _createRaceFolder(name) {
+    const list = document.getElementById('abilitiesRaceList');
+    const folder = _buildRaceFolder(name);
+    list.appendChild(folder);
+    return folder;
+}
+
+// defs: [{name, open}] vindo do save; null/undefined = pastas padrão
+function initRaceFolders(defs) {
+    const list = document.getElementById('abilitiesRaceList');
+    if (!list) return;
+    list.innerHTML = '';
+    list.appendChild(_buildRaceFolder(''));
+    const lista = Array.isArray(defs) ? defs : DEFAULT_RACE_FOLDERS.map(n => ({ name: n, open: false }));
+    lista.forEach(d => {
+        const nome = String(d?.name ?? '').trim();
+        if (!nome || _findRaceFolder(nome)) return;
+        const f = _createRaceFolder(nome);
+        if (d.open) _setRaceFolderOpen(f, true, false);
+    });
+    refreshRaceFolders();
+}
+
+function _getRaceFolderBody(name) {
+    const list = document.getElementById('abilitiesRaceList');
+    if (!list.querySelector('.race-folder')) initRaceFolders();
+    const f = _findRaceFolder(name) || _createRaceFolder(String(name).trim());
+    return f.querySelector('.level-folder-body');
+}
+
+function refreshRaceFolders() {
+    _raceFolderEls().forEach(f => {
+        const c = f.querySelectorAll('.ability-row').length;
+        f.classList.toggle('has-powers', c > 0);
+        if (f.dataset.name === '') f.classList.toggle('d-none', c === 0);
+        f.querySelector('.level-folder-count').textContent = c ? `${c} ${c === 1 ? 'habilidade' : 'habilidades'}` : '';
+    });
+}
+
+function novaPastaPoderes() {
+    const nome = (prompt('Nome da nova pasta (ex.: Raça, Origem, Herança, Itens):') || '').trim();
+    if (!nome) return;
+    if (_findRaceFolder(nome)) { alert('Já existe uma pasta com esse nome.'); return; }
+    if (!document.querySelector('#abilitiesRaceList .race-folder')) initRaceFolders([]);
+    const f = _createRaceFolder(nome);
+    _setRaceFolderOpen(f, true, false);
+    refreshRaceFolders();
+    saveData();
+}
 
 function addSpell(circle, data = null) {
     const container = document.getElementById(`spellsList${circle}`); if (!container) return;
@@ -1075,6 +1571,7 @@ function updateCalculations() {
 
 function saveData() {
     if (isLoading) return; // Não salvar durante o carregamento inicial
+    refreshLevelFolders();
 
     // 0. Sincroniza trained e other das perícias diretamente do DOM antes de salvar
     currentSkills.forEach((s, i) => {
@@ -1091,7 +1588,8 @@ function saveData() {
     document.querySelectorAll('#abilitiesRaceList .ability-row').forEach(row => {
         raceAbilities.push({
             name: row.querySelector('.inp-name').value,
-            desc: row.querySelector('.inp-desc').value
+            desc: row.querySelector('.inp-desc').value,
+            folder: row.closest('.race-folder')?.dataset.name || ''
         });
     });
 
@@ -1099,7 +1597,8 @@ function saveData() {
     document.querySelectorAll('#abilitiesClassList .ability-row').forEach(row => {
         classAbilities.push({
             name: row.querySelector('.inp-name').value,
-            desc: row.querySelector('.inp-desc').value
+            desc: row.querySelector('.inp-desc').value,
+            level: parseInt(row.closest('.level-folder')?.dataset.level) || 0
         });
     });
 
@@ -1170,7 +1669,12 @@ function saveData() {
         attacks: [],
         inventory: [],
         raceAbilities: raceAbilities,
+        raceFolders: _raceFolderEls().filter(f => f.dataset.name !== '').map(f => ({
+            name: f.dataset.name,
+            open: !f.querySelector('.level-folder-body').classList.contains('d-none')
+        })),
         classAbilities: classAbilities,
+        levelFoldersOpen: Array.from(_openLevelFolders),
         notes: document.getElementById('charNotes')?.value || '',
         notesCampanha: document.getElementById('charNotesCampanha')?.value || '',
         notesOutros: document.getElementById('charNotesOutros')?.value || '',
@@ -1358,14 +1862,16 @@ function loadData() {
         }
 
         // No local onde carrega as habilidades (normalmente após o parse do JSON)
-        if (data.raceAbilities) {
-            document.getElementById('abilitiesRaceList').innerHTML = '';
-            data.raceAbilities.forEach(a => addAbility('abilitiesRaceList', a.name, a.desc));
+        if (data.raceAbilities || data.raceFolders) {
+            initRaceFolders(data.raceFolders);
+            (data.raceAbilities || []).forEach(a => addAbility('abilitiesRaceList', a.name, a.desc, 0, a.folder || ''));
         }
 
         if (data.classAbilities) {
-            document.getElementById('abilitiesClassList').innerHTML = '';
-            data.classAbilities.forEach(a => addAbility('abilitiesClassList', a.name, a.desc));
+            initClassLevelFolders();
+            _openLevelFolders = new Set((data.levelFoldersOpen || []).map(Number));
+            data.classAbilities.forEach(a => addAbility('abilitiesClassList', a.name, a.desc, a.level || 0));
+            _applyOpenLevelFolders();
         }
 
         // --- STATUS ---
@@ -1553,6 +2059,7 @@ function loadData() {
         }
 
         isLoading = false; // Carregamento concluído - salvar normalmente a partir daqui
+        refreshLevelFolders();
 
     } else {
         // Se não houver dados salvos, renderiza as perícias padrão
@@ -1801,29 +2308,9 @@ function enableDragAndDrop() {
     });
 
     // Poderes — inicialização única com handle no grip e filtro em inputs/botões
-    const raceList = document.getElementById('abilitiesRaceList');
-    if (raceList) new Sortable(raceList, {
-        ...sortableMobileOpts,
-        group: 'sharedAbilities',
-        animation: 150,
-        handle: '.ability-drag-handle',
-        filter: 'input, textarea, button, .ability-delete-btn, .ability-chevron',
-        preventOnFilter: false,
-        ghostClass: 'bg-warning-subtle',
-        onEnd: saveData
-    });
+    // Poderes de raça/origem: o Sortable de cada pasta é criado em _buildRaceFolder()
 
-    const classList = document.getElementById('abilitiesClassList');
-    if (classList) new Sortable(classList, {
-        ...sortableMobileOpts,
-        group: 'sharedAbilities',
-        animation: 150,
-        handle: '.ability-drag-handle',
-        filter: 'input, textarea, button, .ability-delete-btn, .ability-chevron',
-        preventOnFilter: false,
-        ghostClass: 'bg-danger-subtle',
-        onEnd: saveData
-    });
+    // Poderes de classe: o Sortable de cada nível é criado em _buildLevelFolder()
 
     // Magias
     [1, 2, 3, 4, 5].forEach(circle => {
@@ -2342,7 +2829,20 @@ async function exportarParaPDF() {
         const txtRace = data.raceAbilities ? data.raceAbilities.map(a => `${a.name.toUpperCase()}: ${a.desc}`).join('\n\n') : '';
         try { form.getTextField('Habilidades de raca e origem').setText(txtRace); } catch (e) { }
 
-        const txtClass = data.classAbilities ? data.classAbilities.map(a => `${a.name.toUpperCase()}: ${a.desc}`).join('\n\n') : '';
+        // Poderes de classe agrupados por nível (quando houver níveis definidos)
+        const txtClass = (() => {
+            if (!data.classAbilities) return '';
+            const temNiveis = data.classAbilities.some(a => a.level > 0);
+            if (!temNiveis) return data.classAbilities.map(a => `${a.name.toUpperCase()}: ${a.desc}`).join('\n\n');
+            const grupos = [];
+            data.classAbilities.forEach(a => {
+                const lv = a.level || 0;
+                let g = grupos[grupos.length - 1];
+                if (!g || g.lv !== lv) { g = { lv, itens: [] }; grupos.push(g); }
+                g.itens.push(`${a.name.toUpperCase()}: ${a.desc}`);
+            });
+            return grupos.map(g => `${g.lv ? g.lv + 'º NÍVEL' : 'SEM NÍVEL'}\n` + g.itens.join('\n\n')).join('\n\n');
+        })();
         try { form.getTextField('Habilidades de Classe e poderes').setText(txtClass); } catch (e) { }
 
         try { form.getTextField('Proficiencias e outras caracteristicas').setText(data.extras?.profs || ''); } catch (e) { }
@@ -3207,8 +3707,8 @@ function exportarHabilidadesParaFicha() {
     if (!confirm('Exportar dados da Ameaça para a ficha do Personagem?\n\nIsso incluirá:\n• Nome e Tipo (como Raça)\n• PV, PM, Deslocamento\n• Atributos\n• Habilidades e Magias\n• Perícias: Iniciativa, Luta, Fortitude, Reflexos, Vontade + Relevantes\n• Equipamento e Tesouro\n• Ataques (importados da ameaça)\n• Defesa (somente o valor base)\n\nATENÇÃO: Tudo será LIMPO antes de exportar!')) return;
 
     // Limpar dados existentes antes de exportar
-    document.getElementById('abilitiesRaceList').innerHTML = '';
-    document.getElementById('abilitiesClassList').innerHTML = '';
+    initRaceFolders();
+    initClassLevelFolders();
     currentSkills.forEach(s => { s.trained = false; s.other = 0; });
     currentSkills = currentSkills.filter(s => !s.isCustom || ['Iniciativa', 'Luta', 'Fortitude', 'Reflexos', 'Vontade', 'Atletismo', 'Acrobacia', 'Cavalgar', 'Furtividade', 'Ladinagem', 'Percepção', 'Sobrevivência'].includes(s.n));
     document.getElementById('inventoryList').innerHTML = '';
@@ -4843,9 +5343,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // BUSCADOR DE PODERES
 // ============================================================
 let targetListIdForPower = '';
+let targetLevelForPower = 0;
+let targetFolderForPower = '';
 
-function abrirBuscadorPoderes(targetListId) {
+function abrirBuscadorPoderes(targetListId, level = 0, folder = '') {
     targetListIdForPower = targetListId;
+    targetLevelForPower = level || 0;
+    targetFolderForPower = folder || '';
+    const tituloBusca = document.getElementById('buscadorPoderesTitulo');
+    if (tituloBusca) tituloBusca.textContent = targetLevelForPower
+        ? `⚔️ Buscador de Poderes — ${targetLevelForPower}º Nível`
+        : (targetFolderForPower ? `⚔️ Buscador de Poderes — ${targetFolderForPower}` : '⚔️ Buscador de Poderes');
     document.getElementById('modalBuscadorPoderes').style.display = 'flex';
     document.getElementById('inputBuscaPoder').value = '';
     filtrarPoderes();
@@ -4910,7 +5418,7 @@ function selecionarPoderNoBuscador(index) {
             cleanDesc = cleanDesc.replace(/<br\s*[\/]?>/gi, '\n');
             cleanDesc = cleanDesc.replace(/<[^>]+>/g, '');
         }
-        addAbility(targetListIdForPower, p.name, cleanDesc);
+        addAbility(targetListIdForPower, p.name, cleanDesc, targetLevelForPower, targetFolderForPower);
         fecharBuscadorPoderes();
     }
 }

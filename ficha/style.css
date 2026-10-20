@@ -3788,3 +3788,135 @@ body.theme-dark .item-result-row {
     border-radius: 8px;
   }
 }
+
+
+/* ===== PODERES POR NÍVEL (pastas em "Classe e Poderes") ===== */
+.level-folder {
+    border: 1px solid var(--borda-card);
+    border-left: 4px solid var(--borda-card-hover);
+    border-radius: 8px;
+    background: var(--bg-card-solid);
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+
+.level-folder.has-powers {
+    border-left-color: var(--t20-red);
+}
+
+.level-folder.is-current {
+    border-left-color: var(--ouro);
+    box-shadow: inset 0 0 0 1px var(--ouro);
+}
+
+.level-folder-head {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.level-folder-toggle {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 6px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--texto-principal);
+    text-align: left;
+    cursor: pointer;
+}
+
+.level-folder-title {
+    font-family: 'Tormenta', serif;
+    letter-spacing: 1px;
+    font-size: 1rem;
+}
+
+.level-folder-count {
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.level-folder-chevron {
+    color: var(--t20-red);
+    transition: transform 0.2s;
+}
+
+.level-folder.open .level-folder-chevron {
+    transform: rotate(90deg);
+}
+
+.level-folder-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 2px;
+    padding-right: 6px;
+}
+
+.level-folder-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--t20-red);
+}
+
+.level-folder-btn:hover {
+    background: var(--ouro-glow);
+    border-color: var(--ouro);
+}
+
+.level-folder-toggle:focus-visible,
+.level-folder-btn:focus-visible {
+    outline: 2px solid var(--ouro);
+    outline-offset: -2px;
+}
+
+.level-folder-body {
+    padding: 8px 8px 2px 12px;
+    border-top: 1px dashed var(--borda-card);
+}
+
+.level-folder-body:empty {
+    min-height: 40px;
+}
+
+.level-folder-body:empty::before {
+    content: 'Nenhum poder neste nível. Use o + ou arraste um poder para cá.';
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Seção recolhida: só mostra níveis que têm poderes */
+#abilitiesSection.collapsed .level-folder:not(.has-powers),
+#abilitiesSection.collapsed .level-folder-actions,
+#abilitiesSection.collapsed #btnToggleAllLevels {
+    display: none !important;
+}
+
+
+/* ===== PASTAS DE RAÇA, ORIGEM E OUTROS ===== */
+.race-folder .level-folder-body:empty::before {
+    content: 'Nenhuma habilidade nesta pasta. Use o + ou arraste uma habilidade para cá.';
+}
+
+.race-folder .level-delete:hover {
+    color: #dc3545;
+    border-color: #dc3545;
+    background: transparent;
+}
+
+#abilitiesSection.collapsed .race-folder:not(.has-powers),
+#abilitiesSection.collapsed #btnNewRaceFolder {
+    display: none !important;
+}
