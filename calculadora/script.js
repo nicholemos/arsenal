@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     }
 
-     // ── VAMPIRO ────────────────────────────────────────────────
+    // ── VAMPIRO ────────────────────────────────────────────────
     function createVampiroUi(container) {
         if (typeof VAMPIRO_BENCAOS === 'undefined') return;
         const entries = Object.entries(VAMPIRO_BENCAOS);
@@ -855,8 +855,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── FEÉRICO ────────────────────────────────────────────────
+    let _feericoPrevBase = null; // bônus fixos das bênçãos na última atualização
     function createFeericoUi(container) {
         if (typeof FEERICO_BENCAOS === 'undefined') return;
+        _feericoPrevBase = null;
         const entries = Object.entries(FEERICO_BENCAOS);
         container.innerHTML = `
         <details class="fold" style="margin-top:12px">
@@ -866,7 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${entries.map(([key, b]) => `
                 <div class="bencao-item">
                     <label class="check">
-                        <input type="checkbox" class="feerico-bencao" data-key="${key}">
+                        <input type="checkbox" class="feerico-bencao" id="feerico-bencao-${key}" data-key="${key}">
                         <span>${b.name}</span>
                         <span class="bencao-desc-toggle" data-toggle="${key}" title="Ver descrição">?</span>
                     </label>
@@ -902,9 +904,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const race = RACE_DATA[raceId];
         if (!race?.calculateAttributes) return;
 
-        const { baseAttributes, isChoice, choiceCount, selectedPowers } = race.calculateAttributes();
+        const { baseAttributes, isChoice, choiceCount, maxChoicePerAttribute, selectedPowers } = race.calculateAttributes();
 
-        applyRaceAttributes(baseAttributes, isChoice, choiceCount);
+        // Guarda os +1 livres já escolhidos (valor atual − bônus fixo das bênçãos anteriores),
+        // pois applyRaceAttributes zera os inputs raciais a cada chamada.
+        const extras = [];
+        if (_feericoPrevBase) {
+            ATTRIBUTES.forEach(attr => {
+                const el = document.getElementById(`${attr}_racial`);
+                const diff = (parseInt(el?.value, 10) || 0) - (_feericoPrevBase[attr] || 0);
+                if (diff > 0) extras.push(attr);
+            });
+        }
+
+        applyRaceAttributes(baseAttributes, isChoice, choiceCount, [], maxChoicePerAttribute);
+
+        // Reaplica os +1 livres por cima dos novos bônus das bênçãos
+        extras.forEach(attr => {
+            const el = document.getElementById(`${attr}_racial`);
+            if (!el) return;
+            el.value = (baseAttributes[attr] || 0) + 1;
+            el.dispatchEvent(new Event('change')); // recalcula pontos gastos e caixas cinzas
+        });
+        _feericoPrevBase = { ...baseAttributes };
 
         renderRacialPowers(race, selectedPowers);
         updateAll();

@@ -239,6 +239,7 @@ const RACE_DATA_DRAGAOBRASIL = {
         type: 'dragaobrasil',
         tamanho: 'Médio', raca: '-',
         attributes: {},
+        isChoice: true, choiceCount: 3, maxChoicePerAttribute: 1,
         bonusMessage: '+1 em Três Atributos Diferentes',
         racialPowers: [
             {
@@ -260,10 +261,19 @@ const RACE_DATA_DRAGAOBRASIL = {
                 selectedPowers.push({ name: bencao.name, desc: bencao.desc || '' });
             });
 
+            // baseAttributes = bônus fixos das bênçãos; os +1 em três atributos
+            // diferentes são escolhidos livremente (isChoice) e somam por cima deles.
             const bencaoNames = selectedPowers.map(p => p.name).join(', ') || 'Nenhuma';
-            document.getElementById('bonusMessage').innerHTML = `Bênçãos: ${bencaoNames}`;
+            document.getElementById('bonusMessage').innerHTML =
+                `+1 em Três Atributos Diferentes<br>Bênçãos: ${bencaoNames}`;
 
-            return { baseAttributes: attrs, isChoice: false, choiceCount: 0, selectedPowers };
+            return {
+                baseAttributes: attrs,
+                isChoice: true,
+                choiceCount: 3,
+                maxChoicePerAttribute: 1,
+                selectedPowers
+            };
         }
     },
 
@@ -314,6 +324,7 @@ const RACE_DATA_DRAGAOBRASIL = {
         ],
         imageUrl: 'https://media.tenor.com/OOcL19tPURMAAAAM/the-lizard-marvel.gif'
     },
+
     sahiri: {
         name: "Sahiri",
         type: "dragaobrasil",
@@ -339,6 +350,8 @@ const RACE_DATA_DRAGAOBRASIL = {
         imageUrl: "https://images.payhip.com/o_1iq7ntvl0cs718hgha51vmnfalr.gif",
         source: "Dragão Brasil"
     }
+
+
 
 };
 
