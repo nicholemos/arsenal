@@ -349,7 +349,38 @@ const RACE_DATA_DRAGAOBRASIL = {
         ],
         imageUrl: "https://images.payhip.com/o_1iq7ntvl0cs718hgha51vmnfalr.gif",
         source: "Dragão Brasil"
-    }
+    },
+
+    licantropo: {
+        name: 'Licantropo',
+        type: 'dragaobrasil',
+        tamanho: 'Médio',
+        raca: 'Humanoide',
+        attributes: {},
+        isChoice: false,
+        bonusMessage: 'Sem modificadores de atributos próprios',
+        racialPowers: [
+            {
+                name: 'Aversão a Mitral',
+                desc: 'Seus ataques causam +1 de dano por dado de dano quando feitos com armas de mitral. Se estiver empunhando ou vestindo mitral, perde 1d6 PV por rodada.'
+            },
+            {
+                name: 'Maldição da Licantropia',
+                desc: 'Um humanoide atingido pela sua mordida contrai licantropia. Um teste de Fortitude com CD baseada na sua Constituição evita a maldição.'
+            },
+            {
+                name: 'Sentidos Aguçados',
+                desc: 'Você recebe faro e visão na penumbra.'
+            },
+            {
+                name: 'Transformação Incontrolável',
+                desc: 'Ao presenciar violência física em que uma criatura causa dano letal a outra, você pode ser forçado a assumir sua forma híbrida na noite seguinte. A transformação dura até o amanhecer e, ao retornar à forma humanoide, você não se lembra do que fez. Se souber da maldição, pode fazer um teste de Vontade CD 25 para evitar a transformação, com a CD aumentando em 5 a cada teste anterior. Se participou ativamente da violência, sofre –5 nesse teste. Durante a transformação involuntária, suas ações são controladas pelo mestre.'
+            }
+        ],
+        imageUrl: '',
+        source: "Dragão Brasil"
+
+    },
 
 
 
@@ -363,3 +394,35 @@ const RACE_DATA_DRAGAOBRASIL = {
 window.RACE_DATA = Object.assign(window.RACE_DATA || {}, RACE_DATA_DRAGAOBRASIL);
 window.VAMPIRO_BENCAOS = VAMPIRO_BENCAOS;
 window.FEERICO_BENCAOS = FEERICO_BENCAOS;
+window.LICANTROPO_TIPOS = {
+    lobo: {
+        nome: 'Lobo',
+        empatia: 'Lobos',
+        hibrida: '+2 em Força.',
+        fera: 'Tamanho Médio, deslocamento 15m, +2 em Força e mordida natural (1d6, crítico ×2, perfuração). Uma vez por rodada, ao usar Agredir com uma arma, pode gastar 1 PM para um ataque extra de mordida. Ao acertar com a mordida, pode gastar 1 PM para tentar derrubar o alvo.'
+    },
+    onca: {
+        nome: 'Onça',
+        empatia: 'Onças',
+        hibrida: 'Pode usar Emboscar. Se já possuir esse poder, seu custo diminui em 1 PM.',
+        fera: 'Tamanho Médio, deslocamento 15m e natação 6m. Possui mordida e duas garras naturais (1d6, crítico ×2). Pode usar Emboscar; se já possuir esse poder, seu custo diminui em 1 PM.'
+    },
+    rato: {
+        nome: 'Rato',
+        empatia: 'Ratos',
+        hibrida: 'Deslocamento de escalada igual à metade do deslocamento terrestre. Quando sua mordida causa um acerto crítico, deixa a armadura do alvo avariada; se ele não usar armadura, aumenta o multiplicador de crítico em +1.',
+        fera: 'Tamanho Minúsculo, deslocamento 12m e escalada igual à metade do deslocamento terrestre. Possui mordida natural (1d6, crítico ×2). Quando a mordida causa um acerto crítico, deixa a armadura do alvo avariada; se ele não usar armadura, aumenta o multiplicador de crítico em +1.'
+    },
+    selako: {
+        nome: 'Selako',
+        empatia: 'Selakos',
+        hibrida: 'Deslocamento de natação igual ao deslocamento terrestre. Quando sua mordida causa um acerto crítico, o alvo fica sangrando.',
+        fera: 'Deslocamento de natação igual ao deslocamento terrestre. Possui mordida natural (1d6, crítico ×2). Quando a mordida causa um acerto crítico, o alvo fica sangrando.'
+    },
+    texugo: {
+        nome: 'Texugo',
+        empatia: 'Texugos',
+        hibrida: 'Pode usar Durão. Se já possuir esse poder, seu custo diminui em 1 PM.',
+        fera: 'Tamanho Pequeno, deslocamento 12m e escavação 3m. Possui mordida natural (1d6, crítico ×2, perfuração). Uma vez por rodada, ao usar Agredir com uma arma, pode gastar 1 PM para um ataque extra de mordida. Pode usar Durão; se já possuir esse poder, seu custo diminui em 1 PM.'
+    }
+};

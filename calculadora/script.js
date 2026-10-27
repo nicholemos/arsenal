@@ -284,10 +284,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── RENDERIZAR PODERES RACIAIS (sanfona) ──────────────────
     // race.racialPowers = poderes base (fixos)
     // dynamicPowers = poderes das seleções do usuário (Golem, Aberrante, etc.)
+    let _lastRacialRender = { race: null, dynamicPowers: [] };
+
+    function appendPowerFold(power, container) {
+        if (power.desc && power.desc.trim() !== '') {
+            const d = document.createElement('details');
+            d.className = 'fold';
+            d.innerHTML = `<summary class="fold-summary">${power.name}<span class="fold-hint">ver descrição</span></summary><div class="fold-body">${power.desc}</div>`;
+            container.appendChild(d);
+        } else {
+            const p = document.createElement('p');
+            p.className = 'racial-power-name';
+            p.textContent = power.name;
+            container.appendChild(p);
+        }
+    }
+
     function renderRacialPowers(race, dynamicPowers = []) {
         const list = document.getElementById('racial-powers-list');
+        const curseList = document.getElementById('licantropia-powers-list');
         if (!list) return;
+        _lastRacialRender = { race, dynamicPowers };
         list.innerHTML = '';
+        if (curseList) curseList.innerHTML = '';
 
         // Nomes dos poderes dinâmicos (para esconder duplicatas)
         const dynamicNames = new Set(dynamicPowers.map(p => p.name.split(' (')[0]));
@@ -295,22 +314,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Filtrar poderes estáticos que não devem aparecer quando há dinâmico
         const staticPowers = (race?.racialPowers || []).filter(p => !dynamicNames.has(p.name));
 
-        const all = [...staticPowers, ...dynamicPowers];
-        _currentRacialPowers = all; // guarda para export
+        // Poderes próprios da raça (aparecem antes da Maldição da Licantropia)
+        const racePowers = [...staticPowers, ...dynamicPowers];
+        racePowers.forEach(power => appendPowerFold(power, list));
 
-        all.forEach(power => {
-            if (power.desc && power.desc.trim() !== '') {
-                const d = document.createElement('details');
-                d.className = 'fold';
-                d.innerHTML = `<summary class="fold-summary">${power.name}<span class="fold-hint">ver descrição</span></summary><div class="fold-body">${power.desc}</div>`;
-                list.appendChild(d);
-            } else {
-                const p = document.createElement('p');
-                p.className = 'racial-power-name';
-                p.textContent = power.name;
-                list.appendChild(p);
-            }
-        });
+        // Poderes concedidos pela Maldição da Licantropia (aparecem após a Maldição da Licantropia)
+        const cursePowers = getLicantropiaCursePowers();
+        if (curseList && cursePowers.length > 0) {
+            cursePowers.forEach(power => appendPowerFold(power, curseList));
+        }
+
+        const all = [...racePowers, ...cursePowers];
+        _currentRacialPowers = all; // guarda para export
     }
 
     // ── TROCA DE RAÇA ─────────────────────────────────────────
@@ -318,7 +333,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const raceId = racaSelect.value;
         const race = RACE_DATA[raceId];
         const customUI = document.getElementById('race-specific-options');
+        const licContainer = document.getElementById('licantropia-container');
+        const curseList = document.getElementById('licantropia-powers-list');
         customUI.innerHTML = '';
+        if (licContainer) licContainer.innerHTML = '';
+        if (curseList) curseList.innerHTML = '';
         document.getElementById('bonusMessage').innerHTML = '';
         document.getElementById('attribute-table').style.background = '';
         document.getElementById('racial-powers-list').innerHTML = '';
@@ -334,6 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (race.createCustomUi) race.createCustomUi(customUI);
+
+        // Raças humanoides (e Humano) podem contrair a maldição da licantropia (quando Dragão Brasil estiver ativo)
+        // Adicionado ao licantropia-container (abaixo de racial-powers-list) para ser sempre o último poder
+        if (licContainer && canContractLicantropia(raceId)) {
+            appendLicantropiaOverlay(licContainer);
+        }
 
         const updateFn = window[`update${raceId.charAt(0).toUpperCase() + raceId.slice(1)}Attributes`];
         if (typeof updateFn === 'function') {
@@ -935,6 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Vincula createCustomUi após definição (script.js carrega depois de racas_dragaobrasil.js)
     if (RACE_DATA.vampiro) RACE_DATA.vampiro.createCustomUi = createVampiroUi;
     if (RACE_DATA.feerico) RACE_DATA.feerico.createCustomUi = createFeericoUi;
+    if (RACE_DATA.licantropo) RACE_DATA.licantropo.createCustomUi = createLicantropoUi;
 
     // ── UPDATE FUNÇÕES ─────────────────────────────────────────
     function updateGolemAttributes() {
@@ -955,6 +981,282 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Atualizamos o restante da UI
         updateAll();
     }
+
+
+    // ── LICANTROPIA: poderes dinâmicos (usado pela raça Licantropo e pela maldição em outras raças) ──
+    function buildLicantropiaDynamicPowers(tipo, controlar, forma) {
+        const base = RACE_DATA.licantropo;
+        const dynamicPowers = [
+            {
+                name: `Empatia com ${tipo.empatia}`,
+                desc: `Você recebe +5 em testes de Adestramento relacionados a ${tipo.empatia.toLowerCase()}. Também pode usar Adestramento para mudar a atitude e persuadir essas criaturas. A habilidade se aplica a animais da mesma espécie, incluindo versões primitivas, reais e gigantes.`
+            },
+            {
+                name: `Benefícios da Forma ${forma === 'hibrida' ? 'Híbrida' : 'de Fera'} (${tipo.nome})`,
+                desc: tipo[forma]
+            },
+            {
+                name: 'Transformação Incontrolável',
+                desc: controlar
+                    ? 'Você ainda é afetado pela maldição ao presenciar violência, mas pode fazer o teste de Vontade para evitar a transformação rolando dois dados e usando o melhor resultado. Se não estiver transformado, pode gastar uma ação completa e 3 PM para assumir a forma híbrida ou de fera, mantendo o controle das próprias ações. A transformação dura o quanto desejar, mas termina se ficar inconsciente ou morrer. Efeitos que afetam a Forma Selvagem de um druida também se aplicam às suas formas de licantropo.'
+                    : base.racialPowers.find(p => p.name === 'Transformação Incontrolável').desc
+            }
+        ];
+
+        if (forma === 'hibrida') {
+            dynamicPowers.push({
+                name: 'Armas Naturais da Forma Híbrida',
+                desc: 'Você possui uma mordida natural (1d6, crítico ×2, perfuração) e duas garras naturais (1d6, crítico ×2, corte). Uma vez por rodada, ao usar Agredir com outra arma, pode gastar 1 PM para um ataque corpo a corpo extra de mordida e mais 1 PM para um ataque extra com uma garra livre. As garras também podem ser usadas como arma secundária em habilidades que exijam uma, como Estilo de Duas Armas.'
+            });
+        } else {
+            dynamicPowers.push({
+                name: 'Limitações da Forma de Fera',
+                desc: 'Você não pode falar, empunhar itens ou lançar magias. Seu equipamento desaparece, mas os efeitos dos itens vestidos permanecem. Outras criaturas podem perceber que você não é um animal comum com um teste de Percepção oposto ao seu teste de Enganação; você recebe +10 nesse teste.'
+            });
+        }
+
+        if (controlar) {
+            dynamicPowers.push({
+                name: 'Controlar Licantropia',
+                desc: 'Você ainda é afetado pela maldição ao presenciar violência, mas rola dois dados no teste de Vontade para evitar a transformação e usa o melhor resultado. Pode gastar uma ação completa e 3 PM para assumir voluntariamente a forma híbrida ou de fera, mantendo o controle das próprias ações. A transformação dura o quanto desejar, mas termina se ficar inconsciente ou morrer. Efeitos que afetam a Forma Selvagem de um druida também se aplicam às suas formas de licantropo.'
+            });
+        }
+        return dynamicPowers;
+    }
+
+    // ── LICANTROPIA: maldição contraída por humanoides e humanos ─────────
+    function isDragaoBrasilFilterActive() {
+        return !!document.getElementById('dragaobrasilCheckbox')?.checked;
+    }
+
+    // Só humanoides (e o Humano, que não tem tipo de criatura definido nos dados) contraem a maldição,
+    // e apenas quando o checkbox de Raças do Dragão Brasil estiver marcado nas raças adicionais.
+    function canContractLicantropia(raceId) {
+        if (!isDragaoBrasilFilterActive()) return false;
+        if (raceId === 'licantropo') return false;
+        const r = RACE_DATA[raceId];
+        if (!r || !window.LICANTROPO_TIPOS || !RACE_DATA.licantropo) return false;
+        const EXCECOES_LICANTROPIA = ['humano', 'feerico'];
+        return r.raca === 'Humanoide' || EXCECOES_LICANTROPIA.includes(raceId);
+    }
+
+    function updateLicantropiaOverlay() {
+        const licContainer = document.getElementById('licantropia-container');
+        if (!licContainer) return;
+        const raceId = racaSelect.value;
+        const canContract = canContractLicantropia(raceId);
+
+        if (canContract) {
+            if (!document.getElementById('licantropia-overlay')) {
+                appendLicantropiaOverlay(licContainer);
+            }
+        } else {
+            if (licContainer.innerHTML !== '') {
+                const ativa = document.getElementById('licantropia-ativa');
+                const wasActive = !!ativa?.checked;
+                licContainer.innerHTML = '';
+                const curseList = document.getElementById('licantropia-powers-list');
+                if (curseList) curseList.innerHTML = '';
+                if (wasActive) refreshRacialPowers();
+            }
+        }
+    }
+
+    // Lê a seleção da maldição (raça Licantropo ou maldição em outra raça)
+    function getLicantropiaSelection() {
+        const raceId = racaSelect.value;
+        let prefix;
+        if (raceId === 'licantropo') prefix = 'licantropo';
+        else if (canContractLicantropia(raceId) && document.getElementById('licantropia-ativa')?.checked) prefix = 'licantropia';
+        else return null;
+
+        const tipoKey = document.getElementById(`${prefix}-tipo`)?.value || 'lobo';
+        const tipo = LICANTROPO_TIPOS[tipoKey];
+        if (!tipo) return null;
+        const controlar = document.getElementById(`${prefix}-controlar`)?.checked || false;
+        const forma = controlar ? (document.getElementById(`${prefix}-forma`)?.value || 'hibrida') : 'hibrida';
+        return { tipoKey, tipo, controlar, forma };
+    }
+
+    function getLicantropiaCursePowers() {
+        if (racaSelect.value === 'licantropo') return [];
+        if (!canContractLicantropia(racaSelect.value)) return [];
+        if (!document.getElementById('licantropia-ativa')?.checked) return [];
+        const sel = getLicantropiaSelection();
+        if (!sel) return [];
+
+        const dyn = buildLicantropiaDynamicPowers(sel.tipo, sel.controlar, sel.forma);
+        const dynNames = new Set(dyn.map(p => p.name.split(' (')[0]));
+        const fixos = RACE_DATA.licantropo.racialPowers.filter(p => !dynNames.has(p.name));
+        return [...fixos, ...dyn];
+    }
+
+    // Re-renderiza só os poderes (não mexe nos atributos/escolhas raciais já feitos)
+    function refreshRacialPowers() {
+        renderRacialPowers(_lastRacialRender.race, _lastRacialRender.dynamicPowers);
+        updateAll();
+    }
+
+    function appendLicantropiaOverlay(container) {
+        const wrap = document.createElement('div');
+        wrap.id = 'licantropia-overlay';
+        wrap.innerHTML = `
+        <details class="fold">
+            <summary class="fold-summary">Maldição da Licantropia <span class="fold-hint">opcional</span></summary>
+            <div class="fold-body">
+                <p style="margin:0 0 8px;font-size:13px;color:var(--text-secondary)">
+                    Humanoides (e humanos) que sofrem dano da mordida de um licantropo contraem a maldição
+                    (Fort CD Con evita) e passam a ter as habilidades abaixo, mantendo a própria raça.
+                    A licantropia pode ser curada com a magia Purificação (aprimoramento que dissipa encantamento,
+                    necromancia e transmutação) ou outro efeito que remova maldições.
+                </p>
+                <div class="checklist">
+                    <label class="check">
+                        <input type="checkbox" id="licantropia-ativa">
+                        <span>Contraiu licantropia</span>
+                    </label>
+                </div>
+                <div id="licantropia-opcoes" class="hidden" style="margin-top:12px">
+                    <label for="licantropia-tipo" class="field-label">
+                        <span class="section-title" style="font-size:18px">Tipo de Licantropo</span>
+                    </label>
+                    <select id="licantropia-tipo">
+                        ${Object.entries(LICANTROPO_TIPOS).map(([key, t]) => `<option value="${key}">${t.nome}</option>`).join('')}
+                    </select>
+
+                    <div class="checklist" style="margin-top:12px">
+                        <label class="check">
+                            <input type="checkbox" id="licantropia-controlar">
+                            <span>Possui o poder Controlar Licantropia</span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top:12px">
+                        <label for="licantropia-forma" class="field-label">
+                            <span class="section-title" style="font-size:18px">Forma de Transformação</span>
+                        </label>
+                        <select id="licantropia-forma">
+                            <option value="hibrida">Forma híbrida</option>
+                            <option value="fera" disabled>Forma de fera (requer Controlar Licantropia)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </details>`;
+        container.appendChild(wrap);
+
+        const ativa = wrap.querySelector('#licantropia-ativa');
+        const opcoes = wrap.querySelector('#licantropia-opcoes');
+        const controlar = wrap.querySelector('#licantropia-controlar');
+        const forma = wrap.querySelector('#licantropia-forma');
+
+        ativa.addEventListener('change', () => {
+            opcoes.classList.toggle('hidden', !ativa.checked);
+            refreshRacialPowers();
+        });
+
+        wrap.querySelector('#licantropia-tipo').addEventListener('change', refreshRacialPowers);
+
+        controlar.addEventListener('change', () => {
+            const feraOption = forma.querySelector('option[value="fera"]');
+            feraOption.disabled = !controlar.checked;
+            feraOption.textContent = controlar.checked
+                ? 'Forma de fera'
+                : 'Forma de fera (requer Controlar Licantropia)';
+            if (!controlar.checked) forma.value = 'hibrida';
+            refreshRacialPowers();
+        });
+
+        forma.addEventListener('change', refreshRacialPowers);
+    }
+
+    // ── LICANTROPO ─────────────────────────────────────────────
+    function createLicantropoUi(container) {
+        if (!window.LICANTROPO_TIPOS) return;
+
+        container.innerHTML = `
+            <div class="fold-body" style="margin-top:12px">
+                <label for="licantropo-tipo" class="field-label">
+                    <span class="section-title" style="font-size:18px">Tipo de Licantropo</span>
+                </label>
+                <select id="licantropo-tipo">
+                    ${Object.entries(LICANTROPO_TIPOS).map(([key, tipo]) =>
+            `<option value="${key}">${tipo.nome}</option>`
+        ).join('')}
+                </select>
+
+                <div class="checklist" style="margin-top:12px">
+                    <label class="check">
+                        <input type="checkbox" id="licantropo-controlar">
+                        <span>Possui o poder Controlar Licantropia</span>
+                    </label>
+                </div>
+
+                <div style="margin-top:12px">
+                    <label for="licantropo-forma" class="field-label">
+                        <span class="section-title" style="font-size:18px">Forma de Transformação</span>
+                    </label>
+                    <select id="licantropo-forma">
+                        <option value="hibrida">Forma híbrida</option>
+                        <option value="fera" disabled>Forma de fera (requer Controlar Licantropia)</option>
+                    </select>
+                </div>
+
+                <p style="margin-top:10px;font-size:13px;color:var(--text-secondary)">
+                    Sem Controlar Licantropia, a transformação involuntária assume a forma híbrida
+                    e as ações do personagem ficam sob controle do mestre.
+                </p>
+            </div>`;
+
+        container.querySelector('#licantropo-tipo')
+            .addEventListener('change', updateLicantropoAttributes);
+
+        container.querySelector('#licantropo-controlar')
+            .addEventListener('change', () => {
+                const controlar = document.getElementById('licantropo-controlar').checked;
+                const forma = document.getElementById('licantropo-forma');
+                const feraOption = forma.querySelector('option[value="fera"]');
+
+                feraOption.disabled = !controlar;
+                feraOption.textContent = controlar
+                    ? 'Forma de fera'
+                    : 'Forma de fera (requer Controlar Licantropia)';
+
+                if (!controlar) forma.value = 'hibrida';
+
+                updateLicantropoAttributes();
+            });
+
+        container.querySelector('#licantropo-forma')
+            .addEventListener('change', updateLicantropoAttributes);
+    }
+
+    function updateLicantropoAttributes() {
+        if (racaSelect.value !== 'licantropo') return;
+
+        const race = RACE_DATA.licantropo;
+        const tipoKey = document.getElementById('licantropo-tipo')?.value || 'lobo';
+        const tipo = LICANTROPO_TIPOS[tipoKey];
+        const controlar = document.getElementById('licantropo-controlar')?.checked || false;
+        const forma = controlar
+            ? (document.getElementById('licantropo-forma')?.value || 'hibrida')
+            : 'hibrida';
+
+        if (!race || !tipo) return;
+
+        applyRaceAttributes(race.attributes, false, 0);
+
+        const dynamicPowers = buildLicantropiaDynamicPowers(tipo, controlar, forma);
+
+        document.getElementById('bonusMessage').innerHTML =
+            'Sem modificadores de atributos próprios' +
+            `<br><b>Tipo:</b> ${tipo.nome}` +
+            `<br><b>Forma:</b> ${forma === 'hibrida' ? 'Híbrida' : 'Fera'}` +
+            (controlar ? '<br><b>Poder:</b> Controlar Licantropia' : '');
+        renderRacialPowers(race, dynamicPowers);
+        updateAll();
+    }
+
 
     function updateAberrantAttributes() {
         const race = RACE_DATA.aberrant;
@@ -1033,7 +1335,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (racaSelect.options[racaSelect.selectedIndex]?.style.display === 'none') {
             racaSelect.value = 'outros'; handleRaceChange();
+            return;
         }
+        // Atualiza a exibição da licantropia quando o filtro de Dragão Brasil mudar
+        updateLicantropiaOverlay();
     }
 
     // ── RESET ─────────────────────────────────────────────────
@@ -1041,12 +1346,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm("Deseja resetar todos os campos?")) return;
 
         // 1. Desmarcar todos os checkboxes de raças adicionais
-        document.querySelectorAll('#race-specific-options input[type="checkbox"]').forEach(cb => {
+        document.querySelectorAll('#race-specific-options input[type="checkbox"], #licantropia-container input[type="checkbox"]').forEach(cb => {
             cb.checked = false;
         });
 
         // 2. Resetar todos os selects de raças adicionais
-        document.querySelectorAll('#race-specific-options select').forEach(sel => {
+        document.querySelectorAll('#race-specific-options select, #licantropia-container select').forEach(sel => {
             sel.selectedIndex = 0;
         });
 
@@ -1100,7 +1405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 acc[attr] = document.getElementById(`${attr}_outros`).value;
                 return acc;
             }, {}),
-            customChoices: Array.from(document.querySelectorAll('#race-specific-options input, #race-specific-options select')).map(el => ({
+            customChoices: Array.from(document.querySelectorAll('#race-specific-options input, #race-specific-options select, #licantropia-container input, #licantropia-container select')).map(el => ({
                 id: el.id,
                 value: el.type === 'checkbox' ? el.checked : el.value
             })),
@@ -1179,6 +1484,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let tamanho = race?.tamanho || 'Médio';
         const gt = document.getElementById('golem-tamanho'); if (gt?.value) tamanho = gt.value;
         const dt = document.getElementById('duende-tamanho'); if (dt?.value) tamanho = dt.value;
+        const licSel = getLicantropiaSelection(); // raça Licantropo ou maldição em outra raça
+        if (licSel && licSel.forma === 'fera') {
+            if (licSel.tipoKey === 'rato') tamanho = 'Minúsculo';
+            else if (licSel.tipoKey === 'texugo') tamanho = 'Pequeno';
+            else tamanho = 'Médio';
+        }
 
         const poderesRaciais = _currentRacialPowers.map(p => ({ name: p.name, desc: p.desc || '' }));
 
@@ -1228,6 +1539,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateYidishanAttributes = updateYidishanAttributes;
     window.updateVampiroAttributes = updateVampiroAttributes;
     window.updateFeericoAttributes = updateFeericoAttributes;
+    window.updateLicantropoAttributes = updateLicantropoAttributes;
 
     // ── INICIALIZAÇÃO ─────────────────────────────────────────
     populateAttributeTable();

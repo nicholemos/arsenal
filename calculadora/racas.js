@@ -56,6 +56,41 @@ function getInheritablePowerConfig(race) {
         return options.length ? { type: 'checklist', maxSelect: 2, options } : null;
     }
 
+    if (race === RACE_DATA.kobold) {
+        const baseOptions = (race.racialPowers || []).map((p, i) => ({
+            id: `kobold_base_${i}`,
+            name: p.name,
+            desc: p.desc || ''
+        }));
+        const talentOptions = typeof KOBOLD_TALENTS !== 'undefined'
+            ? Object.entries(KOBOLD_TALENTS).map(([id, t]) => ({
+                id,
+                name: t.name,
+                desc: t.desc || ''
+            }))
+            : [];
+        const options = [...baseOptions, ...talentOptions];
+        return options.length ? { type: 'checklist', maxSelect: 1, options } : null;
+    }
+
+    if (race === RACE_DATA.kallyanach) {
+        const elementos = ['Ácido', 'Eletricidade', 'Fogo', 'Frio', 'Luz', 'Trevas'];
+        const herancaOptions = elementos.map(elem => ({
+            id: `heranca_${elem.toLowerCase()}`,
+            name: `Herança Dracônica (${elem})`,
+            desc: `Você recebe redução 5 de dano contra ${elem.toLowerCase()}.`
+        }));
+        const bencaoOptions = typeof KALLYANACH_BENCAOS !== 'undefined'
+            ? Object.entries(KALLYANACH_BENCAOS).map(([id, b]) => ({
+                id,
+                name: b.name,
+                desc: b.desc || ''
+            }))
+            : [];
+        const options = [...herancaOptions, ...bencaoOptions];
+        return options.length ? { type: 'checklist', maxSelect: 1, options } : null;
+    }
+
     if (race === RACE_DATA.moreau) {
         const options = [];
         Object.entries(MOREAU_HERANCAS).forEach(([key, data]) => {
@@ -74,6 +109,7 @@ function getInheritablePowerConfig(race) {
 
 function getInheritedTamanho(raceKey, power) {
     if (power?.herancaKey === 'urso') return 'Grande';
+    if (power?.id === 'amontoados') return 'Grande';
     const race = RACE_DATA[raceKey];
     return race?.tamanho || 'Médio';
 }
