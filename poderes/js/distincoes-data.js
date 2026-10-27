@@ -2897,6 +2897,45 @@ const distincoesData = [
         ]
     },
 
+    {
+        id: 'andarilhos-do-ocaso',
+        name: 'Andarilhos do Ocaso',
+        source: 'revista-tormenta',
+        exclusiva: false,
+        admissao: 'O candidato deve ser um licantropo e provar sua devoção absoluta a Tenebra. Para isso, deve se submeter a um ritual no Templo de Tenebra em Kriegger, no extremo sul de Ahlen. Primeiro, precisa entregar-se à selvageria de sua transformação por uma noite, permitindo que a escuridão da Deusa o consuma. Depois, deve permanecer por cinco noites em um lugar completamente intocado pela luz, incluindo a da lua, do fogo e das estrelas. Ao emergir de seu esconderijo para o luar, será testado por um licantropo enviado por Tenebra, que geralmente o ataca. Caso sobreviva ao encontro, receberá a visita de Tenebra em sonho e se tornará um andarilho do ocaso.',
+        marca: {
+            name: 'Marca da Distinção: Transformação Indolor',
+            desc: 'O custo para assumir sua forma híbrida ou de fera diminui em 1 PM.'
+        },
+        poderes: [
+            {
+                name: 'Licantropo Verdadeiro',
+                req: 'Controlar Licantropia, treinado em Percepção e Sobrevivência',
+                desc: 'Em sua forma híbrida ou de fera, recebe +1 em testes de ataque, Percepção e Sobrevivência e na Defesa. Esses bônus aumentam em +1 para cada dois outros poderes da distinção que você possui.'
+            },
+            {
+                name: 'Caçador Noturno',
+                req: 'Licantropo Verdadeiro',
+                desc: 'Recebe o poder Marca da Presa (Tormenta20, p. 50) como um caçador de nível igual ao seu total de poderes da distinção × 4. Se já possuir esse poder, seu custo diminui em 1 PM. Essa redução não afeta habilidades baseadas no total de PM gastos em Marca da Presa.'
+            },
+            {
+                name: 'Noite Imortal',
+                req: 'Licantropo Verdadeiro, outro poder da distinção',
+                desc: 'Ao assumir sua forma híbrida ou de fera, pode gastar 2 PM para receber PV temporários em quantidade igual ao seu total de poderes da distinção × 10.'
+            },
+            {
+                name: 'Presas de Sombras',
+                req: 'Caçador Noturno',
+                desc: 'Ao assumir sua forma híbrida ou de fera, pode cobrir qualquer quantidade de suas armas naturais com sombras mágicas. Gasta 1 PM por arma escolhida, que causa +1d6 de dano de trevas até o fim da cena. Esse dano aumenta em um passo para cada dois outros poderes da distinção que você possui.'
+            },
+            {
+                name: 'Sentidos do Predador',
+                req: 'Dois outros poderes da distinção',
+                desc: 'Ao assumir sua forma híbrida ou de fera, pode gastar 2 PM para receber Percepção às Cegas com alcance médio até o fim da cena.'
+            }
+        ]
+    },
+
 
 ];
 
