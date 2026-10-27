@@ -12641,6 +12641,14 @@ const powersData = [
         pathReq: "all",
         desc: "Sempre que for bem-sucedido em montar um acampamento em terreno natural, você encontra frutos, insetos ou outros recursos naturais que ajudam a recuperar as energias. Cada personagem acampado recupera 1 PM por patamar em que você está."
     },
+    {
+        name: "Controlar Licantropia",
+        type: "destiny",
+        category: "Geral",
+        source: "dragaobrasil",
+        req: "Saber que contraiu licantropia",
+        desc: "Você aprendeu uma forma de controlar sua licantropia. Você ainda é afetado quando presencia algum tipo de violência, mas, quando faz um teste de Vontade para impedir a transformação, rola dois dados e usa o melhor resultado. Se não estiver transformado pela maldição, pode gastar uma ação completa e 3 PM para assumir sua forma híbrida ou de fera, mantendo o controle sobre suas ações. Cada transformação dura pelo tempo que você quiser, mas você reverte à forma normal se ficar inconsciente ou morrer. Por fim, habilidades e efeitos que afetam a Forma Selvagem de um druida se aplicam às suas formas de licantropo."
+    },
 
 ];
 
