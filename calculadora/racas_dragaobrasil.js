@@ -377,7 +377,7 @@ const RACE_DATA_DRAGAOBRASIL = {
                 desc: 'Ao presenciar violência física em que uma criatura causa dano letal a outra, você pode ser forçado a assumir sua forma híbrida na noite seguinte. A transformação dura até o amanhecer e, ao retornar à forma humanoide, você não se lembra do que fez. Se souber da maldição, pode fazer um teste de Vontade CD 25 para evitar a transformação, com a CD aumentando em 5 a cada teste anterior. Se participou ativamente da violência, sofre –5 nesse teste. Durante a transformação involuntária, suas ações são controladas pelo mestre.'
             }
         ],
-        imageUrl: '',
+        imageUrl: 'https://i.pinimg.com/originals/2c/e8/91/2ce891c2bcad49f07ec0bbcd5b51fdc0.gif',
         source: "Dragão Brasil"
 
     },
