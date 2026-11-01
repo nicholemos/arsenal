@@ -4082,3 +4082,40 @@ body.theme-dark .attr-token.attr-medal .attr-val {
     .od-list { max-height: 34vh; flex-shrink: 0; }
     .od-detail { overflow: visible; }
 }
+
+
+/* ---------- Raça ---------- */
+.od-warn { font-size: .82rem; padding: 7px 10px; margin: 6px 0; border-radius: 8px;
+    border: 1px dashed var(--ouro, #c9933a); background: rgba(201, 147, 58, .12); }
+.rac-attrs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+@media (max-width: 560px) { .rac-attrs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.rac-attr { border: 1px solid var(--borda-card, #d0d0d0); border-radius: 8px; padding: 5px 4px; text-align: center; }
+.rac-attr.on { border-color: var(--ouro, #c9933a); box-shadow: 0 0 0 1px var(--ouro, #c9933a) inset; }
+.rac-attr.dis { opacity: .45; }
+.rac-attr-name { font-weight: 700; font-size: .8rem; }
+.rac-attr-fixed { font-size: .72rem; color: var(--texto-secundario, #475569); min-height: 1em; }
+.rac-attr .cls-level { display: flex; justify-content: center; }
+.rac-attr .cls-level button { width: 22px; }
+.rac-attr .cls-level input { width: 26px; padding: 0; }
+.rac-skills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.rac-power { display: block; cursor: default; }
+.rac-power summary { cursor: pointer; }
+
+
+/* ---------- Divindade ---------- */
+.od-fiel { display: flex; gap: 8px; align-items: flex-start; border: 1px dashed var(--ouro, #c9933a);
+    border-radius: 8px; padding: 7px 10px; margin: 4px 0 8px; cursor: pointer; }
+.od-fiel input { margin-top: 3px; accent-color: var(--ouro, #c9933a); }
+.od-fiel small { display: block; color: var(--texto-secundario, #475569); font-size: .76rem; }
+
+
+/* ---------- Divindade: menores, panteão ---------- */
+.od-check { display: flex; align-items: center; gap: 6px; font-size: .82rem; cursor: pointer; margin: 0; white-space: nowrap; }
+.od-check input { accent-color: var(--ouro, #c9933a); }
+.od-group { padding: 6px 10px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    background: rgba(201, 147, 58, .15); color: var(--texto-secundario, #475569); }
+.od-hint { padding: 8px 10px; font-size: .76rem; font-style: italic; color: var(--texto-secundario, #475569); }
+.od-item.special .od-item-name { font-style: italic; }
+.od-statusrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0; font-size: .86rem; }
+.od-num { width: 64px; height: 28px; margin-left: 6px; text-align: center; border-radius: 6px;
+    border: 1px solid var(--ouro, #c9933a); background: var(--bg-card-solid, #fff); color: inherit; }

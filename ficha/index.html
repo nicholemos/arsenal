@@ -158,8 +158,13 @@
                                 class="form-control t20-input text-center" id="charName" oninput="saveData()"></div>
                         <div class="col-md-4"><label class="t20-label">Jogador(a)</label><input type="text"
                                 class="form-control t20-input text-center" id="playerName" oninput="saveData()"></div>
-                        <div class="col-md-3"><label class="t20-label">Raça</label><input type="text"
-                                class="form-control t20-input text-center" id="charRace" oninput="saveData()"></div>
+                        <div class="col-md-3"><label class="t20-label">Raça</label>
+                            <div class="input-group flex-nowrap">
+                                <input type="text" class="form-control t20-input text-center" id="charRace" oninput="saveData()">
+                                <button type="button" class="btn btn-outline-secondary cls-pick-btn"
+                                    onclick="abrirRaca()" title="Escolher raça e aplicar bônus">
+                                    <i class="bi bi-search"></i></button>
+                            </div></div>
                     </div>
 
                     <div class="header-extra">
@@ -194,9 +199,13 @@
                                         onclick="abrirDistincao()" title="Buscar distinção e aplicar a marca">
                                         <i class="bi bi-search"></i></button>
                                 </div></div>                                                                
-                            <div class="col-md-3"><label class="t20-label">Divindade</label><input type="text"
-                                    class="form-control t20-input text-center" id="charDeity" oninput="saveData()">
-                            </div>
+                            <div class="col-md-3"><label class="t20-label">Divindade</label>
+                                <div class="input-group flex-nowrap">
+                                    <input type="text" class="form-control t20-input text-center" id="charDeity" oninput="saveData()">
+                                    <button type="button" class="btn btn-outline-secondary cls-pick-btn"
+                                        onclick="abrirDeus()" title="Escolher divindade e poderes concedidos">
+                                        <i class="bi bi-search"></i></button>
+                                </div></div>
                         </div>
                     </div>
                 </div>
@@ -1744,12 +1753,69 @@
         </div>
     </div>
 
+    <!-- Modal: Raça -->
+    <div id="modalRaca" class="cls-overlay" style="display:none;" onclick="if(event.target===this)fecharRaca()">
+        <div class="cls-modal od-modal" role="dialog" aria-label="Raça do personagem">
+            <div class="cls-modal-head">
+                <strong><i class="bi bi-people me-2"></i>Raça</strong>
+                <button type="button" class="cls-close" onclick="fecharRaca()" aria-label="Fechar">✕</button>
+            </div>
+            <div class="od-toolbar">
+                <input type="search" id="racSearch" class="od-search" placeholder="Buscar raça..." oninput="racSearch(this.value)">
+                <div id="racChips" class="od-chips"></div>
+            </div>
+            <div class="cls-modal-body od-body">
+                <div class="od-pane">
+                    <div id="racList" class="od-list"></div>
+                    <div id="racDetail" class="od-detail"></div>
+                </div>
+            </div>
+            <div class="cls-modal-foot">
+                <div id="racStatus" class="cls-summary"></div>
+                <div class="cls-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fecharRaca()">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-danger" id="racApplyBtn" onclick="aplicarRaca()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Divindade -->
+    <div id="modalDeus" class="cls-overlay" style="display:none;" onclick="if(event.target===this)fecharDeus()">
+        <div class="cls-modal od-modal" role="dialog" aria-label="Divindade do personagem">
+            <div class="cls-modal-head">
+                <strong><i class="bi bi-brightness-high me-2"></i>Divindade</strong>
+                <button type="button" class="cls-close" onclick="fecharDeus()" aria-label="Fechar">✕</button>
+            </div>
+            <div class="od-toolbar">
+                <input type="search" id="deuSearch" class="od-search" placeholder="Buscar divindade..." oninput="deuSearch(this.value)">
+                <label class="od-check"><input type="checkbox" id="deuMenores" onchange="deuMenores(this.checked)">
+                    Mostrar divindades menores e caídas</label>
+            </div>
+            <div class="cls-modal-body od-body">
+                <div class="od-pane">
+                    <div id="deuList" class="od-list"></div>
+                    <div id="deuDetail" class="od-detail"></div>
+                </div>
+            </div>
+            <div class="cls-modal-foot">
+                <div id="deuStatus" class="cls-summary"></div>
+                <div class="cls-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fecharDeus()">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-danger" id="deuApplyBtn" onclick="aplicarDeus()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../ameacas/db/ameacas_db.js"></script>
     <script src="../poderes/js/data.js"></script>
     <script src="../poderes/js/classes-data.js"></script>
     <script src="../poderes/js/classes-db-data.js"></script>
     <script src="../poderes/js/origens.js"></script>
     <script src="../poderes/js/distincoes-data.js"></script>
+    <script src="../calculadora/racas.js"></script>
+    <script src="../calculadora/racas_dragaobrasil.js"></script>
     <script src="pdf_base64.js"></script>
 
     <!-- Bancos de dados de itens para busca inline -->

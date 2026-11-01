@@ -1656,12 +1656,14 @@ function saveData() {
         charName: getVal('charName'),
         playerName: getVal('playerName'),
         charRace: getVal('charRace'),
+        charRaceApplied: (typeof charRaceApplied !== 'undefined') ? charRaceApplied : null,
         charOrigin: getVal('charOrigin'),
         charClass: getVal('charClass'),
         charClasses: (typeof charClasses !== 'undefined') ? charClasses : [],
         charDistinction: getVal('charDistinction'),
         charLevel: getVal('charLevel'),
         charDeity: getVal('charDeity'),
+        charDeityApplied: (typeof charDeityApplied !== 'undefined') ? charDeityApplied : null,
 
         extras: {
             profs: getVal('charProfs'),
@@ -1881,6 +1883,7 @@ function loadData() {
         if (data.charName !== undefined) document.getElementById('charName').value = data.charName;
         if (data.playerName !== undefined) document.getElementById('playerName').value = data.playerName;
         if (data.charRace !== undefined) document.getElementById('charRace').value = data.charRace;
+        if (data.charRaceApplied && typeof data.charRaceApplied === 'object') charRaceApplied = data.charRaceApplied;
         if (data.charOrigin !== undefined) document.getElementById('charOrigin').value = data.charOrigin;
         if (data.charClass !== undefined) document.getElementById('charClass').value = data.charClass;
         if (Array.isArray(data.charClasses)) charClasses = data.charClasses;
@@ -1890,6 +1893,7 @@ function loadData() {
         }
         if (data.charLevel !== undefined) document.getElementById('charLevel').value = data.charLevel;
         if (data.charDeity !== undefined) document.getElementById('charDeity').value = data.charDeity;
+        if (data.charDeityApplied && typeof data.charDeityApplied === 'object') charDeityApplied = data.charDeityApplied;
 
         // --- EXTRAS ---
         if (data.extras) {
@@ -6048,19 +6052,21 @@ function _odAddAbilities(list, folder) {
     const existing = new Set(Array.from(document.querySelectorAll('#abilitiesRaceList .inp-name'))
         .map(el => el.value.trim().toLowerCase()));
     let added = 0;
+    _odLastAdded = [];
     const prev = isLoading;
     isLoading = true;
     try {
         list.forEach(a => {
             const k = a.name.trim().toLowerCase();
             if (!k || existing.has(k)) return;
-            existing.add(k);
+            existing.add(k); _odLastAdded.push(a.name);
             addAbility('abilitiesRaceList', a.name, _odPlainEsc(a.desc), 0, folder);
             added++;
         });
     } finally { isLoading = prev; }
     return added;
 }
+let _odLastAdded = [];
 function _odShortDesc(t, n = 150) { const p = _clsPlain(t).replace(/\s+/g, ' '); return p.length > n ? p.slice(0, n - 1) + '…' : p; }
 
 // ---------------------------- ORIGEM ----------------------------
@@ -6310,4 +6316,417 @@ function aplicarDistincao() {
     saveData();
     fecharDistincao();
     if (typeof showSheetToast === 'function') showSheetToast(`✅ Distinção ${_odEsc(d.name)}: ${added} habilidade(s) adicionada(s)`);
+}
+
+
+// ============================================================
+//  RAÇA — busca + aplicação (bônus de atributo, tamanho e poderes)
+//  Dados: racas.js (+ racas_dragaobrasil.js), os mesmos da Calculadora de Atributos
+// ============================================================
+const RAC_ATTR_KEY = { FOR: 'forca', DES: 'destreza', CON: 'constituicao', INT: 'inteligencia', SAB: 'sabedoria', CAR: 'carisma' };
+const RAC_ATTRS = Object.keys(RAC_ATTR_KEY);
+const RAC_TYPE_LABEL = { base: 'T20', ameacas: 'Ameaças de Arton', ghanor: 'Ruff Ghanor', DHracas: 'Heróis de Arton', outraRaca: 'Outras', dragaobrasil: 'Dragão Brasil' };
+// Raça aplicada por último (para desfazer os bônus ao trocar): { id, attrs: {FOR: n}, powers: [nomes] }
+let charRaceApplied = { id: '', attrs: {}, powers: [] };
+let _racSel = null, _racPicks = {}, _racSkills = ['', ''], _racQuery = '', _racType = '';
+
+function _racData() { return (typeof window.RACE_DATA === 'object' && window.RACE_DATA) ? window.RACE_DATA : {}; }
+function _racIds() { return Object.keys(_racData()); }
+function _racShortName(r) { return String(r.name).replace(/\s*\([^)]*\)\s*$/, '').split('/')[0].trim(); }
+function _racFixed(r) { // bônus fixos da raça, por sigla de atributo
+    const out = {};
+    RAC_ATTRS.forEach(a => { const v = (r.attributes || {})[RAC_ATTR_KEY[a]]; if (v) out[a] = v; });
+    return out;
+}
+function _racPickMax(r) { return r.isChoice ? (r.choiceCount || 0) : 0; }
+function _racPicked() { return RAC_ATTRS.reduce((n, a) => n + (_racPicks[a] || 0), 0); }
+
+function abrirRaca() {
+    if (!_racIds().length) { alert('O banco de raças (racas.js) não foi carregado. Confira se os arquivos estão em ../calculadora/.'); return; }
+    _racSel = null; _racPicks = {}; _racSkills = ['', '']; _racQuery = ''; _racType = '';
+    document.getElementById('racSearch').value = '';
+    document.getElementById('modalRaca').style.display = 'flex';
+    _racRenderChips(); _racRenderList(); _racRenderDetail();
+}
+function fecharRaca() { document.getElementById('modalRaca').style.display = 'none'; }
+function racSearch(v) { _racQuery = v; _racRenderList(); }
+function racChip(t) { _racType = (_racType === t) ? '' : t; _racRenderChips(); _racRenderList(); }
+function _racRenderChips() {
+    const types = [...new Set(_racIds().map(id => _racData()[id].type))];
+    document.getElementById('racChips').innerHTML = types.map(t =>
+        `<button type="button" class="od-chip ${_racType === t ? 'on' : ''}" data-t="${_odEsc(t)}" onclick="racChip(this.dataset.t)">${_odEsc(RAC_TYPE_LABEL[t] || t)}</button>`).join('');
+}
+function _racRenderList() {
+    const q = _clsNorm(_racQuery), D = _racData();
+    const ids = _racIds().filter(id => (!_racType || D[id].type === _racType) && (!q || _clsNorm(D[id].name).includes(q)));
+    document.getElementById('racList').innerHTML = ids.length ? ids.map(id =>
+        `<div class="od-item ${id === _racSel ? 'sel' : ''}" onclick="racSelect('${id}')">
+            <span class="od-item-name">${_odEsc(D[id].name)}</span>
+            <span class="od-item-sub">${_odEsc(RAC_TYPE_LABEL[D[id].type] || D[id].type)}${D[id].raca && D[id].raca !== '-' ? ' · ' + _odEsc(D[id].raca) : ''}</span>
+        </div>`).join('') : '<div class="od-empty">Nenhuma raça encontrada.</div>';
+}
+function racSelect(id) { _racSel = id; _racPicks = {}; _racSkills = ['', '']; _racRenderList(); _racRenderDetail(); }
+function racPick(a, d) {
+    const r = _racData()[_racSel]; if (!r) return;
+    const cur = _racPicks[a] || 0, next = cur + d;
+    if (next < 0 || next > (r.maxChoicePerAttribute || 1)) return;
+    if (d > 0 && _racPicked() >= _racPickMax(r)) return;
+    _racPicks[a] = next; _racRenderDetail();
+}
+function racSkill(i, v) { _racSkills[i] = v; _racUpdateStatus(); }
+
+function _racRenderDetail() {
+    const box = document.getElementById('racDetail');
+    const r = _racData()[_racSel];
+    if (!r) { box.innerHTML = '<div class="od-empty">Escolha uma raça na lista para ver bônus e poderes.</div>'; _racUpdateStatus(); return; }
+    let html = `<h5 class="od-title">${_odEsc(r.name)} <span class="cls-src">${_odEsc(RAC_TYPE_LABEL[r.type] || r.type)}</span></h5>
+        <div class="od-line"><b>Tipo:</b> ${_odEsc(r.raca && r.raca !== '-' ? r.raca : '—')} · <b>Tamanho:</b> ${_odEsc(r.tamanho || 'depende das escolhas')}</div>
+        <div class="od-line"><b>Atributos:</b> ${_odEsc(r.bonusMessage || '—')}</div>`;
+    if (r.createCustomUi) {
+        html += `<div class="od-warn">Esta raça tem escolhas especiais (heranças, talentos, chassi etc.). Aplico os bônus e poderes fixos;
+            as escolhas especiais faça na Calculadora de Atributos ou adicione à mão.</div>`;
+    }
+    if (r.isChoice) {
+        const max = _racPickMax(r), n = _racPicked(), locked = r.lockedChoiceAttributes || [];
+        html += `<div class="od-sub">Distribua ${max} bônus de atributo <b class="${n === max ? 'od-ok' : ''}">(${n}/${max})</b></div>
+            <div class="rac-attrs">${RAC_ATTRS.map(a => {
+                const lk = locked.includes(RAC_ATTR_KEY[a]), v = _racPicks[a] || 0, fx = _racFixed(r)[a] || 0;
+                return `<div class="rac-attr ${v ? 'on' : ''} ${lk ? 'dis' : ''}">
+                    <div class="rac-attr-name">${a}</div>
+                    <div class="rac-attr-fixed">${fx ? (fx > 0 ? '+' : '') + fx : '&nbsp;'}</div>
+                    <div class="cls-level"><button type="button" ${lk ? 'disabled' : ''} onclick="racPick('${a}', -1)" aria-label="Menos">−</button>
+                    <input type="text" readonly value="${v}" tabindex="-1">
+                    <button type="button" ${lk ? 'disabled' : ''} onclick="racPick('${a}', 1)" aria-label="Mais">+</button></div>
+                </div>`;
+            }).join('')}</div>`;
+    }
+    if (_racSel === 'humano') {
+        html += `<div class="od-sub">Versátil <small>(perícias treinadas; deixe vazio se for trocar por um poder)</small></div>
+            <div class="rac-skills">${[0, 1].map(i => `<select class="od-select" onchange="racSkill(${i}, this.value)">
+                <option value="">Perícia ${i + 1}...</option>${_orgSkillOptions().map(n => `<option value="${_odEsc(n)}" ${_racSkills[i] === n ? 'selected' : ''}>${_odEsc(n)}</option>`).join('')}</select>`).join('')}</div>`;
+    }
+    const pw = r.racialPowers || [];
+    html += `<div class="od-sub">Poderes da raça (${pw.length})</div>` + (pw.length ? pw.map(p =>
+        `<details class="od-benefit on static rac-power"><summary><b>${_odEsc(p.name)}</b></summary><small>${_odEsc(_clsPlain(p.desc))}</small></details>`).join('')
+        : '<div class="od-empty">Esta raça não tem poderes fixos cadastrados.</div>');
+    box.innerHTML = html;
+    _racUpdateStatus();
+}
+
+function _racCompute() {
+    const r = _racData()[_racSel];
+    const res = { r, bonuses: {}, powers: [], missing: [] };
+    if (!r) { res.missing.push('Escolha uma raça.'); return res; }
+    Object.assign(res.bonuses, _racFixed(r));
+    RAC_ATTRS.forEach(a => { if (_racPicks[a]) res.bonuses[a] = (res.bonuses[a] || 0) + _racPicks[a]; });
+    const need = _racPickMax(r) - _racPicked();
+    if (need > 0) res.missing.push(`Distribua mais ${need} bônus de atributo.`);
+    res.powers = (r.racialPowers || []).map(p => ({ name: p.name, desc: p.desc }));
+    return res;
+}
+function _racUpdateStatus() {
+    const st = document.getElementById('racStatus'), btn = document.getElementById('racApplyBtn');
+    if (!st) return;
+    const c = _racCompute();
+    btn.disabled = c.missing.length > 0;
+    if (!c.r) { st.innerHTML = 'Nenhuma raça escolhida.'; return; }
+    const txt = RAC_ATTRS.filter(a => c.bonuses[a]).map(a => `${a} ${c.bonuses[a] > 0 ? '+' : ''}${c.bonuses[a]}`).join(', ') || 'sem bônus de atributo';
+    st.innerHTML = `<b>${_odEsc(_racShortName(c.r))}</b> · ${_odEsc(txt)} · ${c.powers.length} poder(es)` +
+        (c.missing.length ? `<br><span class="cls-bad">${_odEsc(c.missing[0])}</span>` : '');
+}
+
+function aplicarRaca() {
+    const c = _racCompute();
+    if (!c.r || c.missing.length) return;
+    const old = charRaceApplied || { id: '', attrs: {}, powers: [] };
+
+    // 1) desfaz a raça anterior (bônus de atributo e poderes que a ficha recebeu dela)
+    if (old.powers && old.powers.length) {
+        const names = new Set(old.powers.map(n => String(n).trim().toLowerCase()));
+        document.querySelectorAll('#abilitiesRaceList .ability-row').forEach(row => {
+            const folder = row.closest('.race-folder');
+            const nm = row.querySelector('.inp-name');
+            if (folder && folder.dataset.name === 'Raça' && nm && names.has(nm.value.trim().toLowerCase())) row.remove();
+        });
+    }
+    RAC_ATTRS.forEach(a => {
+        const el = document.getElementById('attr-' + a);
+        el.value = (parseInt(el.value) || 0) - ((old.attrs || {})[a] || 0) + (c.bonuses[a] || 0);
+    });
+
+    // 2) nome, tamanho e poderes
+    document.getElementById('charRace').value = _racShortName(c.r);
+    const sel = document.getElementById('charSize');
+    if (c.r.tamanho && sel) {
+        const opt = Array.from(sel.options).find(o => _clsNorm(o.text) === _clsNorm(c.r.tamanho));
+        if (opt) sel.value = opt.value;
+    }
+    const added = _odAddAbilities(c.powers, 'Raça');
+    const addedNames = _odLastAdded.slice();
+
+    // 3) Humano: Versátil
+    if (_racSel === 'humano') _racSkills.filter(Boolean).forEach(n => _odTrainSkill({ name: n, specialty: '' }));
+
+    charRaceApplied = { id: _racSel, attrs: c.bonuses, powers: addedNames };
+    renderSkills();
+    refreshLevelFolders();
+    updateCalculations();
+    saveData();
+    fecharRaca();
+    if (typeof showSheetToast === 'function') showSheetToast(`✅ Raça ${_odEsc(_racShortName(c.r))}: bônus de atributo e ${added} poder(es) aplicados`);
+}
+
+
+// ============================================================
+//  DIVINDADE — poderes concedidos (powersData, type "conceded")
+//  Maiores: devoto fiel (Paladino, Frade, Druida, Clérigo) escolhe 2 poderes; os demais, 1.
+//  Menores/caídas: sempre 1 poder; o devoto fiel recebe, no lugar do 2º poder,
+//  PM adicionais = 1 + status divino do deus, limitado ao nível.
+//  Panteão: nenhum poder concedido, só obrigações/restrições próprias.
+// ============================================================
+const DEU_FIEL_CLASSES = ['paladino', 'frade', 'druida', 'clerigo'];
+const DEU_SOURCE_LABEL = { deuses: 'Deuses de Arton', jornada: 'Jornada', dragaobrasil: 'Dragão Brasil' };
+// grafias diferentes do mesmo deus nos dados
+const DEU_CANON = { tannatoh: 'Tanna-Toh', keen: 'Keenn', inghlblhpholstgt: 'Inghlblhpholtsgt' };
+// As 20 divindades maiores do Panteão de T20. Toda outra divindade conta como MENOR,
+// a menos que esteja em DEU_INFO como 'caida'.
+const DEU_MAIORES = ['aharadak', 'allihanna', 'arsenal', 'azgher', 'hyninn', 'kallyadranoch', 'khalmyr', 'lena', 'linwu', 'marah',
+    'megalokk', 'nimb', 'oceano', 'sszzaas', 'tannatoh', 'tenebra', 'thwor', 'thyatis', 'valkaria', 'wynna'];
+// Ajuste por divindade (chave = nome sem acento/hífen/espaço, minúsculo):
+//   { tipo: 'menor' | 'caida', status: <número do status divino> }
+// Ex.: DEU_INFO.glorienn = { tipo: 'caida', status: 3 };
+const DEU_INFO = {};
+const DEU_NENHUM = '__nenhum', DEU_PANTEAO = '__panteao';
+const DEU_PANTEAO_TEXTO = 'Você cultua o Panteão como um todo e não recebe nenhum Poder Concedido. Sua única obrigação e restrição é não usar armas cortantes ou perfurantes (derramam sangue, algo que frades do Panteão consideram proibido). Sua arma preferida é a maça e você pode canalizar energia positiva ou negativa, a sua escolha (uma vez feita, a escolha não pode ser mudada). Cultuar o Panteão conta como sua devoção.';
+
+let charDeityApplied = { name: '', powers: [], pm: 0 };
+let _deuCache = null, _deuSel = null, _deuPicks = new Set(), _deuFiel = false, _deuQuery = '';
+let _deuMenoresOn = false, _deuStatus = '', _deuEnergia = '', _deuPmOn = true;
+
+function _deuBuild() {
+    if (_deuCache) return _deuCache;
+    const map = new Map(), panteao = [];
+    const pool = (typeof powersData !== 'undefined' ? powersData : []).filter(p => p.type === 'conceded');
+    pool.forEach(p => {
+        if (_clsNorm(p.category) === 'panteao') { panteao.push(p); return; }
+        String(p.category).split(/\s*,\s*|\s+e\s+|\s+ou\s+/).map(x => x.trim()).filter(Boolean).forEach(n => {
+            let slug = _clsSlug(n);
+            const name = DEU_CANON[slug] || n;
+            slug = _clsSlug(name);
+            if (!map.has(slug)) map.set(slug, { slug, name, powers: [] });
+            const d = map.get(slug);
+            if (!d.powers.includes(p)) d.powers.push(p);
+        });
+    });
+    _deuCache = { deuses: [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')), panteao };
+    return _deuCache;
+}
+function _deuById(slug) { return _deuBuild().deuses.find(d => d.slug === slug); }
+function _deuTipo(d) { return DEU_MAIORES.includes(d.slug) ? 'maior' : ((DEU_INFO[d.slug] || {}).tipo || 'menor'); }
+const DEU_TIPO_LABEL = { maior: 'maior', menor: 'menor', caida: 'caída' };
+
+// Classes do personagem (ids), pelo seletor de classes ou pelo texto do campo
+function _deuClassIds() {
+    const saved = (typeof charClasses !== 'undefined' ? charClasses : []).filter(e => _clsById(e.id));
+    if (saved.length && _clsJoin(saved) === getVal('charClass').trim()) return saved.map(e => e.id);
+    return _clsParseText(getVal('charClass')).map(e => e.id);
+}
+function _deuAutoFiel() { return _deuClassIds().some(id => DEU_FIEL_CLASSES.includes(id)); }
+function _deuNivel() { return Math.max(1, parseInt(getVal('charLevel')) || 1); }
+
+// Regras da seleção atual: quantos poderes, PM extra etc.
+function _deuRules() {
+    const r = { kind: null, d: null, tipo: null, max: 0, pm: 0, statusMissing: false, status: null, missing: '' };
+    if (_deuSel === DEU_NENHUM) { r.kind = 'nenhum'; return r; }
+    if (_deuSel === DEU_PANTEAO) { r.kind = 'panteao'; if (!_deuEnergia) r.missing = 'Escolha a energia que você canaliza.'; return r; }
+    const d = _deuById(_deuSel);
+    if (!d) { r.missing = 'Escolha uma divindade.'; return r; }
+    r.kind = 'deus'; r.d = d; r.tipo = _deuTipo(d);
+    if (r.tipo === 'maior') { r.max = _deuFiel ? 2 : 1; return r; }
+    r.max = 1;
+    if (_deuFiel) {
+        const st = String(_deuStatus).trim() !== '' ? parseInt(_deuStatus) : ((DEU_INFO[d.slug] || {}).status);
+        if (st === undefined || st === null || isNaN(st)) r.statusMissing = true;
+        else { r.status = Math.max(0, st); r.pm = Math.min(1 + r.status, _deuNivel()); }
+    }
+    return r;
+}
+
+function abrirDeus() {
+    if (!_deuBuild().deuses.length) { alert('Não encontrei poderes concedidos no banco (data.js).'); return; }
+    _deuSel = null; _deuPicks = new Set(); _deuQuery = ''; _deuFiel = _deuAutoFiel();
+    _deuMenoresOn = false; _deuStatus = ''; _deuEnergia = ''; _deuPmOn = true;
+    document.getElementById('deuSearch').value = '';
+    const curRaw = getVal('charDeity').trim(), cur = _clsSlug(curRaw);
+    let preselect = null;
+    if (cur === 'nenhum') preselect = DEU_NENHUM;
+    else if (cur === 'panteao') preselect = DEU_PANTEAO;
+    else {
+        const hit = cur && _deuBuild().deuses.find(d => d.slug === (DEU_CANON[cur] ? _clsSlug(DEU_CANON[cur]) : cur));
+        if (hit) { preselect = hit.slug; if (_deuTipo(hit) !== 'maior') _deuMenoresOn = true; }
+    }
+    document.getElementById('deuMenores').checked = _deuMenoresOn;
+    document.getElementById('modalDeus').style.display = 'flex';
+    if (preselect) deuSelect(preselect); else { _deuRenderList(); _deuRenderDetail(); }
+}
+function fecharDeus() { document.getElementById('modalDeus').style.display = 'none'; }
+function deuSearch(v) { _deuQuery = v; _deuRenderList(); }
+function deuMenores(on) { _deuMenoresOn = on; _deuRenderList(); }
+
+function _deuItem(id, nome, sub, extraCls = '') {
+    return `<div class="od-item ${extraCls} ${id === _deuSel ? 'sel' : ''}" onclick="deuSelect('${id}')">
+        <span class="od-item-name">${_odEsc(nome)}</span><span class="od-item-sub">${_odEsc(sub)}</span></div>`;
+}
+function _deuRenderList() {
+    const q = _clsNorm(_deuQuery);
+    const match = n => !q || _clsNorm(n).includes(q);
+    const all = _deuBuild().deuses;
+    const majors = all.filter(d => _deuTipo(d) === 'maior' && match(d.name));
+    const others = all.filter(d => _deuTipo(d) !== 'maior' && match(d.name));
+    let html = '';
+    if (match('Nenhum')) html += _deuItem(DEU_NENHUM, 'Nenhum', 'Sem divindade', 'special');
+    html += majors.map(d => _deuItem(d.slug, d.name, `maior · ${d.powers.length} poder(es)`)).join('');
+    if (match('Panteão')) html += _deuItem(DEU_PANTEAO, 'Panteão', 'Cultuar todos os deuses · sem poder concedido', 'special');
+    if (_deuMenoresOn && others.length) {
+        html += '<div class="od-group">Divindades menores e caídas</div>';
+        html += others.map(d => _deuItem(d.slug, d.name, `${DEU_TIPO_LABEL[_deuTipo(d)]} · ${d.powers.length} poder(es)`)).join('');
+    }
+    if (!_deuMenoresOn && q && others.length) {
+        html += `<div class="od-hint">${others.length} divindade(s) menor(es) ou caída(s) combinam com a busca. Marque “Mostrar divindades menores e caídas” para vê-las.</div>`;
+    }
+    document.getElementById('deuList').innerHTML = html || '<div class="od-empty">Nenhuma divindade encontrada.</div>';
+}
+function deuSelect(id) { _deuSel = id; _deuPicks = new Set(); _deuStatus = ''; _deuRenderList(); _deuRenderDetail(); }
+function deuFiel(on) {
+    _deuFiel = on;
+    _deuPicks = new Set([..._deuPicks].slice(0, _deuRules().max));
+    _deuRenderDetail();
+}
+function deuToggle(key, on) { if (on) _deuPicks.add(key); else _deuPicks.delete(key); _deuRenderDetail(); }
+function deuStatus(v) { _deuStatus = v; _deuRenderDetail(); }
+function deuEnergia(v) { _deuEnergia = v; _deuRenderDetail(); }
+function deuPm(on) { _deuPmOn = on; _deuRenderDetail(); }
+
+function _deuPowerCard(p, key, n, max) {
+    const on = _deuPicks.has(key), dis = !on && n >= max;
+    const src = DEU_SOURCE_LABEL[p.source];
+    const showReq = p.req && !/^Devoto d[oae]s? [^,;]+$/i.test(p.req);
+    return `<label class="od-benefit ${on ? 'on' : ''} ${dis ? 'dis' : ''}">
+        <input type="checkbox" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''} onchange="deuToggle('${key}', this.checked)">
+        <span><b>${_odEsc(p.name)}</b> ${src ? `<span class="od-tag">${_odEsc(src)}</span>` : ''}
+        ${showReq ? `<small class="od-req">Pré-req.: ${_odEsc(p.req)}</small>` : ''}
+        <small>${_odEsc(_odShortDesc(p.desc, 230))}</small></span></label>`;
+}
+function _deuPowerKey(p) { return (typeof powersData !== 'undefined' ? powersData : []).indexOf(p); }
+
+function _deuRenderDetail() {
+    const box = document.getElementById('deuDetail');
+    const r = _deuRules();
+    if (r.kind === 'nenhum') {
+        box.innerHTML = `<h5 class="od-title">Nenhum</h5><div class="od-line">Personagem sem divindade: não recebe poderes concedidos.
+            Se havia uma divindade aplicada antes, os poderes concedidos dela são removidos da ficha.</div>`;
+    } else if (r.kind === 'panteao') {
+        box.innerHTML = `<h5 class="od-title">Panteão</h5><div class="od-line">${_odEsc(DEU_PANTEAO_TEXTO)}</div>
+            <div class="od-sub">Energia que você canaliza <small>(escolha definitiva)</small></div>
+            <div class="rac-skills">${['positiva', 'negativa'].map(e => `<label class="od-fiel"><input type="radio" name="deuEnergia" ${_deuEnergia === e ? 'checked' : ''} onchange="deuEnergia('${e}')">
+                <span><b>Energia ${e}</b></span></label>`).join('')}</div>`;
+    } else if (r.kind === 'deus') {
+        const d = r.d, n = _deuPicks.size, auto = _deuAutoFiel(), menor = r.tipo !== 'maior';
+        let html = `<h5 class="od-title">${_odEsc(d.name)} <span class="cls-src">${DEU_TIPO_LABEL[r.tipo]}</span></h5>`;
+        html += `<label class="od-fiel"><input type="checkbox" ${_deuFiel ? 'checked' : ''} onchange="deuFiel(this.checked)">
+            <span><b>Devoto Fiel</b> ${menor ? '(PM adicionais no lugar do 2º poder)' : '(2 poderes concedidos)'}
+            <small>Paladinos, Frades, Druidas e Clérigos são devotos fiéis; os demais devotos escolhem 1 poder.
+            ${auto ? 'Sua classe é de devoto fiel (pode desmarcar).' : 'Marque se este personagem for devoto fiel.'}</small></span></label>`;
+        if (menor) {
+            html += `<div class="od-warn">Divindade ${DEU_TIPO_LABEL[r.tipo]}: concede apenas <b>1 poder</b>. O devoto fiel recebe, no lugar do segundo poder,
+                PM adicionais iguais a <b>1 + o status divino</b> do deus, limitados ao seu nível.</div>`;
+            if (_deuFiel) {
+                const known = (DEU_INFO[d.slug] || {}).status;
+                html += `<div class="od-statusrow"><label>Status divino de ${_odEsc(d.name)}:
+                    <input type="number" min="0" class="od-num" value="${_odEsc(_deuStatus !== '' ? _deuStatus : (known !== undefined ? known : ''))}" onchange="deuStatus(this.value)"></label>
+                    <span>${r.statusMissing ? '<span class="cls-bad">informe o status divino para calcular os PM</span>'
+                        : `PM adicionais: <b>+${r.pm}</b> <small>(1 + ${r.status}, máx. nível ${_deuNivel()})</small>`}</span></div>`;
+                if (!r.statusMissing) html += `<label class="cls-vitals"><input type="checkbox" ${_deuPmOn ? 'checked' : ''} onchange="deuPm(this.checked)">
+                    Somar esses PM ao PM máximo agora <small>(desfeito ao trocar de divindade; não acompanha mudanças de nível)</small></label>`;
+            }
+        }
+        html += `<div class="od-sub">Poderes concedidos <b class="${n === r.max ? 'od-ok' : ''}">(${n}/${r.max})</b></div>`;
+        html += d.powers.map(p => _deuPowerCard(p, 'p' + _deuPowerKey(p), n, r.max)).join('');
+        const pan = _deuBuild().panteao;
+        if (pan.length) {
+            html += '<div class="od-sub">Para qualquer devoto <small>(vale como poder concedido)</small></div>';
+            html += pan.map(p => _deuPowerCard(p, 'p' + _deuPowerKey(p), n, r.max)).join('');
+        }
+        box.innerHTML = html;
+    } else {
+        box.innerHTML = '<div class="od-empty">Escolha uma divindade na lista para ver os poderes concedidos.</div>';
+    }
+    _deuUpdateStatus();
+}
+function _deuChosen() {
+    const all = typeof powersData !== 'undefined' ? powersData : [];
+    return [..._deuPicks].map(k => all[parseInt(k.slice(1))]).filter(Boolean);
+}
+function _deuUpdateStatus() {
+    const r = _deuRules(), btn = document.getElementById('deuApplyBtn'), st = document.getElementById('deuStatus');
+    btn.disabled = !r.kind || !!r.missing;
+    if (!r.kind) { st.innerHTML = 'Nenhuma divindade escolhida.'; return; }
+    if (r.kind === 'nenhum') { st.innerHTML = '<b>Nenhum</b> · sem divindade'; return; }
+    if (r.kind === 'panteao') { st.innerHTML = `<b>Panteão</b> · sem poder concedido` + (r.missing ? `<br><span class="cls-bad">${_odEsc(r.missing)}</span>` : ` · energia ${_deuEnergia}`); return; }
+    st.innerHTML = `<b>${_odEsc(r.d.name)}</b> · ${_deuPicks.size}/${r.max} poder(es) concedido(s)` +
+        (r.pm ? ` · +${r.pm} PM` : '') +
+        (_deuPicks.size < r.max ? '<br><small>Você pode aplicar agora e escolher o restante depois.</small>' : '');
+}
+
+function aplicarDeus() {
+    const r = _deuRules();
+    if (!r.kind || r.missing) return;
+    const old = charDeityApplied || { name: '', powers: [], pm: 0 };
+    const pmEl = document.getElementById('pmMax'), pmCur = document.getElementById('pmCurrent');
+    const pmAntes = parseInt(pmEl.value) || 0, curAntes = pmCur ? parseInt(pmCur.value) : NaN;
+
+    // 1) desfaz a divindade anterior: poderes concedidos e PM adicionais
+    if (old.powers && old.powers.length) {
+        const names = new Set(old.powers.map(x => String(x).trim().toLowerCase()));
+        document.querySelectorAll('#abilitiesRaceList .ability-row').forEach(row => {
+            const folder = row.closest('.race-folder'), nm = row.querySelector('.inp-name');
+            if (folder && folder.dataset.name === 'Divindade' && nm && names.has(nm.value.trim().toLowerCase())) row.remove();
+        });
+    }
+    let pmNovo = pmAntes - (old.pm || 0);
+
+    // 2) campo e poderes novos
+    let list = [], campo = '', pmAplicado = 0;
+    if (r.kind === 'nenhum') campo = 'Nenhum';
+    else if (r.kind === 'panteao') {
+        campo = 'Panteão';
+        list.push({ name: 'Devoção ao Panteão', desc: `${DEU_PANTEAO_TEXTO}\n\nEnergia canalizada: ${_deuEnergia} (escolha definitiva).` });
+    } else {
+        campo = r.d.name;
+        list = _deuChosen().map(p => {
+            const showReq = p.req && !/^Devoto d[oae]s? [^,;]+$/i.test(p.req);
+            return { name: p.name, desc: (showReq ? `Pré-requisito: ${p.req}.\n\n` : '') + p.desc };
+        });
+        if (r.pm > 0) {
+            list.push({ name: `Devoto Fiel de ${r.d.name} (PM adicionais)`,
+                desc: `Divindade ${DEU_TIPO_LABEL[r.tipo]}: no lugar do segundo poder concedido, o devoto fiel recebe PM adicionais iguais a 1 + o status divino do deus (${r.status}), limitados ao nível (${_deuNivel()}): +${r.pm} PM.` });
+            if (_deuPmOn) { pmNovo += r.pm; pmAplicado = r.pm; }
+        }
+    }
+    document.getElementById('charDeity').value = campo;
+    const added = _odAddAbilities(list, 'Divindade');
+    charDeityApplied = { name: campo, powers: _odLastAdded.slice(), pm: pmAplicado };
+
+    // 3) PM máximo (e atual, se estava cheio)
+    if (pmNovo !== pmAntes) {
+        pmEl.value = pmNovo;
+        if (pmCur && (isNaN(curAntes) || curAntes === pmAntes || curAntes > pmNovo)) pmCur.value = pmNovo;
+    }
+    refreshLevelFolders();
+    updateCalculations();
+    saveData();
+    fecharDeus();
+    if (typeof showSheetToast === 'function') {
+        showSheetToast(`✅ Divindade ${_odEsc(campo)}: ${added} item(ns) adicionado(s)${pmAplicado ? `, +${pmAplicado} PM` : ''}`);
+    }
 }
