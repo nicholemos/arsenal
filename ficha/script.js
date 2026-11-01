@@ -87,18 +87,63 @@ window.onload = () => {
     setTimeout(checkImportedPowers, 400);
 };
 
+// --- MEDALHÃO DOS ATRIBUTOS (SVG vetorial, sem imagens externas) ---
+// Cores vêm de variáveis CSS (--medal-*), então o tema claro/escuro troca sozinho.
+const ATTR_MEDAL_ICONS = {
+    FOR: '<path d="M50 20 L55 29 V57 H45 V29 Z"/><path d="M36 57 H64 V63 H36 Z"/><path d="M47 63 H53 V74 H47 Z"/><circle cx="50" cy="77" r="3.2"/>',
+    DES: '<path d="M30 70 L67 33"/><path d="M73 27 L59 29 L71 41 Z" class="f"/><path d="M36 64 L29 57 M43 71 L36 64 M30 70 L25 63 M30 70 L37 75"/>',
+    CON: '<path d="M50 75 C25 57 27 33 41 33 C47 33 50 38 50 41 C50 38 53 33 59 33 C73 33 75 57 50 75 Z"/>',
+    INT: '<path d="M50 37 C44 32 34 32 27 35 V68 C34 65 44 65 50 70 C56 65 66 65 73 68 V35 C66 32 56 32 50 37 Z"/><path d="M50 37 V70"/>',
+    SAB: '<path d="M24 50 C35 34 65 34 76 50 C65 66 35 66 24 50 Z"/><circle cx="50" cy="50" r="8" class="f"/>',
+    CAR: '<path d="M28 66 L28 40 L40 52 L50 34 L60 52 L72 40 L72 66 Z"/><path d="M27 73 H73"/>'
+};
+let _medalSeed = 0;
+function attrMedalSVG(a) {
+    const id = `m${a}`;
+    const seed = (++_medalSeed % 6) + 2; // textura levemente diferente em cada atributo
+    const rivets = [45, 135, 225, 315].map(d => {
+        const r = d * Math.PI / 180;
+        return `<circle cx="${(50 + 45.4 * Math.cos(r)).toFixed(2)}" cy="${(50 + 45.4 * Math.sin(r)).toFixed(2)}" r="1.5" class="medal-rivet"/>`;
+    }).join('');
+    return `<svg class="attr-medal-svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+        <defs>
+            <linearGradient id="${id}-ring" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" style="stop-color:var(--medal-ring-a)"/>
+                <stop offset=".5" style="stop-color:var(--medal-ring-b)"/>
+                <stop offset="1" style="stop-color:var(--medal-ring-c)"/>
+            </linearGradient>
+            <radialGradient id="${id}-face" cx=".4" cy=".35" r=".8">
+                <stop offset="0" style="stop-color:var(--medal-face-a)"/>
+                <stop offset="1" style="stop-color:var(--medal-face-b)"/>
+            </radialGradient>
+            <filter id="${id}-noise" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="${seed}"/>
+                <feColorMatrix type="saturate" values="0"/>
+            </filter>
+            <clipPath id="${id}-clip"><circle cx="50" cy="50" r="40"/></clipPath>
+        </defs>
+        <circle cx="50" cy="50" r="49" fill="url(#${id}-ring)"/>
+        <circle cx="50" cy="50" r="49" fill="none" class="medal-edge" stroke-width="1"/>
+        <circle cx="50" cy="50" r="42.5" fill="none" class="medal-groove" stroke-width="1.6"/>
+        <circle cx="50" cy="50" r="40" fill="url(#${id}-face)"/>
+        <rect x="10" y="10" width="80" height="80" filter="url(#${id}-noise)" clip-path="url(#${id}-clip)" class="medal-grain"/>
+        <circle cx="50" cy="50" r="40" fill="none" class="medal-inset" stroke-width="2.2"/>
+        <g class="medal-icon">${ATTR_MEDAL_ICONS[a] || ''}</g>
+        ${rivets}
+    </svg>`;
+}
+
 function renderStructure() {
     const attrContainer = document.getElementById('attributesArea');
-    const attrImages = { 'FOR': '../assets/imagens/forca.png', 'DES': '../assets/imagens/destreza.png', 'CON': '../assets/imagens/constituicao.png', 'INT': '../assets/imagens/inteligencia.png', 'SAB': '../assets/imagens/sabedoria.png', 'CAR': '../assets/imagens/carisma.png' };
 
     if (attrContainer) {
         attrContainer.innerHTML = attrs.map(a => {
-            const bgImage = attrImages[a] ? `url('${attrImages[a]}')` : 'none';
             return `
             <div class="col-2">
                 <div class="d-flex flex-column align-items-center attr-wrapper" id="wrap-${a}">
                     <button class="attr-btn-float attr-btn-up" onclick="updateAttr('${a}', 1)">+</button>
-                    <div class="attr-token" style="background-image: ${bgImage};" onclick="toggleAttrButtons('${a}')">
+                    <div class="attr-token attr-medal" onclick="toggleAttrButtons('${a}')">
+                        ${attrMedalSVG(a)}
                         <input type="number" inputmode="numeric" class="attr-val attr-input-overlay form-control" id="attr-${a}" value="0" min="-5">
                     </div>
                     <button class="attr-btn-float attr-btn-down" onclick="updateAttr('${a}', -1)">-</button>
@@ -1613,6 +1658,7 @@ function saveData() {
         charRace: getVal('charRace'),
         charOrigin: getVal('charOrigin'),
         charClass: getVal('charClass'),
+        charClasses: (typeof charClasses !== 'undefined') ? charClasses : [],
         charDistinction: getVal('charDistinction'),
         charLevel: getVal('charLevel'),
         charDeity: getVal('charDeity'),
@@ -1837,6 +1883,7 @@ function loadData() {
         if (data.charRace !== undefined) document.getElementById('charRace').value = data.charRace;
         if (data.charOrigin !== undefined) document.getElementById('charOrigin').value = data.charOrigin;
         if (data.charClass !== undefined) document.getElementById('charClass').value = data.charClass;
+        if (Array.isArray(data.charClasses)) charClasses = data.charClasses;
         if (data.charDistinction !== undefined) {
             const distEl = document.getElementById('charDistinction');
             if (distEl) distEl.value = data.charDistinction;
@@ -5681,3 +5728,586 @@ document.addEventListener('keydown', e => {
         }
     }
 });
+
+
+// ============================================================
+//  SELEÇÃO DE CLASSES E NÍVEIS (multiclasse) — usa classes-data.js
+// ============================================================
+// charClasses: [{ id, level, variant }] — a posição 0 é a CLASSE INICIAL
+// (só ela dá o PV cheio do 1º nível; as demais dão PV/4 por nível).
+let charClasses = [];
+let _clsDraft = [];
+
+function _clsNorm(t) { return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(); }
+function _clsData() { return (typeof classesData !== 'undefined' && Array.isArray(classesData)) ? classesData : []; }
+function _clsById(id) { return _clsData().find(c => c.id === id); }
+function _clsLabel(e) {
+    const c = _clsById(e.id);
+    return c ? `${c.name}${e.variant ? ` (${e.variant})` : ''} ${e.level}` : '';
+}
+function _clsJoin(list) { return list.map(_clsLabel).filter(Boolean).join(' / '); }
+
+// Lê textos como "Guerreiro 3 / Ladino 2" ou "Arcanista (Necromante) 5"
+function _clsParseText(txt) {
+    const out = [];
+    const lvTotal = Math.min(20, Math.max(1, parseInt(getVal('charLevel')) || 1));
+    let hadNumber = false;
+    String(txt || '').split(/[\/,+;]|\s+e\s+/).forEach(part => {
+        const m = part.match(/^\s*(.+?)\s*(\d{1,2})?\s*$/);
+        if (!m) return;
+        let name = m[1], variant = '';
+        const vm = name.match(/^(.*?)\s*\((.+)\)\s*$/);
+        if (vm) { name = vm[1]; variant = vm[2].trim(); }
+        const c = _clsData().find(x => _clsNorm(x.name) === _clsNorm(name));
+        if (!c || out.some(o => o.id === c.id)) return;
+        if (m[2]) hadNumber = true;
+        out.push({
+            id: c.id,
+            level: Math.min(20, Math.max(1, parseInt(m[2]) || 1)),
+            variant: _clsVariantOptions(c).some(v => v.name === variant) ? variant : ''
+        });
+    });
+    if (out.length === 1 && !hadNumber) out[0].level = lvTotal;
+    return out;
+}
+
+
+// Opções de variante/caminho de uma classe (arcanista também escolhe o caminho)
+function _clsVariantOptions(c) {
+    const extra = c.id === 'arcanista'
+        ? ['Bruxo', 'Feiticeiro', 'Mago'].map(n => ({ name: n, source: 'T20 (caminho)' })) : [];
+    return extra.concat(c.variants || []);
+}
+function _clsSlug(t) { return _clsNorm(t).replace(/[^a-z0-9]/g, ''); }
+function _clsDbMeta(e) { // variantes do Dragão Brasil têm PV/PM e progressão próprios
+    if (typeof classesDbVariantsMeta === 'undefined' || !e.variant) return null;
+    return classesDbVariantsMeta.find(m => m.classId === e.id && _clsSlug(m.variantName) === _clsSlug(e.variant)) || null;
+}
+function _clsStats(e) {
+    const c = _clsById(e.id); if (!c) return null;
+    const m = _clsDbMeta(e);
+    return m ? { pv: m.pvInicial, perLv: m.pvPorNivel, pm: m.pm } : { pv: c.pv, perLv: c.pv / 4, pm: c.pm };
+}
+
+// Habilidades de classe (subType "ability") até o nível da classe.
+// level devolvido = nível do PERSONAGEM em que a habilidade é recebida
+// (classes na ordem da lista: a 1ª ocupa os níveis 1..N, a 2ª continua depois).
+function _clsPlain(html) {
+    const d = document.createElement('div');
+    d.innerHTML = String(html || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|li|div)>/gi, '\n');
+    return (d.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+function _clsAbilityList(e, offset) {
+    const slug = e.variant ? _clsSlug(e.variant) : '';
+    const isDb = !!_clsDbMeta(e);
+    const pool = [].concat(typeof powersData !== 'undefined' ? powersData : [],
+                           typeof classesDbPowers !== 'undefined' ? classesDbPowers : [])
+        .filter(p => p.type === 'class' && p.subType === 'ability' && p.class === e.id);
+    const lvl = p => { const m = String(p.req || '').match(/^N[ií]vel\s+(\d+)/i); return m ? parseInt(m[1]) : null; };
+    // variante do Dragão Brasil substitui a progressão inteira; as demais só trocam habilidades pontuais
+    const allowed = isDb ? new Set([slug]) : new Set([`${e.id}-base`, 'all'].concat(slug ? [slug] : []));
+    let list = pool.filter(p => allowed.has(p.pathReq) && lvl(p) !== null && lvl(p) <= e.level);
+    const replaced = new Set();
+    list.forEach(p => { const m = String(p.req).match(/Substitui\s+([^)]+)\)/); if (m) replaced.add(_clsNorm(m[1])); });
+    list = list.filter(p => p.pathReq === slug || !replaced.has(_clsNorm(p.name)));
+    return list.map(p => ({ name: p.name, desc: _clsPlain(p.desc), level: offset + lvl(p) }))
+               .sort((a, b) => a.level - b.level);
+}
+// Monta o que será adicionado à ficha, ignorando o que já existe (pelo nome)
+function _clsPlanAbilities(list) {
+    const existing = new Set(Array.from(document.querySelectorAll('#abilitiesClassList .inp-name'))
+        .map(el => el.value.trim().toLowerCase()));
+    const plan = [], semDados = [];
+    let offset = 0;
+    list.forEach(e => {
+        const found = _clsAbilityList(e, offset);
+        if (!found.length) { const c = _clsById(e.id); if (c) semDados.push(c.name); }
+        found.forEach(a => {
+            const k = a.name.trim().toLowerCase();
+            if (existing.has(k)) return;
+            existing.add(k); plan.push(a);
+        });
+        offset += e.level;
+    });
+    return { plan, semDados };
+}
+
+function _clsCalc(list) {
+    const con = getInt('attr-CON'); // na T20 o valor do atributo já é o modificador
+    let level = 0, pv = 0, pm = 0;
+    list.forEach((e, i) => {
+        const st = _clsStats(e);
+        if (!st) return;
+        level += e.level;
+        pm += st.pm * e.level;
+        pv += (i === 0) ? st.pv + st.perLv * (e.level - 1) : st.perLv * e.level;
+    });
+    pv += con * level;
+    return { level, pv: Math.max(level ? 1 : 0, pv), pm, con };
+}
+
+function abrirClasses() {
+    if (!_clsData().length) {
+        alert('O banco de classes (classes-data.js) não foi carregado. Confira se o arquivo está em ../poderes/js/.');
+        return;
+    }
+    // Usa o que está salvo, a menos que o texto do campo tenha sido editado à mão
+    const text = getVal('charClass');
+    const saved = charClasses.filter(e => _clsById(e.id));
+    if (saved.length && _clsJoin(saved) === text.trim()) {
+        _clsDraft = JSON.parse(JSON.stringify(saved));
+    } else {
+        _clsDraft = text.trim() ? _clsParseText(text) : JSON.parse(JSON.stringify(saved));
+    }
+    document.getElementById('clsApplyVitals').checked = false;
+    const ab = document.getElementById('clsApplyAbilities'); if (ab) ab.checked = true;
+    document.getElementById('modalClasses').style.display = 'flex';
+    _clsRender();
+}
+function fecharClasses() { document.getElementById('modalClasses').style.display = 'none'; }
+
+function _clsCard(c) {
+    const idx = _clsDraft.findIndex(e => e.id === c.id);
+    const sel = idx >= 0, e = sel ? _clsDraft[idx] : null;
+    const st = sel ? _clsStats(e) : { pv: c.pv, perLv: c.pv / 4, pm: c.pm };
+    let ctrl = '';
+    if (sel) {
+        const vopts = _clsVariantOptions(c);
+        const vars = vopts.length
+            ? `<select class="cls-variant" onchange="clsSetVariant('${c.id}', this.value)" title="Variante de classe">
+                   <option value="">Sem variante</option>
+                   ${vopts.map(v => `<option value="${escapeHtml(v.name)}" ${e.variant === v.name ? 'selected' : ''}>${escapeHtml(v.name)} — ${escapeHtml(v.source)}</option>`).join('')}
+               </select>` : '';
+        ctrl = `<div class="cls-ctrl">
+            <div class="cls-level">
+                <button type="button" onclick="clsLevel('${c.id}', -1)" aria-label="Diminuir nível">−</button>
+                <input type="number" min="1" max="20" value="${e.level}" onchange="clsSetLevel('${c.id}', this.value)" aria-label="Nível em ${escapeHtml(c.name)}">
+                <button type="button" onclick="clsLevel('${c.id}', 1)" aria-label="Aumentar nível">+</button>
+            </div>
+            ${vars}
+            ${idx === 0 ? '<span class="cls-first" title="Classe do 1º nível">★ inicial</span>'
+                        : `<button type="button" class="cls-make-first" onclick="clsMakeFirst('${c.id}')" title="Tornar a classe do 1º nível">★ tornar inicial</button>`}
+        </div>`;
+    }
+    return `<div class="cls-card ${sel ? 'is-sel' : ''}">
+        <label class="cls-head">
+            <input type="checkbox" ${sel ? 'checked' : ''} onchange="clsToggle('${c.id}', this.checked)">
+            <span class="cls-name">${escapeHtml(c.name)}</span>
+            <span class="cls-src">${escapeHtml(c.source)}</span>
+        </label>
+        <div class="cls-meta">PV ${st.pv} (+${st.perLv}/nv) · PM ${st.pm}/nv · ${escapeHtml(c.attribute)}</div>
+        ${sel ? `<div class="cls-skills">${escapeHtml(c.skills)}</div>` : ''}
+        ${ctrl}
+    </div>`;
+}
+
+function _clsRender() {
+    const all = _clsData();
+    const main = all.filter(c => c.source === 'T20');
+    const other = all.filter(c => c.source !== 'T20');
+    let html = `<div class="cls-group-title">Classes principais (T20)</div><div class="cls-grid">${main.map(_clsCard).join('')}</div>`;
+    if (other.length) html += `<div class="cls-group-title">Outras fontes</div><div class="cls-grid">${other.map(_clsCard).join('')}</div>`;
+    const list = document.getElementById('clsList');
+    const scroll = list.closest('.cls-modal-body');
+    const keep = scroll ? scroll.scrollTop : 0;
+    list.innerHTML = html;
+    if (scroll) scroll.scrollTop = keep;
+
+    const calc = _clsCalc(_clsDraft);
+    const over = calc.level > 20;
+    const sum = document.getElementById('clsSummary');
+    sum.innerHTML = _clsDraft.length
+        ? `<b>${escapeHtml(_clsJoin(_clsDraft))}</b><br>
+           Nível total: <b class="${over ? 'cls-bad' : ''}">${calc.level}/20</b> ·
+           PV máx: <b>${calc.pv}</b> · PM máx: <b>${calc.pm}</b>
+           <small>(CON ${calc.con >= 0 ? '+' : ''}${calc.con})</small>
+           ${over ? '<br><span class="cls-bad">O nível total passa de 20.</span>' : ''}`
+        : 'Nenhuma classe marcada.';
+    document.getElementById('clsApplyBtn').disabled = over;
+
+    // Prévia das habilidades de classe que entrarão na ficha
+    const abBox = document.getElementById('clsAbilPlan');
+    if (abBox) {
+        const { plan, semDados } = _clsPlanAbilities(_clsDraft);
+        let t = _clsDraft.length ? `${plan.length} habilidade(s) nova(s) por nível` : '';
+        if (plan.length) {
+            t += `<details class="cls-plan"><summary>ver lista</summary>${plan.map(a =>
+                `<div><b>Nv ${a.level}</b> · ${escapeHtml(a.name)}</div>`).join('')}</details>`;
+        }
+        if (semDados.length) t += `<div class="cls-nodata">Sem habilidades cadastradas no banco: ${escapeHtml(semDados.join(', '))}.</div>`;
+        abBox.innerHTML = t;
+    }
+}
+
+function clsToggle(id, on) {
+    if (on) { if (!_clsDraft.some(e => e.id === id)) _clsDraft.push({ id, level: 1, variant: '' }); }
+    else _clsDraft = _clsDraft.filter(e => e.id !== id);
+    _clsRender();
+}
+function clsSetLevel(id, v) {
+    const e = _clsDraft.find(x => x.id === id); if (!e) return;
+    e.level = Math.min(20, Math.max(1, parseInt(v) || 1));
+    _clsRender();
+}
+function clsLevel(id, d) {
+    const e = _clsDraft.find(x => x.id === id); if (!e) return;
+    clsSetLevel(id, e.level + d);
+}
+function clsSetVariant(id, v) {
+    const e = _clsDraft.find(x => x.id === id); if (!e) return;
+    e.variant = v; _clsRender();
+}
+function clsMakeFirst(id) {
+    const i = _clsDraft.findIndex(e => e.id === id);
+    if (i > 0) { _clsDraft.unshift(_clsDraft.splice(i, 1)[0]); _clsRender(); }
+}
+
+function aplicarClasses() {
+    const calc = _clsCalc(_clsDraft);
+    if (calc.level > 20) { alert('O nível total não pode passar de 20.'); return; }
+    charClasses = JSON.parse(JSON.stringify(_clsDraft));
+    if (charClasses.length) {
+        document.getElementById('charClass').value = _clsJoin(charClasses);
+        const lvEl = document.getElementById('charLevel');
+        const old = parseInt(lvEl.value) || 1;
+        lvEl.value = calc.level;
+        if (old !== calc.level) autoXPFromLevel(); // acerta o XP mínimo do nível (já salva)
+
+        if (document.getElementById('clsApplyVitals').checked) {
+            const oldPv = getInt('pvMax'), oldPm = getInt('pmMax');
+            document.getElementById('pvMax').value = calc.pv;
+            document.getElementById('pmMax').value = calc.pm;
+            const pvCur = document.getElementById('pvCurrent'), pmCur = document.getElementById('pmCurrent');
+            if (pvCur && (pvCur.value === '' || parseInt(pvCur.value) === oldPv || parseInt(pvCur.value) > calc.pv)) pvCur.value = calc.pv;
+            if (pmCur && (pmCur.value === '' || parseInt(pmCur.value) === oldPm || parseInt(pmCur.value) > calc.pm)) pmCur.value = calc.pm;
+        }
+    }
+    // Habilidades de classe por nível (opcional)
+    let adicionadas = 0;
+    if (charClasses.length && document.getElementById('clsApplyAbilities')?.checked) {
+        const { plan } = _clsPlanAbilities(charClasses);
+        const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const prevLoading = isLoading;
+        isLoading = true; // evita salvar a cada habilidade; salvamos uma vez no fim
+        try { plan.forEach(a => addAbility('abilitiesClassList', a.name, esc(a.desc), a.level)); }
+        finally { isLoading = prevLoading; }
+        adicionadas = plan.length;
+    }
+    refreshLevelFolders();
+    updateCalculations();
+    saveData();
+    fecharClasses();
+    if (adicionadas && typeof showSheetToast === 'function') {
+        showSheetToast(`✅ ${adicionadas} habilidade(s) de classe adicionada(s)`);
+    }
+}
+
+
+// ============================================================
+//  ORIGEM E DISTINÇÃO — busca + aplicação na ficha
+//  Dados: origens.js (origensData) e distincoes-data.js (distincoesData)
+// ============================================================
+const OD_SOURCE_LABEL = { herois: 'Heróis de Arton', deuses: 'Deuses', 'heróicas': 'Heróicas', 'revista-tormenta': 'Revista Tormenta' };
+const OD_PICKER_LABEL = { combat: 'poder de combate', tormenta: 'poder da Tormenta' };
+
+function _odEsc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function _odPlainEsc(html) { return _clsPlain(html).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function _odPowerDesc(name) {
+    const n = _clsNorm(name);
+    const p = (typeof powersData !== 'undefined' ? powersData : []).find(x => _clsNorm(x.name) === n);
+    return p ? _clsPlain(p.desc) : '';
+}
+// "Ofício (alquimista)" -> { name: 'Ofício', specialty: 'alquimista' }
+function _odSkillParse(txt) {
+    const m = String(txt).match(/^(.*?)\s*\((.+)\)\s*$/);
+    if (m && _clsNorm(m[1]) === 'oficio') return { name: 'Ofício', specialty: m[2].trim() };
+    return { name: String(txt).trim(), specialty: '' };
+}
+function _odIsChoiceSkill(txt) { return /escolha/i.test(String(txt)); }
+function _odPickerOptions(types) {
+    return (typeof powersData !== 'undefined' ? powersData : [])
+        .filter(p => types.includes(p.type)).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+function _odTrainSkill(sk) {
+    let idx = -1;
+    const eq = (a, b) => _clsNorm(a) === _clsNorm(b);
+    if (eq(sk.name, 'Ofício')) {
+        if (sk.specialty) idx = currentSkills.findIndex(s => eq(s.n, 'Ofício') && eq(s.specialty || '', sk.specialty));
+        if (idx < 0) idx = currentSkills.findIndex(s => eq(s.n, 'Ofício') && !s.trained && !String(s.specialty || '').trim());
+        if (idx < 0) idx = currentSkills.findIndex(s => eq(s.n, 'Ofício') && !s.trained);
+    } else {
+        idx = currentSkills.findIndex(s => eq(s.n, sk.name));
+    }
+    if (idx < 0) return false;
+    currentSkills[idx].trained = true;
+    if (sk.specialty) currentSkills[idx].specialty = sk.specialty;
+    return true;
+}
+// Adiciona habilidades a uma pasta da lista de raça/origem sem repetir nomes
+function _odAddAbilities(list, folder) {
+    const existing = new Set(Array.from(document.querySelectorAll('#abilitiesRaceList .inp-name'))
+        .map(el => el.value.trim().toLowerCase()));
+    let added = 0;
+    const prev = isLoading;
+    isLoading = true;
+    try {
+        list.forEach(a => {
+            const k = a.name.trim().toLowerCase();
+            if (!k || existing.has(k)) return;
+            existing.add(k);
+            addAbility('abilitiesRaceList', a.name, _odPlainEsc(a.desc), 0, folder);
+            added++;
+        });
+    } finally { isLoading = prev; }
+    return added;
+}
+function _odShortDesc(t, n = 150) { const p = _clsPlain(t).replace(/\s+/g, ' '); return p.length > n ? p.slice(0, n - 1) + '…' : p; }
+
+// ---------------------------- ORIGEM ----------------------------
+let _orgSel = null, _orgPicks = {}, _orgChoices = {}, _orgQuery = '', _orgSrc = '';
+function _orgData() { return (typeof origensData !== 'undefined' && Array.isArray(origensData)) ? origensData : []; }
+function _orgById(id) { return _orgData().find(o => o.id === id); }
+
+function abrirOrigem() {
+    if (!_orgData().length) { alert('O banco de origens (origens.js) não foi carregado. Confira se o arquivo está em ../poderes/js/.'); return; }
+    _orgSel = null; _orgPicks = {}; _orgChoices = {}; _orgQuery = ''; _orgSrc = '';
+    document.getElementById('orgSearch').value = '';
+    const cur = _clsNorm(getVal('charOrigin'));
+    const hit = cur && _orgData().find(o => _clsNorm(o.name) === cur);
+    document.getElementById('modalOrigem').style.display = 'flex';
+    _orgRenderChips();
+    if (hit) orgSelect(hit.id); else { _orgRenderList(); _orgRenderDetail(); }
+}
+function fecharOrigem() { document.getElementById('modalOrigem').style.display = 'none'; }
+function orgSearch(v) { _orgQuery = v; _orgRenderList(); }
+function orgChip(src) { _orgSrc = (_orgSrc === src) ? '' : src; _orgRenderChips(); _orgRenderList(); }
+
+function _orgRenderChips() {
+    const srcs = [...new Set(_orgData().map(o => o.source))];
+    document.getElementById('orgChips').innerHTML = srcs.map(s =>
+        `<button type="button" class="od-chip ${_orgSrc === s ? 'on' : ''}" data-src="${_odEsc(s)}" onclick="orgChip(this.dataset.src)">${_odEsc(s)}</button>`).join('');
+}
+function _orgRenderList() {
+    const q = _clsNorm(_orgQuery);
+    const list = _orgData().filter(o => (!_orgSrc || o.source === _orgSrc) &&
+        (!q || _clsNorm(o.name + ' ' + (o.region || '') + ' ' + o.source).includes(q)));
+    document.getElementById('orgList').innerHTML = list.length ? list.map(o =>
+        `<div class="od-item ${o.id === _orgSel ? 'sel' : ''}" onclick="orgSelect('${o.id}')">
+            <span class="od-item-name">${_odEsc(o.name)}</span>
+            <span class="od-item-sub">${_odEsc(o.region ? o.region + ' · ' : '')}${_odEsc(o.source)}</span>
+        </div>`).join('') : '<div class="od-empty">Nenhuma origem encontrada.</div>';
+}
+function orgSelect(id) {
+    _orgSel = id; _orgPicks = {}; _orgChoices = {};
+    const o = _orgById(id);
+    if (o && o.type === 'normal' && o.benefits.length <= (o.chooseCount || 2)) o.benefits.forEach((b, i) => { _orgPicks[i] = true; });
+    _orgRenderList(); _orgRenderDetail();
+}
+function orgToggle(i, on) { if (on) _orgPicks[i] = true; else { delete _orgPicks[i]; delete _orgChoices['s' + i]; } _orgRenderDetail(); }
+function orgChoose(key, v) { _orgChoices[key] = v; _orgUpdateStatus(); }
+
+function _orgPickSelect(key, options, placeholder) {
+    return `<select class="od-select" onchange="orgChoose('${key}', this.value)">
+        <option value="">${_odEsc(placeholder)}</option>
+        ${options.map(n => `<option value="${_odEsc(n)}" ${_orgChoices[key] === n ? 'selected' : ''}>${_odEsc(n)}</option>`).join('')}
+    </select>`;
+}
+function _orgSkillOptions() { return [...new Set(currentSkills.map(s => s.n))]; }
+
+function _orgRenderDetail() {
+    const box = document.getElementById('orgDetail');
+    const o = _orgById(_orgSel);
+    if (!o) { box.innerHTML = '<div class="od-empty">Escolha uma origem na lista para ver os benefícios.</div>'; _orgUpdateStatus(); return; }
+    let html = `<h5 class="od-title">${_odEsc(o.name)} <span class="cls-src">${_odEsc(o.source)}</span></h5>
+        <details class="od-desc"><summary>História</summary><p>${_odEsc(o.desc)}</p></details>
+        <div class="od-line"><b>Itens:</b> ${_odEsc(o.items)}</div>`;
+    if (o.type === 'normal') {
+        const max = Math.min(o.chooseCount || 2, o.benefits.length);
+        const n = Object.keys(_orgPicks).length;
+        html += `<div class="od-sub">Escolha ${max} benefícios <b class="${n === max ? 'od-ok' : ''}">(${n}/${max})</b></div>`;
+        html += o.benefits.map((b, i) => {
+            const on = !!_orgPicks[i];
+            const dis = !on && n >= max;
+            const isPower = b.type === 'power', isSkill = b.type === 'skill';
+            let desc = isSkill ? (_odIsChoiceSkill(b.name) ? 'Perícia à sua escolha' : (b.desc || 'Treinado em ' + b.name))
+                : (b.desc || _odShortDesc(_odPowerDesc(b.name)) || '');
+            let extra = '';
+            if (on && b.powerPicker) extra = _orgPickSelect('s' + i, _odPickerOptions(b.powerPicker.types).map(p => p.name), 'Escolha o ' + (OD_PICKER_LABEL[b.powerPicker.types[0]] || 'poder') + '...');
+            if (on && isSkill && _odIsChoiceSkill(b.name)) extra = _orgPickSelect('s' + i, _orgSkillOptions(), 'Escolha a perícia...');
+            return `<label class="od-benefit ${on ? 'on' : ''} ${dis ? 'dis' : ''}">
+                <input type="checkbox" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''} onchange="orgToggle(${i}, this.checked)">
+                <span><span class="od-tag">${isSkill ? 'Perícia' : isPower ? 'Poder' : 'Outro'}</span> <b>${_odEsc(b.name)}</b>
+                <small>${_odEsc(_odShortDesc(desc, 190))}</small>${extra}</span></label>`;
+        }).join('');
+    } else {
+        const tr = o.autoTraining || [];
+        html += '<div class="od-sub">Benefícios automáticos</div>';
+        if (tr.length) {
+            html += `<div class="od-line"><b>Perícias treinadas:</b> ${tr.map((t, i) => _odIsChoiceSkill(t)
+                ? _orgPickSelect('a' + i, _orgSkillOptions(), 'Escolha a perícia...') : _odEsc(t)).join(', ')}</div>`;
+        }
+        const u = o.uniqueBenefit;
+        if (u) {
+            html += `<div class="od-benefit on static"><span><span class="od-tag">Poder</span> <b>${_odEsc(u.name)}</b>
+                <small>${_odEsc(_clsPlain(u.desc))}</small>
+                ${u.powerPicker ? _orgPickSelect('u', _odPickerOptions(u.powerPicker.types).map(p => p.name), 'Escolha o poder (' + u.powerPicker.types.map(t => OD_PICKER_LABEL[t] || t).join(' ou ') + ')...') : ''}
+                ${u.linkedPower ? `<small class="od-link">+ poder ligado: ${_odEsc(u.linkedPower)}</small>` : ''}</span></div>`;
+        }
+    }
+    box.innerHTML = html;
+    _orgUpdateStatus();
+}
+
+// Calcula o que será aplicado e o que ainda falta escolher
+function _orgCompute() {
+    const o = _orgById(_orgSel);
+    const r = { o, skills: [], abilities: [], missing: [] };
+    if (!o) { r.missing.push('Escolha uma origem.'); return r; }
+    const addPicked = (key, label) => {
+        const v = _orgChoices[key];
+        if (!v) { r.missing.push('Escolha ' + label + '.'); return; }
+        r.abilities.push({ name: v, desc: _odPowerDesc(v) });
+    };
+    if (o.type === 'normal') {
+        const max = Math.min(o.chooseCount || 2, o.benefits.length);
+        const idxs = Object.keys(_orgPicks).map(Number);
+        if (idxs.length < max) r.missing.push(`Escolha mais ${max - idxs.length} benefício(s).`);
+        idxs.forEach(i => {
+            const b = o.benefits[i];
+            if (b.type === 'skill') {
+                if (_odIsChoiceSkill(b.name)) { const v = _orgChoices['s' + i]; if (v) r.skills.push({ name: v, specialty: '' }); else r.missing.push('Escolha a perícia livre.'); }
+                else r.skills.push(_odSkillParse(b.name));
+            } else if (b.powerPicker) {
+                addPicked('s' + i, 'o ' + (OD_PICKER_LABEL[b.powerPicker.types[0]] || 'poder'));
+            } else {
+                r.abilities.push({ name: b.name, desc: b.desc || _odPowerDesc(b.name) });
+            }
+        });
+    } else {
+        (o.autoTraining || []).forEach((t, i) => {
+            if (_odIsChoiceSkill(t)) { const v = _orgChoices['a' + i]; if (v) r.skills.push({ name: v, specialty: '' }); else r.missing.push('Escolha a perícia livre.'); }
+            else r.skills.push(_odSkillParse(t));
+        });
+        const u = o.uniqueBenefit;
+        if (u) {
+            r.abilities.push({ name: u.name, desc: u.desc });
+            if (u.powerPicker) addPicked('u', 'o poder da origem');
+            if (u.linkedPower && _clsNorm(u.linkedPower) !== _clsNorm(u.name)) r.abilities.push({ name: u.linkedPower, desc: _odPowerDesc(u.linkedPower) });
+        }
+    }
+    return r;
+}
+function _orgUpdateStatus() {
+    const st = document.getElementById('orgStatus'), btn = document.getElementById('orgApplyBtn');
+    if (!st) return;
+    const r = _orgCompute();
+    btn.disabled = r.missing.length > 0;
+    st.innerHTML = r.o
+        ? `<b>${_odEsc(r.o.name)}</b> · ${r.skills.length} perícia(s) · ${r.abilities.length} poder(es)` +
+          (r.missing.length ? `<br><span class="cls-bad">${_odEsc(r.missing[0])}</span>` : '')
+        : 'Nenhuma origem escolhida.';
+}
+
+function aplicarOrigem() {
+    const r = _orgCompute();
+    if (!r.o || r.missing.length) return;
+    document.getElementById('charOrigin').value = r.o.name;
+    const naoAchadas = [];
+    r.skills.forEach(sk => { if (!_odTrainSkill(sk)) naoAchadas.push(sk.name); });
+    const added = _odAddAbilities(r.abilities, 'Origem');
+    if (document.getElementById('orgApplyItems')?.checked && r.o.items) {
+        const nome = `Itens da origem (${r.o.name})`;
+        const ja = Array.from(document.querySelectorAll('#inventoryList .inp-name')).some(el => el.value.trim() === nome);
+        if (!ja) addInventoryItem({ name: nome, qtd: 1, slots: 0, note: r.o.items, equipped: false });
+    }
+    renderSkills();
+    refreshLevelFolders();
+    updateCalculations();
+    saveData();
+    fecharOrigem();
+    if (typeof showSheetToast === 'function') {
+        showSheetToast(`✅ Origem ${_odEsc(r.o.name)}: ${r.skills.length - naoAchadas.length} perícia(s) treinada(s), ${added} poder(es)`);
+    }
+}
+
+// --------------------------- DISTINÇÃO --------------------------
+let _disSel = null, _disPicks = new Set(), _disQuery = '', _disSrc = '';
+function _disData() { return (typeof distincoesData !== 'undefined' && Array.isArray(distincoesData)) ? distincoesData : []; }
+function _disById(id) { return _disData().find(d => d.id === id); }
+function _disSrcLabel(s) { return OD_SOURCE_LABEL[s] || s; }
+
+function abrirDistincao() {
+    if (!_disData().length) { alert('O banco de distinções (distincoes-data.js) não foi carregado. Confira se o arquivo está em ../poderes/js/.'); return; }
+    _disSel = null; _disPicks = new Set(); _disQuery = ''; _disSrc = '';
+    document.getElementById('disSearch').value = '';
+    document.getElementById('modalDistincao').style.display = 'flex';
+    _disRenderChips(); _disRenderList(); _disRenderDetail();
+}
+function fecharDistincao() { document.getElementById('modalDistincao').style.display = 'none'; }
+function disSearch(v) { _disQuery = v; _disRenderList(); }
+function disChip(src) { _disSrc = (_disSrc === src) ? '' : src; _disRenderChips(); _disRenderList(); }
+function _disRenderChips() {
+    const srcs = [...new Set(_disData().map(d => d.source))];
+    document.getElementById('disChips').innerHTML = srcs.map(s =>
+        `<button type="button" class="od-chip ${_disSrc === s ? 'on' : ''}" data-src="${_odEsc(s)}" onclick="disChip(this.dataset.src)">${_odEsc(_disSrcLabel(s))}</button>`).join('');
+}
+function _disRenderList() {
+    const q = _clsNorm(_disQuery);
+    const list = _disData().filter(d => (!_disSrc || d.source === _disSrc) && (!q || _clsNorm(d.name).includes(q)));
+    document.getElementById('disList').innerHTML = list.length ? list.map(d =>
+        `<div class="od-item ${d.id === _disSel ? 'sel' : ''}" onclick="disSelect('${d.id}')">
+            <span class="od-item-name">${_odEsc(d.name)}</span>
+            <span class="od-item-sub">${_odEsc(_disSrcLabel(d.source))}${d.exclusiva ? ' · exclusiva' : ''}</span>
+        </div>`).join('') : '<div class="od-empty">Nenhuma distinção encontrada.</div>';
+}
+function disSelect(id) { _disSel = id; _disPicks = new Set(); _disRenderList(); _disRenderDetail(); }
+function disToggle(i, on) { if (on) _disPicks.add(i); else _disPicks.delete(i); _disRenderDetail(); }
+
+function _disRenderDetail() {
+    const box = document.getElementById('disDetail');
+    const d = _disById(_disSel);
+    if (!d) { box.innerHTML = '<div class="od-empty">Escolha uma distinção na lista.</div>'; _disUpdateStatus(); return; }
+    let html = `<h5 class="od-title">${_odEsc(d.name)} <span class="cls-src">${_odEsc(_disSrcLabel(d.source))}</span>
+        ${d.exclusiva ? '<span class="cls-src">exclusiva</span>' : ''}</h5>
+        <details class="od-desc"><summary>Como se tornar</summary><p>${_odEsc(d.admissao)}</p></details>
+        <div class="od-benefit on static"><span><span class="od-tag">Marca</span> <b>${_odEsc(d.marca.name)}</b>
+            <small>${_odEsc(_clsPlain(d.marca.desc))}</small></span></div>`;
+    if (d.poderes && d.poderes.length) {
+        html += '<div class="od-sub">Poderes da distinção <small>(marque os que quer adicionar agora)</small></div>';
+        html += d.poderes.map((p, i) => `<label class="od-benefit ${_disPicks.has(i) ? 'on' : ''}">
+            <input type="checkbox" ${_disPicks.has(i) ? 'checked' : ''} onchange="disToggle(${i}, this.checked)">
+            <span><b>${_odEsc(p.name)}</b> ${p.req ? `<small class="od-req">Pré-req.: ${_odEsc(p.req)}</small>` : ''}
+            <small>${_odEsc(_odShortDesc(p.desc, 200))}</small></span></label>`).join('');
+    }
+    if (d.detalhes && d.detalhes.conteudo) {
+        html += `<details class="od-desc"><summary>${_odEsc(d.detalhes.titulo || 'Detalhes')}</summary><p>${_odEsc(d.detalhes.conteudo)}</p></details>`;
+    }
+    box.innerHTML = html;
+    _disUpdateStatus();
+}
+function _disUpdateStatus() {
+    const d = _disById(_disSel);
+    document.getElementById('disApplyBtn').disabled = !d;
+    document.getElementById('disStatus').innerHTML = d
+        ? `<b>${_odEsc(d.name)}</b> · marca + ${_disPicks.size} poder(es) da distinção`
+        : 'Nenhuma distinção escolhida.';
+}
+function aplicarDistincao() {
+    const d = _disById(_disSel);
+    if (!d) return;
+    const el = document.getElementById('charDistinction');
+    const atual = el.value.trim();
+    if (!atual) el.value = d.name;
+    else if (!atual.split(/\s*\/\s*/).some(x => _clsNorm(x) === _clsNorm(d.name))) el.value = atual + ' / ' + d.name;
+    const list = [{ name: d.marca.name, desc: d.marca.desc }];
+    [..._disPicks].sort((a, b) => a - b).forEach(i => {
+        const p = d.poderes[i];
+        list.push({ name: p.name, desc: (p.req ? `Pré-requisito: ${p.req}.\n\n` : '') + p.desc });
+    });
+    const added = _odAddAbilities(list, 'Distinção');
+    refreshLevelFolders();
+    updateCalculations();
+    saveData();
+    fecharDistincao();
+    if (typeof showSheetToast === 'function') showSheetToast(`✅ Distinção ${_odEsc(d.name)}: ${added} habilidade(s) adicionada(s)`);
+}

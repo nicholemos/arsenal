@@ -164,20 +164,36 @@
 
                     <div class="header-extra">
                         <div class="row g-2">
-                            <div class="col-md-2"><label class="t20-label">Origem</label><input type="text"
-                                    class="form-control t20-input text-center" id="charOrigin" oninput="saveData()">
+                            <div class="col-md-2"><label class="t20-label">Origem</label>
+                                <div class="input-group flex-nowrap">
+                                    <input type="text" class="form-control t20-input text-center" id="charOrigin" oninput="saveData()">
+                                    <button type="button" class="btn btn-outline-secondary cls-pick-btn"
+                                        onclick="abrirOrigem()" title="Buscar origem e aplicar benefícios">
+                                        <i class="bi bi-search"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-3"><label class="t20-label">Classe(s)</label><input type="text"
-                                    class="form-control t20-input text-center" id="charClass"
-                                    placeholder="Ex: Guerreiro 3" oninput="saveData()"></div>
+                            <div class="col-md-3"><label class="t20-label">Classe(s)</label>
+                                <div class="input-group flex-nowrap">
+                                    <input type="text"
+                                        class="form-control t20-input text-center" id="charClass"
+                                        placeholder="Ex: Guerreiro 3" oninput="saveData()">
+                                    <button type="button" class="btn btn-outline-secondary cls-pick-btn"
+                                        onclick="abrirClasses()" title="Escolher classes e níveis">
+                                        <i class="bi bi-list-check"></i></button>
+                                </div></div>
                             <div class="col-md-1"><label class="t20-label">Nível</label><input type="number"
                                     inputmode="numeric"
                                     class="form-control t20-input text-center fw-bold text-danger p-1"
                                     style="font-size: 1.1rem;" id="charLevel" value="1" min="1" max="20"
                                     oninput="updateCalculations(); saveData()" onchange="autoXPFromLevel()"></div>
-                            <div class="col-md-3"><label class="t20-label">Distinção</label><input type="text"
-                                    class="form-control t20-input text-center" id="charDistinction"
-                                    oninput="saveData()"></div>                                                                
+                            <div class="col-md-3"><label class="t20-label">Distinção</label>
+                                <div class="input-group flex-nowrap">
+                                    <input type="text" class="form-control t20-input text-center" id="charDistinction"
+                                        oninput="saveData()">
+                                    <button type="button" class="btn btn-outline-secondary cls-pick-btn"
+                                        onclick="abrirDistincao()" title="Buscar distinção e aplicar a marca">
+                                        <i class="bi bi-search"></i></button>
+                                </div></div>                                                                
                             <div class="col-md-3"><label class="t20-label">Divindade</label><input type="text"
                                     class="form-control t20-input text-center" id="charDeity" oninput="saveData()">
                             </div>
@@ -1642,8 +1658,98 @@
         </div>
     </div>
 
+    <!-- Modal: Classes e níveis -->
+    <div id="modalClasses" class="cls-overlay" style="display:none;" onclick="if(event.target===this)fecharClasses()">
+        <div class="cls-modal" role="dialog" aria-label="Classes do personagem">
+            <div class="cls-modal-head">
+                <strong><i class="bi bi-list-check me-2"></i>Classes do personagem</strong>
+                <button type="button" class="cls-close" onclick="fecharClasses()" aria-label="Fechar">✕</button>
+            </div>
+            <div class="cls-modal-body">
+                <p class="cls-hint">Marque as classes e defina o nível em cada uma. A <b>classe inicial</b> (★) é a do
+                    1º nível do personagem: só ela dá o PV cheio de 1º nível.</p>
+                <div id="clsList"></div>
+            </div>
+            <div class="cls-modal-foot">
+                <div id="clsSummary" class="cls-summary"></div>
+                <label class="cls-vitals"><input type="checkbox" id="clsApplyAbilities" checked>
+                    Adicionar as habilidades de classe de cada nível
+                    <small>(vão para a pasta do nível em que são recebidas; o que já está na ficha é ignorado)</small></label>
+                <div id="clsAbilPlan" class="cls-abilplan"></div>
+                <label class="cls-vitals"><input type="checkbox" id="clsApplyVitals">
+                    Também definir PV e PM máximos com esses valores
+                    <small>(substitui os atuais; bônus de poderes e itens não entram na conta)</small></label>
+                <div class="cls-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fecharClasses()">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-danger" id="clsApplyBtn" onclick="aplicarClasses()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Origem -->
+    <div id="modalOrigem" class="cls-overlay" style="display:none;" onclick="if(event.target===this)fecharOrigem()">
+        <div class="cls-modal od-modal" role="dialog" aria-label="Origem do personagem">
+            <div class="cls-modal-head">
+                <strong><i class="bi bi-compass me-2"></i>Origem</strong>
+                <button type="button" class="cls-close" onclick="fecharOrigem()" aria-label="Fechar">✕</button>
+            </div>
+            <div class="od-toolbar">
+                <input type="search" id="orgSearch" class="od-search" placeholder="Buscar origem..." oninput="orgSearch(this.value)">
+                <div id="orgChips" class="od-chips"></div>
+            </div>
+            <div class="cls-modal-body od-body">
+                <div class="od-pane">
+                    <div id="orgList" class="od-list"></div>
+                    <div id="orgDetail" class="od-detail"></div>
+                </div>
+            </div>
+            <div class="cls-modal-foot">
+                <div id="orgStatus" class="cls-summary"></div>
+                <label class="cls-vitals"><input type="checkbox" id="orgApplyItems" checked>
+                    Adicionar os itens da origem ao inventário
+                    <small>(entra como uma anotação única; os espaços ficam em 0)</small></label>
+                <div class="cls-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fecharOrigem()">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-danger" id="orgApplyBtn" onclick="aplicarOrigem()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Distinção -->
+    <div id="modalDistincao" class="cls-overlay" style="display:none;" onclick="if(event.target===this)fecharDistincao()">
+        <div class="cls-modal od-modal" role="dialog" aria-label="Distinção do personagem">
+            <div class="cls-modal-head">
+                <strong><i class="bi bi-award me-2"></i>Distinção</strong>
+                <button type="button" class="cls-close" onclick="fecharDistincao()" aria-label="Fechar">✕</button>
+            </div>
+            <div class="od-toolbar">
+                <input type="search" id="disSearch" class="od-search" placeholder="Buscar distinção..." oninput="disSearch(this.value)">
+                <div id="disChips" class="od-chips"></div>
+            </div>
+            <div class="cls-modal-body od-body">
+                <div class="od-pane">
+                    <div id="disList" class="od-list"></div>
+                    <div id="disDetail" class="od-detail"></div>
+                </div>
+            </div>
+            <div class="cls-modal-foot">
+                <div id="disStatus" class="cls-summary"></div>
+                <div class="cls-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fecharDistincao()">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-danger" id="disApplyBtn" onclick="aplicarDistincao()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../ameacas/db/ameacas_db.js"></script>
     <script src="../poderes/js/data.js"></script>
+    <script src="../poderes/js/classes-data.js"></script>
+    <script src="../poderes/js/classes-db-data.js"></script>
+    <script src="../poderes/js/origens.js"></script>
+    <script src="../poderes/js/distincoes-data.js"></script>
     <script src="pdf_base64.js"></script>
 
     <!-- Bancos de dados de itens para busca inline -->
