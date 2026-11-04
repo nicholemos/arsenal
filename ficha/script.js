@@ -1474,6 +1474,8 @@ function updateCalculations() {
                 if (s.n === 'Furtividade') {
                     total += sizeVal;
                 }
+                // Bônus fixo de perícia da raça (ex.: Sentidos Élficos)
+                total += _raceSkillBonus(s.n);
             }
 
             // ── MODIFICADORES TEMPORÁRIOS ──────────────────────
@@ -1599,7 +1601,8 @@ function updateCalculations() {
                 // ── Mod temp: ataque e rolagens ──
                 const modAtq = getTempMod('mod-ataque') + getTempMod('mod-rolagens');
                 // ────────────────────────────────
-                const totalBonus = skillBonus + modBonus + modAtq + condAtq;
+                const raceAtk = _raceAttackBonus(_raceAppliedId(), row.querySelector('.inp-name')?.value || '');
+                const totalBonus = skillBonus + modBonus + modAtq + condAtq + raceAtk;
                 bonusInput.value = totalBonus;
             }
         });
@@ -4130,20 +4133,21 @@ function filtrarMagias() {
     `).join('');
 }
 
-function selecionarMagia(nomeMagia) {
-    const magia = SPELLS_DB.find(m => m.n === nomeMagia);
-    if (magia) {
-        // Formata os aprimoramentos para texto
-        let descCompleta = magia.desc;
-
-        if (magia.aprimoramentos && magia.aprimoramentos.length > 0) {
-            descCompleta += "\n\n--- APRIMORAMENTOS ---";
-            magia.aprimoramentos.forEach(aprim => {
-                descCompleta += `\n• +${aprim.cost} PM: ${aprim.desc}`;
-            });
-        }
-
-        const spellData = {
+function _spellFromDb(nomeMagia) {
+    if (typeof SPELLS_DB === 'undefined') return null;
+    const magia = SPELLS_DB.find(m => _clsNorm(m.n) === _clsNorm(nomeMagia));
+    if (!magia) return null;
+    // Formata os aprimoramentos para texto
+    let descCompleta = magia.desc;
+    if (magia.aprimoramentos && magia.aprimoramentos.length > 0) {
+        descCompleta += "\n\n--- APRIMORAMENTOS ---";
+        magia.aprimoramentos.forEach(aprim => {
+            descCompleta += `\n• +${aprim.cost} PM: ${aprim.desc}`;
+        });
+    }
+    return {
+        circle: magia.c,
+        data: {
             name: magia.n,
             pm: spellCosts[magia.c], // Puxa 1, 3, 6, 10 ou 15 conforme o círculo
             school: magia.e,
@@ -4153,11 +4157,32 @@ function selecionarMagia(nomeMagia) {
             dur: magia.d,
             res: magia.r,
             desc: descCompleta // Agora inclui a descrição + aprimoramentos formatados
-        };
+        }
+    };
+}
 
-        addSpell(magia.c, spellData); // Insere na ficha
+function selecionarMagia(nomeMagia) {
+    const sp = _spellFromDb(nomeMagia);
+    if (sp) {
+        addSpell(sp.circle, sp.data); // Insere na ficha
         fecharGrimorio(); // Fecha o modal
     }
+}
+
+// Adiciona uma magia racial sem duplicar (usado por racas-detalhes.js)
+function _addRaceSpell(entry) {
+    const nome = typeof entry === 'string' ? entry : entry.nome;
+    const base = (entry && entry.spell) ? entry.spell : nome;
+    const n = _clsNorm(nome);
+    const exists = Array.from(document.querySelectorAll('.spell-row .inp-name'))
+        .some(el => _clsNorm(el.value) === n);
+    if (exists) return false;
+    const sp = _spellFromDb(base);
+    if (!sp) return false;
+    const data = Object.assign({}, sp.data, { name: nome });
+    if (entry && entry.nota) data.desc = (data.desc || '') + `\n\n${entry.nota}`;
+    addSpell(sp.circle, data);
+    return true;
 }
 // ================================================================
 // SISTEMA DE MODIFICADORES TEMPORÁRIOS
@@ -5847,6 +5872,10 @@ function _clsCalc(list) {
         pv += (i === 0) ? st.pv + st.perLv * (e.level - 1) : st.perLv * e.level;
     });
     pv += con * level;
+    if (level > 0) {
+        pv += _racePvBonus(_raceAppliedId(), level);
+        pm += _racePmBonus(_raceAppliedId(), level);
+    }
     return { level, pv: Math.max(level ? 1 : 0, pv), pm, con };
 }
 
@@ -5981,6 +6010,10 @@ function aplicarClasses() {
             const oldPv = getInt('pvMax'), oldPm = getInt('pmMax');
             document.getElementById('pvMax').value = calc.pv;
             document.getElementById('pmMax').value = calc.pm;
+            if (charRaceApplied && charRaceApplied.id) {
+                charRaceApplied.pvBonus = _racePvBonus(charRaceApplied.id, calc.level);
+                charRaceApplied.pmBonus = _racePmBonus(charRaceApplied.id, calc.level);
+            }
             const pvCur = document.getElementById('pvCurrent'), pmCur = document.getElementById('pmCurrent');
             if (pvCur && (pvCur.value === '' || parseInt(pvCur.value) === oldPv || parseInt(pvCur.value) > calc.pv)) pvCur.value = calc.pv;
             if (pmCur && (pmCur.value === '' || parseInt(pmCur.value) === oldPm || parseInt(pmCur.value) > calc.pm)) pmCur.value = calc.pm;
@@ -6320,15 +6353,19 @@ function aplicarDistincao() {
 
 
 // ============================================================
-//  RAÇA — busca + aplicação (bônus de atributo, tamanho e poderes)
-//  Dados: racas.js (+ racas_dragaobrasil.js), os mesmos da Calculadora de Atributos
+//  RAÇA + CALCULADORA DE ATRIBUTOS — busca, distribuição de pontos e aplicação
+//  Dados: racas.js (+ racas_dragaobrasil.js), os mesmos da Calculadora de Atributos.
+//  Regras da calculadora: pontos para distribuir (padrão 10), valor base de -1 a 4,
+//  custo -1→-1, 0→0, 1→1, 2→2, 3→4, 4→7; Total = Valor + Racial + Outros.
 // ============================================================
 const RAC_ATTR_KEY = { FOR: 'forca', DES: 'destreza', CON: 'constituicao', INT: 'inteligencia', SAB: 'sabedoria', CAR: 'carisma' };
 const RAC_ATTRS = Object.keys(RAC_ATTR_KEY);
+const RAC_COST = { '-1': -1, '0': 0, '1': 1, '2': 2, '3': 4, '4': 7 };
 const RAC_TYPE_LABEL = { base: 'T20', ameacas: 'Ameaças de Arton', ghanor: 'Ruff Ghanor', DHracas: 'Heróis de Arton', outraRaca: 'Outras', dragaobrasil: 'Dragão Brasil' };
 // Raça aplicada por último (para desfazer os bônus ao trocar): { id, attrs: {FOR: n}, powers: [nomes] }
 let charRaceApplied = { id: '', attrs: {}, powers: [] };
 let _racSel = null, _racPicks = {}, _racSkills = ['', ''], _racQuery = '', _racType = '';
+let _racBase = {}, _racOutros = {}, _racPts = 10, _racShowOutros = false;
 
 function _racData() { return (typeof window.RACE_DATA === 'object' && window.RACE_DATA) ? window.RACE_DATA : {}; }
 function _racIds() { return Object.keys(_racData()); }
@@ -6338,15 +6375,87 @@ function _racFixed(r) { // bônus fixos da raça, por sigla de atributo
     RAC_ATTRS.forEach(a => { const v = (r.attributes || {})[RAC_ATTR_KEY[a]]; if (v) out[a] = v; });
     return out;
 }
-function _racPickMax(r) { return r.isChoice ? (r.choiceCount || 0) : 0; }
+
+// ---- Detalhes mecânicos de raça (ficha/racas-detalhes.js) ----
+function _raceDetail(id) {
+    const D = (typeof window !== 'undefined' && window.RACE_SHEET_DETAILS) ? window.RACE_SHEET_DETAILS : null;
+    return (D && id && D[id]) || null;
+}
+function _raceAppliedId() { return (charRaceApplied && charRaceApplied.id) || ''; }
+function _racePvBonus(id, level) {
+    const d = _raceDetail(id);
+    if (!d) return 0;
+    const lv = Math.max(1, parseInt(level) || 1);
+    if (typeof d.pvBonus === 'function') return Math.max(0, parseInt(d.pvBonus(lv)) || 0);
+    return Math.max(0, (Number(d.pvPrimeiroNivel) || 0) + (lv - 1) * (Number(d.pvPorNivel) || 0));
+}
+function _racePmBonus(id, level) {
+    const d = _raceDetail(id);
+    if (!d) return 0;
+    const lv = Math.max(1, parseInt(level) || 1);
+    if (typeof d.pmBonus === 'function') return Math.max(0, parseInt(d.pmBonus(lv)) || 0);
+    return Math.max(0, (Number(d.pmPrimeiroNivel) || 0) + (lv - 1) * (Number(d.pmPorNivel) || 0));
+}
+function _raceSkillBonus(nome) {
+    const d = _raceDetail(_raceAppliedId());
+    if (!d) return 0;
+    const n = _clsNorm(nome);
+    return (d.periciasBonus || []).reduce((sum, pb) => {
+        if (pb.condicao) return sum; // condicional: exibido, mas não aplicado automaticamente
+        const hit = (pb.pericias || []).some(p => _clsNorm(p) === n);
+        return sum + (hit ? (Number(pb.valor) || 0) : 0);
+    }, 0);
+}
+function _raceAttackBonus(id, nome) {
+    const d = _raceDetail(id);
+    if (!d || !d.ataqueBonus) return 0;
+    const n = _clsNorm(nome);
+    const hit = (d.ataqueBonus.palavras || []).some(p => n.includes(_clsNorm(p)));
+    return hit ? (Number(d.ataqueBonus.valor) || 0) : 0;
+}
+function _racPickMax(r) { return r && r.isChoice ? (r.choiceCount || 0) : 0; }
 function _racPicked() { return RAC_ATTRS.reduce((n, a) => n + (_racPicks[a] || 0), 0); }
+// Bônus raciais em vigor na calculadora: os da raça escolhida (fixos + à escolha) ou, sem raça, os já aplicados
+function _racRacial() {
+    const r = _racData()[_racSel];
+    if (!r) return Object.assign({}, (charRaceApplied && charRaceApplied.attrs) || {});
+    const out = Object.assign({}, _racFixed(r));
+    RAC_ATTRS.forEach(a => { if (_racPicks[a]) out[a] = (out[a] || 0) + _racPicks[a]; });
+    return out;
+}
+function _racSpent() { return RAC_ATTRS.reduce((n, a) => n + (RAC_COST[_racBase[a]] || 0), 0); }
+function _racAvail() { return _racPts - _racSpent(); }
+function _racTotal(a, rac) { return (_racBase[a] || 0) + ((rac || _racRacial())[a] || 0) + (_racOutros[a] || 0); }
+
+// Começa a calculadora a partir dos atributos que a ficha já tem (descontando a raça aplicada),
+// então abrir e aplicar sem mexer em nada não muda os atributos.
+function _racInitFromSheet() {
+    const old = (charRaceApplied && charRaceApplied.attrs) || {};
+    let spent = 0;
+    RAC_ATTRS.forEach(a => {
+        const cur = parseInt(document.getElementById('attr-' + a).value) || 0;
+        const rest = cur - (old[a] || 0);
+        const base = Math.max(-1, Math.min(4, rest));
+        _racBase[a] = base; _racOutros[a] = rest - base; spent += RAC_COST[base];
+    });
+    _racPts = Math.max(10, spent);
+    _racShowOutros = RAC_ATTRS.some(a => _racOutros[a] !== 0);
+}
 
 function abrirRaca() {
     if (!_racIds().length) { alert('O banco de raças (racas.js) não foi carregado. Confira se os arquivos estão em ../calculadora/.'); return; }
     _racSel = null; _racPicks = {}; _racSkills = ['', '']; _racQuery = ''; _racType = '';
     document.getElementById('racSearch').value = '';
+    _racInitFromSheet();
+    // reabre já na raça aplicada, com as escolhas de atributo que ela tinha
+    const prev = charRaceApplied && charRaceApplied.id;
+    if (prev && _racData()[prev]) {
+        _racSel = prev;
+        const r = _racData()[prev], fx = _racFixed(r);
+        if (r.isChoice) RAC_ATTRS.forEach(a => { const v = ((charRaceApplied.attrs || {})[a] || 0) - (fx[a] || 0); if (v > 0) _racPicks[a] = v; });
+    }
     document.getElementById('modalRaca').style.display = 'flex';
-    _racRenderChips(); _racRenderList(); _racRenderDetail();
+    _racRenderChips(); _racRenderList(); _racRenderCalc(); _racRenderDetail();
 }
 function fecharRaca() { document.getElementById('modalRaca').style.display = 'none'; }
 function racSearch(v) { _racQuery = v; _racRenderList(); }
@@ -6365,40 +6474,126 @@ function _racRenderList() {
             <span class="od-item-sub">${_odEsc(RAC_TYPE_LABEL[D[id].type] || D[id].type)}${D[id].raca && D[id].raca !== '-' ? ' · ' + _odEsc(D[id].raca) : ''}</span>
         </div>`).join('') : '<div class="od-empty">Nenhuma raça encontrada.</div>';
 }
-function racSelect(id) { _racSel = id; _racPicks = {}; _racSkills = ['', '']; _racRenderList(); _racRenderDetail(); }
+function racSelect(id) { _racSel = id; _racPicks = {}; _racSkills = ['', '']; _racRenderList(); _racRenderCalc(); _racRenderDetail(); }
+
+// ---- calculadora ----
+function racBase(a, d) {
+    const cur = _racBase[a] || 0, next = cur + d;
+    if (next < -1 || next > 4) return;
+    if ((RAC_COST[next] - RAC_COST[cur]) > _racAvail()) return;
+    _racBase[a] = next; _racRenderCalc(); _racUpdateStatus();
+}
 function racPick(a, d) {
-    const r = _racData()[_racSel]; if (!r) return;
+    const r = _racData()[_racSel]; if (!r || !r.isChoice) return;
     const cur = _racPicks[a] || 0, next = cur + d;
     if (next < 0 || next > (r.maxChoicePerAttribute || 1)) return;
     if (d > 0 && _racPicked() >= _racPickMax(r)) return;
-    _racPicks[a] = next; _racRenderDetail();
+    _racPicks[a] = next; _racRenderCalc(); _racUpdateStatus();
+}
+function racOutros(a, v) { _racOutros[a] = parseInt(v) || 0; _racRenderCalc(); _racUpdateStatus(); }
+function racOutrosToggle(on) { _racShowOutros = on; if (!on) RAC_ATTRS.forEach(a => { _racOutros[a] = 0; }); _racRenderCalc(); _racUpdateStatus(); }
+function racPts(v) {
+    const n = parseInt(v);
+    _racPts = (isNaN(n) || n < 0) ? 10 : n;
+    _racRenderCalc(); _racUpdateStatus();
 }
 function racSkill(i, v) { _racSkills[i] = v; _racUpdateStatus(); }
+
+function _racRenderCalc() {
+    const box = document.getElementById('racCalc'); if (!box) return;
+    const r = _racData()[_racSel], rac = _racRacial(), avail = _racAvail();
+    const locked = r && r.isChoice ? (r.lockedChoiceAttributes || []) : [];
+    const fx = r ? _racFixed(r) : {};
+    const sgn = n => (n > 0 ? '+' : '') + n;
+    const rows = RAC_ATTRS.map(a => {
+        const b = _racBase[a] || 0, up = b < 4 && (RAC_COST[b + 1] - RAC_COST[b]) <= avail, dn = b > -1;
+        let racCell;
+        if (r && r.isChoice && !locked.includes(RAC_ATTR_KEY[a])) {
+            const v = _racPicks[a] || 0;
+            racCell = `<div class="cls-level"><button type="button" ${v > 0 ? '' : 'disabled'} onclick="racPick('${a}', -1)" aria-label="Menos">−</button>
+                <input type="text" readonly tabindex="-1" value="${sgn(rac[a] || 0)}">
+                <button type="button" onclick="racPick('${a}', 1)" aria-label="Mais">+</button></div>`;
+        } else {
+            racCell = `<span class="rac-fixed ${locked.includes(RAC_ATTR_KEY[a]) ? 'lock' : ''}">${rac[a] ? sgn(rac[a]) : '0'}</span>`;
+        }
+        return `<tr>
+            <td class="rac-an">${a}</td>
+            <td><div class="cls-level"><button type="button" ${dn ? '' : 'disabled'} onclick="racBase('${a}', -1)" aria-label="Diminuir">−</button>
+                <input type="text" readonly tabindex="-1" value="${b}">
+                <button type="button" ${up ? '' : 'disabled'} onclick="racBase('${a}', 1)" aria-label="Aumentar">+</button></div></td>
+            <td>${racCell}</td>
+            ${_racShowOutros ? `<td><input type="number" class="od-num" value="${_racOutros[a] || 0}" onchange="racOutros('${a}', this.value)"></td>` : ''}
+            <td class="rac-total ${_racTotal(a, rac) < 0 ? 'neg' : ''}">${_racTotal(a, rac)}</td></tr>`;
+    }).join('');
+    const pick = r && r.isChoice
+        ? `<div class="rac-pickinfo">Bônus racial à escolha: <b class="${_racPicked() === _racPickMax(r) ? 'od-ok' : ''}">${_racPicked()}/${_racPickMax(r)}</b>
+            <small>(use + e − na coluna Racial${locked.length ? '; atributos travados pela raça não aceitam bônus' : ''})</small></div>` : '';
+    box.innerHTML = `<div class="rac-calc">
+        <div class="od-sub" style="margin-top:0">Distribuição de atributos</div>
+        <div class="rac-points">
+            <span>Pontos disponíveis <b class="rac-badge ${avail < 0 ? 'bad' : ''}">${avail}</b></span>
+            <span>Total <input type="number" min="0" class="od-num" value="${_racPts}" onchange="racPts(this.value)"></span>
+            <span>Gastos <b>${_racSpent()}</b></span>
+            <label class="od-check"><input type="checkbox" ${_racShowOutros ? 'checked' : ''} onchange="racOutrosToggle(this.checked)"> Coluna Outros</label>
+        </div>
+        ${pick}
+        <div class="rac-tablewrap"><table class="rac-table"><thead><tr><th>Atributo</th><th>Valor</th><th>Racial</th>${_racShowOutros ? '<th>Outros</th>' : ''}<th>Total</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+        <div class="rac-note">Os atributos da ficha passam a ser o <b>Total</b> ao aplicar. Os valores iniciais vêm da ficha atual (menos a raça já aplicada).</div>
+    </div>`;
+}
+
+function _racCalcUrl() {
+    const qs = new URLSearchParams();
+    if (_racSel) qs.set('raca', _racSel);
+    qs.set('pts', String(_racPts));
+    RAC_ATTRS.forEach(a => {
+        const key = RAC_ATTR_KEY[a];
+        qs.set(key, String(_racBase[a] || 0));
+        if (_racOutros[a]) qs.set('outros_' + key, String(_racOutros[a]));
+    });
+    return '../calculadora/index.html?' + qs.toString();
+}
 
 function _racRenderDetail() {
     const box = document.getElementById('racDetail');
     const r = _racData()[_racSel];
-    if (!r) { box.innerHTML = '<div class="od-empty">Escolha uma raça na lista para ver bônus e poderes.</div>'; _racUpdateStatus(); return; }
+    if (!r) { box.innerHTML = '<div class="od-empty">Distribua os pontos acima e, se quiser, escolha uma raça na lista para ver bônus e poderes.</div>'; _racUpdateStatus(); return; }
     let html = `<h5 class="od-title">${_odEsc(r.name)} <span class="cls-src">${_odEsc(RAC_TYPE_LABEL[r.type] || r.type)}</span></h5>
         <div class="od-line"><b>Tipo:</b> ${_odEsc(r.raca && r.raca !== '-' ? r.raca : '—')} · <b>Tamanho:</b> ${_odEsc(r.tamanho || 'depende das escolhas')}</div>
         <div class="od-line"><b>Atributos:</b> ${_odEsc(r.bonusMessage || '—')}</div>`;
-    if (r.createCustomUi) {
-        html += `<div class="od-warn">Esta raça tem escolhas especiais (heranças, talentos, chassi etc.). Aplico os bônus e poderes fixos;
-            as escolhas especiais faça na Calculadora de Atributos ou adicione à mão.</div>`;
+    const det = _raceDetail(_racSel);
+    if (det) {
+        const lv = Math.max(1, getInt('charLevel'));
+        const partes = [];
+        const pv = _racePvBonus(_racSel, lv);
+        const pm = _racePmBonus(_racSel, lv);
+        if (pv) partes.push(`PV +${pv} (nível ${lv})`);
+        if (pm) partes.push(`PM +${pm} (nível ${lv})`);
+        if (det.deslocamento) partes.push(`Deslocamento ${det.deslocamento}${det.deslocamentoNuncaReduzido ? ' (não reduzido por armadura/carga)' : ''}`);
+        if (det.ataqueBonus) partes.push(`+${det.ataqueBonus.valor} em ataques com ${det.ataqueBonus.palavras.join(', ')}`);
+        (det.periciasBonus || []).forEach(pb => partes.push(`+${pb.valor} em ${pb.pericias.join(' e ')}${pb.condicao ? ' ' + pb.condicao : ''}`));
+        (det.magias || []).forEach(m => {
+            const nm = typeof m === 'string' ? m : m.nome;
+            const at = (m && m.atributo) ? ` (${m.atributo})` : '';
+            const nt = (m && m.nota) ? ` — ${m.nota}` : '';
+            if (nm) partes.push(`Magia racial: ${nm}${at}${nt}`);
+        });
+        if (det.defesaAtiva) {
+            const da = det.defesaAtiva;
+            partes.push(`Defesa +${da.valor} por ${da.custo} (${da.acao}${da.duracao ? ', ' + da.duracao : ''})`);
+        }
+        if (det.reducaoDano) {
+            const rd = det.reducaoDano;
+            partes.push(`Redução de dano ${rd.valor} por ${rd.custo}${rd.condicao ? ` (${rd.condicao})` : ''}`);
+        }
+        if (partes.length) html += `<div class="od-line"><b>Efeitos na ficha:</b> ${_odEsc(partes.join(' · '))}</div>`;
     }
-    if (r.isChoice) {
-        const max = _racPickMax(r), n = _racPicked(), locked = r.lockedChoiceAttributes || [];
-        html += `<div class="od-sub">Distribua ${max} bônus de atributo <b class="${n === max ? 'od-ok' : ''}">(${n}/${max})</b></div>
-            <div class="rac-attrs">${RAC_ATTRS.map(a => {
-                const lk = locked.includes(RAC_ATTR_KEY[a]), v = _racPicks[a] || 0, fx = _racFixed(r)[a] || 0;
-                return `<div class="rac-attr ${v ? 'on' : ''} ${lk ? 'dis' : ''}">
-                    <div class="rac-attr-name">${a}</div>
-                    <div class="rac-attr-fixed">${fx ? (fx > 0 ? '+' : '') + fx : '&nbsp;'}</div>
-                    <div class="cls-level"><button type="button" ${lk ? 'disabled' : ''} onclick="racPick('${a}', -1)" aria-label="Menos">−</button>
-                    <input type="text" readonly value="${v}" tabindex="-1">
-                    <button type="button" ${lk ? 'disabled' : ''} onclick="racPick('${a}', 1)" aria-label="Mais">+</button></div>
-                </div>`;
-            }).join('')}</div>`;
+    if (r.createCustomUi) {
+        const calcUrl = _odEsc(_racCalcUrl());
+        html += `<div class="od-warn">Esta raça tem escolhas especiais (heranças, talentos, chassi etc.). Aplico os bônus e poderes fixos;
+            as escolhas especiais faça na Calculadora de Atributos ou adicione à mão.
+            <div style="margin-top:6px"><a href="${calcUrl}" target="_blank" rel="noopener"><b>Abrir na Calculadora com esta raça e seus atributos →</b></a></div></div>`;
     }
     if (_racSel === 'humano') {
         html += `<div class="od-sub">Versátil <small>(perícias treinadas; deixe vazio se for trocar por um poder)</small></div>
@@ -6415,13 +6610,13 @@ function _racRenderDetail() {
 
 function _racCompute() {
     const r = _racData()[_racSel];
-    const res = { r, bonuses: {}, powers: [], missing: [] };
-    if (!r) { res.missing.push('Escolha uma raça.'); return res; }
-    Object.assign(res.bonuses, _racFixed(r));
-    RAC_ATTRS.forEach(a => { if (_racPicks[a]) res.bonuses[a] = (res.bonuses[a] || 0) + _racPicks[a]; });
-    const need = _racPickMax(r) - _racPicked();
-    if (need > 0) res.missing.push(`Distribua mais ${need} bônus de atributo.`);
-    res.powers = (r.racialPowers || []).map(p => ({ name: p.name, desc: p.desc }));
+    const res = { r, racial: _racRacial(), powers: [], missing: [] };
+    if (r) {
+        const need = _racPickMax(r) - _racPicked();
+        if (need > 0) res.missing.push(`Distribua mais ${need} bônus de atributo (coluna Racial).`);
+        res.powers = (r.racialPowers || []).map(p => ({ name: p.name, desc: p.desc }));
+    }
+    if (_racAvail() < 0) res.missing.push('Os pontos gastos passam do total.');
     return res;
 }
 function _racUpdateStatus() {
@@ -6429,53 +6624,118 @@ function _racUpdateStatus() {
     if (!st) return;
     const c = _racCompute();
     btn.disabled = c.missing.length > 0;
-    if (!c.r) { st.innerHTML = 'Nenhuma raça escolhida.'; return; }
-    const txt = RAC_ATTRS.filter(a => c.bonuses[a]).map(a => `${a} ${c.bonuses[a] > 0 ? '+' : ''}${c.bonuses[a]}`).join(', ') || 'sem bônus de atributo';
-    st.innerHTML = `<b>${_odEsc(_racShortName(c.r))}</b> · ${_odEsc(txt)} · ${c.powers.length} poder(es)` +
+    const tot = RAC_ATTRS.map(a => `${a} ${_racTotal(a, c.racial)}`).join(' · ');
+    st.innerHTML = `<b>${c.r ? _odEsc(_racShortName(c.r)) : 'Só atributos'}</b>${c.r ? ` · ${c.powers.length} poder(es)` : ''}<br><small>${_odEsc(tot)}</small>` +
         (c.missing.length ? `<br><span class="cls-bad">${_odEsc(c.missing[0])}</span>` : '');
 }
 
 function aplicarRaca() {
     const c = _racCompute();
-    if (!c.r || c.missing.length) return;
+    if (c.missing.length) return;
     const old = charRaceApplied || { id: '', attrs: {}, powers: [] };
 
-    // 1) desfaz a raça anterior (bônus de atributo e poderes que a ficha recebeu dela)
-    if (old.powers && old.powers.length) {
-        const names = new Set(old.powers.map(n => String(n).trim().toLowerCase()));
-        document.querySelectorAll('#abilitiesRaceList .ability-row').forEach(row => {
-            const folder = row.closest('.race-folder');
-            const nm = row.querySelector('.inp-name');
-            if (folder && folder.dataset.name === 'Raça' && nm && names.has(nm.value.trim().toLowerCase())) row.remove();
+    // 1) atributos: o Total da calculadora (valor + racial + outros)
+    RAC_ATTRS.forEach(a => { document.getElementById('attr-' + a).value = _racTotal(a, c.racial); });
+
+    let nome = '', added = 0, spellsAdded = 0, pvBonusApplied = 0, pmBonusApplied = 0;
+    if (c.r) {
+        // 0) desfaz os efeitos mecânicos da raça anterior (PV, PM, deslocamento)
+        const pvMaxEl = document.getElementById('pvMax'), pvCurEl = document.getElementById('pvCurrent');
+        const pmMaxEl = document.getElementById('pmMax'), pmCurEl = document.getElementById('pmCurrent');
+        const oldPvBonus = Math.max(0, parseInt(old.pvBonus) || 0);
+        const oldPmBonus = Math.max(0, parseInt(old.pmBonus) || 0);
+        const oldSpeed = old.speed || '';
+        if (oldPvBonus && pvMaxEl) {
+            const prevMax = parseInt(pvMaxEl.value) || 0;
+            const wasFull = pvCurEl && (parseInt(pvCurEl.value) || 0) === prevMax;
+            const newMax = Math.max(0, prevMax - oldPvBonus);
+            pvMaxEl.value = newMax;
+            if (pvCurEl && (wasFull || (parseInt(pvCurEl.value) || 0) > newMax)) pvCurEl.value = newMax;
+        }
+        if (oldPmBonus && pmMaxEl) {
+            const prevMax = parseInt(pmMaxEl.value) || 0;
+            const wasFull = pmCurEl && (parseInt(pmCurEl.value) || 0) === prevMax;
+            const newMax = Math.max(0, prevMax - oldPmBonus);
+            pmMaxEl.value = newMax;
+            if (pmCurEl && (wasFull || (parseInt(pmCurEl.value) || 0) > newMax)) pmCurEl.value = newMax;
+        }
+        if (oldSpeed && getVal('charSpeed') === oldSpeed) {
+            document.getElementById('charSpeed').value = '9m';
+        }
+
+        // 2) desfaz os poderes da raça anterior
+        if (old.powers && old.powers.length) {
+            const names = new Set(old.powers.map(n => String(n).trim().toLowerCase()));
+            document.querySelectorAll('#abilitiesRaceList .ability-row').forEach(row => {
+                const folder = row.closest('.race-folder');
+                const nm = row.querySelector('.inp-name');
+                if (folder && folder.dataset.name === 'Raça' && nm && names.has(nm.value.trim().toLowerCase())) row.remove();
+            });
+        }
+        // 2b) desfaz as magias raciais adicionadas automaticamente
+        if (old.spells && old.spells.length) {
+            const spellNames = new Set(old.spells.map(n => _clsNorm(n)));
+            document.querySelectorAll('.spell-row').forEach(row => {
+                const nm = row.querySelector('.inp-name');
+                if (nm && spellNames.has(_clsNorm(nm.value))) row.remove();
+            });
+        }
+        // 3) nome, tamanho e poderes
+        nome = _racShortName(c.r);
+        document.getElementById('charRace').value = nome;
+        const sel = document.getElementById('charSize');
+        if (c.r.tamanho && sel) {
+            const opt = Array.from(sel.options).find(o => _clsNorm(o.text) === _clsNorm(c.r.tamanho));
+            if (opt) sel.value = opt.value;
+        }
+        added = _odAddAbilities(c.powers, 'Raça');
+        const addedNames = _odLastAdded.slice();
+        // 4) Humano: Versátil
+        if (_racSel === 'humano') _racSkills.filter(Boolean).forEach(n => _odTrainSkill({ name: n, specialty: '' }));
+        // 5) detalhes mecânicos da raça (PV por nível, deslocamento etc.)
+        const det = _raceDetail(_racSel);
+        const level = Math.max(1, getInt('charLevel'));
+        const newPvBonus = _racePvBonus(_racSel, level);
+        pvBonusApplied = newPvBonus;
+        if (newPvBonus && pvMaxEl) {
+            const prevMax = parseInt(pvMaxEl.value) || 0;
+            const wasFull = pvCurEl && (parseInt(pvCurEl.value) || 0) === prevMax;
+            const newMax = prevMax + newPvBonus;
+            pvMaxEl.value = newMax;
+            if (pvCurEl && (wasFull || (parseInt(pvCurEl.value) || 0) > newMax)) pvCurEl.value = newMax;
+        }
+        const newPmBonus = _racePmBonus(_racSel, level);
+        pmBonusApplied = newPmBonus;
+        if (newPmBonus && pmMaxEl) {
+            const prevMax = parseInt(pmMaxEl.value) || 0;
+            const wasFull = pmCurEl && (parseInt(pmCurEl.value) || 0) === prevMax;
+            const newMax = prevMax + newPmBonus;
+            pmMaxEl.value = newMax;
+            if (pmCurEl && (wasFull || (parseInt(pmCurEl.value) || 0) > newMax)) pmCurEl.value = newMax;
+        }
+        if (det && det.deslocamento) {
+            document.getElementById('charSpeed').value = det.deslocamento;
+        }
+        // 6) magias raciais fixas (ex.: Controlar Plantas da Dahllan)
+        const addedSpells = [];
+        ((det && det.magias) || []).forEach(m => {
+            const nm = typeof m === 'string' ? m : m.nome;
+            if (nm && _addRaceSpell(m)) addedSpells.push(nm);
         });
+        spellsAdded = addedSpells.length;
+        charRaceApplied = {
+            id: _racSel, attrs: c.racial, powers: addedNames, pvBonus: newPvBonus,
+            pmBonus: newPmBonus, speed: (det && det.deslocamento) || '', spells: addedSpells
+        };
     }
-    RAC_ATTRS.forEach(a => {
-        const el = document.getElementById('attr-' + a);
-        el.value = (parseInt(el.value) || 0) - ((old.attrs || {})[a] || 0) + (c.bonuses[a] || 0);
-    });
-
-    // 2) nome, tamanho e poderes
-    document.getElementById('charRace').value = _racShortName(c.r);
-    const sel = document.getElementById('charSize');
-    if (c.r.tamanho && sel) {
-        const opt = Array.from(sel.options).find(o => _clsNorm(o.text) === _clsNorm(c.r.tamanho));
-        if (opt) sel.value = opt.value;
-    }
-    const added = _odAddAbilities(c.powers, 'Raça');
-    const addedNames = _odLastAdded.slice();
-
-    // 3) Humano: Versátil
-    if (_racSel === 'humano') _racSkills.filter(Boolean).forEach(n => _odTrainSkill({ name: n, specialty: '' }));
-
-    charRaceApplied = { id: _racSel, attrs: c.bonuses, powers: addedNames };
     renderSkills();
     refreshLevelFolders();
     updateCalculations();
     saveData();
     fecharRaca();
-    if (typeof showSheetToast === 'function') showSheetToast(`✅ Raça ${_odEsc(_racShortName(c.r))}: bônus de atributo e ${added} poder(es) aplicados`);
+    const txt = RAC_ATTRS.map(a => `${a} ${_racTotal(a, c.racial)}`).join(' ');
+    if (typeof showSheetToast === 'function') showSheetToast(`✅ ${nome ? 'Raça ' + _odEsc(nome) + ': ' : ''}atributos ${_odEsc(txt)}${pvBonusApplied ? `, PV +${pvBonusApplied}` : ''}${pmBonusApplied ? `, PM +${pmBonusApplied}` : ''}${added ? `, ${added} poder(es)` : ''}${spellsAdded ? `, ${spellsAdded} magia(s)` : ''}`);
 }
-
 
 // ============================================================
 //  DIVINDADE — poderes concedidos (powersData, type "conceded")

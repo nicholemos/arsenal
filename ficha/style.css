@@ -4119,3 +4119,27 @@ body.theme-dark .attr-token.attr-medal .attr-val {
 .od-statusrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0; font-size: .86rem; }
 .od-num { width: 64px; height: 28px; margin-left: 6px; text-align: center; border-radius: 6px;
     border: 1px solid var(--ouro, #c9933a); background: var(--bg-card-solid, #fff); color: inherit; }
+
+
+/* ---------- Calculadora de atributos (modal de raça) ---------- */
+.rac-calc { border: 1px solid var(--borda-card, #d0d0d0); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.rac-points { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: .86rem; margin-bottom: 6px; }
+.rac-points .od-num { margin-left: 4px; }
+.rac-badge { display: inline-block; min-width: 26px; text-align: center; padding: 1px 8px; border-radius: 12px;
+    background: var(--ouro, #c9933a); color: #fff; }
+.rac-badge.bad { background: #dc3545; }
+.rac-pickinfo { font-size: .84rem; margin-bottom: 6px; }
+.rac-pickinfo small { color: var(--texto-secundario, #475569); }
+.rac-tablewrap { overflow-x: auto; }
+.rac-table { width: 100%; border-collapse: collapse; text-align: center; }
+.rac-table th { font-size: .74rem; text-transform: uppercase; color: var(--texto-secundario, #475569); padding: 2px 4px; }
+.rac-table td { padding: 3px 4px; border-top: 1px solid var(--borda-card, #d0d0d0); vertical-align: middle; }
+.rac-an { font-family: 'Tormenta', serif; font-weight: 700; font-size: 1.05rem; text-align: left; padding-left: 8px !important; }
+.rac-table .cls-level { display: inline-flex; }
+.rac-table .cls-level button:disabled { opacity: .35; cursor: not-allowed; }
+.rac-table .cls-level button:disabled:hover { background: transparent; color: inherit; }
+.rac-fixed { font-weight: 700; }
+.rac-fixed.lock { opacity: .5; }
+.rac-total { font-size: 1.25rem; font-weight: 800; color: var(--t20-red, #e0483f); }
+.rac-total.neg { color: #dc3545; }
+.rac-note { font-size: .74rem; color: var(--texto-secundario, #475569); margin-top: 6px; }
