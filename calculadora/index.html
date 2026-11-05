@@ -33,7 +33,8 @@
   <div class="modal-overlay" id="configOverlay"></div>
   <div class="modal" id="configModal" aria-hidden="true">
     <div class="modal-content options-box" id="opcoes" role="dialog" aria-modal="true" aria-label="Configurações">
-      <button class="modal-close close-button" id="close-config-button" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close close-button" id="close-config-button" aria-label="Fechar"><i
+          class="fa-solid fa-xmark"></i></button>
 
       <div class="modal-header">
         <h2 class="modal-title">Configurações</h2>
@@ -69,7 +70,8 @@
         <div class="calc-left-top">
           <button type="button" class="filter-btn" id="reset-button">Reset</button>
           <button type="button" class="filter-btn" id="enviar-ficha-button">🚀 Enviar para a Ficha</button>
-          <a href="../compendio/index.html" class="filter-btn" id="compendio-button" title="Voltar ao Compêndio de Raças">← Compêndio</a>
+          <a href="../compendio/index.html" class="filter-btn" id="compendio-button"
+            title="Voltar ao Compêndio de Raças">← Compêndio</a>
         </div>
 
         <div style="margin-top:6px">
@@ -103,6 +105,11 @@
               <label class="check">
                 <input type="checkbox" id="dragaobrasilCheckbox" class="race-filter" data-race-type="dragaobrasil">
                 <span>Raças do Dragão Brasil</span>
+              </label>
+
+              <label class="check">
+                <input type="checkbox" id="bestiarioCheckbox" class="race-filter" data-race-type="bestiario">
+                <span>Raças do Bestiário de Arton</span>
               </label>
             </div>
           </details>
@@ -163,9 +170,9 @@
       </section>
     </div>
 
-    
+
   </main>
-<!-- ASSINATURA / CRÉDITOS (STR-style) -->
+  <!-- ASSINATURA / CRÉDITOS (STR-style) -->
   <section class="sig-wrap" aria-label="Sobre e créditos">
     <details class="sig-card">
       <summary class="sig-summary">
@@ -243,7 +250,8 @@
           <div class="sig-col">
             <h4 class="sig-h4">Conheça meus outros projetos</h4>
 
-            <a class="sig-link" href="https://nicholemos.github.io/arsenal/STR" target="_blank" rel="noopener noreferrer">
+            <a class="sig-link" href="https://nicholemos.github.io/arsenal/STR" target="_blank"
+              rel="noopener noreferrer">
               <div class="sig-link-main">
                 <span class="sig-link-name">STR – Supremo Tribunal Regreiro</span>
                 <span class="sig-link-url">nicholemos.github.io/STR</span>
@@ -259,7 +267,8 @@
               <span class="sig-ext" aria-hidden="true">↗</span>
             </a>
 
-            <a class="sig-link" href="https://nicholemos.github.io/arsenal/itens/" target="_blank" rel="noopener noreferrer">
+            <a class="sig-link" href="https://nicholemos.github.io/arsenal/itens/" target="_blank"
+              rel="noopener noreferrer">
               <div class="sig-link-main">
                 <span class="sig-link-name">Compilado de Itens</span>
                 <span class="sig-link-url">nicholemos.github.io/itens</span>
@@ -267,7 +276,8 @@
               <span class="sig-ext" aria-hidden="true">↗</span>
             </a>
 
-            <a class="sig-link" href="https://nicholemos.github.io/arsenal/poderes/" target="_blank" rel="noopener noreferrer">
+            <a class="sig-link" href="https://nicholemos.github.io/arsenal/poderes/" target="_blank"
+              rel="noopener noreferrer">
               <div class="sig-link-main">
                 <span class="sig-link-name">Compilado de Poderes</span>
                 <span class="sig-link-url">nicholemos.github.io/poderes</span>
@@ -306,8 +316,8 @@
           <div class="sig-col">
             <h4 class="sig-h4">Este projeto</h4>
 
-            <a class="sig-link sig-link-primary" href="https://nicholemos.github.io/arsenal/calculadora/" target="_blank"
-              rel="noopener noreferrer">
+            <a class="sig-link sig-link-primary" href="https://nicholemos.github.io/arsenal/calculadora/"
+              target="_blank" rel="noopener noreferrer">
               <div class="sig-link-main">
                 <span class="sig-link-name">Calculadora de Atributos – Tormenta20</span>
                 <span class="sig-link-url">nicholemos.github.io/calculadora</span>
@@ -342,47 +352,47 @@
   <script src="script.js"></script>
   <!-- Toggle tema -->
   <script>
-(function () {
-  var body = document.body;
-  var key = 't20_theme';
-  
-  function applyTheme(theme) {
-    body.classList.remove('theme-dark', 'theme-classic');
-    document.documentElement.classList.remove('theme-dark', 'theme-classic');
-    if (theme === 'dark') {
-      body.classList.add('theme-dark');
-      document.documentElement.classList.add('theme-dark');
-    } else if (theme === 'classic') {
-      body.classList.add('theme-classic');
-      document.documentElement.classList.add('theme-classic');
-    }
-    
-    document.querySelectorAll('.theme-btn').forEach(function (btn) {
-      btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
-    });
-    localStorage.setItem(key, theme);
-  }
-  
-  var saved = localStorage.getItem(key);
-  if (!saved) {
-    var oldTheme = localStorage.getItem('calculadoraTheme') || localStorage.getItem('hubTheme');
-    if (oldTheme === 'dark') saved = 'dark';
-    else if (oldTheme === 'classic' || oldTheme === 'light') saved = 'classic';
-    else saved = 'blood';
-  }
-  applyTheme(saved);
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.theme-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        applyTheme(btn.getAttribute('data-theme'));
+    (function () {
+      var body = document.body;
+      var key = 't20_theme';
+
+      function applyTheme(theme) {
+        body.classList.remove('theme-dark', 'theme-classic');
+        document.documentElement.classList.remove('theme-dark', 'theme-classic');
+        if (theme === 'dark') {
+          body.classList.add('theme-dark');
+          document.documentElement.classList.add('theme-dark');
+        } else if (theme === 'classic') {
+          body.classList.add('theme-classic');
+          document.documentElement.classList.add('theme-classic');
+        }
+
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+        });
+        localStorage.setItem(key, theme);
+      }
+
+      var saved = localStorage.getItem(key);
+      if (!saved) {
+        var oldTheme = localStorage.getItem('calculadoraTheme') || localStorage.getItem('hubTheme');
+        if (oldTheme === 'dark') saved = 'dark';
+        else if (oldTheme === 'classic' || oldTheme === 'light') saved = 'classic';
+        else saved = 'blood';
+      }
+      applyTheme(saved);
+
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            applyTheme(btn.getAttribute('data-theme'));
+          });
+        });
+        // Garante estado inicial dos botões
+        applyTheme(localStorage.getItem(key) || saved);
       });
-    });
-    // Garante estado inicial dos botões
-    applyTheme(localStorage.getItem(key) || saved);
-  });
-})();
-</script>
+    })();
+  </script>
 </body>
 
 </html>

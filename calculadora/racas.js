@@ -239,6 +239,54 @@ const KALLYANACH_BENCAOS = {
     },
 };
 
+// ── BÊNÇÃOS VAMPÍRICAS (Bestiário) ─────────────────────────────
+const VAMPIRO_BENCAOS = {
+    curaAcelerada: {
+        name: 'Cura Acelerada',
+        desc: 'No início de cada um dos seus turnos, pode gastar 1 PM para recuperar 5 PV. A partir do 11º nível, a cura aumenta para 10 PV por PM gasto.'
+    },
+    dominacaoVampirica: {
+        name: 'Dominação Vampírica',
+        desc: 'Gasta uma ação completa e 3 PM para sussurrar palavras de controle a um humanoide em alcance curto. O alvo fica confuso, enfeitiçado ou fascinado até o final da cena, ou perde as memórias da última hora, à sua escolha (Vontade CD Car evita). Uma criatura só pode ser alvo desta habilidade uma vez por cena. Pré-requisito: Presença Majestosa.'
+    },
+    drenarSangue: {
+        name: 'Drenar Sangue',
+        desc: 'Gasta uma ação padrão para drenar sangue de uma criatura viva que esteja agarrando. Causa 2d6 de dano de perfuração por patamar e recupera a mesma quantidade de PV. Não conta como se alimentar.'
+    },
+    formaDeLobo: {
+        name: 'Forma de Lobo',
+        desc: 'Gasta uma ação padrão e 3 PM para se transformar em um lobo. Funciona como Forma Selvagem Feroz; se torna Médio (se já não for), recebe +3m de deslocamento e uma mordida de 1d6 (ou aumenta o dano de uma mordida existente em um passo).'
+    },
+    formaDeMorcego: {
+        name: 'Forma de Morcego',
+        desc: 'Gasta uma ação padrão e 3 PM para se transformar em um morcego. Torna-se Minúsculo, deslocamento 3m, voo 12m e não recebe arma natural. A transformação termina caso ataque, lance magia ou sofra dano.'
+    },
+    garras: {
+        name: 'Garras',
+        desc: 'Suas mãos são duas armas naturais de garras (dano 1d6 cada, crítico ×2, corte). Uma vez por rodada, ao usar a ação agredir para atacar com uma arma, pode gastar 1 PM para um ataque corpo a corpo extra com uma das garras, desde que esteja livre e não tenha sido usada para atacar neste turno. Como alternativa, se tiver habilidades que exigem uma arma secundária (como Estilo de Duas Armas), pode usá-las com suas garras.'
+    },
+    mantoDasSombras: {
+        name: 'Manto das Sombras',
+        desc: 'Pode lançar Invisibilidade, mas apenas em si mesmo. Caso aprenda novamente essa magia, seu custo diminui em −1 PM. Pré-requisito: 5º nível de personagem.'
+    },
+    passoVampirico: {
+        name: 'Passo Vampírico',
+        desc: 'Recebe +3m de deslocamento e deslocamento de escalada igual ao seu deslocamento padrão.'
+    },
+    predadorSorrateiro: {
+        name: 'Predador Sorrateiro',
+        desc: 'Recebe +5 em testes de Furtividade e não sofre penalidade de armadura nesta perícia.'
+    },
+    presencaMajestosa: {
+        name: 'Presença Majestosa',
+        desc: 'Recebe a habilidade Presença Aristocrática. Se já possuir essa habilidade, seu custo diminui em −1 PM e a CD para resistir a ela aumenta em +2.'
+    },
+    resilienciaSombria: {
+        name: 'Resiliência Sombria',
+        desc: 'Recebe redução de dano 5/luz. Pré-requisito: Presença Majestosa, 5º nível de personagem.'
+    }
+};
+
 // Aberrante: mutações
 const ABERRANT_MUTATIONS = {
     mutacaoAscetico: {
@@ -2951,9 +2999,168 @@ const RACE_DATA = {
             }
         ],
         imageUrl: 'https://25.media.tumblr.com/tumblr_m4y08eYarJ1runxsho1_500.gif'
-},
+    },
+
+    // ── BESTIÁRIO ──────────────────────────────────────────────
+
+    elfoGelo: {
+        name: 'Elfo-do-Gelo',
+        type: 'bestiario',
+        tamanho: 'Médio', raca: 'Humanoide',
+        attributes: { sabedoria: 2, destreza: 1, constituicao: -1 },
+        isChoice: false,
+        bonusMessage: 'Sabedoria +2, Destreza +1, Constituição −1',
+        racialPowers: [
+            {
+                name: 'Graça de Beluhga',
+                desc: 'Seu deslocamento é 12m (em vez de 9m) e não é reduzido por terreno difícil natural.'
+            },
+            {
+                name: 'Herança Gélida',
+                desc: 'Você recebe redução de frio 10 e, quando causa dano, causa +1d4 pontos de dano de frio.'
+            },
+            {
+                name: 'Sentidos Glaciais',
+                desc: 'Você recebe visão na penumbra e +2 em Percepção e Sobrevivência.'
+            }
+        ],
+        imageUrl: 'https://media1.tenor.com/m/PWv08bRvS4sAAAAd/solo-leveling.gif',
+        source: 'Bestiário'
+    },
+
+    // TODO: Lâmia (Bestiário) — aguardando dados
+
+    lamia: {
+        name: 'Lâmia',
+        type: 'bestiario',
+        tamanho: 'Grande', raca: 'Monstro',
+        attributes: { carisma: 2, sabedoria: 1, constituicao: -1 },
+        isChoice: false,
+        bonusMessage: 'Carisma +2, Sabedoria +1, Constituição −1',
+        racialPowers: [
+            {
+                name: 'Corpo Felino',
+                desc: 'Seu tamanho é Grande e seu deslocamento é 12m. Entretanto, devido ao porte de sua metade humanoide, você conta como Média para fins das armas que usa.'
+            },
+            {
+                name: 'Magia das Lâmias',
+                desc: 'Você pode lançar duas das magias a seguir (atributo-chave Carisma): Criar Ilusão, Comprensão, Disfarce Ilusório ou Visão Mística. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.'
+            },
+            {
+                name: 'Natureza Predadora',
+                desc: 'Você é uma criatura do tipo monstro e recebe visão no escuro e +2 em Enganação e Furtividade.'
+            },
+            {
+                name: 'Toque Psíquico',
+                desc: 'Você possui uma arma natural de toque psíquico (dano 1d6, crítico ×2, psíquico). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com o toque psíquico, desde que tenha uma mão livre e ela não tenha sido usada para atacar neste turno.'
+            }
+        ],
+        imageUrl: 'https://i.ibb.co/Z65pMm2y/b55yrc.gif',
+        source: 'Bestiário'
+    },
+
+    // TODO: Manotauro (Bestiário) — aguardando dados
+
+    manotauro: {
+        name: 'Manotauro',
+        type: 'bestiario',
+        tamanho: 'Grande', raca: 'Humanoide',
+        attributes: { forca: 2, constituicao: 1, inteligencia: -1, sabedoria: -2 },
+        isChoice: false,
+        bonusMessage: 'Força +2, Constituição +1, Inteligência −1, Sabedoria −2',
+        racialPowers: [
+            {
+                name: 'Cascos',
+                desc: 'Você possui uma arma natural de cascos (dano 1d8, crítico ×2, impacto). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os cascos.'
+            },
+            {
+                name: 'Chifres',
+                desc: 'Você possui uma arma natural de chifres (dano 1d8, crítico ×2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os chifres.'
+            },
+            {
+                name: 'Corpulento',
+                desc: 'Seu tamanho é Grande e seu deslocamento é 12m. Entretanto, você não pode se beneficiar de uma montaria e, se estiver carregando um cavaleiro, sofre −2 em testes (além das penalidades de sobrecarga, se houver) e é considerado em condição ruim para lançar magias.'
+            },
+            {
+                name: 'Medo de Altura',
+                desc: 'Se estiver adjacente a uma queda de 3m ou mais (como um buraco ou penhasco), você fica abalado.'
+            }
+        ],
+        imageUrl: 'https://i.ibb.co/HTHS4d0g/images-q-tbn-ANd9-Gc-T8vusog-Xtr-I75u85-Gp-FDtl-GZg04-Fbah-Iqy-INp7-U1-G9pu-Vqpru6k-U0t-Ti-Vp-s-10.jpg',
+        source: 'Bestiário'
+    },
+
+    // TODO: Salamandra (Bestiário) — aguardando dados
+
+    // TODO: Salamandra (Bestiário) — aguardando dados
+
+    salamandra: {
+        name: 'Salamandra',
+        type: 'bestiario',
+        tamanho: 'Médio', raca: 'Espírito',
+        attributes: { constituicao: 2, destreza: 1, carisma: -1 },
+        isChoice: false,
+        bonusMessage: 'Constituição +2, Destreza +1, Carisma −1',
+        racialPowers: [
+            {
+                name: 'Calor Natural',
+                desc: 'Você recebe +2 em Ofício (ferreiro) e pode gastar 2 PM para causar +1d6 pontos de dano de fogo com seus ataques até o fim da cena.'
+            },
+            {
+                name: 'Cauda',
+                desc: 'Você possui uma arma natural de cauda (dano 1d6, crítico ×2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a cauda.'
+            },
+            {
+                name: 'Cria das Chamas',
+                desc: 'Você é uma criatura do tipo espírito e recebe redução de fogo 10 e visão no escuro.'
+            },
+            {
+                name: 'Fraqueza Glacial',
+                desc: 'Você sofre −5 em testes contra efeitos de frio e sofre 1 ponto de dano adicional por dado de dano de frio.'
+            }
+        ],
+        imageUrl: 'https://i.ibb.co/MxJbHWND/b567qj.gif',
+        source: 'Bestiário'
+    },
+
+    vampiro: {
+        name: 'Vampiro',
+        type: 'bestiario',
+        tamanho: 'Médio', raca: 'Morto-Vivo',
+        attributes: { carisma: 1, constituicao: -1 },
+        isChoice: true,
+        choiceCount: 2,
+        maxChoicePerAttribute: 1,
+        lockedChoiceAttributes: ['constituicao'],
+        bonusMessage: 'Carisma +1, +1 em dois atributos diferentes (exceto Constituição), Constituição −1',
+        racialPowers: [
+            {
+                name: 'Natureza Não Viva',
+                desc: 'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a efeitos de cansaço, metabólicos, de trevas e de veneno. Não precisa respirar, alimenta-se apenas de sangue e prefere dormir de dia — não sofre penalidades por dormir à noite, mas isso não recupera PV e PM. Efeitos mágicos de cura de luz causam dano, você não se beneficia de itens da categoria alimentação, e dano de trevas recupera seus PV.'
+            },
+            {
+                name: 'Perda da Humanidade',
+                desc: 'Você possui as fraquezas vampíricas que se agravam a cada bênção adquirida:<br>* <b>Chamado das Trevas:</b> precisa repousar 8 horas dentro da terra ou sofre −1 em perícias por bênção possuída até fazê-lo.<br>* <b>Sede de Sangue:</b> precisa consumir ao menos uma dose de sangue por semana, sofrendo fome caso contrário; o intervalo diminui um dia a cada bênção além da primeira.<br>* <b>Sensibilidade ao Sol:</b> fica ofuscado sob luz solar direta e perde 1d6 PV por bênção possuída a cada rodada exposto.'
+            },
+            {
+                name: 'Dieta de Sangue',
+                desc: 'Precisa consumir 1 dose de sangue por semana (1 litro ou 2d6 PV drenados). Tipos: Animal (menos nutritivo, deixa fraco), Espírito (+2 PM por patamar e +2 CD de habilidades mágicas por 1 dia), Humanoide (sem benefícios/penalidades), Monstro (+1 Força mas −2 em perícias de Carisma exceto Intimidação por 1 dia). Drenar sangue suficiente para matar cria um vampiro sob seu controle (Vontade oposto evita).'
+            },
+            {
+                name: 'Resquícios da Outra Vida',
+                desc: 'Você se torna treinado em uma perícia à sua escolha ou recebe um poder geral. Alternativamente, pode ser um vampiro de outra raça humanoide ou monstro, ganhando uma habilidade dela e seu tamanho (se diferente de Médio).'
+            },
+            {
+                name: 'Bênçãos Vampíricas',
+                desc: 'Escolha uma bênção vampírica. Pode escolher outras no lugar de poderes de classe.'
+            }
+        ],
+        imageUrl: 'https://media.tenor.com/Gz9oFSMBgHEAAAAM/alucard-hellsing.gif',
+        source: 'Bestiário'
+    },
 
 };
+
 
 // Exportar para uso global
 window.RACE_DATA = RACE_DATA;

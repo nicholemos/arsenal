@@ -127,32 +127,33 @@ const FEERICO_BENCAOS = {
 // ── RAÇAS (DRAGÃO BRASIL) ─────────────────────────────────────
 const RACE_DATA_DRAGAOBRASIL = {
 
-    vampiro: {
-        name: 'Vampiro',
-        type: 'dragaobrasil',
-        tamanho: 'Médio', raca: 'Morto-Vivo',
-        attributes: { carisma: 1, constituicao: -1 },
-        isChoice: true,
-        choiceCount: 2,
-        maxChoicePerAttribute: 1,
-        lockedChoiceAttributes: ['constituicao'],
-        bonusMessage: 'Carisma +1, +1 em dois atributos diferentes (exceto Constituição), Constituição −1',
-        racialPowers: [
-            {
-                name: 'Natureza Não Viva',
-                desc: 'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a efeitos de cansaço, metabólicos, de trevas e de veneno. Não precisa respirar, alimentar-se ou dormir. Efeitos mágicos de cura de luz causam dano a você, você não se beneficia de itens da categoria alimentação, e dano de trevas recupera seus PV.'
-            },
-            {
-                name: 'Perda da Humanidade',
-                desc: 'Você sofre três fraquezas vampíricas que se agravam a cada bênção vampírica adquirida:<br>* <b>Chamado das Trevas:</b> precisa repousar 8 horas sob a terra ou sofre −1 em perícias por bênção possuída até fazê-lo.<br>* <b>Sede de Sangue:</b> precisa consumir ao menos uma dose de sangue por semana, sofrendo os efeitos de fome caso contrário; o intervalo diminui um dia a cada bênção além da primeira.<br>* <b>Sensibilidade ao Sol:</b> fica ofuscado sob luz solar direta e perde 1d6 PV por bênção possuída a cada rodada exposto.'
-            },
-            {
-                name: 'Dieta de Sangue',
-                desc: 'Precisa consumir 1 dose de sangue por semana (1 litro ou 2d6 PV drenados de ser vivo). Tipos de sangue:<br>* <b>Animal:</b> abundante, mas menos nutritivo; vampiro fica fraco até ingerir sangue de outro tipo.<br>* <b>Espírito:</b> o mais valioso; +2 PM por patamar da criatura e +2 na CD de habilidades mágicas por 1 dia.<br>* <b>Humanoide:</b> alimento tradicional, sem penalidades nem bônus.<br>* <b>Monstro:</b> +1 em Força mas −2 em perícias de Carisma (exceto Intimidação) por 1 dia.<br><br>Drenar sangue suficiente de humanoide ou monstro para matá-lo cria um vampiro que deve vencer Vontade oposto ou ficará sob seu controle.'
-            }
-        ],
-        imageUrl: 'https://media.tenor.com/Gz9oFSMBgHEAAAAM/alucard-hellsing.gif'
-    },
+    // MOVIDO para racas.js (fonte: Bestiário) — Vampiro
+    // vampiro: {
+    //     name: 'Vampiro',
+    //     type: 'dragaobrasil',
+    //     tamanho: 'Médio', raca: 'Morto-Vivo',
+    //     attributes: { carisma: 1, constituicao: -1 },
+    //     isChoice: true,
+    //     choiceCount: 2,
+    //     maxChoicePerAttribute: 1,
+    //     lockedChoiceAttributes: ['constituicao'],
+    //     bonusMessage: 'Carisma +1, +1 em dois atributos diferentes (exceto Constituição), Constituição −1',
+    //     racialPowers: [
+    //         {
+    //             name: 'Natureza Não Viva',
+    //             desc: 'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a efeitos de cansaço, metabólicos, de trevas e de veneno. Não precisa respirar, alimentar-se ou dormir. Efeitos mágicos de cura de luz causam dano a você, você não se beneficia de itens da categoria alimentação, e dano de trevas recupera seus PV.'
+    //         },
+    //         {
+    //             name: 'Perda da Humanidade',
+    //             desc: 'Você sofre três fraquezas vampíricas que se agravam a cada bênção vampírica adquirida:<br>* <b>Chamado das Trevas:</b> precisa repousar 8 horas sob a terra ou sofre −1 em perícias por bênção possuída até fazê-lo.<br>* <b>Sede de Sangue:</b> precisa consumir ao menos uma dose de sangue por semana, sofrendo os efeitos de fome caso contrário; o intervalo diminui um dia a cada bênção além da primeira.<br>* <b>Sensibilidade ao Sol:</b> fica ofuscado sob luz solar direta e perde 1d6 PV por bênção possuída a cada rodada exposto.'
+    //         },
+    //         {
+    //             name: 'Dieta de Sangue',
+    //             desc: 'Precisa consumir 1 dose de sangue por semana (1 litro ou 2d6 PV drenados de ser vivo). Tipos de sangue:<br>* <b>Animal:</b> abundante, mas menos nutritivo; vampiro fica fraco até ingerir sangue de outro tipo.<br>* <b>Espírito:</b> o mais valioso; +2 PM por patamar da criatura e +2 na CD de habilidades mágicas por 1 dia.<br>* <b>Humanoide:</b> alimento tradicional, sem penalidades nem bônus.<br>* <b>Monstro:</b> +1 em Força mas −2 em perícias de Carisma (exceto Intimidação) por 1 dia.<br><br>Drenar sangue suficiente de humanoide ou monstro para matá-lo cria um vampiro que deve vencer Vontade oposto ou ficará sob seu controle.'
+    //         }
+    //     ],
+    //     imageUrl: 'https://media.tenor.com/Gz9oFSMBgHEAAAAM/alucard-hellsing.gif'
+    // },
 
     anaoSuperficie: {
         name: 'Anão da Superfície',
@@ -182,29 +183,30 @@ const RACE_DATA_DRAGAOBRASIL = {
         imageUrl: 'https://media.tenor.com/JlNMYAZ81AkAAAAM/senshi-senshi-of-izganda.gif'
     },
 
-    elfoGelo: {
-        name: 'Elfo-do-Gelo',
-        type: 'dragaobrasil',
-        tamanho: 'Médio', raca: 'Humanoide',
-        attributes: { sabedoria: 2, destreza: 1, constituicao: -1 },
-        isChoice: false,
-        bonusMessage: 'Sabedoria +2, Destreza +1, Constituição −1',
-        racialPowers: [
-            {
-                name: 'Graça de Glórienn',
-                desc: 'Seu deslocamento é 12m (em vez de 9m).'
-            },
-            {
-                name: 'Herança Gélida',
-                desc: 'Você recebe redução de dano de frio 10 e resistência a frio +5.'
-            },
-            {
-                name: 'Sentidos Élficos',
-                desc: 'Você recebe visão na penumbra e +2 em Misticismo e Percepção.'
-            }
-        ],
-        imageUrl: 'https://media1.tenor.com/m/PWv08bRvS4sAAAAd/solo-leveling.gif'
-    },
+    // MOVIDO para racas.js (fonte: Bestiário) — Elfo-do-Gelo
+    // elfoGelo: {
+    //     name: 'Elfo-do-Gelo',
+    //     type: 'dragaobrasil',
+    //     tamanho: 'Médio', raca: 'Humanoide',
+    //     attributes: { sabedoria: 2, destreza: 1, constituicao: -1 },
+    //     isChoice: false,
+    //     bonusMessage: 'Sabedoria +2, Destreza +1, Constituição −1',
+    //     racialPowers: [
+    //         {
+    //             name: 'Graça de Glórienn',
+    //             desc: 'Seu deslocamento é 12m (em vez de 9m).'
+    //         },
+    //         {
+    //             name: 'Herança Gélida',
+    //             desc: 'Você recebe redução de dano de frio 10 e resistência a frio +5.'
+    //         },
+    //         {
+    //             name: 'Sentidos Élficos',
+    //             desc: 'Você recebe visão na penumbra e +2 em Misticismo e Percepção.'
+    //         }
+    //     ],
+    //     imageUrl: 'https://media1.tenor.com/m/PWv08bRvS4sAAAAd/solo-leveling.gif'
+    // },
 
     elfoSombrio: {
         name: 'Elfo-Sombrio',
@@ -377,7 +379,7 @@ const RACE_DATA_DRAGAOBRASIL = {
                 desc: 'Ao presenciar violência física em que uma criatura causa dano letal a outra, você pode ser forçado a assumir sua forma híbrida na noite seguinte. A transformação dura até o amanhecer e, ao retornar à forma humanoide, você não se lembra do que fez. Se souber da maldição, pode fazer um teste de Vontade CD 25 para evitar a transformação, com a CD aumentando em 5 a cada teste anterior. Se participou ativamente da violência, sofre –5 nesse teste. Durante a transformação involuntária, suas ações são controladas pelo mestre.'
             }
         ],
-        imageUrl: 'https://i.pinimg.com/originals/2c/e8/91/2ce891c2bcad49f07ec0bbcd5b51fdc0.gif',
+        imageUrl: '',
         source: "Dragão Brasil"
 
     },
