@@ -430,6 +430,14 @@
                                 <textarea class="form-control form-control-sm border-0 bg-transparent" id="charProfs"
                                     rows="3" placeholder="Ex: Armas Marciais, Escudos..." oninput="saveData()"
                                     style="resize: none;"></textarea>
+                                <div id="raceSensesBox" class="race-senses-box d-none mt-2">
+                                    <div class="race-senses-title">Sentidos raciais</div>
+                                    <div id="raceSensesList" class="d-flex flex-wrap gap-1"></div>
+                                </div>
+                                <div id="raceProficienciasBox" class="race-senses-box d-none mt-2">
+                                    <div class="race-senses-title">Proficiências raciais</div>
+                                    <div id="raceProficienciasList" class="d-flex flex-wrap gap-1"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -1685,7 +1693,7 @@
                     Adicionar as habilidades de classe de cada nível
                     <small>(vão para a pasta do nível em que são recebidas; o que já está na ficha é ignorado)</small></label>
                 <div id="clsAbilPlan" class="cls-abilplan"></div>
-                <label class="cls-vitals"><input type="checkbox" id="clsApplyVitals">
+                <label class="cls-vitals"><input type="checkbox" id="clsApplyVitals" checked>
                     Também definir PV e PM máximos com esses valores
                     <small>(substitui os atuais; bônus de poderes e itens não entram na conta)</small></label>
                 <div class="cls-actions">
@@ -1814,6 +1822,7 @@
     <script src="../ameacas/db/ameacas_db.js"></script>
     <script src="../poderes/js/data.js"></script>
     <script src="../poderes/js/classes-data.js"></script>
+    <script src="classes-detalhes.js"></script>
     <script src="../poderes/js/classes-db-data.js"></script>
     <script src="../poderes/js/origens.js"></script>
     <script src="../poderes/js/distincoes-data.js"></script>

@@ -78,6 +78,14 @@ window.onload = () => {
         initClassLevelFolders();
         initRaceFolders();
         loadData();
+        if (charRaceApplied && charRaceApplied.id && !Array.isArray(charRaceApplied.senses)) {
+            charRaceApplied.senses = _raceSenses(charRaceApplied.id);
+        }
+        if (charRaceApplied && charRaceApplied.id && !Array.isArray(charRaceApplied.proficiencias)) {
+            charRaceApplied.proficiencias = _raceProficiencias(charRaceApplied.id);
+        }
+        renderRaceSenses();
+        renderRaceProficiencias();
         refreshLevelFolders();
         attachGlobalListeners();
         enableDragAndDrop();
@@ -495,6 +503,15 @@ function rollSkill(index) {
 }
 
 function attachGlobalListeners() {
+    // Marca PV/PM máximos como manuais antes do handler inline rodar (fase de captura),
+    // para que o recálculo automático não apague o que o usuário está digitando.
+    if (!document.body.dataset.vitalsManualListener) {
+        document.body.dataset.vitalsManualListener = '1';
+        document.body.addEventListener('input', (e) => {
+            if (e.target.id === 'pvMax') _clsVitalsManual.pv = true;
+            else if (e.target.id === 'pmMax') _clsVitalsManual.pm = true;
+        }, true);
+    }
     document.body.oninput = (e) => { if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) { updateCalculations(); if (e.target.id !== 'charImgInput') saveData(); } };
     document.body.onchange = (e) => { if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') { updateCalculations(); saveData(); } };
 }
@@ -605,6 +622,20 @@ function addDefenseItem(data = null) {
     container.appendChild(div); if (!data) saveData();
 }
 function removeDefenseItem(btn) { if (confirm('Remover item?')) { btn.closest('.def-row').remove(); updateCalculations(); saveData(); } }
+function _findDefenseRowByName(name) {
+    const k = _clsNorm(name);
+    return Array.from(document.querySelectorAll('#defenseList .def-row')).find(row => {
+        const nm = row.querySelector('.inp-name');
+        return nm && _clsNorm(nm.value) === k;
+    });
+}
+function _removeDefenseRowByName(name) {
+    const row = _findDefenseRowByName(name);
+    if (row) row.remove();
+}
+function _addDefenseRow(item) {
+    addDefenseItem({ name: item.nome || 'Item Extra', bonus: item.bonus || '', note: item.note || '' });
+}
 function checkHeavyArmor() { if (getVal('armorType') === 'heavy') { const chk = document.getElementById('applyDefAttr'); if (chk) chk.checked = false; } updateCalculations(); }
 
 function addInventoryItem(data = null) {
@@ -1418,6 +1449,10 @@ function calcLoad() {
 // --- FIM NOVAS FUNÇÕES DE CARGA ---
 
 
+// PV/PM automáticos: quando o usuário digita um valor máximo à mão, ele não é
+// sobrescrito pelo recálculo de classe (volta ao automático ao aplicar classes).
+let _clsVitalsManual = { pv: false, pm: false };
+
 function updateCalculations() {
     let condAtq = 0, condDef = 0, condPer = 0, condRef = 0;
 
@@ -1474,8 +1509,6 @@ function updateCalculations() {
                 if (s.n === 'Furtividade') {
                     total += sizeVal;
                 }
-                // Bônus fixo de perícia da raça (ex.: Sentidos Élficos)
-                total += _raceSkillBonus(s.n);
             }
 
             // ── MODIFICADORES TEMPORÁRIOS ──────────────────────
@@ -1534,6 +1567,12 @@ function updateCalculations() {
         document.querySelectorAll('#defenseList .def-row .inp-bonus').forEach(input => { otherBonus += (parseInt(input.value) || 0); });
         // ── Mod temp: defesa ──
         otherBonus += getTempMod('mod-defesa');
+        // ── Detalhes de classe: bônus de atributo na Defesa (ex.: Sarado) ──
+        const clsDef = _classDefenseBonus(defAttr, applyDefAttr);
+        otherBonus += clsDef.total;
+        const _elOut = document.getElementById('dispOtherBonus');
+        if (_elOut) _elOut.title = clsDef.fontes.length
+            ? 'Inclui: ' + clsDef.fontes.map(f => `${f.valor >= 0 ? '+' : ''}${f.valor} ${f.atributo} (${f.fonte})`).join(', ') : '';
         // ────────────────────────────────────────────
         const totalDefense = 10 + (applyDefAttr ? defAttrVal : 0) + armorBonus + shieldBonus + otherBonus + condDef;
 
@@ -1544,6 +1583,8 @@ function updateCalculations() {
         setText('defenseTotal', totalDefense);
 
         // --- PV/PM ---
+        // Recalcula os máximos a partir das classes sempre que os atributos/nível mudam.
+        _syncClassVitals();
         const pvMax = getInt('pvMax');
         const pvCurrent = getInt('pvCurrent');
         const pmMax = getInt('pmMax');
@@ -1683,7 +1724,9 @@ function saveData() {
             pvM: getVal('pvMax'),
             pvC: getVal('pvCurrent'),
             pmM: getVal('pmMax'),
-            pmC: getVal('pmCurrent')
+            pmC: getVal('pmCurrent'),
+            pvManual: _clsVitalsManual.pv,
+            pmManual: _clsVitalsManual.pm
         },
 
         defense: {
@@ -1934,6 +1977,8 @@ function loadData() {
             if (data.status.pvC !== undefined) document.getElementById('pvCurrent').value = data.status.pvC;
             if (data.status.pmM !== undefined) document.getElementById('pmMax').value = data.status.pmM;
             if (data.status.pmC !== undefined) document.getElementById('pmCurrent').value = data.status.pmC;
+            if (data.status.pvManual !== undefined) _clsVitalsManual.pv = !!data.status.pvManual;
+            if (data.status.pmManual !== undefined) _clsVitalsManual.pm = !!data.status.pmManual;
         }
 
         // --- DEFESA ---
@@ -1966,6 +2011,22 @@ function loadData() {
         if (data.skills && data.skills.length > 0) {
             currentSkills = data.skills;
             renderSkills();
+        }
+        // Migração: fichas antigas ainda não tinham os bônus raciais gravados em "Outros"
+        if (charRaceApplied && charRaceApplied.id && !Array.isArray(charRaceApplied.skills)) {
+            charRaceApplied.skills = _applyRaceSkillBonuses(charRaceApplied.id);
+            renderSkills();
+        }
+        // Recria o modificador de Defesa racial salvo (ex.: Couro Rígido do Minotauro)
+        if (charRaceApplied && charRaceApplied.defesaItem && !_findDefenseRowByName(charRaceApplied.defesaItem.nome)) {
+            _addDefenseRow(charRaceApplied.defesaItem);
+        }
+        // Migração: garante a resistência elemental do Qareen nas proficiências salvas
+        if (charRaceApplied && charRaceApplied.id === 'qareen' && charRaceApplied.qareenElemento) {
+            const profs = charRaceApplied.proficiencias || [];
+            const label = `Resistência Elemental: ${_racQareenElementoLabel(charRaceApplied.qareenElemento)}`;
+            if (!profs.includes(label)) profs.push(label);
+            charRaceApplied.proficiencias = profs;
         }
 
         // --- ATAQUES ---
@@ -3817,6 +3878,8 @@ function exportarHabilidadesParaFicha() {
         document.getElementById('pmMax').value = pmAmeaca;
         document.getElementById('pmCurrent').value = pmAmeaca;
     }
+    // Valores vindos da ameaça não devem ser sobrescritos pelo cálculo de classes.
+    if (pvAmeaca || pmAmeaca) _clsVitalsManual = { pv: true, pm: true };
 
     // Deslocamento
     const deslAmeaca = getAm('am-desl');
@@ -5861,7 +5924,45 @@ function _clsPlanAbilities(list) {
     return { plan, semDados };
 }
 
-function _clsCalc(list) {
+// ── Detalhes de classe (classes-detalhes.js): atributo nos PM/PV/Defesa, sem repetir atributo ──
+function _classPowerNames(extra) {
+    const nomes = Array.from(document.querySelectorAll('#abilitiesClassList .inp-name, #abilitiesRaceList .inp-name'))
+        .map(el => el.value);
+    return nomes.concat(extra || []);
+}
+function _classDetailCompute(list, opt = {}) {
+    const vazio = { pm: { total: 0, fontes: [] }, pv: { total: 0, fontes: [] }, def: { total: 0, fontes: [] }, ignorados: [] };
+    if (typeof CLASS_SHEET_CALC === 'undefined' || !Array.isArray(list) || !list.length) return vazio;
+    const attrs = {};
+    ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR'].forEach(a => {
+        attrs[a] = getInt(`attr-${a}`) + (opt.comTemp ? getTempMod(`mod-attr-${a}`) : 0);
+    });
+    const classes = list.map(e => ({ id: e.id, name: (_clsById(e.id) || {}).name, level: e.level, variant: e.variant }));
+    const base = { pm: [], pv: ['CON'], def: opt.defAttr ? [opt.defAttr] : [] };
+    return CLASS_SHEET_CALC.compute({ classes, attrs, poderes: _classPowerNames(opt.extraPowers), base });
+}
+// Defesa ao vivo (ex.: Sarado do Lutador). Ignora se já houver linha manual com o nome do poder.
+function _classDefenseBonus(defAttr, applyDefAttr) {
+    const vazio = { total: 0, fontes: [] };
+    try {
+        if (typeof CLASS_SHEET_CALC === 'undefined' || !charClasses.length) return vazio;
+        const nomesDef = CLASS_SHEET_CALC.nomesPoderes(charClasses.map(e => ({ id: e.id, name: (_clsById(e.id) || {}).name })))
+            .filter(p => p.def).flatMap(p => [p.nome].concat(p.aliases).map(CLASS_SHEET_CALC.norm));
+        const manual = Array.from(document.querySelectorAll('#defenseList .def-row .inp-name'))
+            .some(el => nomesDef.some(n => CLASS_SHEET_CALC.norm(el.value).startsWith(n)));
+        if (manual) return vazio;
+        return _classDetailCompute(charClasses, { comTemp: true, defAttr: applyDefAttr ? defAttr : '' }).def;
+    } catch (e) { return vazio; }
+}
+function _classFontesTexto(det) {
+    const fmt = (rot, f) => `${rot} ${f.valor >= 0 ? '+' : ''}${f.valor} ${f.atributo} (${f.fonte})`;
+    return []
+        .concat(det.pm.fontes.map(f => fmt('PM', f)))
+        .concat(det.pv.fontes.map(f => fmt('PV', f)))
+        .concat(det.def.fontes.map(f => fmt('Defesa', f) + ' · automática'));
+}
+
+function _clsCalc(list, extraPowers) {
     const con = getInt('attr-CON'); // na T20 o valor do atributo já é o modificador
     let level = 0, pv = 0, pm = 0;
     list.forEach((e, i) => {
@@ -5872,11 +5973,28 @@ function _clsCalc(list) {
         pv += (i === 0) ? st.pv + st.perLv * (e.level - 1) : st.perLv * e.level;
     });
     pv += con * level;
+    const det = _classDetailCompute(list, { extraPowers });
     if (level > 0) {
         pv += _racePvBonus(_raceAppliedId(), level);
         pm += _racePmBonus(_raceAppliedId(), level);
+        pv += det.pv.total;
+        pm += det.pm.total;
     }
-    return { level, pv: Math.max(level ? 1 : 0, pv), pm, con };
+    return { level, pv: Math.max(level ? 1 : 0, pv), pm, con, det };
+}
+
+// Mantém PV/PM máximos sincronizados com a conta de classes (chamada por updateCalculations).
+// Valores digitados à mão em pvMax/pmMax são preservados.
+function _syncClassVitals() {
+    if (typeof charClasses === 'undefined' || !Array.isArray(charClasses) || !charClasses.length) return;
+    const pvEl = document.getElementById('pvMax');
+    const pmEl = document.getElementById('pmMax');
+    if (!pvEl || !pmEl) return;
+    let calc;
+    try { calc = _clsCalc(charClasses); } catch (e) { return; }
+    const active = document.activeElement;
+    if (!_clsVitalsManual.pv && active !== pvEl && getInt('pvMax') !== calc.pv) pvEl.value = calc.pv;
+    if (!_clsVitalsManual.pm && active !== pmEl && getInt('pmMax') !== calc.pm) pmEl.value = calc.pm;
 }
 
 function abrirClasses() {
@@ -5892,7 +6010,7 @@ function abrirClasses() {
     } else {
         _clsDraft = text.trim() ? _clsParseText(text) : JSON.parse(JSON.stringify(saved));
     }
-    document.getElementById('clsApplyVitals').checked = false;
+    document.getElementById('clsApplyVitals').checked = true;
     const ab = document.getElementById('clsApplyAbilities'); if (ab) ab.checked = true;
     document.getElementById('modalClasses').style.display = 'flex';
     _clsRender();
@@ -5946,7 +6064,8 @@ function _clsRender() {
     list.innerHTML = html;
     if (scroll) scroll.scrollTop = keep;
 
-    const calc = _clsCalc(_clsDraft);
+    const _abOn = document.getElementById('clsApplyAbilities')?.checked;
+    const calc = _clsCalc(_clsDraft, _abOn ? _clsPlanAbilities(_clsDraft).plan.map(a => a.name) : []);
     const over = calc.level > 20;
     const sum = document.getElementById('clsSummary');
     sum.innerHTML = _clsDraft.length
@@ -5954,6 +6073,7 @@ function _clsRender() {
            Nível total: <b class="${over ? 'cls-bad' : ''}">${calc.level}/20</b> ·
            PV máx: <b>${calc.pv}</b> · PM máx: <b>${calc.pm}</b>
            <small>(CON ${calc.con >= 0 ? '+' : ''}${calc.con})</small>
+           ${_classFontesTexto(calc.det).length ? `<br><small class="cls-bonus-src">Bônus de classe: ${escapeHtml(_classFontesTexto(calc.det).join(' · '))}</small>` : ''}
            ${over ? '<br><span class="cls-bad">O nível total passa de 20.</span>' : ''}`
         : 'Nenhuma classe marcada.';
     document.getElementById('clsApplyBtn').disabled = over;
@@ -5996,7 +6116,8 @@ function clsMakeFirst(id) {
 }
 
 function aplicarClasses() {
-    const calc = _clsCalc(_clsDraft);
+    const _abOn = document.getElementById('clsApplyAbilities')?.checked;
+    const calc = _clsCalc(_clsDraft, _abOn ? _clsPlanAbilities(_clsDraft).plan.map(a => a.name) : []);
     if (calc.level > 20) { alert('O nível total não pode passar de 20.'); return; }
     charClasses = JSON.parse(JSON.stringify(_clsDraft));
     if (charClasses.length) {
@@ -6007,6 +6128,7 @@ function aplicarClasses() {
         if (old !== calc.level) autoXPFromLevel(); // acerta o XP mínimo do nível (já salva)
 
         if (document.getElementById('clsApplyVitals').checked) {
+            _clsVitalsManual = { pv: false, pm: false };
             const oldPv = getInt('pvMax'), oldPm = getInt('pmMax');
             document.getElementById('pvMax').value = calc.pv;
             document.getElementById('pmMax').value = calc.pm;
@@ -6017,6 +6139,9 @@ function aplicarClasses() {
             const pvCur = document.getElementById('pvCurrent'), pmCur = document.getElementById('pmCurrent');
             if (pvCur && (pvCur.value === '' || parseInt(pvCur.value) === oldPv || parseInt(pvCur.value) > calc.pv)) pvCur.value = calc.pv;
             if (pmCur && (pmCur.value === '' || parseInt(pmCur.value) === oldPm || parseInt(pmCur.value) > calc.pm)) pmCur.value = calc.pm;
+        } else {
+            // Sem aplicar vitais: mantém os valores atuais e não deixa o recálculo sobrescrevê-los.
+            _clsVitalsManual = { pv: true, pm: true };
         }
     }
     // Habilidades de classe por nível (opcional)
@@ -6361,10 +6486,17 @@ function aplicarDistincao() {
 const RAC_ATTR_KEY = { FOR: 'forca', DES: 'destreza', CON: 'constituicao', INT: 'inteligencia', SAB: 'sabedoria', CAR: 'carisma' };
 const RAC_ATTRS = Object.keys(RAC_ATTR_KEY);
 const RAC_COST = { '-1': -1, '0': 0, '1': 1, '2': 2, '3': 4, '4': 7 };
-const RAC_TYPE_LABEL = { base: 'T20', ameacas: 'Ameaças de Arton', ghanor: 'Ruff Ghanor', DHracas: 'Heróis de Arton', outraRaca: 'Outras', dragaobrasil: 'Dragão Brasil' };
+const RAC_TYPE_LABEL = { base: 'T20', ameacas: 'Ameaças de Arton', ghanor: 'Ruff Ghanor', DHracas: 'Heróis de Arton', outraRaca: 'Outras', dragaobrasil: 'Dragão Brasil', bestiario: 'Bestiário' };
 // Raça aplicada por último (para desfazer os bônus ao trocar): { id, attrs: {FOR: n}, powers: [nomes] }
 let charRaceApplied = { id: '', attrs: {}, powers: [] };
 let _racSel = null, _racPicks = {}, _racSkills = ['', ''], _racQuery = '', _racType = '';
+let _racVersMode = 'skill', _racVersPower = '';
+let _racKlirenSkill = '', _racKlirenOficio = '';
+let _racLefouSkills = ['', ''], _racLefouMode = 'skill', _racLefouPower = '';
+let _racQareenElemento = '', _racQareenMagia = '';
+let _racSereiaMagia1 = '', _racSereiaMagia2 = '';
+let _racSilfideMagia1 = '', _racSilfideMagia2 = '';
+let _racLamiaMagia1 = '', _racLamiaMagia2 = '';
 let _racBase = {}, _racOutros = {}, _racPts = 10, _racShowOutros = false;
 
 function _racData() { return (typeof window.RACE_DATA === 'object' && window.RACE_DATA) ? window.RACE_DATA : {}; }
@@ -6382,6 +6514,18 @@ function _raceDetail(id) {
     return (D && id && D[id]) || null;
 }
 function _raceAppliedId() { return (charRaceApplied && charRaceApplied.id) || ''; }
+function _raceSenses(id) {
+    const d = _raceDetail(id);
+    return (d && Array.isArray(d.sentidos)) ? d.sentidos.slice() : [];
+}
+function _raceProficiencias(id) {
+    const d = _raceDetail(id);
+    return (d && Array.isArray(d.proficiencias)) ? d.proficiencias.slice() : [];
+}
+function _raceDefensa(id) {
+    const d = _raceDetail(id);
+    return (d && d.defesaItem) ? d.defesaItem : null;
+}
 function _racePvBonus(id, level) {
     const d = _raceDetail(id);
     if (!d) return 0;
@@ -6396,15 +6540,82 @@ function _racePmBonus(id, level) {
     if (typeof d.pmBonus === 'function') return Math.max(0, parseInt(d.pmBonus(lv)) || 0);
     return Math.max(0, (Number(d.pmPrimeiroNivel) || 0) + (lv - 1) * (Number(d.pmPorNivel) || 0));
 }
-function _raceSkillBonus(nome) {
-    const d = _raceDetail(_raceAppliedId());
-    if (!d) return 0;
-    const n = _clsNorm(nome);
-    return (d.periciasBonus || []).reduce((sum, pb) => {
-        if (pb.condicao) return sum; // condicional: exibido, mas não aplicado automaticamente
-        const hit = (pb.pericias || []).some(p => _clsNorm(p) === n);
-        return sum + (hit ? (Number(pb.valor) || 0) : 0);
-    }, 0);
+// Perícias fixas da raça (as condicionais ficam só na descrição)
+function _raceFixedSkills(id) {
+    const d = _raceDetail(id);
+    if (!d) return [];
+    const out = [];
+    (d.periciasBonus || []).forEach(pb => {
+        if (pb.condicao) return;
+        (pb.pericias || []).forEach(name => {
+            const value = Number(pb.valor) || 0;
+            if (name && value) out.push({ name, value });
+        });
+    });
+    return out;
+}
+function _skillIndexByName(name) {
+    const n = _clsNorm(name);
+    return currentSkills.findIndex(s => _clsNorm(s.n) === n);
+}
+function _changeSkillOther(name, delta) {
+    const idx = _skillIndexByName(name);
+    if (idx < 0) return false;
+    const cur = Number(currentSkills[idx].other) || 0;
+    const next = cur + delta;
+    currentSkills[idx].other = next;
+    const el = document.getElementById(`skOther${idx}`);
+    if (el) el.value = next === 0 ? '' : String(next);
+    return true;
+}
+// Grava os bônus raciais no campo "Outros" das perícias e devolve o que foi aplicado
+function _applyRaceSkillBonuses(id) {
+    const applied = [];
+    _raceFixedSkills(id).forEach(sk => {
+        if (_changeSkillOther(sk.name, sk.value)) applied.push({ name: sk.name, value: sk.value });
+    });
+    return applied;
+}
+function _undoRaceSkillBonuses(list) {
+    (list || []).forEach(sk => _changeSkillOther(sk.name, -(Number(sk.value) || 0)));
+}
+function _raceCurrentSenses() {
+    return (charRaceApplied && Array.isArray(charRaceApplied.senses)) ? charRaceApplied.senses : [];
+}
+function renderRaceSenses() {
+    const box = document.getElementById('raceSensesBox');
+    const list = document.getElementById('raceSensesList');
+    if (!box || !list) return;
+    const senses = _raceCurrentSenses();
+    box.classList.toggle('d-none', !senses.length);
+    list.innerHTML = senses.map((s, i) =>
+        `<span class="sense-chip">${_odEsc(s)}<button type="button" onclick="removeRaceSense(${i})" title="Remover" aria-label="Remover ${_odEsc(s)}">×</button></span>`
+    ).join('');
+}
+function removeRaceSense(i) {
+    if (!charRaceApplied || !Array.isArray(charRaceApplied.senses)) return;
+    charRaceApplied.senses.splice(i, 1);
+    renderRaceSenses();
+    saveData();
+}
+function _raceCurrentProficiencias() {
+    return (charRaceApplied && Array.isArray(charRaceApplied.proficiencias)) ? charRaceApplied.proficiencias : [];
+}
+function renderRaceProficiencias() {
+    const box = document.getElementById('raceProficienciasBox');
+    const list = document.getElementById('raceProficienciasList');
+    if (!box || !list) return;
+    const profs = _raceCurrentProficiencias();
+    box.classList.toggle('d-none', !profs.length);
+    list.innerHTML = profs.map((p, i) =>
+        `<span class="sense-chip">${_odEsc(p)}<button type="button" onclick="removeRaceProficiencia(${i})" title="Remover" aria-label="Remover ${_odEsc(p)}">×</button></span>`
+    ).join('');
+}
+function removeRaceProficiencia(i) {
+    if (!charRaceApplied || !Array.isArray(charRaceApplied.proficiencias)) return;
+    charRaceApplied.proficiencias.splice(i, 1);
+    renderRaceProficiencias();
+    saveData();
 }
 function _raceAttackBonus(id, nome) {
     const d = _raceDetail(id);
@@ -6445,6 +6656,13 @@ function _racInitFromSheet() {
 function abrirRaca() {
     if (!_racIds().length) { alert('O banco de raças (racas.js) não foi carregado. Confira se os arquivos estão em ../calculadora/.'); return; }
     _racSel = null; _racPicks = {}; _racSkills = ['', '']; _racQuery = ''; _racType = '';
+    _racVersMode = 'skill'; _racVersPower = '';
+    _racKlirenSkill = ''; _racKlirenOficio = '';
+    _racLefouSkills = ['', '']; _racLefouMode = 'skill'; _racLefouPower = '';
+    _racQareenElemento = ''; _racQareenMagia = '';
+    _racSereiaMagia1 = ''; _racSereiaMagia2 = '';
+    _racSilfideMagia1 = ''; _racSilfideMagia2 = '';
+    _racLamiaMagia1 = ''; _racLamiaMagia2 = '';
     document.getElementById('racSearch').value = '';
     _racInitFromSheet();
     // reabre já na raça aplicada, com as escolhas de atributo que ela tinha
@@ -6453,9 +6671,41 @@ function abrirRaca() {
         _racSel = prev;
         const r = _racData()[prev], fx = _racFixed(r);
         if (r.isChoice) RAC_ATTRS.forEach(a => { const v = ((charRaceApplied.attrs || {})[a] || 0) - (fx[a] || 0); if (v > 0) _racPicks[a] = v; });
+        if (prev === 'humano') {
+            _racVersMode = charRaceApplied.versatileMode === 'power' ? 'power' : 'skill';
+            _racVersPower = charRaceApplied.versatilePower || '';
+            const vs = Array.isArray(charRaceApplied.versatileSkills) ? charRaceApplied.versatileSkills : [];
+            _racSkills = [vs[0] || '', vs[1] || ''];
+        }
+        if (prev === 'kliren') {
+            _racKlirenSkill = charRaceApplied.klirenSkill || '';
+            _racKlirenOficio = charRaceApplied.klirenOficio || '';
+        }
+        if (prev === 'lefou') {
+            _racLefouMode = charRaceApplied.lefouMode === 'power' ? 'power' : 'skill';
+            _racLefouPower = charRaceApplied.lefouPower || '';
+            const ls = Array.isArray(charRaceApplied.lefouSkills) ? charRaceApplied.lefouSkills : [];
+            _racLefouSkills = [ls[0] || '', ls[1] || ''];
+        }
+        if (prev === 'qareen') {
+            _racQareenElemento = charRaceApplied.qareenElemento || '';
+            _racQareenMagia = charRaceApplied.qareenMagia || '';
+        }
+        if (prev === 'siren') {
+            _racSereiaMagia1 = charRaceApplied.sereiaMagia1 || '';
+            _racSereiaMagia2 = charRaceApplied.sereiaMagia2 || '';
+        }
+        if (prev === 'silfide') {
+            _racSilfideMagia1 = charRaceApplied.silfideMagia1 || '';
+            _racSilfideMagia2 = charRaceApplied.silfideMagia2 || '';
+        }
+        if (prev === 'lamia') {
+            _racLamiaMagia1 = charRaceApplied.lamiaMagia1 || '';
+            _racLamiaMagia2 = charRaceApplied.lamiaMagia2 || '';
+        }
     }
     document.getElementById('modalRaca').style.display = 'flex';
-    _racRenderChips(); _racRenderList(); _racRenderCalc(); _racRenderDetail();
+    _racRenderChips(); _racRenderList(); _racRenderCalc(); _racRenderDetail(); _racUpdateStatus();
 }
 function fecharRaca() { document.getElementById('modalRaca').style.display = 'none'; }
 function racSearch(v) { _racQuery = v; _racRenderList(); }
@@ -6474,7 +6724,7 @@ function _racRenderList() {
             <span class="od-item-sub">${_odEsc(RAC_TYPE_LABEL[D[id].type] || D[id].type)}${D[id].raca && D[id].raca !== '-' ? ' · ' + _odEsc(D[id].raca) : ''}</span>
         </div>`).join('') : '<div class="od-empty">Nenhuma raça encontrada.</div>';
 }
-function racSelect(id) { _racSel = id; _racPicks = {}; _racSkills = ['', '']; _racRenderList(); _racRenderCalc(); _racRenderDetail(); }
+function racSelect(id) { _racSel = id; _racPicks = {}; _racSkills = ['', '']; _racVersMode = 'skill'; _racVersPower = ''; _racKlirenSkill = ''; _racKlirenOficio = ''; _racLefouSkills = ['', '']; _racLefouMode = 'skill'; _racLefouPower = '';     _racQareenElemento = ''; _racQareenMagia = ''; _racSereiaMagia1 = ''; _racSereiaMagia2 = ''; _racSilfideMagia1 = ''; _racSilfideMagia2 = ''; _racLamiaMagia1 = ''; _racLamiaMagia2 = ''; _racRenderList(); _racRenderCalc(); _racRenderDetail(); }
 
 // ---- calculadora ----
 function racBase(a, d) {
@@ -6498,6 +6748,183 @@ function racPts(v) {
     _racRenderCalc(); _racUpdateStatus();
 }
 function racSkill(i, v) { _racSkills[i] = v; _racUpdateStatus(); }
+function _racGeneralPowers() {
+    if (typeof powersData === 'undefined' || !Array.isArray(powersData)) return [];
+    const seen = new Set();
+    return powersData.filter(p => {
+        if (!p || !p.name || p.type === 'complication') return false;
+        if (p.category !== 'Geral' && p.type !== 'tormenta') return false;
+        const k = _clsNorm(p.name);
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+    }).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+function _racGeneralPowerByName(name) {
+    const n = _clsNorm(name);
+    return _racGeneralPowers().find(p => _clsNorm(p.name) === n) || null;
+}
+function _racPowerOptions(selected) {
+    const list = _racGeneralPowers();
+    if (!list.length) return '<option value="">(Banco de poderes não carregado)</option>';
+    const groups = [
+        { type: 'combat', label: 'Combate' },
+        { type: 'destiny', label: 'Destino' },
+        { type: 'magic', label: 'Magia' },
+        { type: 'tormenta', label: 'Tormenta' }
+    ];
+    const used = new Set();
+    const opts = list.map(p => ({ p, k: _clsNorm(p.name) }));
+    const sel = _clsNorm(selected);
+    let html = '<option value="">Poder geral...</option>';
+    groups.forEach(g => {
+        const items = opts.filter(o => o.p.type === g.type);
+        if (!items.length) return;
+        items.forEach(o => used.add(o.k));
+        html += `<optgroup label="${g.label}">` + items.map(o =>
+            `<option value="${_odEsc(o.p.name)}" ${sel === o.k ? 'selected' : ''}>${_odEsc(o.p.name)}</option>`
+        ).join('') + '</optgroup>';
+    });
+    const outros = opts.filter(o => !used.has(o.k));
+    if (outros.length) {
+        html += '<optgroup label="Outros">' + outros.map(o =>
+            `<option value="${_odEsc(o.p.name)}" ${sel === o.k ? 'selected' : ''}>${_odEsc(o.p.name)}</option>`
+        ).join('') + '</optgroup>';
+    }
+    return html;
+}
+function _racTormentaPowers() {
+    if (typeof powersData === 'undefined' || !Array.isArray(powersData)) return [];
+    const seen = new Set();
+    return powersData.filter(p => {
+        if (!p || !p.name || p.type === 'complication') return false;
+        if (p.type !== 'tormenta') return false;
+        const k = _clsNorm(p.name);
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+    }).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+function _racTormentaPowerByName(name) {
+    const n = _clsNorm(name);
+    return _racTormentaPowers().find(p => _clsNorm(p.name) === n) || null;
+}
+function _racTormentaPowerOptions(selected) {
+    const list = _racTormentaPowers();
+    if (!list.length) return '<option value="">(Banco de poderes não carregado)</option>';
+    const used = new Set();
+    const opts = list.map(p => ({ p, k: _clsNorm(p.name) }));
+    const sel = _clsNorm(selected);
+    let html = '<option value="">Poder da Tormenta...</option>';
+    html += '<optgroup label="Tormenta">' + opts.map(o =>
+        `<option value="${_odEsc(o.p.name)}" ${sel === o.k ? 'selected' : ''}>${_odEsc(o.p.name)}</option>`
+    ).join('') + '</optgroup>';
+    return html;
+}
+function _racQareenElementos() {
+    return [
+        { valor: 'frio', label: 'Frio (Água)' },
+        { valor: 'eletricidade', label: 'Eletricidade (Ar)' },
+        { valor: 'fogo', label: 'Fogo' },
+        { valor: 'acido', label: 'Ácido (Terra)' },
+        { valor: 'luz', label: 'Luz' },
+        { valor: 'trevas', label: 'Trevas' }
+    ];
+}
+function _racQareenElementoLabel(valor) {
+    const e = _racQareenElementos().find(x => x.valor === valor);
+    return e ? e.label : valor;
+}
+function _racArcaneSpells() {
+    if (typeof SPELLS_DB === 'undefined' || !Array.isArray(SPELLS_DB)) return [];
+    const seen = new Set();
+    return SPELLS_DB.filter(m => {
+        if (!m || !m.n) return false;
+        if (m.c !== 1 || m.t !== 'Arcana') return false;
+        const k = _clsNorm(m.n);
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+    }).sort((a, b) => a.n.localeCompare(b.n));
+}
+function _racArcaneSpellOptions(selected) {
+    const list = _racArcaneSpells();
+    if (!list.length) return '<option value="">(Banco de magias não carregado)</option>';
+    const sel = _clsNorm(selected);
+    let html = '<option value="">Escolha uma magia de 1º círculo...</option>';
+    html += '<optgroup label="Arcana — 1º Círculo">' + list.map(m =>
+        `<option value="${_odEsc(m.n)}" ${sel === _clsNorm(m.n) ? 'selected' : ''}>${_odEsc(m.n)}</option>`
+    ).join('') + '</optgroup>';
+    return html;
+}
+function _racSereiaSpells() {
+    return ['Amedrontar', 'Comando', 'Despedaçar', 'Enfeitiçar', 'Hipnotismo', 'Sono'];
+}
+function _racSereiaSpellOptions(valor, outroValor) {
+    const list = _racSereiaSpells();
+    if (!list.length) return '<option value="">(Banco de magias não carregado)</option>';
+    const sel = _clsNorm(valor);
+    const outro = _clsNorm(outroValor);
+    let html = '<option value="">Escolha uma magia...</option>';
+    html += '<optgroup label="Canção dos Mares">' + list.map(n => {
+        const k = _clsNorm(n);
+        const disabled = (k !== sel && k === outro) ? ' disabled' : '';
+        const selected = (k === sel) ? ' selected' : '';
+        return `<option value="${_odEsc(n)}"${selected}${disabled}>${_odEsc(n)}</option>`;
+    }).join('') + '</optgroup>';
+    return html;
+}
+function _racSilfideSpells() {
+    return ['Criar Ilusão', 'Enfeitiçar', 'Luz', 'Sono'];
+}
+function _racSilfideSpellOptions(valor, outroValor) {
+    const list = _racSilfideSpells();
+    if (!list.length) return '<option value="">(Banco de magias não carregado)</option>';
+    const sel = _clsNorm(valor);
+    const outro = _clsNorm(outroValor);
+    let html = '<option value="">Escolha uma magia...</option>';
+    html += '<optgroup label="Magia das Fadas">' + list.map(n => {
+        const k = _clsNorm(n);
+        const disabled = (k !== sel && k === outro) ? ' disabled' : '';
+        const selected = (k === sel) ? ' selected' : '';
+        return `<option value="${_odEsc(n)}"${selected}${disabled}>${_odEsc(n)}</option>`;
+    }).join('') + '</optgroup>';
+    return html;
+}
+function _racLamiaSpells() {
+    return ['Criar Ilusão', 'Compreensão', 'Disfarce Ilusório', 'Visão Mística'];
+}
+function _racLamiaSpellOptions(valor, outroValor) {
+    const list = _racLamiaSpells();
+    const sel = _clsNorm(valor);
+    const outro = _clsNorm(outroValor);
+    let html = '<option value="">Escolha uma magia...</option>';
+    html += '<optgroup label="Magia das Lâmias">' + list.map(n => {
+        const k = _clsNorm(n);
+        const disabled = (k !== sel && k === outro) ? ' disabled' : '';
+        const selected = (k === sel) ? ' selected' : '';
+        return `<option value="${_odEsc(n)}"${selected}${disabled}>${_odEsc(n)}</option>`;
+    }).join('') + '</optgroup>';
+    return html;
+}
+function racVersToggle() {
+    _racVersMode = _racVersMode === 'power' ? 'skill' : 'power';
+    _racRenderDetail();
+}
+function racVersPower(v) { _racVersPower = v; _racUpdateStatus(); }
+function racKlirenSkill(v) { _racKlirenSkill = v; _racUpdateStatus(); }
+function racKlirenOficio(v) { _racKlirenOficio = v; _racUpdateStatus(); }
+function racLefouSkill(i, v) { _racLefouSkills[i] = v; _racUpdateStatus(); }
+function racLefouToggle() { _racLefouMode = _racLefouMode === 'power' ? 'skill' : 'power'; _racRenderDetail(); }
+function racLefouPower(v) { _racLefouPower = v; _racUpdateStatus(); }
+function racQareenElemento(v) { _racQareenElemento = v; _racUpdateStatus(); }
+function racQareenMagia(v) { _racQareenMagia = v; _racUpdateStatus(); }
+function racSereiaMagia1(v) { _racSereiaMagia1 = v; _racRenderDetail(); _racUpdateStatus(); }
+function racSereiaMagia2(v) { _racSereiaMagia2 = v; _racRenderDetail(); _racUpdateStatus(); }
+function racSilfideMagia1(v) { _racSilfideMagia1 = v; _racRenderDetail(); _racUpdateStatus(); }
+function racSilfideMagia2(v) { _racSilfideMagia2 = v; _racRenderDetail(); _racUpdateStatus(); }
+function racLamiaMagia1(v) { _racLamiaMagia1 = v; _racRenderDetail(); _racUpdateStatus(); }
+function racLamiaMagia2(v) { _racLamiaMagia2 = v; _racRenderDetail(); _racUpdateStatus(); }
 
 function _racRenderCalc() {
     const box = document.getElementById('racCalc'); if (!box) return;
@@ -6571,8 +6998,10 @@ function _racRenderDetail() {
         if (pv) partes.push(`PV +${pv} (nível ${lv})`);
         if (pm) partes.push(`PM +${pm} (nível ${lv})`);
         if (det.deslocamento) partes.push(`Deslocamento ${det.deslocamento}${det.deslocamentoNuncaReduzido ? ' (não reduzido por armadura/carga)' : ''}`);
+        if (det.escaladaIgualDeslocamento) partes.push(`Escalada ${det.deslocamento || '9m'} (igual ao deslocamento terrestre)`);
+        (det.sentidos || []).forEach(s => partes.push(s));
         if (det.ataqueBonus) partes.push(`+${det.ataqueBonus.valor} em ataques com ${det.ataqueBonus.palavras.join(', ')}`);
-        (det.periciasBonus || []).forEach(pb => partes.push(`+${pb.valor} em ${pb.pericias.join(' e ')}${pb.condicao ? ' ' + pb.condicao : ''}`));
+        (det.periciasBonus || []).forEach(pb => partes.push(`${pb.valor > 0 ? '+' : ''}${pb.valor} em ${pb.pericias.join(', ')}${pb.condicao ? ' ' + pb.condicao : ''}`));
         (det.magias || []).forEach(m => {
             const nm = typeof m === 'string' ? m : m.nome;
             const at = (m && m.atributo) ? ` (${m.atributo})` : '';
@@ -6587,6 +7016,7 @@ function _racRenderDetail() {
             const rd = det.reducaoDano;
             partes.push(`Redução de dano ${rd.valor} por ${rd.custo}${rd.condicao ? ` (${rd.condicao})` : ''}`);
         }
+        (det.notas || []).forEach(n => { if (n) partes.push(n); });
         if (partes.length) html += `<div class="od-line"><b>Efeitos na ficha:</b> ${_odEsc(partes.join(' · '))}</div>`;
     }
     if (r.createCustomUi) {
@@ -6596,9 +7026,88 @@ function _racRenderDetail() {
             <div style="margin-top:6px"><a href="${calcUrl}" target="_blank" rel="noopener"><b>Abrir na Calculadora com esta raça e seus atributos →</b></a></div></div>`;
     }
     if (_racSel === 'humano') {
-        html += `<div class="od-sub">Versátil <small>(perícias treinadas; deixe vazio se for trocar por um poder)</small></div>
-            <div class="rac-skills">${[0, 1].map(i => `<select class="od-select" onchange="racSkill(${i}, this.value)">
-                <option value="">Perícia ${i + 1}...</option>${_orgSkillOptions().map(n => `<option value="${_odEsc(n)}" ${_racSkills[i] === n ? 'selected' : ''}>${_odEsc(n)}</option>`).join('')}</select>`).join('')}</div>`;
+        const skillSel = i => `<select class="od-select" onchange="racSkill(${i}, this.value)">
+            <option value="">Perícia ${i + 1}...</option>${_orgSkillOptions().map(n => `<option value="${_odEsc(n)}" ${_racSkills[i] === n ? 'selected' : ''}>${_odEsc(n)}</option>`).join('')}</select>`;
+        const secondSel = _racVersMode === 'power'
+            ? `<select class="od-select" onchange="racVersPower(this.value)">${_racPowerOptions(_racVersPower)}</select>`
+            : skillSel(1);
+        html += `<div class="od-sub">Versátil <small>(duas perícias ou uma perícia + um poder geral)</small></div>
+            <div class="rac-skills">
+                ${skillSel(0)}
+                ${secondSel}
+                <button type="button" class="btn btn-sm rac-vers-toggle ${_racVersMode === 'power' ? 'btn-dark' : 'btn-outline-dark'}" onclick="racVersToggle()" title="Alternar a 2ª escolha entre perícia e poder geral">
+                    <i class="bi bi-arrow-left-right"></i> ${_racVersMode === 'power' ? 'Poder' : 'Perícia'}
+                </button>
+            </div>`;
+    }
+    if (_racSel === 'kliren') {
+        html += `<div class="od-sub">Híbrido <small>(treinado em uma perícia à sua escolha)</small></div>
+            <div class="rac-skills">
+                <select class="od-select" onchange="racKlirenSkill(this.value)">
+                    <option value="">Escolha uma perícia...</option>${_orgSkillOptions().map(n => `<option value="${_odEsc(n)}" ${_racKlirenSkill === n ? 'selected' : ''}>${_odEsc(n)}</option>`).join('')}</select>
+                <input type="text" class="form-control form-control-sm" placeholder="Ofício (especialidade)" onchange="racKlirenOficio(this.value)"
+                    value="${_odEsc(_racKlirenOficio)}" title="Escolha a especialidade de Ofício para receber +2">
+            </div>`;
+    }
+    if (_racSel === 'lefou') {
+        const skillSel = i => `<select class="od-select" onchange="racLefouSkill(${i}, this.value)">
+            <option value="">Escolha uma perícia...</option>${_orgSkillOptions().map(n => `<option value="${_odEsc(n)}" ${_racLefouSkills[i] === n ? 'selected' : ''}>${_odEsc(n)}</option>`).join('')}</select>`;
+        const secondSel = _racLefouMode === 'power'
+            ? `<select class="od-select" onchange="racLefouPower(this.value)">${_racTormentaPowerOptions(_racLefouPower)}</select>`
+            : skillSel(1);
+        html += `<div class="od-sub">Deformidade <small>(+2 em duas perícias ou 1 perícia + 1 poder da Tormenta)</small></div>
+            <div class="rac-skills">
+                ${skillSel(0)}
+                ${secondSel}
+                <button type="button" class="btn btn-sm rac-vers-toggle ${_racLefouMode === 'power' ? 'btn-dark' : 'btn-outline-dark'}" onclick="racLefouToggle()" title="Alternar o 2º bônus entre perícia e poder da Tormenta">
+                    <i class="bi bi-arrow-left-right"></i> ${_racLefouMode === 'power' ? 'Poder' : 'Perícia'}
+                </button>
+            </div>`;
+    }
+    if (_racSel === 'qareen') {
+        const elemOpts = _racQareenElementos().map(e => `<option value="${e.valor}" ${_racQareenElemento === e.valor ? 'selected' : ''}>${e.label}</option>`).join('');
+        html += `<div class="od-sub">Qareen <small>(resistência elemental e tatuagem mística)</small></div>
+            <div class="rac-skills">
+                <select class="od-select" onchange="racQareenElemento(this.value)">
+                    <option value="">Escolha a ascendência...</option>${elemOpts}
+                </select>
+                <select class="od-select" onchange="racQareenMagia(this.value)">
+                    <option value="">Tatuagem Mística (magia 1º círculo)...</option>${_racArcaneSpellOptions(_racQareenMagia)}
+                </select>
+            </div>`;
+    }
+    if (_racSel === 'siren') {
+        html += `<div class="od-sub">Canção dos Mares <small>(duas magias à escolha, atributo-chave Carisma)</small></div>
+            <div class="rac-skills">
+                <select class="od-select" onchange="racSereiaMagia1(this.value)">
+                    <option value="">Magia 1...</option>${_racSereiaSpellOptions(_racSereiaMagia1, _racSereiaMagia2)}
+                </select>
+                <select class="od-select" onchange="racSereiaMagia2(this.value)">
+                    <option value="">Magia 2...</option>${_racSereiaSpellOptions(_racSereiaMagia2, _racSereiaMagia1)}
+                </select>
+            </div>`;
+    }
+    if (_racSel === 'silfide') {
+        html += `<div class="od-sub">Magia das Fadas <small>(duas magias à escolha, atributo-chave Carisma)</small></div>
+            <div class="rac-skills">
+                <select class="od-select" onchange="racSilfideMagia1(this.value)">
+                    <option value="">Magia 1...</option>${_racSilfideSpellOptions(_racSilfideMagia1, _racSilfideMagia2)}
+                </select>
+                <select class="od-select" onchange="racSilfideMagia2(this.value)">
+                    <option value="">Magia 2...</option>${_racSilfideSpellOptions(_racSilfideMagia2, _racSilfideMagia1)}
+                </select>
+            </div>`;
+    }
+    if (_racSel === 'lamia') {
+        html += `<div class="od-sub">Magia das Lâmias <small>(duas magias à escolha, atributo-chave Carisma)</small></div>
+            <div class="rac-skills">
+                <select class="od-select" onchange="racLamiaMagia1(this.value)">
+                    <option value="">Magia 1...</option>${_racLamiaSpellOptions(_racLamiaMagia1, _racLamiaMagia2)}
+                </select>
+                <select class="od-select" onchange="racLamiaMagia2(this.value)">
+                    <option value="">Magia 2...</option>${_racLamiaSpellOptions(_racLamiaMagia2, _racLamiaMagia1)}
+                </select>
+            </div>`;
     }
     const pw = r.racialPowers || [];
     html += `<div class="od-sub">Poderes da raça (${pw.length})</div>` + (pw.length ? pw.map(p =>
@@ -6637,7 +7146,7 @@ function aplicarRaca() {
     // 1) atributos: o Total da calculadora (valor + racial + outros)
     RAC_ATTRS.forEach(a => { document.getElementById('attr-' + a).value = _racTotal(a, c.racial); });
 
-    let nome = '', added = 0, spellsAdded = 0, pvBonusApplied = 0, pmBonusApplied = 0;
+    let nome = '', added = 0, spellsAdded = 0, skillsApplied = 0, pvBonusApplied = 0, pmBonusApplied = 0;
     if (c.r) {
         // 0) desfaz os efeitos mecânicos da raça anterior (PV, PM, deslocamento)
         const pvMaxEl = document.getElementById('pvMax'), pvCurEl = document.getElementById('pvCurrent');
@@ -6662,7 +7171,21 @@ function aplicarRaca() {
         if (oldSpeed && getVal('charSpeed') === oldSpeed) {
             document.getElementById('charSpeed').value = '9m';
         }
+        _undoRaceSkillBonuses(old.skills);
+        // desfaz o bônus +2 em Outros do Lefou anterior
+        if (old.lefouSkills) {
+            old.lefouSkills.forEach(n => {
+                const idx = _skillIndexByName(n);
+                if (idx >= 0) {
+                    currentSkills[idx].other = Math.max(0, (Number(currentSkills[idx].other) || 0) - 2);
+                }
+            });
+        }
 
+        // desfaz o modificador de Defesa da raça anterior (ex.: Couro Rígido do Minotauro)
+        if (old.defesaItem) {
+            _removeDefenseRowByName(old.defesaItem.nome || 'Couro Rígido');
+        }
         // 2) desfaz os poderes da raça anterior
         if (old.powers && old.powers.length) {
             const names = new Set(old.powers.map(n => String(n).trim().toLowerCase()));
@@ -6680,6 +7203,15 @@ function aplicarRaca() {
                 if (nm && spellNames.has(_clsNorm(nm.value))) row.remove();
             });
         }
+        // 2c) desfaz ataques naturais da raça anterior (Mordida, Cascos, Chifres)
+        const ataquesNaturais = ['Mordida', 'Cascos', 'Chifres'];
+        const _oldDetNat = _raceDetail(old.id);
+        ((_oldDetNat && _oldDetNat.ataquesNaturais) || []).forEach(a => { if (a && a.nome) ataquesNaturais.push(a.nome); });
+        const nomesAtaquesNaturais = new Set(ataquesNaturais.map(n => _clsNorm(n)));
+        document.querySelectorAll('#attacksList .atk-row').forEach(row => {
+            const nm = row.querySelector('.inp-name');
+            if (nm && nomesAtaquesNaturais.has(_clsNorm(nm.value))) row.remove();
+        });
         // 3) nome, tamanho e poderes
         nome = _racShortName(c.r);
         document.getElementById('charRace').value = nome;
@@ -6688,10 +7220,68 @@ function aplicarRaca() {
             const opt = Array.from(sel.options).find(o => _clsNorm(o.text) === _clsNorm(c.r.tamanho));
             if (opt) sel.value = opt.value;
         }
-        added = _odAddAbilities(c.powers, 'Raça');
+        // Humano Versátil: 2 perícias OU 1 perícia + 1 poder geral
+        let versatileMode = 'skill', versatileSkills = ['', ''], versatilePower = null;
+        if (_racSel === 'humano') {
+            versatileMode = _racVersMode === 'power' ? 'power' : 'skill';
+            versatileSkills = [_racSkills[0] || '', _racSkills[1] || ''];
+            if (versatileMode === 'power') versatilePower = _racGeneralPowerByName(_racVersPower);
+        }
+        // Lefou Deformidade: +2 em duas perícias OU 1 perícia + 1 poder da Tormenta
+        let lefouMode = 'skill', lefouSkills = ['', ''], lefouPower = null;
+        if (_racSel === 'lefou') {
+            lefouMode = _racLefouMode === 'power' ? 'power' : 'skill';
+            lefouSkills = [_racLefouSkills[0] || '', _racLefouSkills[1] || ''];
+            if (lefouMode === 'power') lefouPower = _racTormentaPowerByName(_racLefouPower);
+        }
+        // Qareen: resistência elemental + tatuagem mística (magia arcana 1º círculo)
+        let qareenPower = null;
+        if (_racSel === 'qareen' && _racQareenMagia) {
+            qareenPower = { name: _racQareenMagia };
+        }
+        added = _odAddAbilities(c.powers.concat(versatilePower ? [versatilePower] : []).concat(lefouPower ? [lefouPower] : []), 'Raça');
         const addedNames = _odLastAdded.slice();
         // 4) Humano: Versátil
-        if (_racSel === 'humano') _racSkills.filter(Boolean).forEach(n => _odTrainSkill({ name: n, specialty: '' }));
+        if (_racSel === 'humano') {
+            const toTrain = versatileMode === 'power' ? [versatileSkills[0]] : versatileSkills;
+            toTrain.filter(Boolean).forEach(n => _odTrainSkill({ name: n, specialty: '' }));
+        }
+        // 4b) Kliren: Híbrido
+        if (_racSel === 'kliren' && _racKlirenSkill) {
+            _odTrainSkill({ name: _racKlirenSkill, specialty: '' });
+        }
+        // 4c) Lefou: Deformidade
+        if (_racSel === 'lefou') {
+            const toTrain = lefouMode === 'power' ? [lefouSkills[0]] : lefouSkills;
+            toTrain.filter(Boolean).forEach(n => {
+                const idx = _skillIndexByName(n);
+                if (idx >= 0) {
+                    currentSkills[idx].other = (Number(currentSkills[idx].other) || 0) + 2;
+                }
+            });
+        }
+        // 4d) Modificador de Defesa da raça (ex.: Couro Rígido do Minotauro)
+        const defesaItem = _raceDefensa(_racSel);
+        if (defesaItem) {
+            _addDefenseRow(defesaItem);
+        }
+        // 4e) Trog / Trog Anão / Centauro / Minotauro: ataques naturais
+        if ((_racSel === 'trog' || _racSel === 'troguinho') && !Array.from(document.querySelectorAll('.atk-row .inp-name')).some(el => _clsNorm(el.value) === _clsNorm('Mordida'))) {
+            addAttack({ name: 'Mordida', bonus: '', dmg: '1d6', critRange: '20', crit: 'x2', type: 'Perfuração', range: '', desc: 'Arma natural. Uma vez por rodada, ao usar agredir com outra arma, gasta 1 PM para ataque extra corpo a corpo com a mordida.' });
+        }
+        if (_racSel === 'centaur' && !Array.from(document.querySelectorAll('.atk-row .inp-name')).some(el => _clsNorm(el.value) === _clsNorm('Cascos'))) {
+            addAttack({ name: 'Cascos', bonus: '', dmg: '1d8', critRange: '20', crit: 'x2', type: 'Impacto', range: '', desc: 'Arma natural. Uma vez por rodada, ao usar agredir com outra arma, gasta 1 PM para ataque extra corpo a corpo com os cascos.' });
+        }
+        if (_racSel === 'minotaur' && !Array.from(document.querySelectorAll('.atk-row .inp-name')).some(el => _clsNorm(el.value) === _clsNorm('Chifres'))) {
+            addAttack({ name: 'Chifres', bonus: '', dmg: '1d6', critRange: '20', crit: 'x2', type: 'Perfuração', range: '', desc: 'Arma natural. Uma vez por rodada, ao usar agredir, gasta 1 PM para ataque extra corpo a corpo com os chifres.' });
+        }
+        // 4f) ataques naturais definidos em racas-detalhes.js (ataquesNaturais)
+        ((_raceDetail(_racSel) || {}).ataquesNaturais || []).forEach(a => {
+            if (!a || !a.nome) return;
+            const jaExiste = Array.from(document.querySelectorAll('.atk-row .inp-name')).some(el => _clsNorm(el.value) === _clsNorm(a.nome));
+            if (jaExiste) return;
+            addAttack({ name: a.nome, bonus: '', dmg: a.dano || '', critRange: '20', crit: a.critico || 'x2', type: a.tipo || '', range: a.alcance || '', desc: a.desc || '' });
+        });
         // 5) detalhes mecânicos da raça (PV por nível, deslocamento etc.)
         const det = _raceDetail(_racSel);
         const level = Math.max(1, getInt('charLevel'));
@@ -6716,25 +7306,93 @@ function aplicarRaca() {
         if (det && det.deslocamento) {
             document.getElementById('charSpeed').value = det.deslocamento;
         }
+        // 5b) bônus fixos de perícia da raça (ex.: Fortitude do Goblin, Misticismo do Elfo)
+        const appliedSkills = _applyRaceSkillBonuses(_racSel);
+        skillsApplied = appliedSkills.length;
+        // 5c) Kliren: +2 em Ofício (especialidade escolhida)
+        if (_racSel === 'kliren' && _racKlirenOficio) {
+            const ofIdx = currentSkills.findIndex(s => s.n === 'Ofício');
+            if (ofIdx >= 0) {
+                currentSkills[ofIdx].specialty = _racKlirenOficio;
+                currentSkills[ofIdx].other = (Number(currentSkills[ofIdx].other) || 0) + 2;
+                appliedSkills.push({ name: 'Ofício', value: 2 });
+                skillsApplied = appliedSkills.length;
+            }
+        }
         // 6) magias raciais fixas (ex.: Controlar Plantas da Dahllan)
         const addedSpells = [];
         ((det && det.magias) || []).forEach(m => {
             const nm = typeof m === 'string' ? m : m.nome;
             if (nm && _addRaceSpell(m)) addedSpells.push(nm);
         });
+        // Qareen: Tatuagem Mística (magia arcana 1º círculo) vai para a área de magias
+        if (_racSel === 'qareen' && _racQareenMagia) {
+            if (_addRaceSpell({ nome: _racQareenMagia })) addedSpells.push(_racQareenMagia);
+        }
+        // Sereia/Tritão: Canção dos Mares (duas magias à escolha)
+        if (_racSel === 'siren') {
+            [_racSereiaMagia1, _racSereiaMagia2].forEach(m => {
+                if (m && _addRaceSpell({ nome: m })) addedSpells.push(m);
+            });
+        }
+        // Sílfide: Magia das Fadas (duas magias à escolha)
+        if (_racSel === 'silfide') {
+            [_racSilfideMagia1, _racSilfideMagia2].forEach(m => {
+                if (m && _addRaceSpell({ nome: m })) addedSpells.push(m);
+            });
+        }
+        // Lâmia: Magia das Lâmias (duas magias à escolha)
+        if (_racSel === 'lamia') {
+            [_racLamiaMagia1, _racLamiaMagia2].forEach(m => {
+                if (m && _addRaceSpell({ nome: m })) addedSpells.push(m);
+            });
+        }
+        // Suraggel - Aggelus: Luz Sagrada (magia Luz divina) — aplicada automaticamente
+        if (_racSel === 'aggelus') {
+            if (_addRaceSpell({ nome: 'Luz' })) addedSpells.push('Luz');
+        }
+        // Suraggel - Sulfure: Sombras Profanas (magia Escuridão divina) — aplicada automaticamente
+        if (_racSel === 'sulfure') {
+            if (_addRaceSpell({ nome: 'Escuridão' })) addedSpells.push('Escuridão');
+        }
         spellsAdded = addedSpells.length;
+        const proficiencias = (_raceProficiencias(_racSel) || []).slice();
+        if (_racSel === 'qareen' && _racQareenElemento) {
+            proficiencias.push(`Resistência Elemental: ${_racQareenElementoLabel(_racQareenElemento)}`);
+        }
         charRaceApplied = {
             id: _racSel, attrs: c.racial, powers: addedNames, pvBonus: newPvBonus,
-            pmBonus: newPmBonus, speed: (det && det.deslocamento) || '', spells: addedSpells
+            pmBonus: newPmBonus, speed: (det && det.deslocamento) || '', spells: addedSpells,
+            skills: appliedSkills, senses: _raceSenses(_racSel), proficiencias: proficiencias,
+            versatileMode: versatileMode, versatileSkills: versatileSkills,
+            versatilePower: versatilePower ? versatilePower.name : '',
+            klirenSkill: _racSel === 'kliren' ? _racKlirenSkill : '',
+            klirenOficio: _racSel === 'kliren' ? _racKlirenOficio : '',
+            lefouMode: _racSel === 'lefou' ? lefouMode : '',
+            lefouSkills: _racSel === 'lefou' ? lefouSkills : [],
+            lefouPower: _racSel === 'lefou' && lefouPower ? lefouPower.name : '',
+            defesaItem: _racSel ? defesaItem : null,
+            qareenElemento: _racSel === 'qareen' ? _racQareenElemento : '',
+            qareenMagia: _racSel === 'qareen' ? _racQareenMagia : '',
+            sereiaMagia1: _racSel === 'siren' ? _racSereiaMagia1 : '',
+            sereiaMagia2: _racSel === 'siren' ? _racSereiaMagia2 : '',
+            silfideMagia1: _racSel === 'silfide' ? _racSilfideMagia1 : '',
+            silfideMagia2: _racSel === 'silfide' ? _racSilfideMagia2 : '',
+            lamiaMagia1: _racSel === 'lamia' ? _racLamiaMagia1 : '',
+            lamiaMagia2: _racSel === 'lamia' ? _racLamiaMagia2 : '',
+            aggelusMagia: _racSel === 'aggelus' ? 'Luz' : '',
+            sulfureMagia: _racSel === 'sulfure' ? 'Escuridão' : ''
         };
     }
     renderSkills();
+    renderRaceSenses();
+    renderRaceProficiencias();
     refreshLevelFolders();
     updateCalculations();
     saveData();
     fecharRaca();
     const txt = RAC_ATTRS.map(a => `${a} ${_racTotal(a, c.racial)}`).join(' ');
-    if (typeof showSheetToast === 'function') showSheetToast(`✅ ${nome ? 'Raça ' + _odEsc(nome) + ': ' : ''}atributos ${_odEsc(txt)}${pvBonusApplied ? `, PV +${pvBonusApplied}` : ''}${pmBonusApplied ? `, PM +${pmBonusApplied}` : ''}${added ? `, ${added} poder(es)` : ''}${spellsAdded ? `, ${spellsAdded} magia(s)` : ''}`);
+    if (typeof showSheetToast === 'function') showSheetToast(`✅ ${nome ? 'Raça ' + _odEsc(nome) + ': ' : ''}atributos ${_odEsc(txt)}${pvBonusApplied ? `, PV +${pvBonusApplied}` : ''}${pmBonusApplied ? `, PM +${pmBonusApplied}` : ''}${skillsApplied ? `, ${skillsApplied} perícia(s)` : ''}${added ? `, ${added} poder(es)` : ''}${spellsAdded ? `, ${spellsAdded} magia(s)` : ''}`);
 }
 
 // ============================================================
