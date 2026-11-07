@@ -1739,9 +1739,9 @@ const RACE_DATA = {
         name: 'Centauro (Ameaças)',
         type: 'ameacas',
         tamanho: 'Grande', raca: 'Humanoide',
-        attributes: { sabedoria: 2, forca: 1, inteligencia: -1 },
+        attributes: { sabedoria: 2, forca: 1, destreza: -1, inteligencia: -1 },
         isChoice: false,
-        bonusMessage: 'Sabedoria +2, Força +1, Inteligência −1',
+        bonusMessage: 'Sabedoria +2, Força +1, Destreza −1, Inteligência −1',
         racialPowers: [
             {
                 name: 'Avantajado',
@@ -1749,7 +1749,7 @@ const RACE_DATA = {
             },
             {
                 name: 'Cascos',
-                desc: 'Você possui uma arma natural de cascos (dano 1d8). Uma vez por rodada, ao usar a ação agredir, pode gastar 1 PM para fazer um ataque extra com os cascos.'
+                desc: 'Você possui uma arma natural de cascos (dano 1d8, crítico ×2, impacto). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os cascos.'
             },
             {
                 name: 'Ginete Natural',
@@ -3044,7 +3044,7 @@ const RACE_DATA = {
             },
             {
                 name: 'Magia das Lâmias',
-                desc: 'Você pode lançar duas das magias a seguir (atributo-chave Carisma): Criar Ilusão, Comprensão, Disfarce Ilusório ou Visão Mística. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.'
+                desc: 'Você pode lançar duas das magias a seguir (atributo-chave Carisma): Criar Ilusão, Compreensão, Disfarce Ilusório ou Visão Mística. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.'
             },
             {
                 name: 'Natureza Predadora',
@@ -3056,6 +3056,39 @@ const RACE_DATA = {
             }
         ],
         imageUrl: 'https://i.ibb.co/Z65pMm2y/b55yrc.gif',
+        source: 'Bestiário'
+    },
+
+    lobisomem: {
+        name: 'Lobisomem',
+        type: 'bestiario',
+        tamanho: 'Médio', raca: 'Humanoide',
+        attributes: {},
+        isChoice: false,
+        bonusMessage: 'Sem modificadores de atributos próprios (+2 em Força nas formas transformadas)',
+        racialPowers: [
+            {
+                name: 'Aversão a Mitral',
+                desc: 'Você sofre 1 ponto de dano adicional por dado de dano de ataques com armas de mitral e perde 1d6 pontos de vida por rodada se estiver empunhando ou vestindo um item de mitral.'
+            },
+            {
+                name: 'Empatia com Lobos',
+                desc: 'Você recebe +5 em testes de Adestramento com lobos e lobos-das-cavernas e pode usar esta perícia para mudar atitude e persuasão com estas criaturas.'
+            },
+            {
+                name: 'Maldição da Licantropia',
+                desc: 'Um humanoide que sofra dano da sua mordida contrai licantropia (Fortitude com CD baseada em Constituição evita).'
+            },
+            {
+                name: 'Sentidos Aguçados',
+                desc: 'Você recebe faro e visão na penumbra.'
+            },
+            {
+                name: 'Transformação Incontrolável',
+                desc: 'Você sofre os efeitos de licantropia (veja Licantropia). Durante uma transformação involuntária, você se torna um personagem sob controle do mestre.'
+            }
+        ],
+        imageUrl: '',
         source: 'Bestiário'
     },
 
@@ -3156,6 +3189,9 @@ const RACE_DATA = {
             }
         ],
         imageUrl: 'https://media.tenor.com/Gz9oFSMBgHEAAAAM/alucard-hellsing.gif',
+        // Marcador usado pela ficha para exibir o aviso de escolhas especiais.
+        // A interface real das bênçãos é criada em calculadora/script.js.
+        createCustomUi() { },
         source: 'Bestiário'
     },
 

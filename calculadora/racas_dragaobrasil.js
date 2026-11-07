@@ -34,6 +34,7 @@
 // ── BÊNÇÃOS VAMPÍRICAS ───────────────────────────────────────
 // Escolha 1 no nível inicial (racialPowers.Bênção Vampírica); bênçãos
 // adicionais podem ser adquiridas depois no lugar de poderes de classe.
+(function() {
 const VAMPIRO_BENCAOS = {
     curaAcelerada: {
         name: 'Cura Acelerada',
@@ -251,6 +252,10 @@ const RACE_DATA_DRAGAOBRASIL = {
         ],
         imageUrl: 'https://media1.giphy.com/media/v1.Y2lkPTZjMDliOTUycDZhNnE3b2NraDIzem90azV2c3JxcGt1OXEzc2VxbmRtaWp4Y24xMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/LURDTf4W7Er0KVbuH7/giphy.gif',
 
+        // Marcador usado pela ficha para exibir o aviso de escolhas especiais.
+        // A interface real das bênçãos é criada em calculadora/script.js.
+        createCustomUi() { },
+
         calculateAttributes() {
             const attrs = { forca: 0, destreza: 0, constituicao: 0, inteligencia: 0, sabedoria: 0, carisma: 0 };
             const selectedPowers = [];
@@ -364,7 +369,7 @@ const RACE_DATA_DRAGAOBRASIL = {
         racialPowers: [
             {
                 name: 'Aversão a Mitral',
-                desc: 'Seus ataques causam +1 de dano por dado de dano quando feitos com armas de mitral. Se estiver empunhando ou vestindo mitral, perde 1d6 PV por rodada.'
+                desc: 'Você sofre 1 ponto de dano adicional por dado de dano de ataques com armas de mitral e perde 1d6 pontos de vida por rodada se estiver empunhando ou vestindo um item de mitral.'
             },
             {
                 name: 'Maldição da Licantropia',
@@ -400,7 +405,9 @@ window.LICANTROPO_TIPOS = {
     lobo: {
         nome: 'Lobo',
         empatia: 'Lobos',
-        hibrida: '+2 em Força.',
+        formaLabel: 'Lobo',
+        empatiaDesc: 'Você recebe +5 em testes de Adestramento com lobos e lobos-das-cavernas e pode usar esta perícia para mudar atitude e persuasão com estas criaturas.',
+        hibrida: '+2 em Força. Seu equipamento vestido desaparece, mas você mantém seus efeitos.',
         fera: 'Tamanho Médio, deslocamento 15m, +2 em Força e mordida natural (1d6, crítico ×2, perfuração). Uma vez por rodada, ao usar Agredir com uma arma, pode gastar 1 PM para um ataque extra de mordida. Ao acertar com a mordida, pode gastar 1 PM para tentar derrubar o alvo.'
     },
     onca: {
@@ -428,3 +435,4 @@ window.LICANTROPO_TIPOS = {
         fera: 'Tamanho Pequeno, deslocamento 12m e escavação 3m. Possui mordida natural (1d6, crítico ×2, perfuração). Uma vez por rodada, ao usar Agredir com uma arma, pode gastar 1 PM para um ataque extra de mordida. Pode usar Durão; se já possuir esse poder, seu custo diminui em 1 PM.'
     }
 };
+})();

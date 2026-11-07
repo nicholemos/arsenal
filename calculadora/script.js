@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (race.createCustomUi) race.createCustomUi(customUI);
 
-        // Raças humanoides (e Humano) podem contrair a maldição da licantropia (quando Dragão Brasil estiver ativo)
+        // Raças humanoides (e Humano) podem contrair a maldição da licantropia (quando Dragão Brasil ou Bestiário estiverem ativos)
         // Adicionado ao licantropia-container (abaixo de racial-powers-list) para ser sempre o último poder
         if (licContainer && canContractLicantropia(raceId)) {
             appendLicantropiaOverlay(licContainer);
@@ -961,6 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (RACE_DATA.vampiro) RACE_DATA.vampiro.createCustomUi = createVampiroUi;
     if (RACE_DATA.feerico) RACE_DATA.feerico.createCustomUi = createFeericoUi;
     if (RACE_DATA.licantropo) RACE_DATA.licantropo.createCustomUi = createLicantropoUi;
+    if (RACE_DATA.lobisomem) RACE_DATA.lobisomem.createCustomUi = createLobisomemUi;
 
     // ── UPDATE FUNÇÕES ─────────────────────────────────────────
     function updateGolemAttributes() {
@@ -984,22 +985,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ── LICANTROPIA: poderes dinâmicos (usado pela raça Licantropo e pela maldição em outras raças) ──
-    function buildLicantropiaDynamicPowers(tipo, controlar, forma) {
-        const base = RACE_DATA.licantropo;
+    function buildLicantropiaDynamicPowers(tipo, controlar, forma, opts = {}) {
+        const base = opts.baseRace || RACE_DATA.licantropo;
+        const feraLabel = opts.feraLabel || 'Fera';
+        const formaNome = forma === 'hibrida'
+            ? `Forma Híbrida (${tipo.nome})`
+            : (feraLabel === tipo.nome ? `Forma de ${feraLabel}` : `Forma de ${feraLabel} (${tipo.nome})`);
         const dynamicPowers = [
             {
                 name: `Empatia com ${tipo.empatia}`,
-                desc: `Você recebe +5 em testes de Adestramento relacionados a ${tipo.empatia.toLowerCase()}. Também pode usar Adestramento para mudar a atitude e persuadir essas criaturas. A habilidade se aplica a animais da mesma espécie, incluindo versões primitivas, reais e gigantes.`
+                desc: tipo.empatiaDesc || `Você recebe +5 em testes de Adestramento relacionados a ${tipo.empatia.toLowerCase()}. Também pode usar Adestramento para mudar a atitude e persuadir essas criaturas. A habilidade se aplica a animais da mesma espécie, incluindo versões primitivas, reais e gigantes.`,
             },
             {
-                name: `Benefícios da Forma ${forma === 'hibrida' ? 'Híbrida' : 'de Fera'} (${tipo.nome})`,
+                name: `Benefícios da ${formaNome}`,
                 desc: tipo[forma]
             },
             {
                 name: 'Transformação Incontrolável',
                 desc: controlar
                     ? 'Você ainda é afetado pela maldição ao presenciar violência, mas pode fazer o teste de Vontade para evitar a transformação rolando dois dados e usando o melhor resultado. Se não estiver transformado, pode gastar uma ação completa e 3 PM para assumir a forma híbrida ou de fera, mantendo o controle das próprias ações. A transformação dura o quanto desejar, mas termina se ficar inconsciente ou morrer. Efeitos que afetam a Forma Selvagem de um druida também se aplicam às suas formas de licantropo.'
-                    : base.racialPowers.find(p => p.name === 'Transformação Incontrolável').desc
+                    : (base.racialPowers.find(p => p.name === 'Transformação Incontrolável') || {}).desc || ''
             }
         ];
 
@@ -1010,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             dynamicPowers.push({
-                name: 'Limitações da Forma de Fera',
+                name: `Limitações da Forma de ${feraLabel}`,
                 desc: 'Você não pode falar, empunhar itens ou lançar magias. Seu equipamento desaparece, mas os efeitos dos itens vestidos permanecem. Outras criaturas podem perceber que você não é um animal comum com um teste de Percepção oposto ao seu teste de Enganação; você recebe +10 nesse teste.'
             });
         }
@@ -1025,19 +1030,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── LICANTROPIA: maldição contraída por humanoides e humanos ─────────
+    // A licantropia está disponível quando qualquer fonte que a contenha está marcada
+    // (Dragão Brasil ou Bestiário de Arton).
     function isDragaoBrasilFilterActive() {
         return !!document.getElementById('dragaobrasilCheckbox')?.checked;
     }
 
+    function isBestiarioFilterActive() {
+        return !!document.getElementById('bestiarioCheckbox')?.checked;
+    }
+
+    function isLicantropiaSourceActive() {
+        return isDragaoBrasilFilterActive() || isBestiarioFilterActive();
+    }
+
+    // O Bestiário só traz o lobisomem (lobo); os demais tipos vêm do Dragão Brasil.
+    // Se o Dragão Brasil estiver ativo, todos os tipos ficam disponíveis.
+    function getAvailableLicantropoTipos() {
+        if (!window.LICANTROPO_TIPOS) return {};
+        if (isDragaoBrasilFilterActive()) return LICANTROPO_TIPOS;
+        if (isBestiarioFilterActive() && LICANTROPO_TIPOS.lobo) {
+            return { lobo: LICANTROPO_TIPOS.lobo };
+        }
+        return LICANTROPO_TIPOS;
+    }
+
     // Só humanoides (e o Humano, que não tem tipo de criatura definido nos dados) contraem a maldição,
-    // e apenas quando o checkbox de Raças do Dragão Brasil estiver marcado nas raças adicionais.
+    // e apenas quando a fonte de licantropia (Dragão Brasil ou Bestiário) estiver marcada nas raças adicionais.
     function canContractLicantropia(raceId) {
-        if (!isDragaoBrasilFilterActive()) return false;
-        if (raceId === 'licantropo') return false;
+        if (!isLicantropiaSourceActive()) return false;
+        if (raceId === 'licantropo' || raceId === 'lobisomem') return false;
         const r = RACE_DATA[raceId];
         if (!r || !window.LICANTROPO_TIPOS || !RACE_DATA.licantropo) return false;
         const EXCECOES_LICANTROPIA = ['humano', 'feerico'];
         return r.raca === 'Humanoide' || EXCECOES_LICANTROPIA.includes(raceId);
+    }
+
+    // Sincroniza as opções do seletor de tipo da maldição com as fontes ativas.
+    // Ex.: só Bestiário marcado → apenas "Lobo".
+    function refreshLicantropiaTipoOptions() {
+        const sel = document.getElementById('licantropia-tipo');
+        if (!sel) return;
+        const tipos = getAvailableLicantropoTipos();
+        const keys = Object.keys(tipos);
+        if (!keys.length) return;
+
+        const current = sel.value;
+        sel.innerHTML = keys.map(key => `<option value="${key}">${tipos[key].nome}</option>`).join('');
+
+        const next = tipos[current] ? current : keys[0];
+        const changed = next !== current;
+        sel.value = next;
+
+        if (changed) refreshRacialPowers();
     }
 
     function updateLicantropiaOverlay() {
@@ -1049,6 +1094,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (canContract) {
             if (!document.getElementById('licantropia-overlay')) {
                 appendLicantropiaOverlay(licContainer);
+            } else {
+                refreshLicantropiaTipoOptions();
             }
         } else {
             if (licContainer.innerHTML !== '') {
@@ -1067,10 +1114,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const raceId = racaSelect.value;
         let prefix;
         if (raceId === 'licantropo') prefix = 'licantropo';
+        else if (raceId === 'lobisomem') prefix = 'lobisomem';
         else if (canContractLicantropia(raceId) && document.getElementById('licantropia-ativa')?.checked) prefix = 'licantropia';
         else return null;
 
-        const tipoKey = document.getElementById(`${prefix}-tipo`)?.value || 'lobo';
+        const tipoKey = raceId === 'lobisomem'
+            ? 'lobo'
+            : (document.getElementById(`${prefix}-tipo`)?.value || 'lobo');
         const tipo = LICANTROPO_TIPOS[tipoKey];
         if (!tipo) return null;
         const controlar = document.getElementById(`${prefix}-controlar`)?.checked || false;
@@ -1121,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="section-title" style="font-size:18px">Tipo de Licantropo</span>
                     </label>
                     <select id="licantropia-tipo">
-                        ${Object.entries(LICANTROPO_TIPOS).map(([key, t]) => `<option value="${key}">${t.nome}</option>`).join('')}
+                        ${Object.entries(getAvailableLicantropoTipos()).map(([key, t]) => `<option value="${key}">${t.nome}</option>`).join('')}
                     </select>
 
                     <div class="checklist" style="margin-top:12px">
@@ -1257,13 +1307,87 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     }
 
+    // ── LOBISOMEM (Bestiário) ──────────────────────────────────
+    function createLobisomemUi(container) {
+        if (!window.LICANTROPO_TIPOS?.lobo) return;
+        container.innerHTML = `
+            <div class="fold-body" style="margin-top:12px">
+                <p style="margin:0 0 8px;font-size:13px;color:var(--text-secondary)">
+                    <b>Tipo:</b> Lobo (Bestiário). A transformação involuntária assume sempre a
+                    <b>forma híbrida</b>; morto ou inconsciente, o lobisomem reverte à forma humanoide.
+                </p>
+                <div class="checklist">
+                    <label class="check">
+                        <input type="checkbox" id="lobisomem-controlar">
+                        <span>Possui o poder Controlar Licantropia</span>
+                    </label>
+                </div>
+                <div style="margin-top:12px">
+                    <label for="lobisomem-forma" class="field-label">
+                        <span class="section-title" style="font-size:18px">Forma de Transformação</span>
+                    </label>
+                    <select id="lobisomem-forma">
+                        <option value="hibrida">Forma híbrida</option>
+                        <option value="fera" disabled>Forma de lobo (requer Controlar Licantropia)</option>
+                    </select>
+                </div>
+                <p style="margin-top:10px;font-size:13px;color:var(--text-secondary)">
+                    Sem Controlar Licantropia, a transformação involuntária assume a forma híbrida
+                    e as ações do personagem ficam sob controle do mestre.
+                </p>
+            </div>`;
+
+        container.querySelector('#lobisomem-controlar')
+            .addEventListener('change', () => {
+                const controlar = document.getElementById('lobisomem-controlar').checked;
+                const forma = document.getElementById('lobisomem-forma');
+                const feraOption = forma.querySelector('option[value="fera"]');
+                feraOption.disabled = !controlar;
+                feraOption.textContent = controlar
+                    ? 'Forma de lobo'
+                    : 'Forma de lobo (requer Controlar Licantropia)';
+                if (!controlar) forma.value = 'hibrida';
+                updateLobisomemAttributes();
+            });
+
+        container.querySelector('#lobisomem-forma')
+            .addEventListener('change', updateLobisomemAttributes);
+    }
+
+    function updateLobisomemAttributes() {
+        if (racaSelect.value !== 'lobisomem') return;
+        const race = RACE_DATA.lobisomem;
+        const tipo = window.LICANTROPO_TIPOS?.lobo;
+        if (!race || !tipo) return;
+
+        const controlar = document.getElementById('lobisomem-controlar')?.checked || false;
+        const forma = controlar
+            ? (document.getElementById('lobisomem-forma')?.value || 'hibrida')
+            : 'hibrida';
+
+        applyRaceAttributes(race.attributes, false, 0);
+
+        const dynamicPowers = buildLicantropiaDynamicPowers(tipo, controlar, forma, {
+            baseRace: race,
+            feraLabel: 'Lobo'
+        });
+
+        document.getElementById('bonusMessage').innerHTML =
+            'Sem modificadores de atributos próprios' +
+            `<br><b>Tipo:</b> ${tipo.nome}` +
+            `<br><b>Forma:</b> ${forma === 'hibrida' ? 'Híbrida' : 'de Lobo'}` +
+            (controlar ? '<br><b>Poder:</b> Controlar Licantropia' : '<br><b>Transformação:</b> involuntária (forma híbrida)');
+        renderRacialPowers(race, dynamicPowers);
+        updateAll();
+    }
+
 
     function updateAberrantAttributes() {
         const race = RACE_DATA.aberrant;
         if (!race?.calculateAttributes) return;
         const r = race.calculateAttributes();
-        applyRaceAttributes(r.baseAttributes, r.isChoice, r.choiceCount);
-        renderRacialPowers(race, []);
+        applyRaceAttributes(r.baseAttributes, r.isChoice, r.choiceCount, r.lockedChoiceAttributes, r.maxChoicePerAttribute);
+        renderRacialPowers(race, r.selectedPowers || []);
         updateAll();
     }
 
@@ -1337,7 +1461,7 @@ document.addEventListener('DOMContentLoaded', () => {
             racaSelect.value = 'outros'; handleRaceChange();
             return;
         }
-        // Atualiza a exibição da licantropia quando o filtro de Dragão Brasil mudar
+        // Atualiza a exibição da licantropia quando os filtros de fonte mudarem
         updateLicantropiaOverlay();
     }
 
@@ -1540,6 +1664,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateVampiroAttributes = updateVampiroAttributes;
     window.updateFeericoAttributes = updateFeericoAttributes;
     window.updateLicantropoAttributes = updateLicantropoAttributes;
+    window.updateLobisomemAttributes = updateLobisomemAttributes;
 
     // ── INICIALIZAÇÃO ─────────────────────────────────────────
     populateAttributeTable();
@@ -1550,10 +1675,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlRaceId = params.get('raca');
     if (urlRaceId && RACE_DATA[urlRaceId]) {
         applyUrlRace(urlRaceId);
+        applyUrlAttributes(params);
     } else {
         loadState();
         handleRaceChange();
         handleFilterChange();
+    }
+
+    // ── URL: atributos já distribuídos (vindos da ficha) ─────
+    function applyUrlAttributes(params) {
+        const hasAttrs = ATTRIBUTES.some(attr => params.has(attr));
+        const hasPts = params.has('pts');
+        const hasOutros = ATTRIBUTES.some(attr => params.has(`outros_${attr}`));
+        if (!hasAttrs && !hasPts && !hasOutros) return;
+
+        const pts = parseInt(params.get('pts'), 10);
+        if (!isNaN(pts) && pts >= 0) basePoints = pts;
+
+        ATTRIBUTES.forEach(attr => {
+            const baseEl = document.getElementById(attr);
+            const raw = params.get(attr);
+            if (raw !== null && baseEl) {
+                let v = parseInt(raw, 10);
+                if (isNaN(v)) v = 0;
+                baseEl.value = String(Math.max(-1, Math.min(4, v)));
+            }
+
+            const outroEl = document.getElementById(`${attr}_outros`);
+            const rawOutro = params.get(`outros_${attr}`);
+            if (rawOutro !== null && outroEl) {
+                let o = parseInt(rawOutro, 10);
+                if (isNaN(o)) o = 0;
+                outroEl.value = String(o);
+            }
+        });
+
+        if (hasOutros) {
+            const toggle = document.getElementById('toggleOutrosInput');
+            if (toggle) {
+                toggle.checked = true;
+                document.querySelectorAll('.outros-col').forEach(col => { col.style.display = 'table-cell'; });
+            }
+        }
+
+        updateAll();
     }
 
     // ── URL: ?raca=KEY (vinda do compêndio) ──────────────────
