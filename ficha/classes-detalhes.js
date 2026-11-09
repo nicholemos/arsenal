@@ -6,18 +6,23 @@
 //  Campos por classe:
 //    pmAtributo      -> atributo somado UMA vez ao total de PM ('INT', 'SAB', 'CAR'...).
 //                       Array = usa o maior modificador entre os listados (ex.: ['INT','CAR']).
-//                       Vale para TODAS as classes do personagem (multiclasse).
+//                       Só vale para a CLASSE INICIAL (mesma regra da Forja).
 //    variantes       -> { 'Nome da variante': { pmAtributo } } substitui o da classe.
 //    poderes         -> { 'Nome do poder': { aliases?, pmAtributo?, pvAtributo?, defesaAtributo?, nota? } }
 //                       Só conta se o poder estiver na ficha (lista "Classe e Poderes")
 //                       e a classe estiver entre as classes do personagem.
+//                       Campos do poder: pmAtributo | pvAtributo | defesaAtributo,
+//                       condicao ('semArmadura' | 'semArmaduraPesada' | 'armaduraPesada' | 'escudo' | 'pvMetade'),
+//                       limiteNivel (true = o bônus não passa do nível do personagem).
+//  Bônus FIXOS e por nível (+2 em perícia, +1 Defesa a cada 4 níveis...) ficam em
+//  poderes-classe-detalhes.js.
 //
 //  REGRA: o mesmo atributo nunca é somado duas vezes no mesmo valor.
 //    PM:     sem atributo "de base" (cada atributo entra uma única vez)
 //    PV:     CON já entra por nível, então nenhum poder soma CON de novo
 //    Defesa: o atributo escolhido na fórmula da Defesa (se marcado) já está contado
 // ============================================================
-const CLASS_PM_SOMENTE_CLASSE_INICIAL = false;
+const CLASS_PM_SOMENTE_CLASSE_INICIAL = true;
 
 const CLASS_SHEET_DETAILS = {
     arcanista: {
@@ -29,18 +34,50 @@ const CLASS_SHEET_DETAILS = {
             'Bruxo':      { pmAtributo: 'INT' },
             'Necromante': { pmAtributo: 'INT' },
             'Feiticeiro': { pmAtributo: 'CAR' }
+        },
+        poderes: {
+            'Linhagem Dracônica': { pvAtributo: 'CAR', nota: 'Feiticeiro: soma Carisma nos PV iniciais' }
+        }
+    },
+
+    bucaneiro: {
+        nome: 'Bucaneiro',
+        poderes: {
+            'Insolência': { defesaAtributo: 'CAR', limiteNivel: true, condicao: 'semArmaduraPesada' }
+        }
+    },
+
+    cacador: {
+        nome: 'Caçador',
+        poderes: {
+            'Elo com a Natureza': { pmAtributo: 'SAB', nota: 'soma Sabedoria nos PM' }
+        }
+    },
+
+    guerreiro: {
+        nome: 'Guerreiro',
+        poderes: {
+            'Defesa Estratégica': { defesaAtributo: 'INT', limiteNivel: true }
+        }
+    },
+
+    ladino: {
+        nome: 'Ladino',
+        poderes: {
+            'Charme': { pmAtributo: 'CAR', nota: 'Ventanista: soma Carisma nos PM' }
         }
     },
 
     barbaro: {
         nome: 'Bárbaro',
         poderes: {
-            'Totem Espiritual': { aliases: ['Totem'], pmAtributo: 'SAB', nota: 'soma Sabedoria nos PM' }
+            'Totem Espiritual': { aliases: ['Totem'], pmAtributo: 'SAB', nota: 'soma Sabedoria nos PM' },
+            'Tanga de Peles':   { defesaAtributo: 'CON', condicao: 'semArmadura', nota: 'soma Constituição na Defesa sem armadura' }
         }
     },
 
     bardo:    { nome: 'Bardo',    pmAtributo: 'CAR' },
-    paladino: { nome: 'Paladino', pmAtributo: 'CAR' },
+    paladino: { nome: 'Paladino', pmAtributo: 'CAR', poderes: { 'Abençoado': { pmAtributo: 'CAR' } } },
     druida:   { nome: 'Druida',   pmAtributo: 'SAB' },
     frade:    { nome: 'Frade',    pmAtributo: 'SAB' },
 
@@ -55,8 +92,11 @@ const CLASS_SHEET_DETAILS = {
     lutador: {
         nome: 'Lutador',
         poderes: {
-            'Sarado':   { defesaAtributo: 'FOR', nota: 'soma Força na Defesa' },
-            'Trincado': { pvAtributo: 'FOR',     nota: 'soma Força nos PV (uma única vez)' }
+            // Conforme o data.js: Sarado soma Força nos PV (uma vez) e em Fortitude;
+            // Trincado soma Constituição no DANO desarmado (sem efeito automático).
+            'Sarado':           { pvAtributo: 'FOR', nota: 'soma Força nos PV (uma única vez)' },
+            'Braços Calejados': { defesaAtributo: 'FOR', limiteNivel: true, condicao: 'semArmadura', nota: 'sem armadura, soma Força na Defesa' },
+            'Casca Grossa':     { defesaAtributo: 'CON', limiteNivel: true, condicao: 'semArmaduraPesada', nota: 'soma Constituição na Defesa' }
         }
     }
 };
@@ -95,21 +135,24 @@ const CLASS_SHEET_CALC = (function () {
         const attrs = (opts && opts.attrs) || {};
         const poderes = (opts && opts.poderes) || [];
         const base = Object.assign({ pm: [], pv: ['CON'], def: [] }, (opts && opts.base) || {});
+        const estado = (opts && opts.estado) || {};
+        const nivel = Math.min(20, Math.max(1, parseInt(opts && opts.level) || 1));
         const mod = a => parseInt(attrs[a]) || 0;
 
         const out = { pm: { total: 0, fontes: [] }, pv: { total: 0, fontes: [] }, def: { total: 0, fontes: [] }, ignorados: [] };
         const usados = { pm: new Set(base.pm), pv: new Set(base.pv), def: new Set(base.def) };
 
-        function somar(stat, atributo, fonte) {
+        function somar(stat, atributo, fonte, limitarAoNivel) {
             if (!atributo) return;
             if (usados[stat].has(atributo)) { out.ignorados.push({ stat, atributo, fonte }); return; }
             usados[stat].add(atributo);
-            const valor = mod(atributo);
+            let valor = mod(atributo);
+            if (limitarAoNivel) valor = Math.min(valor, nivel);
             out[stat].total += valor;
             out[stat].fontes.push({ atributo, valor, fonte });
         }
 
-        // 1) atributo-chave de PM de cada classe (multiclasse: todas somam)
+        // 1) atributo-chave de PM da classe inicial (e, se configurado, das demais)
         classes.forEach((c, i) => {
             if (CLASS_PM_SOMENTE_CLASSE_INICIAL && i > 0) return;
             const det = detalhe(c); if (!det) return;
@@ -126,9 +169,10 @@ const CLASS_SHEET_CALC = (function () {
             Object.keys(det.poderes).forEach(nome => {
                 const p = det.poderes[nome];
                 if (!poderes.some(pf => nomePoderBate(pf, nome, p.aliases))) return;
-                somar('pm', p.pmAtributo, nome);
-                somar('pv', p.pvAtributo, nome);
-                somar('def', p.defesaAtributo, nome);
+                if (p.condicao && !estado[p.condicao]) return;       // condição falsa não consome o atributo
+                somar('pm', p.pmAtributo, nome, p.limiteNivel);
+                somar('pv', p.pvAtributo, nome, p.limiteNivel);
+                somar('def', p.defesaAtributo, nome, p.limiteNivel);
             });
         });
         return out;

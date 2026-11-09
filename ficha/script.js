@@ -30,6 +30,7 @@ const spellCosts = { 1: 1, 2: 3, 3: 6, 4: 10, 5: 15 };
 let currentSkills = [];
 let currentLoadBonus = 0; // Bônus manual para a carga
 let currentArmorLoadBonus = 0; // Bônus de slots da armadura
+let _loadAttrBase = null;      // Atributo de carga escolhido antes do Inventário Organizado
 let isLoading = false;    // Flag para suprimir saveData() durante o carregamento inicial
 
 const CONDICOES_T20 = {
@@ -503,15 +504,6 @@ function rollSkill(index) {
 }
 
 function attachGlobalListeners() {
-    // Marca PV/PM máximos como manuais antes do handler inline rodar (fase de captura),
-    // para que o recálculo automático não apague o que o usuário está digitando.
-    if (!document.body.dataset.vitalsManualListener) {
-        document.body.dataset.vitalsManualListener = '1';
-        document.body.addEventListener('input', (e) => {
-            if (e.target.id === 'pvMax') _clsVitalsManual.pv = true;
-            else if (e.target.id === 'pmMax') _clsVitalsManual.pm = true;
-        }, true);
-    }
     document.body.oninput = (e) => { if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) { updateCalculations(); if (e.target.id !== 'charImgInput') saveData(); } };
     document.body.onchange = (e) => { if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') { updateCalculations(); saveData(); } };
 }
@@ -528,6 +520,20 @@ function toggleSection(sectionId) {
 function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
 function getInt(id) { const v = parseInt(getVal(id)); return isNaN(v) ? 0 : v; }
 function setText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val; }
+
+// Converte números/valores salvos com vírgula ("0,5") ou ponto ("0.5") em número.
+// Inputs do tipo number só exibem decimais com ponto.
+function _parseDecimal(v, fallback = 0) {
+    if (v === null || v === undefined || v === '') return fallback;
+    const n = parseFloat(String(v).replace(',', '.'));
+    return isNaN(n) ? fallback : n;
+}
+// Rótulo de espaços para os resultados da busca (ex.: "0,5 esp.")
+function _slotLabel(v) {
+    const n = _parseDecimal(v, NaN);
+    if (isNaN(n) || n <= 0) return '';
+    return `${String(n).replace('.', ',')} esp.`;
+}
 
 function addAttack(data = null) {
     const container = document.getElementById('attacksList'); if (!container) return;
@@ -663,7 +669,7 @@ function addInventoryItem(data = null) {
             </div>
             <div class="col-4 p-0"><input type="text" class="form-control form-control-sm fw-bold inp-name" placeholder="Item" value="${data ? data.name : ''}"></div>
             <div class="col-2 p-0 pe-1"><input type="number" inputmode="numeric" class="form-control form-control-sm text-center inp-qtd" placeholder="1" value="${data ? data.qtd : '1'}" oninput="updateCalculations()"></div>
-            <div class="col-2 p-0 pe-1"><input type="number" inputmode="numeric" class="form-control form-control-sm text-center inp-slots" placeholder="0" value="${data ? data.slots : '0'}" step="0.5" oninput="updateCalculations()"></div>
+            <div class="col-2 p-0 pe-1"><input type="number" inputmode="decimal" class="form-control form-control-sm text-center inp-slots" placeholder="0" value="${data ? _parseDecimal(data.slots, 0) : '0'}" step="0.5" oninput="updateCalculations()"></div>
             <div class="col-2 text-center d-flex gap-1 justify-content-center p-0">
                 <button class="btn btn-sm border-0 item-note-btn ${noteBtnClass}" onclick="toggleItemNote(this)" title="${noteBtnTitle}"><i class="bi ${noteBtnIcon}"></i></button>
                 <button class="btn btn-sm btn-outline-danger border-0" onclick="removeInventoryItem(this)"><i class="bi bi-trash"></i></button>
@@ -726,6 +732,7 @@ function claimShopQueue() {
     localStorage.removeItem('t20_sheet_queue');
     // Verifica se ainda era nossa a fila (leitura = o mesmo conteúdo que removemos)
     queue.forEach(item => processShopItem(item));
+    updateCalculations();
     saveData();
     showSheetToast(`📥 ${queue.length} item(s) recebido(s) da loja!`);
 }
@@ -815,6 +822,16 @@ const _toastStyle = document.createElement('style');
 _toastStyle.textContent = `@keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }`;
 document.head.appendChild(_toastStyle);
 
+// Recalcula a ficha logo após mexer em poderes (agrupa várias chamadas seguidas)
+let _powerRecalcTimer = null;
+function _schedulePowerRecalc() {
+    if (typeof isLoading !== 'undefined' && isLoading) return;
+    clearTimeout(_powerRecalcTimer);
+    _powerRecalcTimer = setTimeout(() => {
+        try { updateCalculations(); saveData(); } catch (e) { }
+    }, 60);
+}
+
 function addAbility(targetId = 'abilitiesClassList', name = '', desc = '', level = 0, folder = '') {
     let list = document.getElementById(targetId);
     if (!list) return;
@@ -875,6 +892,7 @@ function addAbility(targetId = 'abilitiesClassList', name = '', desc = '', level
         if (confirm('Excluir poder?')) {
             div.remove();
             saveData();
+            _schedulePowerRecalc();
         }
     });
 
@@ -882,6 +900,8 @@ function addAbility(targetId = 'abilitiesClassList', name = '', desc = '', level
     div.querySelectorAll('input, textarea').forEach(el => {
         el.addEventListener('input', saveData);
     });
+    // O nome do poder alimenta os bônus automáticos: recalcula ao digitar/selecionar
+    div.querySelector('.inp-name').addEventListener('input', _schedulePowerRecalc);
 
     list.appendChild(div);
     if (targetId === 'abilitiesClassList') {
@@ -897,10 +917,10 @@ function addAbility(targetId = 'abilitiesClassList', name = '', desc = '', level
         if (!isLoading) _setRaceFolderOpen(list.closest('.race-folder'), true, false);
         refreshRaceFolders();
     }
-    if (!isLoading) saveData();
+    if (!isLoading) { saveData(); _schedulePowerRecalc(); }
 }
 
-function removeAbility(btn) { if (confirm('Excluir poder?')) { btn.closest('.ability-row').remove(); saveData(); } }
+function removeAbility(btn) { if (confirm('Excluir poder?')) { btn.closest('.ability-row').remove(); saveData(); _schedulePowerRecalc(); } }
 
 // ============================================================
 // PODERES POR NÍVEL — "pastas" dentro de Classe e Poderes
@@ -1424,7 +1444,45 @@ function changeArmorLoadBonus(amount) {
     saveData();
 }
 
+// Normaliza o nome de um poder para comparação (sem acentos, minúsculo).
+function _normPowerName(t) {
+    return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+// O personagem possui o poder Inventário Organizado?
+function _hasInventoryOrganized() {
+    try {
+        return _classPowerNames().some(n => _normPowerName(n).split(/[(:]/)[0].trim() === 'inventario organizado');
+    } catch (e) { return false; }
+}
+
+// Com Inventário Organizado a carga passa a usar INT automaticamente.
+// Guarda o atributo escolhido antes para devolvê-lo se o poder for removido.
+// Retorna true quando o poder está ativo.
+function _syncLoadAttrForPower() {
+    const sel = document.getElementById('loadAttrSelect');
+    const ativo = _hasInventoryOrganized();
+    if (!sel) return ativo;
+    if (ativo) {
+        if (sel.value !== 'INT') {
+            if (!_loadAttrBase) _loadAttrBase = sel.value || 'FOR';
+            sel.value = 'INT';
+        }
+        sel.disabled = true;
+        sel.title = 'Inventário Organizado: a carga usa Inteligência (INT)';
+    } else {
+        sel.disabled = false;
+        sel.title = '';
+        if (_loadAttrBase) {
+            if (sel.value === 'INT') sel.value = _loadAttrBase;
+            _loadAttrBase = null;
+        }
+    }
+    return ativo;
+}
+
 function calcLoad() {
+    const invOrg = _syncLoadAttrForPower();
     const selectedAttr = getVal('loadAttrSelect') || 'FOR';
     const attrVal = getInt(`attr-${selectedAttr}`);
     let baseLimit = 10;
@@ -1437,21 +1495,31 @@ function calcLoad() {
     }
 
     // Adiciona o bônus manual + bônus de armadura
-    const totalSlots = baseLimit + currentLoadBonus + currentArmorLoadBonus;
+    const _pwLoad = _powerCompute().carga;   // poderes gerais (Costas Largas, Grandão...)
+    const totalSlots = baseLimit + currentLoadBonus + currentArmorLoadBonus + _pwLoad.total;
+    const _elLim = document.getElementById('loadLimit');
+    if (_elLim) _elLim.title = _pwLoad.fontes.length ? 'Poderes: ' + _powerFontesTexto(_pwLoad.fontes) : '';
 
-    const currentSlots = Array.from(document.querySelectorAll('#inventoryList .inv-row .inp-slots')).reduce((sum, input) => sum + (parseFloat(input.value) || 0), 0);
+    // Inventário Organizado: itens pequenos (0,5 espaço) passam a ocupar 0,25.
+    // A carga de cada linha é: espaços do item × quantidade.
+    const currentSlots = Array.from(document.querySelectorAll('#inventoryList .inv-row .inp-slots')).reduce((sum, input) => {
+        const row = input.closest('.inv-row');
+        const qtdEl = row ? row.querySelector('.inp-qtd') : null;
+        const qtdParsed = parseInt(qtdEl ? qtdEl.value : '1');
+        const qtd = isNaN(qtdParsed) ? 1 : Math.max(0, qtdParsed);
+        const raw = _parseDecimal(input.value, 0) || 0;
+        const pequeno = invOrg && Math.abs(raw - 0.5) < 1e-9;
+        input.title = pequeno ? 'Inventário Organizado: 0,5 → 0,25' : '';
+        return sum + (pequeno ? 0.25 : raw) * qtd;
+    }, 0);
     const equippedCount = Array.from(document.querySelectorAll('#inventoryList .inv-row .inp-equipped')).reduce((sum, chk) => sum + (chk.checked ? 1 : 0), 0);
 
-    setText('loadCurrent', currentSlots.toFixed(1));
+    setText('loadCurrent', Number(currentSlots.toFixed(2)));
     setText('loadLimit', totalSlots);
     if(document.getElementById('equippedCountDisplay')) document.getElementById('equippedCountDisplay').innerText = equippedCount;
 }
 // --- FIM NOVAS FUNÇÕES DE CARGA ---
 
-
-// PV/PM automáticos: quando o usuário digita um valor máximo à mão, ele não é
-// sobrescrito pelo recálculo de classe (volta ao automático ao aplicar classes).
-let _clsVitalsManual = { pv: false, pm: false };
 
 function updateCalculations() {
     let condAtq = 0, condDef = 0, condPer = 0, condRef = 0;
@@ -1479,6 +1547,8 @@ function updateCalculations() {
         let trainBonus = 2; if (level >= 15) trainBonus = 6; else if (level >= 7) trainBonus = 4;
 
         const skillValues = {};
+        const PW = _powerCompute(level);   // bônus automáticos de poderes (gerais e de classe)
+        _applySpeedHint(PW);
 
         currentSkills.forEach((s, i) => {
             const baseAttr = getInt(`attr-${s.a}`);
@@ -1496,11 +1566,14 @@ function updateCalculations() {
             const isTrainedOnly = TRAINED_ONLY_SKILLS.includes(s.n);
             const modSkillAttr = getInt(`mod-skill-attr-${s.a}`); // NOVO: bônus para perícias que usam este atributo
             let total;
+            let pwSk = { total: 0, fontes: [] };
             if (isTrainedOnly && !s.trained) {
                 total = 0;
             } else {
                 total = halfLevel + attrVal + trained + other + condPer + modSkillAttr;
                 if (s.n === 'Reflexos') total += condRef;
+                pwSk = _powerSkillBonus(PW, s);   // poderes gerais
+                total += pwSk.total;
                 // Penalidade de Armadura/Escudo
                 if (penaltySkills.includes(s.n)) {
                     total -= totalPenalty;
@@ -1547,6 +1620,7 @@ function updateCalculations() {
             const elTotal = document.getElementById(`skTotal${i}`);
             if (elTotal) {
                 elTotal.innerText = total;
+                elTotal.title = pwSk.fontes.length ? 'Poderes: ' + _powerFontesTexto(pwSk.fontes) : '';
                 if (isTrainedOnly && !s.trained) {
                     elTotal.classList.add('text-unusable-custom');
                 } else {
@@ -1570,9 +1644,17 @@ function updateCalculations() {
         // ── Detalhes de classe: bônus de atributo na Defesa (ex.: Sarado) ──
         const clsDef = _classDefenseBonus(defAttr, applyDefAttr);
         otherBonus += clsDef.total;
+        // ── Poderes gerais que dão Defesa (ignora se já houver linha manual com o nome do poder) ──
+        const _manualDef = Array.from(document.querySelectorAll('#defenseList .def-row .inp-name')).map(el => _clsNorm(el.value));
+        const pwDefFontes = PW.defesa.fontes.filter(f => !_manualDef.some(n => n && n.startsWith(_clsNorm(f.fonte))));
+        const pwDefTotal = pwDefFontes.reduce((a, f) => a + f.valor, 0);
+        otherBonus += pwDefTotal;
         const _elOut = document.getElementById('dispOtherBonus');
-        if (_elOut) _elOut.title = clsDef.fontes.length
-            ? 'Inclui: ' + clsDef.fontes.map(f => `${f.valor >= 0 ? '+' : ''}${f.valor} ${f.atributo} (${f.fonte})`).join(', ') : '';
+        if (_elOut) {
+            const _partes = clsDef.fontes.map(f => `${f.valor >= 0 ? '+' : ''}${f.valor} ${f.atributo} (${f.fonte})`)
+                .concat(pwDefFontes.map(f => `${f.valor >= 0 ? '+' : ''}${f.valor} ${f.fonte}`));
+            _elOut.title = _partes.length ? 'Inclui: ' + _partes.join(', ') : '';
+        }
         // ────────────────────────────────────────────
         const totalDefense = 10 + (applyDefAttr ? defAttrVal : 0) + armorBonus + shieldBonus + otherBonus + condDef;
 
@@ -1583,8 +1665,9 @@ function updateCalculations() {
         setText('defenseTotal', totalDefense);
 
         // --- PV/PM ---
-        // Recalcula os máximos a partir das classes sempre que os atributos/nível mudam.
-        _syncClassVitals();
+        _syncPowerVitals(PW);
+        _syncDetailVitals();
+        _syncVitalsWithCon();
         const pvMax = getInt('pvMax');
         const pvCurrent = getInt('pvCurrent');
         const pmMax = getInt('pmMax');
@@ -1724,9 +1807,7 @@ function saveData() {
             pvM: getVal('pvMax'),
             pvC: getVal('pvCurrent'),
             pmM: getVal('pmMax'),
-            pmC: getVal('pmCurrent'),
-            pvManual: _clsVitalsManual.pv,
-            pmManual: _clsVitalsManual.pm
+            pmC: getVal('pmCurrent')
         },
 
         defense: {
@@ -1782,7 +1863,7 @@ function saveData() {
             },
             list: []
         },
-        loadConfig: { attr: getVal('loadAttrSelect') || 'FOR' }
+        loadConfig: { attr: getVal('loadAttrSelect') || 'FOR', attrBase: _loadAttrBase || '' }
     };
 
     // --- PREENCHIMENTO DAS LISTAS DINÂMICAS ---
@@ -1909,6 +1990,7 @@ function loadData() {
     const savedData = localStorage.getItem('t20SheetData');
     if (savedData) {
         isLoading = true; // Impede que saveData() seja chamado durante o carregamento
+        _loadAttrBase = null; // evita herdar o atributo-base de uma ficha anterior
         const data = JSON.parse(savedData);
 
         // Carregar bônus de carga manual
@@ -1977,8 +2059,6 @@ function loadData() {
             if (data.status.pvC !== undefined) document.getElementById('pvCurrent').value = data.status.pvC;
             if (data.status.pmM !== undefined) document.getElementById('pmMax').value = data.status.pmM;
             if (data.status.pmC !== undefined) document.getElementById('pmCurrent').value = data.status.pmC;
-            if (data.status.pvManual !== undefined) _clsVitalsManual.pv = !!data.status.pvManual;
-            if (data.status.pmManual !== undefined) _clsVitalsManual.pm = !!data.status.pmManual;
         }
 
         // --- DEFESA ---
@@ -2065,6 +2145,8 @@ function loadData() {
         // --- CARGA ---
         if (data.loadConfig && data.loadConfig.attr) {
             document.getElementById('loadAttrSelect').value = data.loadConfig.attr;
+            // Guarda o atributo original para devolver caso o Inventário Organizado seja removido.
+            _loadAttrBase = data.loadConfig.attrBase || (data.loadConfig.attr !== 'INT' ? data.loadConfig.attr : null);
         }
 
         // Compatibilidade: tenta tempMods.condicoes (novo) e data.condicoes (legado)
@@ -2174,6 +2256,11 @@ function loadData() {
         }
 
         isLoading = false; // Carregamento concluído - salvar normalmente a partir daqui
+        _lastConForPv = null; // primeira atualização pós-carregamento apenas memoriza a CON
+        _lastPowerPv = null;  // idem para os bônus de PV/PM vindos de poderes
+        _lastPowerPm = null;
+        _lastDetailPv = null; // e para os bônus de PV/PM por atributo (Sarado, Linhagem...)
+        _lastDetailPm = null;
         refreshLevelFolders();
 
     } else {
@@ -3878,8 +3965,6 @@ function exportarHabilidadesParaFicha() {
         document.getElementById('pmMax').value = pmAmeaca;
         document.getElementById('pmCurrent').value = pmAmeaca;
     }
-    // Valores vindos da ameaça não devem ser sobrescritos pelo cálculo de classes.
-    if (pvAmeaca || pmAmeaca) _clsVitalsManual = { pv: true, pm: true };
 
     // Deslocamento
     const deslAmeaca = getAm('am-desl');
@@ -5582,7 +5667,7 @@ function _buildSearchItemList() {
                 _source: 'arma',
                 _badge: a.tipo || 'Arma',
                 _badgeClass: 'badge-arma',
-                _meta: [a.dano, a.critico, a.tipo_dano, a.empunhadura].filter(Boolean).join(' · ')
+                _meta: [a.dano, a.critico, a.tipo_dano, a.empunhadura, _slotLabel(a.espacos)].filter(Boolean).join(' · ')
             });
         });
     }
@@ -5597,7 +5682,7 @@ function _buildSearchItemList() {
                 _source: 'armadura',
                 _badge: a.tipo || (isShield ? 'Escudo' : 'Armadura'),
                 _badgeClass: isShield ? 'badge-escudo' : 'badge-armadura',
-                _meta: [`Defesa ${a.bonus_defesa || ''}`, `Pen. ${a.penalidade_armadura || '0'}`].join(' · ')
+                _meta: [`Defesa ${a.bonus_defesa || ''}`, `Pen. ${a.penalidade_armadura || '0'}`, _slotLabel(a.espacos)].filter(Boolean).join(' · ')
             });
         });
     }
@@ -5610,7 +5695,7 @@ function _buildSearchItemList() {
                 _source: 'item',
                 _badge: a.tipo || 'Item Geral',
                 _badgeClass: 'badge-item',
-                _meta: [a.tipo, a.preco].filter(Boolean).join(' · ')
+                _meta: [a.tipo, _slotLabel(a.espacos)].filter(Boolean).join(' · ')
             });
         });
     }
@@ -5623,7 +5708,7 @@ function _buildSearchItemList() {
                 _source: 'magico',
                 _badge: a.tipo || 'Item Mágico',
                 _badgeClass: 'badge-magico',
-                _meta: [a.tipo, a.preco].filter(Boolean).join(' · ')
+                _meta: [a.tipo, _slotLabel(a.espacos)].filter(Boolean).join(' · ')
             });
         });
     }
@@ -5768,7 +5853,7 @@ function addSearchedItem(filteredIdx) {
     const transferItem = {
         name: item.nome,
         qtd: '1',
-        slots: String(item.espacos || 0),
+        slots: String(_parseDecimal(item.espacos, 0)),
         note: noteLines.join('\n'),
 
         // Dados de combate (armas)
@@ -5791,6 +5876,7 @@ function addSearchedItem(filteredIdx) {
 
     // Usa a mesma função que já existe para adicionar ao inventário
     addInventoryItem(transferItem);
+    updateCalculations();
     saveData();
 
     // Feedback visual na linha clicada
@@ -5939,7 +6025,11 @@ function _classDetailCompute(list, opt = {}) {
     });
     const classes = list.map(e => ({ id: e.id, name: (_clsById(e.id) || {}).name, level: e.level, variant: e.variant }));
     const base = { pm: [], pv: ['CON'], def: opt.defAttr ? [opt.defAttr] : [] };
-    return CLASS_SHEET_CALC.compute({ classes, attrs, poderes: _classPowerNames(opt.extraPowers), base });
+    return CLASS_SHEET_CALC.compute({
+        classes, attrs, poderes: _classPowerNames(opt.extraPowers), base,
+        level: Math.min(20, Math.max(1, getInt('charLevel') || 1)),
+        estado: _sheetEstado()
+    });
 }
 // Defesa ao vivo (ex.: Sarado do Lutador). Ignora se já houver linha manual com o nome do poder.
 function _classDefenseBonus(defAttr, applyDefAttr) {
@@ -5954,12 +6044,83 @@ function _classDefenseBonus(defAttr, applyDefAttr) {
         return _classDetailCompute(charClasses, { comTemp: true, defAttr: applyDefAttr ? defAttr : '' }).def;
     } catch (e) { return vazio; }
 }
-function _classFontesTexto(det) {
+// ── Detalhes de poderes gerais (poderes-detalhes.js) ──
+function _powerVazio() {
+    return (typeof POWER_SHEET_CALC !== 'undefined') ? POWER_SHEET_CALC.compute({}) :
+        { pericias: {}, todasPericias: { total: 0, fontes: [] }, naoTreinadas: { total: 0, fontes: [] },
+          defesa: { total: 0, fontes: [] }, pv: { total: 0, fontes: [] }, pm: { total: 0, fontes: [] },
+          carga: { total: 0, fontes: [] }, ignorados: [] };
+}
+// Condições lidas da própria ficha (armadura/escudo/PV) — usadas pelos poderes e pelas classes
+function _sheetEstado() {
+    const armorBonus = getInt('armorBonus');
+    const pesada = getVal('armorType') === 'heavy' && armorBonus > 0;
+    const pvMax = getInt('pvMax');
+    const pvCurEl = document.getElementById('pvCurrent');
+    return {
+        armaduraPesada: pesada,
+        semArmaduraPesada: !pesada,
+        semArmadura: armorBonus === 0,
+        escudo: getInt('shieldBonus') > 0,
+        pvMetade: pvMax > 0 && !!pvCurEl && pvCurEl.value !== '' && getInt('pvCurrent') * 2 <= pvMax
+    };
+}
+function _powerCompute(levelOverride, classesOverride) {
+    if (typeof POWER_SHEET_CALC === 'undefined') return _powerVazio();
+    if (typeof POWER_AUTOBONUS_ENABLED !== 'undefined' && !POWER_AUTOBONUS_ENABLED) return _powerVazio();
+    try {
+        const attrs = {};
+        ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR'].forEach(a => { attrs[a] = getInt(`attr-${a}`) + getTempMod(`mod-attr-${a}`); });
+        const skillAttrs = {};
+        currentSkills.forEach(sk => { skillAttrs[sk.n] = sk.a; });
+        let level = levelOverride || getInt('charLevel');
+        level = Math.min(20, Math.max(1, level || 1));
+        let classes = [];
+        try { classes = (classesOverride || charClasses || []).map(e => ({ id: e.id, level: e.level })); } catch (e2) { classes = []; }
+        return POWER_SHEET_CALC.compute({
+            poderes: _classPowerNames(),
+            level, classes, attrs, skillAttrs,
+            loadAttr: getVal('loadAttrSelect') || 'FOR',
+            escudoBonus: getInt('shieldBonus'),
+            estado: _sheetEstado()
+        });
+    } catch (e) { return _powerVazio(); }
+}
+// Aviso abaixo do campo Deslocamento (o campo é texto livre, então não é alterado)
+function _applySpeedHint(res) {
+    const inp = document.getElementById('charSpeed');
+    if (!inp) return;
+    let el = document.getElementById('speedPowerHint');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'speedPowerHint';
+        el.className = 'text-center text-muted';
+        el.style.cssText = 'font-size:.65rem; line-height:1.1;';
+        inp.insertAdjacentElement('afterend', el);
+    }
+    const d = res && res.deslocamento;
+    if (d && d.total) {
+        el.textContent = `${d.total > 0 ? '+' : ''}${d.total}m (poderes)`;
+        el.title = 'Poderes: ' + _powerFontesTexto(d.fontes);
+        el.style.display = '';
+    } else { el.textContent = ''; el.style.display = 'none'; }
+}
+function _powerSkillBonus(PW, skill) {
+    if (typeof POWER_SHEET_CALC === 'undefined' || !PW) return { total: 0, fontes: [] };
+    return POWER_SHEET_CALC.periciaBonus(PW, skill.n, !!skill.trained);
+}
+function _powerFontesTexto(lista) {
+    return (lista || []).map(f => `${f.valor >= 0 ? '+' : ''}${f.valor} ${f.fonte}`).join(', ');
+}
+
+function _classFontesTexto(det, pw) {
     const fmt = (rot, f) => `${rot} ${f.valor >= 0 ? '+' : ''}${f.valor} ${f.atributo} (${f.fonte})`;
     return []
         .concat(det.pm.fontes.map(f => fmt('PM', f)))
         .concat(det.pv.fontes.map(f => fmt('PV', f)))
-        .concat(det.def.fontes.map(f => fmt('Defesa', f) + ' · automática'));
+        .concat(det.def.fontes.map(f => fmt('Defesa', f) + ' · automática'))
+        .concat(pw ? pw.pv.fontes.map(f => `PV ${f.valor >= 0 ? '+' : ''}${f.valor} (${f.fonte})`) : [])
+        .concat(pw ? pw.pm.fontes.map(f => `PM ${f.valor >= 0 ? '+' : ''}${f.valor} (${f.fonte})`) : []);
 }
 
 function _clsCalc(list, extraPowers) {
@@ -5974,27 +6135,100 @@ function _clsCalc(list, extraPowers) {
     });
     pv += con * level;
     const det = _classDetailCompute(list, { extraPowers });
+    const pw = level > 0 ? _powerCompute(level, list) : _powerVazio();
     if (level > 0) {
+        pv += pw.pv.total;
+        pm += pw.pm.total;
         pv += _racePvBonus(_raceAppliedId(), level);
         pm += _racePmBonus(_raceAppliedId(), level);
         pv += det.pv.total;
         pm += det.pm.total;
     }
-    return { level, pv: Math.max(level ? 1 : 0, pv), pm, con, det };
+    return { level, pv: Math.max(level ? 1 : 0, pv), pm, con, det, pw };
 }
 
-// Mantém PV/PM máximos sincronizados com a conta de classes (chamada por updateCalculations).
-// Valores digitados à mão em pvMax/pmMax são preservados.
-function _syncClassVitals() {
-    if (typeof charClasses === 'undefined' || !Array.isArray(charClasses) || !charClasses.length) return;
-    const pvEl = document.getElementById('pvMax');
-    const pmEl = document.getElementById('pmMax');
-    if (!pvEl || !pmEl) return;
-    let calc;
-    try { calc = _clsCalc(charClasses); } catch (e) { return; }
-    const active = document.activeElement;
-    if (!_clsVitalsManual.pv && active !== pvEl && getInt('pvMax') !== calc.pv) pvEl.value = calc.pv;
-    if (!_clsVitalsManual.pm && active !== pmEl && getInt('pmMax') !== calc.pm) pmEl.value = calc.pm;
+// Aplica na hora a diferença de PV/PM máxima vinda dos poderes (Vitalidade, Vontade de Ferro etc.).
+// Mantém o valor atual coerente: cheio continua cheio; acima do novo máximo é ajustado.
+function _applyVitalDelta(maxId, curId, delta, min) {
+    if (!delta) return;
+    const maxEl = document.getElementById(maxId);
+    if (!maxEl || maxEl.value.trim() === '') return;
+    const oldMax = parseInt(maxEl.value);
+    if (isNaN(oldMax)) return;
+    const newMax = Math.max(min, oldMax + delta);
+    if (newMax === oldMax) return;
+    maxEl.value = newMax;
+    const curEl = document.getElementById(curId);
+    if (curEl) {
+        const cur = parseInt(curEl.value);
+        if (curEl.value === '' || isNaN(cur) || cur === oldMax || cur > newMax) curEl.value = newMax;
+    }
+}
+
+let _lastPowerPv = null, _lastPowerPm = null;
+function _syncPowerVitals(PW) {
+    if (!PW) return;
+    const pv = PW.pv.total || 0;
+    const pm = PW.pm.total || 0;
+    if (_lastPowerPv === null || _lastPowerPm === null || isLoading) {
+        _lastPowerPv = pv;
+        _lastPowerPm = pm;
+        return;
+    }
+    _applyVitalDelta('pvMax', 'pvCurrent', pv - _lastPowerPv, 1);
+    _applyVitalDelta('pmMax', 'pmCurrent', pm - _lastPowerPm, 0);
+    _lastPowerPv = pv;
+    _lastPowerPm = pm;
+}
+
+// Bônus de PV/PM por ATRIBUTO vindos dos detalhes de classe (Sarado, Linhagem Dracônica,
+// Totem Espiritual, Abençoado etc.). Atualiza ao mudar atributo ou adicionar/remover o poder.
+let _lastDetailPv = null, _lastDetailPm = null;
+function _syncDetailVitals() {
+    const classes = (typeof charClasses !== 'undefined') ? charClasses : [];
+    const det = _classDetailCompute(classes, {});
+    const pv = det.pv.total || 0;
+    const pm = det.pm.total || 0;
+    if (_lastDetailPv === null || _lastDetailPm === null || isLoading) {
+        _lastDetailPv = pv;
+        _lastDetailPm = pm;
+        return;
+    }
+    _applyVitalDelta('pvMax', 'pvCurrent', pv - _lastDetailPv, 1);
+    _applyVitalDelta('pmMax', 'pmCurrent', pm - _lastDetailPm, 0);
+    _lastDetailPv = pv;
+    _lastDetailPm = pm;
+}
+
+// Ajusta os PV quando a CON muda depois de as classes já terem sido aplicadas.
+// Usa só a diferença (ΔCON × nível total), preservando bônus manuais de itens/poderes.
+let _lastConForPv = null;
+function _syncVitalsWithCon() {
+    const con = getInt('attr-CON');
+    // Durante o carregamento apenas memoriza, para não mexer nos PV salvos.
+    if (_lastConForPv === null || isLoading) { _lastConForPv = con; return; }
+    if (con === _lastConForPv) return;
+    const prev = _lastConForPv;
+    _lastConForPv = con;
+
+    const classes = (typeof charClasses !== 'undefined') ? charClasses : [];
+    if (!classes.length) return;
+    const level = classes.reduce((n, e) => n + (parseInt(e.level) || 0), 0);
+    const pvMaxEl = document.getElementById('pvMax');
+    if (!pvMaxEl || level <= 0) return;
+    const oldMax = parseInt(pvMaxEl.value) || 0;
+    if (oldMax <= 0) return; // PV não foram definidos pelas classes
+
+    const newMax = Math.max(1, oldMax + (con - prev) * level);
+    if (newMax === oldMax) return;
+    pvMaxEl.value = newMax;
+
+    // Mantém o PV atual coerente: cheio continua cheio; acima do novo máximo é ajustado.
+    const pvCurEl = document.getElementById('pvCurrent');
+    if (pvCurEl) {
+        const cur = parseInt(pvCurEl.value);
+        if (pvCurEl.value === '' || isNaN(cur) || cur === oldMax || cur > newMax) pvCurEl.value = newMax;
+    }
 }
 
 function abrirClasses() {
@@ -6073,7 +6307,7 @@ function _clsRender() {
            Nível total: <b class="${over ? 'cls-bad' : ''}">${calc.level}/20</b> ·
            PV máx: <b>${calc.pv}</b> · PM máx: <b>${calc.pm}</b>
            <small>(CON ${calc.con >= 0 ? '+' : ''}${calc.con})</small>
-           ${_classFontesTexto(calc.det).length ? `<br><small class="cls-bonus-src">Bônus de classe: ${escapeHtml(_classFontesTexto(calc.det).join(' · '))}</small>` : ''}
+           ${_classFontesTexto(calc.det, calc.pw).length ? `<br><small class="cls-bonus-src">Bônus automáticos: ${escapeHtml(_classFontesTexto(calc.det, calc.pw).join(' · '))}</small>` : ''}
            ${over ? '<br><span class="cls-bad">O nível total passa de 20.</span>' : ''}`
         : 'Nenhuma classe marcada.';
     document.getElementById('clsApplyBtn').disabled = over;
@@ -6128,10 +6362,14 @@ function aplicarClasses() {
         if (old !== calc.level) autoXPFromLevel(); // acerta o XP mínimo do nível (já salva)
 
         if (document.getElementById('clsApplyVitals').checked) {
-            _clsVitalsManual = { pv: false, pm: false };
             const oldPv = getInt('pvMax'), oldPm = getInt('pmMax');
             document.getElementById('pvMax').value = calc.pv;
             document.getElementById('pmMax').value = calc.pm;
+            // O total de poderes já está embutido nesses valores; memoriza para não somar de novo.
+            _lastPowerPv = calc.pw.pv.total || 0;
+            _lastPowerPm = calc.pw.pm.total || 0;
+            _lastDetailPv = calc.det.pv.total || 0;
+            _lastDetailPm = calc.det.pm.total || 0;
             if (charRaceApplied && charRaceApplied.id) {
                 charRaceApplied.pvBonus = _racePvBonus(charRaceApplied.id, calc.level);
                 charRaceApplied.pmBonus = _racePmBonus(charRaceApplied.id, calc.level);
@@ -6139,9 +6377,6 @@ function aplicarClasses() {
             const pvCur = document.getElementById('pvCurrent'), pmCur = document.getElementById('pmCurrent');
             if (pvCur && (pvCur.value === '' || parseInt(pvCur.value) === oldPv || parseInt(pvCur.value) > calc.pv)) pvCur.value = calc.pv;
             if (pmCur && (pmCur.value === '' || parseInt(pmCur.value) === oldPm || parseInt(pmCur.value) > calc.pm)) pmCur.value = calc.pm;
-        } else {
-            // Sem aplicar vitais: mantém os valores atuais e não deixa o recálculo sobrescrevê-los.
-            _clsVitalsManual = { pv: true, pm: true };
         }
     }
     // Habilidades de classe por nível (opcional)
@@ -6486,7 +6721,7 @@ function aplicarDistincao() {
 const RAC_ATTR_KEY = { FOR: 'forca', DES: 'destreza', CON: 'constituicao', INT: 'inteligencia', SAB: 'sabedoria', CAR: 'carisma' };
 const RAC_ATTRS = Object.keys(RAC_ATTR_KEY);
 const RAC_COST = { '-1': -1, '0': 0, '1': 1, '2': 2, '3': 4, '4': 7 };
-const RAC_TYPE_LABEL = { base: 'T20', ameacas: 'Ameaças de Arton', ghanor: 'Ruff Ghanor', DHracas: 'Heróis de Arton', outraRaca: 'Outras', dragaobrasil: 'Dragão Brasil', bestiario: 'Bestiário' };
+const RAC_TYPE_LABEL = { base: 'T20', ameacas: 'Ameaças de Arton', ghanor: 'Ruff Ghanor', DHracas: 'Heróis de Arton', outraRaca: 'Outras', dragaobrasil: 'Dragão Brasil' };
 // Raça aplicada por último (para desfazer os bônus ao trocar): { id, attrs: {FOR: n}, powers: [nomes] }
 let charRaceApplied = { id: '', attrs: {}, powers: [] };
 let _racSel = null, _racPicks = {}, _racSkills = ['', ''], _racQuery = '', _racType = '';
@@ -6496,7 +6731,6 @@ let _racLefouSkills = ['', ''], _racLefouMode = 'skill', _racLefouPower = '';
 let _racQareenElemento = '', _racQareenMagia = '';
 let _racSereiaMagia1 = '', _racSereiaMagia2 = '';
 let _racSilfideMagia1 = '', _racSilfideMagia2 = '';
-let _racLamiaMagia1 = '', _racLamiaMagia2 = '';
 let _racBase = {}, _racOutros = {}, _racPts = 10, _racShowOutros = false;
 
 function _racData() { return (typeof window.RACE_DATA === 'object' && window.RACE_DATA) ? window.RACE_DATA : {}; }
@@ -6662,7 +6896,6 @@ function abrirRaca() {
     _racQareenElemento = ''; _racQareenMagia = '';
     _racSereiaMagia1 = ''; _racSereiaMagia2 = '';
     _racSilfideMagia1 = ''; _racSilfideMagia2 = '';
-    _racLamiaMagia1 = ''; _racLamiaMagia2 = '';
     document.getElementById('racSearch').value = '';
     _racInitFromSheet();
     // reabre já na raça aplicada, com as escolhas de atributo que ela tinha
@@ -6699,10 +6932,6 @@ function abrirRaca() {
             _racSilfideMagia1 = charRaceApplied.silfideMagia1 || '';
             _racSilfideMagia2 = charRaceApplied.silfideMagia2 || '';
         }
-        if (prev === 'lamia') {
-            _racLamiaMagia1 = charRaceApplied.lamiaMagia1 || '';
-            _racLamiaMagia2 = charRaceApplied.lamiaMagia2 || '';
-        }
     }
     document.getElementById('modalRaca').style.display = 'flex';
     _racRenderChips(); _racRenderList(); _racRenderCalc(); _racRenderDetail(); _racUpdateStatus();
@@ -6724,7 +6953,7 @@ function _racRenderList() {
             <span class="od-item-sub">${_odEsc(RAC_TYPE_LABEL[D[id].type] || D[id].type)}${D[id].raca && D[id].raca !== '-' ? ' · ' + _odEsc(D[id].raca) : ''}</span>
         </div>`).join('') : '<div class="od-empty">Nenhuma raça encontrada.</div>';
 }
-function racSelect(id) { _racSel = id; _racPicks = {}; _racSkills = ['', '']; _racVersMode = 'skill'; _racVersPower = ''; _racKlirenSkill = ''; _racKlirenOficio = ''; _racLefouSkills = ['', '']; _racLefouMode = 'skill'; _racLefouPower = '';     _racQareenElemento = ''; _racQareenMagia = ''; _racSereiaMagia1 = ''; _racSereiaMagia2 = ''; _racSilfideMagia1 = ''; _racSilfideMagia2 = ''; _racLamiaMagia1 = ''; _racLamiaMagia2 = ''; _racRenderList(); _racRenderCalc(); _racRenderDetail(); }
+function racSelect(id) { _racSel = id; _racPicks = {}; _racSkills = ['', '']; _racVersMode = 'skill'; _racVersPower = ''; _racKlirenSkill = ''; _racKlirenOficio = ''; _racLefouSkills = ['', '']; _racLefouMode = 'skill'; _racLefouPower = '';     _racQareenElemento = ''; _racQareenMagia = ''; _racSereiaMagia1 = ''; _racSereiaMagia2 = ''; _racSilfideMagia1 = ''; _racSilfideMagia2 = ''; _racRenderList(); _racRenderCalc(); _racRenderDetail(); }
 
 // ---- calculadora ----
 function racBase(a, d) {
@@ -6891,22 +7120,6 @@ function _racSilfideSpellOptions(valor, outroValor) {
     }).join('') + '</optgroup>';
     return html;
 }
-function _racLamiaSpells() {
-    return ['Criar Ilusão', 'Compreensão', 'Disfarce Ilusório', 'Visão Mística'];
-}
-function _racLamiaSpellOptions(valor, outroValor) {
-    const list = _racLamiaSpells();
-    const sel = _clsNorm(valor);
-    const outro = _clsNorm(outroValor);
-    let html = '<option value="">Escolha uma magia...</option>';
-    html += '<optgroup label="Magia das Lâmias">' + list.map(n => {
-        const k = _clsNorm(n);
-        const disabled = (k !== sel && k === outro) ? ' disabled' : '';
-        const selected = (k === sel) ? ' selected' : '';
-        return `<option value="${_odEsc(n)}"${selected}${disabled}>${_odEsc(n)}</option>`;
-    }).join('') + '</optgroup>';
-    return html;
-}
 function racVersToggle() {
     _racVersMode = _racVersMode === 'power' ? 'skill' : 'power';
     _racRenderDetail();
@@ -6923,8 +7136,6 @@ function racSereiaMagia1(v) { _racSereiaMagia1 = v; _racRenderDetail(); _racUpda
 function racSereiaMagia2(v) { _racSereiaMagia2 = v; _racRenderDetail(); _racUpdateStatus(); }
 function racSilfideMagia1(v) { _racSilfideMagia1 = v; _racRenderDetail(); _racUpdateStatus(); }
 function racSilfideMagia2(v) { _racSilfideMagia2 = v; _racRenderDetail(); _racUpdateStatus(); }
-function racLamiaMagia1(v) { _racLamiaMagia1 = v; _racRenderDetail(); _racUpdateStatus(); }
-function racLamiaMagia2(v) { _racLamiaMagia2 = v; _racRenderDetail(); _racUpdateStatus(); }
 
 function _racRenderCalc() {
     const box = document.getElementById('racCalc'); if (!box) return;
@@ -7095,17 +7306,6 @@ function _racRenderDetail() {
                 </select>
                 <select class="od-select" onchange="racSilfideMagia2(this.value)">
                     <option value="">Magia 2...</option>${_racSilfideSpellOptions(_racSilfideMagia2, _racSilfideMagia1)}
-                </select>
-            </div>`;
-    }
-    if (_racSel === 'lamia') {
-        html += `<div class="od-sub">Magia das Lâmias <small>(duas magias à escolha, atributo-chave Carisma)</small></div>
-            <div class="rac-skills">
-                <select class="od-select" onchange="racLamiaMagia1(this.value)">
-                    <option value="">Magia 1...</option>${_racLamiaSpellOptions(_racLamiaMagia1, _racLamiaMagia2)}
-                </select>
-                <select class="od-select" onchange="racLamiaMagia2(this.value)">
-                    <option value="">Magia 2...</option>${_racLamiaSpellOptions(_racLamiaMagia2, _racLamiaMagia1)}
                 </select>
             </div>`;
     }
@@ -7341,12 +7541,6 @@ function aplicarRaca() {
                 if (m && _addRaceSpell({ nome: m })) addedSpells.push(m);
             });
         }
-        // Lâmia: Magia das Lâmias (duas magias à escolha)
-        if (_racSel === 'lamia') {
-            [_racLamiaMagia1, _racLamiaMagia2].forEach(m => {
-                if (m && _addRaceSpell({ nome: m })) addedSpells.push(m);
-            });
-        }
         // Suraggel - Aggelus: Luz Sagrada (magia Luz divina) — aplicada automaticamente
         if (_racSel === 'aggelus') {
             if (_addRaceSpell({ nome: 'Luz' })) addedSpells.push('Luz');
@@ -7378,8 +7572,6 @@ function aplicarRaca() {
             sereiaMagia2: _racSel === 'siren' ? _racSereiaMagia2 : '',
             silfideMagia1: _racSel === 'silfide' ? _racSilfideMagia1 : '',
             silfideMagia2: _racSel === 'silfide' ? _racSilfideMagia2 : '',
-            lamiaMagia1: _racSel === 'lamia' ? _racLamiaMagia1 : '',
-            lamiaMagia2: _racSel === 'lamia' ? _racLamiaMagia2 : '',
             aggelusMagia: _racSel === 'aggelus' ? 'Luz' : '',
             sulfureMagia: _racSel === 'sulfure' ? 'Escuridão' : ''
         };
