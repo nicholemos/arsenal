@@ -2919,6 +2919,28 @@ const SPELLS_DB = [
         ]
     },
     {
+        "n": "Conjurar Noggs",
+        "c": 2,
+        "t": "Arcana",
+        "e": "Convocação",
+        "ex": "completa",
+        "a": "curto",
+        "al": "4 noggs conjurados",
+        "d": "sustentada",
+        "r": "Nenhuma",
+        "desc": "Você conjura quatro noggs capangas de tamanho Médio em espaços desocupados dentro do alcance. Você pode gastar uma ação de movimento para fazer os noggs andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (2d6 pontos de dano de corte cada). Os noggs são construtos com For 3, Des 1, Def 15 e todos os outros atributos nulos; eles têm 11 PV e falham automaticamente em qualquer teste de resistência ou oposto, mas são imunes a ácido e têm redução de corte e perfuração 5. Eles desaparecem quando são reduzidos a 0 PV ou no fim da cena. Os noggs não agem sem receber uma ordem. Usos criativos para capangas fora de combate ficam a critério do mestre.",
+        "aprimoramentos": [
+            {
+                "cost": 2,
+                "desc": "aumenta o número de noggs conjurados em +1."
+            },
+            {
+                "cost": 2,
+                "desc": "os noggs ganham a capacidade de atacar em equipe. Quando mais de um nogg ataca a mesma criatura no mesmo turno, seu dano total é somado e aplicado ao alvo como se fosse uma única fonte de dano.  Requer 3º círculo."
+            }
+        ]
+    },
+    {
         "n": "Controlar Fogo",
         "c": 2,
         "t": "Divina",
@@ -4779,6 +4801,36 @@ const SPELLS_DB = [
         ]
     },
     {
+        "n": "Megalon",
+        "c": 3,
+        "t": "Universal",
+        "e": "Encantamento",
+        "ex": "padrão",
+        "a": "toque",
+        "al": "1 animal ou monstro",
+        "d": "cena",
+        "r": "Vontade evita",
+        "desc": "Esta magia afeta apenas criaturas irracionais (Int –5 ou –4). Ela aumenta o tamanho do alvo em uma categoria e fornece Força +4 e redução de dano 5. Se o alvo for um parceiro, ele passa a fornecer +2 na Defesa e, uma vez por rodada, +1d12 em uma rolagem de dano corpo a corpo. Estes benefícios se acumulam com quaisquer outros fornecidos pelo parceiro.",
+        "aprimoramentos": [
+            {
+                "cost": 2,
+                "desc": "muda o bônus de dano fornecido pelo parceiro para +2d8."
+            },
+            {
+                "cost": 2,
+                "desc": "muda o bônus na Defesa fornecido pelo parceiro para +5."
+            },
+            {
+                "cost": 4,
+                "desc": "além do normal, o parceiro fornece redução de dano 5."
+            },
+            {
+                "cost": 4,
+                "desc": "muda o aumento de tamanho para duas categorias e o bônus em Força para +6. Requer 4º círculo."
+            }
+        ]
+    },
+    {
         "n": "Miragem",
         "c": 3,
         "t": "Arcana",
@@ -6309,4 +6361,82 @@ const SPELLS_DB = [
             }
         ]
     }
-]
+];
+
+// Fontes das magias que não são do Tormenta 20 Livro Básico.
+// As demais usam SPELL_DEFAULT_SOURCE.
+const SPELL_SOURCES = {
+    // Ameaças de Arton
+    "Açoite Flamejante": "Ameaças de Arton",
+    "Dardo Gélido": "Ameaças de Arton",
+    "Jato Corrosivo": "Ameaças de Arton",
+    "Conjurar Mortos-Vivos": "Ameaças de Arton",
+    "Invocar Fagulha Elemental": "Ameaças de Arton",
+    "Momento de Tormenta": "Ameaças de Arton",
+    "Transformação em Dragão": "Ameaças de Arton",
+    "Katana Celestial": "Ameaças de Arton",
+
+    // Deuses de Arton
+    "Arma de Jade": "Deuses de Arton",
+    "Arsenal de Allihanna": "Deuses de Arton",
+    "Bofetada de Nimb": "Deuses de Arton",
+    "Escapatória de Hyninn": "Deuses de Arton",
+    "Euforia de Valkaria": "Deuses de Arton",
+    "Execução de Thwor": "Deuses de Arton",
+    "Flecha de Luz": "Deuses de Arton",
+    "Frescor de Lena": "Deuses de Arton",
+    "Fúria dos Antepassados": "Deuses de Arton",
+    "Futuro Melhor": "Deuses de Arton",
+    "Infortúnio de Sszzaas": "Deuses de Arton",
+    "Instante Estoico": "Deuses de Arton",
+    "Magia Dadivosa": "Deuses de Arton",
+    "Orbe do Oceano": "Deuses de Arton",
+    "Paixão de Marah": "Deuses de Arton",
+    "Percepção Rubra": "Deuses de Arton",
+    "Perturbação Sombria": "Deuses de Arton",
+    "Poder de Kallyadranoch": "Deuses de Arton",
+    "Posse de Arsenal": "Deuses de Arton",
+    "Proteção de Tauron": "Deuses de Arton",
+    "Sigilo de Sszzaas": "Deuses de Arton",
+    "Siroco de Azgher": "Deuses de Arton",
+    "Sorriso da Fortuna": "Deuses de Arton",
+    "Toque de Megalokk": "Deuses de Arton",
+    "Voz da Razão": "Deuses de Arton",
+    "Couraça de Allihanna": "Deuses de Arton",
+    "Punição do Profano": "Deuses de Arton",
+    "Traição Mágica": "Deuses de Arton",
+    "Traição da Lâmina": "Deuses de Arton",
+
+    // Guia de NPCs
+    "Preparação de Batalha": "Guia de NPCs",
+
+    // Heróis de Arton
+    "Armadura Elemental": "Heróis de Arton",
+    "Assobio Perigoso": "Heróis de Arton",
+    "Descobrir Fraqueza": "Heróis de Arton",
+    "Discrição": "Heróis de Arton",
+    "Distração Fugaz": "Heróis de Arton",
+    "Espírito Balístico": "Heróis de Arton",
+    "Farejar Fortuna": "Heróis de Arton",
+    "Maaais Klunc": "Heróis de Arton",
+    "Ossos de Adamante": "Heróis de Arton",
+    "Punho de Mitral": "Heróis de Arton",
+    "Toque do Horizonte": "Heróis de Arton",
+    "Aura de Morte": "Heróis de Arton",
+    "Conjurar Armadilha": "Heróis de Arton",
+    "Desafio Corajoso": "Heróis de Arton",
+    "Desfazer Engenhoca": "Heróis de Arton",
+    "Emular Magia": "Heróis de Arton",
+    "Máquina de Combate": "Heróis de Arton",
+    "Piscar": "Heróis de Arton",
+    "Poção Explosiva": "Heróis de Arton",
+    "Transposição": "Heróis de Arton",
+    "Viagem Onírica": "Heróis de Arton",
+    "Coração Imortal": "Heróis de Arton",
+
+    // Bestiário de Arton
+    "Conjurar Noggs": "Bestiário de Arton",
+    "Megalon": "Bestiário de Arton"
+};
+
+const SPELL_DEFAULT_SOURCE = "Tormenta 20 Livro Básico";

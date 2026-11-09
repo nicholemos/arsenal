@@ -892,6 +892,24 @@ body {
     margin-top: 0.1rem;
 }
 
+.spell-card-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.15rem;
+}
+
+.spell-card-source i {
+    color: var(--gold-primary);
+    opacity: 0.7;
+    font-size: 0.65rem;
+}
+
 .spell-card-body {
     flex: 1;
     margin: 0.6rem 0;
@@ -1132,6 +1150,20 @@ body {
     font-size: 1.8rem;
     color: var(--text-primary);
     line-height: 1.2;
+}
+
+.spell-detail-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+.spell-detail-source i {
+    color: var(--gold-primary);
+    opacity: 0.8;
 }
 
 /* Detail Fav Star Btn */

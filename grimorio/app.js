@@ -235,7 +235,8 @@ function getFilteredSpells() {
             const matchesName = spell.n.toLowerCase().includes(query);
             const matchesTipo = (spell.t || 'Universal').toLowerCase().includes(query);
             const matchesDesc = spell.desc.toLowerCase().includes(query);
-            if (!matchesName && !matchesTipo && !matchesDesc) return false;
+            const matchesSource = getSpellSource(spell).toLowerCase().includes(query);
+            if (!matchesName && !matchesTipo && !matchesDesc && !matchesSource) return false;
         }
         
         // 2. Favorites Mode
@@ -357,6 +358,7 @@ function renderSpellsGrid() {
                     ${spell.isHomebrew ? '<span class="badge-homebrew">Homebrew</span>' : ''}
                 </span>
                 <h2 class="spell-card-title">${spell.n}</h2>
+                <span class="spell-card-source"><i class="fa-solid fa-book-open"></i> ${getSpellSource(spell)}</span>
             </div>
             <p class="spell-card-body">${spell.desc}</p>
             <div class="spell-card-footer">
@@ -396,6 +398,25 @@ function getSchoolCssClass(school) {
         "Transmutação": "sc-tra"
     };
     return map[school] || "";
+}
+
+// Fonte editorial da magia (Livro Básico por padrão).
+let _spellSourceIndex = null;
+function _normSpellSourceName(s) {
+    return String(s || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+function getSpellSource(spell) {
+    if (!spell) return SPELL_DEFAULT_SOURCE;
+    if (spell.fonte) return spell.fonte;
+    if (spell.isHomebrew) return "Homebrew";
+    if (typeof SPELL_SOURCES === "undefined") return SPELL_DEFAULT_SOURCE;
+    if (!_spellSourceIndex) {
+        _spellSourceIndex = {};
+        Object.keys(SPELL_SOURCES).forEach(k => {
+            _spellSourceIndex[_normSpellSourceName(k)] = SPELL_SOURCES[k];
+        });
+    }
+    return _spellSourceIndex[_normSpellSourceName(spell.n)] || SPELL_DEFAULT_SOURCE;
 }
 
 // Toggle bookmark of a spell in the active spellbook
@@ -463,6 +484,7 @@ function openSpellDetails(spell) {
                     <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star"></i>
                 </button>
             </div>
+            <div class="spell-detail-source"><i class="fa-solid fa-book-open"></i> Fonte: ${getSpellSource(spell)}</div>
         </div>
 
         <div class="spell-props-grid">
