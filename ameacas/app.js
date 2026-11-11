@@ -7,6 +7,7 @@ let dbJornadas = false;
 let dbGuerra = false;
 let dbDueloDragoes = false;
 let dbDragaoBrasil = false;
+let dbBestiario = false;
 let allThreats = [];
 let filteredThreats = [];
 let encounterList = [];
@@ -164,6 +165,7 @@ function loadThreats() {
     const guerraData = typeof GUERRA_DB !== 'undefined' ? GUERRA_DB : [];
     const dueloDragoesData = typeof DUELO_DRAGOES_DB !== 'undefined' ? DUELO_DRAGOES_DB : [];
     const dragaobrasilData = typeof dragaobrasil_db !== 'undefined' ? dragaobrasil_db : [];
+    const bestiarioData = typeof BESTIARIO_DB !== 'undefined' ? BESTIARIO_DB : [];
     
     // Load homebrews
     const homebrews = JSON.parse(localStorage.getItem('t20_homebrew_threats')) || [];
@@ -175,6 +177,7 @@ function loadThreats() {
     if (dbGuerra) allThreats.push(...guerraData);
 if (dbDueloDragoes) allThreats.push(...dueloDragoesData);
 if (dbDragaoBrasil) allThreats.push(...dragaobrasilData);
+if (dbBestiario) allThreats.push(...bestiarioData);
 
 // Apply custom threat images from local storage
     try {
@@ -1644,6 +1647,13 @@ const dbDragaoBrasilCheck = document.getElementById("db-check-dragao-brasil");
 if (dbDragaoBrasilCheck) {
     dbDragaoBrasilCheck.addEventListener("change", () => {
         dbDragaoBrasil = dbDragaoBrasilCheck.checked;
+        handleDatabaseChange();
+    });
+}
+const dbBestiarioCheck = document.getElementById("db-check-bestiario");
+if (dbBestiarioCheck) {
+    dbBestiarioCheck.addEventListener("change", () => {
+        dbBestiario = dbBestiarioCheck.checked;
         handleDatabaseChange();
     });
 }
