@@ -2675,3 +2675,328 @@ body {
 .theme-classic .save-image-btn:hover {
     background: linear-gradient(135deg, #e61414 0%, #b80f0f 100%);
 }
+
+/* ============================================================
+   MODELOS DE CRIATURA (Licantropo, Chefe Final, Mestre da Fonte, Vilão Modular)
+   ============================================================ */
+.modelos-controls-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 0.6rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border-crimson);
+}
+
+.modelos-group-title {
+    font-family: var(--font-title);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gold-accent);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.modelos-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+}
+
+.modelo-btn {
+    background: transparent;
+    border: 1px solid var(--border-crimson);
+    color: var(--text-main);
+    padding: 0.55rem 0.4rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-title);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: all var(--transition-speed);
+}
+
+.modelo-btn:hover {
+    border-color: var(--gold-accent);
+    color: var(--gold-glow);
+    background: rgba(207, 160, 83, 0.1);
+}
+
+/* Barra de modelos dentro da ficha */
+.modelo-ficha-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.8rem;
+}
+
+.modelo-ficha-rotulo {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-right: 0.2rem;
+}
+
+.modelo-chip {
+    background: transparent;
+    border: 1px solid var(--border-crimson);
+    color: var(--gold-accent);
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all var(--transition-speed);
+}
+
+.modelo-chip:hover {
+    border-color: var(--gold-glow);
+    color: var(--gold-glow);
+    background: rgba(207, 160, 83, 0.1);
+}
+
+.modelo-chip.off {
+    opacity: 0.45;
+}
+
+/* Modal */
+.modelo-modal-card {
+    width: 720px;
+    max-width: 95%;
+}
+
+.modelo-intro p {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text-main);
+}
+
+.modelo-fonte {
+    color: var(--gold-accent) !important;
+    font-size: 0.78rem !important;
+}
+
+.modelo-nota {
+    color: var(--text-muted) !important;
+    font-size: 0.78rem !important;
+}
+
+.modelo-section {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border-crimson);
+}
+
+.modelo-section h3 {
+    font-family: var(--font-title);
+    font-size: 0.95rem;
+    color: var(--gold-accent);
+    margin: 0 0 0.6rem;
+}
+
+.modelo-busca {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--bg-input);
+    border: 1px solid var(--border-crimson);
+    color: var(--text-main);
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+}
+
+.modelo-busca:focus {
+    outline: none;
+    border-color: var(--gold-accent);
+}
+
+.modelo-lista {
+    margin-top: 0.5rem;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--border-crimson);
+    border-radius: 4px;
+    background: var(--bg-dark-metal);
+}
+
+.modelo-lista:empty {
+    display: none;
+}
+
+.modelo-item {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "n nd" "m nd";
+    column-gap: 0.6rem;
+    align-items: center;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-crimson);
+    color: var(--text-main);
+    padding: 0.5rem 0.7rem;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.modelo-item:last-child {
+    border-bottom: none;
+}
+
+.modelo-item:hover {
+    background: rgba(207, 160, 83, 0.1);
+}
+
+.modelo-item .mi-nome { grid-area: n; font-weight: 600; font-size: 0.88rem; }
+.modelo-item .mi-meta { grid-area: m; }
+.modelo-item .nd-badge { grid-area: nd; }
+
+.mi-meta {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.modelo-contagem {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0.4rem 0 0;
+}
+
+.modelo-escolhida {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--gold-accent);
+    border-radius: 4px;
+    background: rgba(207, 160, 83, 0.07);
+    margin-bottom: 0.6rem;
+}
+
+.modelo-erro {
+    margin-top: 0.4rem;
+    padding: 0.5rem 0.7rem;
+    border-left: 3px solid var(--blood-red);
+    background: rgba(204, 13, 13, 0.1);
+    font-size: 0.8rem;
+    color: var(--text-main);
+}
+
+.mo-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.modelo-partes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.modelo-parte {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border-crimson);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+}
+
+.modelo-parte:hover {
+    border-color: var(--gold-accent);
+}
+
+.modelo-parte.on {
+    border-color: var(--gold-accent);
+    background: rgba(207, 160, 83, 0.1);
+}
+
+.modelo-parte input[type="checkbox"] {
+    margin-top: 0.2rem;
+    accent-color: var(--gold-accent);
+}
+
+.modelo-parte span {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.82rem;
+}
+
+.modelo-parte small {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    line-height: 1.35;
+}
+
+.modelo-parte select {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-crimson);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.2rem;
+}
+
+.modelo-novo-nome {
+    font-family: var(--font-title);
+    font-size: 1rem;
+    color: var(--gold-glow);
+    margin-bottom: 0.5rem;
+}
+
+.modelo-comparacao {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin-bottom: 0.5rem;
+}
+
+.modelo-comparacao th {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 0.3rem 0.5rem 0.3rem 0;
+    width: 5.5rem;
+}
+
+.modelo-comparacao td {
+    padding: 0.3rem 0.3rem;
+    border-bottom: 1px solid var(--border-crimson);
+}
+
+.modelo-comparacao td.seta {
+    color: var(--gold-accent);
+    width: 1.5rem;
+    text-align: center;
+}
+
+.modelo-mudancas {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-main);
+}
+
+@media (max-width: 640px) {
+    .modelo-partes { grid-template-columns: 1fr; }
+}

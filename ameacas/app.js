@@ -725,6 +725,8 @@ function showDetail(threatNome) {
                 ` : ''}
             </div>
             
+            ${typeof renderModelButtons === 'function' ? renderModelButtons(threat.nome) : ''}
+            
             <!-- Imagem da Ameaça -->
             <div class="t20-image-container">
                 ${threat.img ? `
@@ -813,6 +815,8 @@ function showDetail(threatNome) {
             <div class="t20-basic-stats" style="font-size: 0.85rem;">
                 <div><strong>Perícias:</strong> ${skillsHtml}</div>
                 <div style="margin-top: 0.4rem;"><strong>Tesouro:</strong> ${threat.tesouro || 'Nenhum'}</div>
+                ${threat.equipamento ? `<div style="margin-top: 0.4rem;"><strong>Equipamento:</strong> ${threat.equipamento}</div>` : ''}
+                ${threat.observacao ? `<div style="margin-top: 0.4rem;"><strong>Observações:</strong> ${threat.observacao}</div>` : ''}
             </div>
             
             <div class="t20-footer-meta">
