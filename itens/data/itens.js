@@ -1317,6 +1317,16 @@ const itensData = {
             fonte: "Duelo de Dragões"
         },
         {
+            nome: "Mel de Abelha-Grifo",
+            preco: "T$ 43",
+            espacos: "0,5",
+            categoria: "Item Geral",
+            tipo: "Pratos Especiais",
+            descricao: "Prato especial. Capaz de durar indefinidamente, este mel é muito valorizado por seu sabor e suas propriedades energéticas: aumenta seu limite de PM em +2. Os recursos de uma colmeia de abelha-grifo não podem ser produzidos; são obtidos apenas nessas colmeias ou com mercadores corajosos o suficiente para extraí-los.",
+            fonte: "Bestiário de Arton",
+            imagem: "data/img/prato-aventureiro.webp"
+        },
+        {
             nome: "Abraço da Noite",
             preco: "T$ 3",
             espacos: "—",
@@ -1844,7 +1854,8 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Animal",
             "descricao": "Um falcão é um parceiro especial (perseguidor) que fornece os benefícios a seguir. Iniciante: uma vez por cena, você pode gastar uma ação de movimento e fazer um teste de Adestramento (CD 10). Se passar, o falcão concede a você +1 em testes de ataque, Percepção e Sobrevivência até o fim da cena. Para cada 10 pontos pelos quais o resultado de seu teste passar a CD, esse bônus aumenta em +1. Veterano: você pode usar Sentidos Aguçados. Mestre: uma vez por rodada, você pode gastar 1 PM para fazer uma criatura em alcance médio ficar cega por 1d4 rodadas (Ref CD Car evita)",
-            "fonte": "Guia de NPCs"
+            "fonte": "Guia de NPCs",
+            "parceiro": "Falcão"
         },
         {
             "nome": "Cão de caça",
@@ -1853,6 +1864,7 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Animal",
             "descricao": "Parceiro perseguidor (iniciante) ou montaria (Pequeno/Minúsculo). (p. 163)",
+            "parceiro": "Cão de Caça (Montaria)",
             "imagem": "data/img/cao.webp"
         },
         {
@@ -1862,6 +1874,7 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Animal",
             "descricao": "Parceiro montaria (iniciante). Deslocamento 12m, +1 ação de movimento (deslocar). (p. 163)",
+            "parceiro": "Cavalo (Montaria)",
             "imagem": "data/img/cavalo.webp"
         },
         {
@@ -1898,6 +1911,7 @@ const itensData = {
             "categoria": "Item Geral",
             "tipo": "Animal",
             "descricao": "Ave-touro. Montaria (iniciante). Deslocamento 9m, +1 ação de movimento (deslocar), +1 em testes de resistência. (p. 163)",
+            "parceiro": "Trobo",
             "imagem": "data/img/trobo.webp"
         },
         {
@@ -2155,7 +2169,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Bulette"
         },
         {
             nome: "Capivara (Animal)",
@@ -2164,7 +2179,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante) para personagens Pequenos e Minúsculos.",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Capivara"
         },
         {
             nome: "Corcel do Deserto (Animal)",
@@ -2173,7 +2189,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Corcel do Deserto"
         },
         {
             nome: "Dromedário (Animal)",
@@ -2182,7 +2199,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Dromedário"
         },
         {
             nome: "Elefante (Animal)",
@@ -2191,7 +2209,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Elefante"
         },
         {
             nome: "Hiena (Animal)",
@@ -2200,7 +2219,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro especial (iniciante) ou montaria (Pequeno/Minúsculo).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Hiena"
         },
         {
             nome: "Leão (Animal)",
@@ -2209,7 +2229,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Leão"
         },
         {
             nome: "Rinoceronte (Animal)",
@@ -2218,7 +2239,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Rinoceronte"
         },
         {
             nome: "Urso Pardo (Animal)",
@@ -2227,7 +2249,219 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Animal",
             descricao: "Parceiro montaria (iniciante).",
-            fonte: "Ameaças de Arton"
+            fonte: "Ameaças de Arton",
+            parceiro: "Urso Pardo"
+        },
+        // (Itens do Bestiário de Arton)
+        {
+            nome: "Larva de Abelha Guerreira (Animal)",
+            preco: "Não comercializado",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Animal",
+            descricao: "Parceiro montaria (Grande). É muito difícil domesticar uma abelha-grifo guerreira adulta; o ideal é criá-la desde a larva. A larva atinge a maturidade em 30 dias e, durante esse tempo, deve ser alimentada com uma porção de mel de abelha-grifo por dia. Mesmo domesticada, continua sendo um animal perigoso.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Larva de Abelha Guerreira"
+        },
+        {
+            nome: "Alce (Animal)",
+            preco: "Não comercializado",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Animal",
+            descricao: "Parceiro montaria (Grande).",
+            fonte: "Bestiário de Arton",
+            parceiro: "Alce"
+        },
+        {
+            nome: "Aspecto de Azgher",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro veterano. Fornece redução de dano de luz, fogo, frio e trevas 5 e permite usar o poder Espada Solar (Tormenta20, p. 133). Caso já possua esse poder, em vez disso, o dano de fogo fornecido por ele aumenta em mais um dado do mesmo tipo. O aspecto apoia apenas personagens devotos de Azgher de nível maior que o dele. Caso você viole as Obrigações e Restrições de Azgher, o aspecto deixa de apoiá-lo.",
+            fonte: "bestiario",
+            parceiro: "Aspecto de Azgher"
+        },
+        {
+            nome: "Aspecto de Hyninn",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro veterano. Fornece +2 em testes de Jogatina e Ladinagem e permite usar um poder de Armadilha do caçador (Tormenta20, p. 50), definido pelo aspecto. Por ser criada a partir de energia divina, essa armadilha é mágica, pode ser preparada em locais sem os materiais propícios e não é percebida automaticamente por criaturas que a vejam ser preparada. Se você já possuir um poder de Armadilha, a CD para resistir a todas as suas armadilhas aumenta em +2. Caso você viole as Obrigações e Restrições de Hyninn, o aspecto deixa de apoiá-lo.",
+            fonte: "bestiario",
+            parceiro: "Aspecto de Hyninn"
+        },
+        {
+            nome: "Aspecto de Megalokk",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro veterano. Fornece os benefícios de quatro parceiros iniciantes diferentes (exceto montaria) entre os descritos em Tormenta20 ou, a critério do mestre, entre outros parceiros monstros iniciantes. Você só pode receber os benefícios de dois dos tipos escolhidos a qualquer momento, mas pode trocar um ou ambos os tipos no início de cada um dos seus turnos como uma ação livre. Além disso, quando faz um teste de Percepção, você pode jogar um dado adicional e usar o melhor resultado. Caso você viole as Obrigações e Restrições de Megalokk, o aspecto deixa de apoiá-lo.",
+            fonte: "bestiario",
+            parceiro: "Aspecto de Megalokk"
+        },
+        {
+            nome: "Aspecto de Tenebra",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro veterano que atua como um familiar gato (Tormenta20, p. 38) e permite lançar as magias Escuridão e Toque Vampírico. Caso já conheça essas magias, o custo delas diminui em –1 PM, cumulativo com reduções fornecidas por poderes concedidos de Tenebra. Caso você viole as Obrigações e Restrições de Tenebra, o aspecto deixa de apoiá-lo.",
+            fonte: "bestiario",
+            parceiro: "Aspecto de Tenebra"
+        },
+        {
+            nome: "Aspecto de Thwor",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro veterano. Fornece +2 na Defesa e em testes para empurrar. Além disso, sempre que faz um ataque corpo a corpo, você pode gastar 1 PM. Se fizer isso e acertar o ataque, causa +1d12 pontos de dano de impacto e pode fazer uma manobra empurrar contra o alvo como uma ação livre. Caso você viole as Obrigações e Restrições de Thwor, o aspecto deixa de apoiá-lo.",
+            fonte: "bestiario",
+            parceiro: "Aspecto de Thwor"
+        },
+        {
+            nome: "Canifado",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro especial (vigilante). Iniciante: fornece +2 em testes de Percepção e Sobrevivência. Veterano: permite lançar a magia Leque Cromático (atributo-chave Carisma). Mestre: uma vez por rodada, você pode aumentar para curto o alcance de uma de suas habilidades com alcance de toque que tenha como alvo um aliado.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Canifado"
+        },
+        {
+            nome: "Chacal (Animal)",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro montaria (Pequeno). Iniciante: seu deslocamento muda para 12m e você recebe uma ação de movimento extra por turno (apenas para se deslocar). Veterano: como acima, mas você recebe +2 em Furtividade e, uma vez por rodada, recebe +1d6 em uma rolagem de dano corpo a corpo. Mestre: como acima; além disso, uma vez por rodada, quando acerta um ataque corpo a corpo, você pode fazer a manobra derrubar como uma ação livre.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Chacal"
+        },
+        {
+            nome: "Corcel das Trevas",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro montaria (Grande) que só segue devotos de Tenebra. Iniciante: seu deslocamento muda para 12m e você recebe uma ação de movimento extra por turno (apenas para se deslocar). Veterano: como acima, mas seu deslocamento muda para voo 15m e, uma vez por rodada, quando causa dano, você causa +1d6 pontos de dano de frio. Mestre: como acima, mas você recebe redução de frio 10 e o dano de frio adicional aumenta para +1d8.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Corcel das Trevas"
+        },
+        {
+            nome: "Coruja-Gigante",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro montaria (Grande). Iniciante: você recebe resistência a magia +2 e +2 em Intuição (uma coruja-gigante iniciante é muito jovem para ser usada como montaria). Veterano: como acima, mas pode ser usada como montaria, mudando seu deslocamento para 9m (voo 12m). Mestre: como acima, mas seu deslocamento de voo muda para 15m, a resistência a magia muda para +5 e o bônus em Intuição muda para +5.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Coruja-Gigante"
+        },
+        {
+            nome: "Aranha Engenhoca",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro engenhômato. Conta como uma engenhoca de Teia e aumenta a CD dos testes de Reflexos para resistir às suas engenhocas em +1.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Aranha Engenhoca"
+        },
+        {
+            nome: "Coruja Engenhoca",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro engenhômato. Conta como uma engenhoca de Orientação e fornece +2 em testes de uma perícia originalmente baseada em Sabedoria, definida na fabricação da coruja.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Coruja Engenhoca"
+        },
+        {
+            nome: "Cão Engenhoca",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro engenhômato. Conta como uma engenhoca de Arma Espiritual e fornece +1 em testes de ataque corpo a corpo.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Cão Engenhoca"
+        },
+        {
+            nome: "Urso Engenhoca",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro engenhômato. Conta como uma engenhoca de Salto Dimensional e como uma montaria (Grande) que muda seu deslocamento para 12m.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Urso Engenhoca"
+        },
+        {
+            nome: "Golfinho",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro especial (combatente). Iniciante: uma vez por rodada, você recebe +1d8 em uma rolagem de dano corpo a corpo. Veterano: você pode usar o poder Ímpeto. Se já tiver esse poder, o bônus em deslocamento fornecido por ele aumenta para 9m. Mestre: uma vez por rodada, você pode gastar 1 PM para emitir um raio sônico em uma criatura em alcance curto. Ela fica atordoada por 1 rodada (apenas uma vez por cena) e sofre 4d6 pontos de dano mental (Fort CD Car reduz o dano à metade e evita a condição). Você só pode usar esta habilidade se você e o alvo estiverem no mesmo corpo d’água.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Golfinho"
+        },
+        {
+            nome: "Grifilho",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro especial (perseguidor). Iniciante: você recebe +2 em Furtividade e Percepção. Veterano: você pode usar Esquiva. Se já possuir esse poder, em vez disso, o bônus fornecido por ele aumenta em +1. Mestre: quando faz uma investida, você causa +3d4 pontos de dano.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Grifilho"
+        },
+        {
+            nome: "Grifo Celestial",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro montaria (Enorme). Iniciante: seu deslocamento muda para 12m (normal e de voo). Veterano: você recebe uma ação de movimento extra por turno (apenas para se deslocar) e, uma vez por rodada, recebe +1d6 em uma rolagem de dano corpo a corpo. Mestre: seu deslocamento (normal e de voo) muda para 18m e o bônus na rolagem de dano aumenta para +2d6. Um grifo celestial só irá seguir um devoto de Allihanna.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Grifo Celestial"
+        },
+        {
+            nome: "Hipogrifo",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro montaria (Grande). Iniciante: você recebe +1 em Iniciativa, Reflexos e na Defesa (um hipogrifo iniciante é um filhote e não pode ser usado como montaria). Veterano: como acima, mas pode ser usado como montaria, mudando seu deslocamento para voo 18m. Mestre: como acima, mas você recebe uma ação de movimento extra por turno (apenas para se deslocar).",
+            fonte: "Bestiário de Arton",
+            parceiro: "Hipogrifo"
+        },
+        {
+            nome: "Lagarto-Elétrico",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro especial (destruidor). Iniciante: uma vez por rodada, você pode gastar 1 PM para causar 2d6 pontos de dano de eletricidade em uma criatura em alcance curto. Veterano: você pode lançar Toque Chocante. Se já conhece essa magia, seu custo diminui em –1 PM. Mestre: você recebe redução de eletricidade 20.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Lagarto-Elétrico"
+        },
+        {
+            nome: "Texugo",
+            preco: "—",
+            espacos: "—",
+            categoria: "Item Geral",
+            tipo: "Parceiro",
+            descricao: "Parceiro especial (combatente). Iniciante: uma vez por rodada, você recebe +1d4 em um teste de ataque corpo a corpo. Veterano: sua margem de ameaça com armas corpo a corpo aumenta em +1. Mestre: quando sofre dano, você recebe +2 em testes de ataque e rolagens de dano até o fim de seu próximo turno.",
+            fonte: "Bestiário de Arton",
+            parceiro: "Texugo"
         },
         // (Itens do Atlas de Arton)
 
@@ -3354,7 +3588,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro veterano (Destruidor) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Destruidor"
         },
         {
             nome: "Mercenário: Aprendiz de Guilda",
@@ -3363,7 +3598,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro iniciante (Ajudante - Conhecimento, Ofício) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Ajudante"
         },
         {
             nome: "Mercenário: Aprendiz de Mago",
@@ -3372,7 +3608,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro iniciante (Magivocador) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Magivocador"
         },
         {
             nome: "Mercenário: Arauto",
@@ -3381,7 +3618,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro veterano (Ajudante - Diplomacia, Intuição, Nobreza) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Ajudante"
         },
         {
             nome: "Mercenário: Arqueiros (Capangas)",
@@ -3390,7 +3628,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Capangas veteranos (Unidade de arqueiros) por uma cena. Requer treino em Guerra.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Unidade de Arqueiros"
         },
         {
             nome: "Mercenário: Bando de Aldeões (Capangas)",
@@ -3399,7 +3638,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Capangas iniciantes (Turba de camponeses) por uma cena. Requer treino em Guerra.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Turba de Camponeses"
         },
         {
             nome: "Mercenário: Batedor",
@@ -3408,7 +3648,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro veterano (Vigilante) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Vigilante"
         },
         {
             nome: "Mercenário: Besteiro",
@@ -3417,7 +3658,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro iniciante (Atirador) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Atirador"
         },
         {
             nome: "Mercenário: Bibliotecário Místico",
@@ -3426,7 +3668,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro veterano (Adepto) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Adepto"
         },
         {
             nome: "Mercenário: Conselheiro",
@@ -3435,7 +3678,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro veterano (Ajudante - Conhecimento, Misticismo, Nobreza) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Ajudante"
         },
         {
             nome: "Mercenário: Guarda-Costas",
@@ -3444,7 +3688,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro iniciante (Guardião) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Guardião"
         },
         {
             nome: "Mercenário: Herbalista",
@@ -3453,7 +3698,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro iniciante (Médico) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Médico"
         },
         {
             nome: "Mercenário: Homem de Armas",
@@ -3462,7 +3708,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro iniciante (Fortão) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Fortão"
         },
         {
             nome: "Mercenário: Irregulares (Capangas)",
@@ -3471,7 +3718,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Capangas veteranos (Pelotão de infantaria) por uma cena. Requer treino em Guerra.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Pelotão de Infantaria"
         },
         {
             nome: "Mercenário: Matador",
@@ -3480,7 +3728,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro veterano (Assassino) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Assassino"
         },
         {
             nome: "Mercenário: Sombra",
@@ -3489,7 +3738,8 @@ const itensData = {
             categoria: "Item Geral",
             tipo: "Serviço",
             descricao: "Parceiro veterano (Ajudante - Enganação, Furtividade, Investigação) por uma cena.",
-            fonte: "Heróis de Arton"
+            fonte: "Heróis de Arton",
+            parceiro: "Ajudante"
         },
         {
             nome: "Ópera",
@@ -4426,7 +4676,7 @@ const itensData = {
             "descricao": "Na Véu Escarlate, o \"amor\" está à venda. Disponível apenas no submundo de Vectora — nem todos têm acesso. Algumas horas de carícias lascivas fornecem 2d6 PM temporários.",
             "fonte": "Dragão Brasil"
         },
-{
+        {
             "nome": "Noite de Prazeres (Serviço)",
             "preco": "T$ 150",
             "espacos": "—",

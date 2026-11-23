@@ -1027,6 +1027,17 @@ const modificacoesData = {
             "tipo": "Melhoria",
             "descricao": "Aplicável em: Armas. Causa +1d6 de dano de eletricidade, mas o torna vulnerável a esse mesmo elemento. Pré-requisitos: Certeira e Precisa.",
             "fonte": "Dragão Brasil"
+        },
+
+        // (Materiais de Bestiário de Arton)
+        {
+            "nome": "Cera de Abelha-Grifo (Armadura Leve/Escudo)",
+            "preco": "+ T$ 1.500",
+            "espacos": "—",
+            "categoria": "Item Superior",
+            "tipo": "Material",
+            "descricao": "Tesouro das Abelha-Grifo. Usada para construir paredes e corredores no interior das colmeias, esta cera pode ser trabalhada em um material leve, resistente e silencioso. Itens feitos desta cera não aplicam sua penalidade de armadura em Furtividade.",
+            "fonte": "Bestiário de Arton"
         }
 
     ]
