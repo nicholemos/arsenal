@@ -360,6 +360,17 @@ function setupEventListeners() {
         });
     }
 
+    // Abre o inventário ao chegar por um link externo (?inventario=1)
+    if (new URLSearchParams(window.location.search).get('inventario') === '1') {
+        if (window.matchMedia('(max-width: 900px)').matches && inventoryContainer && inventoryOverlay) {
+            inventoryContainer.classList.add('active');
+            inventoryOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else if (inventoryContainer) {
+            inventoryContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
     // Swipe para fechar a mochila no mobile
     if (inventoryContainer) {
         let touchStartX = 0;
@@ -2032,11 +2043,18 @@ function openModal(index) {
     // Ações extras no modal (botões de link para outros apps)
     const modalCustomActions = document.getElementById('modalCustomActions');
     if (modalCustomActions) {
-        if (item.nome === 'Comprar Criatura (Serviço)' || item.nome === 'Comprar Construto (Serviço)') {
-            modalCustomActions.innerHTML = `<a href="../parceiros/index.html" class="add-item-btn" style="justify-content:center; text-decoration:none;">🦅 Ver Parceiros</a>`;
-        } else {
-            modalCustomActions.innerHTML = '';
+        let customActionsHTML = '';
+
+        if (item.parceiro) {
+            const parceiroUrl = `../parceiros/index.html?parceiro=${encodeURIComponent(item.parceiro)}`;
+            customActionsHTML += `<a href="${parceiroUrl}" class="add-item-btn" style="justify-content:center; text-decoration:none;">🦅 Ver Parceiro: ${item.parceiro}</a>`;
         }
+
+        if (item.nome === 'Comprar Criatura (Serviço)' || item.nome === 'Comprar Construto (Serviço)') {
+            customActionsHTML += `<a href="../parceiros/index.html" class="add-item-btn" style="justify-content:center; text-decoration:none;">🦅 Ver Parceiros</a>`;
+        }
+
+        modalCustomActions.innerHTML = customActionsHTML;
     }
 
     // Renderiza os stats base (sem melhorias ainda)
