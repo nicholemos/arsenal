@@ -963,6 +963,32 @@
       color: var(--gold-primary);
     }
 
+    .modal-inv-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid var(--gold-primary);
+      background: var(--gold-primary);
+      color: #fff;
+      text-decoration: none;
+      box-shadow: 0 0 12px var(--gold-glow);
+      transition: all 0.25s ease;
+    }
+
+    .modal-inv-link:hover {
+      background: transparent;
+      color: var(--gold-primary);
+      transform: translateY(-1px);
+    }
+
     .modal-nav {
       position: absolute;
       top: 50%;
@@ -1150,6 +1176,7 @@
       <button class="filter-btn-sm" data-source="deuses">Deuses de Arton</button>
       <button class="filter-btn-sm" data-source="jornada">Jornada Heróica</button>
       <button class="filter-btn-sm" data-source="dragaobrasil">Dragão Brasil</button>
+      <button class="filter-btn-sm" data-source="bestiario">Bestiário de Arton</button>
     </div>
 
     <div class="search-wrap">
@@ -1261,6 +1288,7 @@
     <div class="modal-content-wrap">
       <button class="modal-close-btn" id="modal-close-btn" title="Fechar">&times;</button>
       <div id="modal-body-content"></div>
+      <a href="../itens/index.html?inventario=1" class="modal-inv-link" title="Abrir o inventário de itens">🎒 Ver Inventário</a>
     </div>
     <div class="modal-nav modal-nav-next" id="modal-next-btn" title="Próximo">&rsaquo;</div>
   </div>
@@ -1429,7 +1457,7 @@
         });
         grid.innerHTML = '';
         items.forEach(function (p) {
-          var sourceNames = { t20: 'T20', atlas: 'Atlas', herois: 'Heróis de Arton', ameacas: 'Ameaças de Arton', jornada: 'Jornada Heróica', dragaobrasil: 'Dragão Brasil', deuses: 'Deuses de Arton' };
+          var sourceNames = { t20: 'T20', atlas: 'Atlas', herois: 'Heróis de Arton', ameacas: 'Ameaças de Arton', jornada: 'Jornada Heróica', dragaobrasil: 'Dragão Brasil', deuses: 'Deuses de Arton', bestiario: 'Bestiário de Arton' };
           var card = document.createElement('div');
           card.className = 'entry-card';
           card.setAttribute('data-source', p.source);
@@ -1522,7 +1550,8 @@
         ameacas: 'Ameaças de Arton', 
         jornada: 'Jornada Heróica', 
         dragaobrasil: 'Dragão Brasil', 
-        deuses: 'Deuses de Arton' 
+        deuses: 'Deuses de Arton',
+        bestiario: 'Bestiário de Arton'
       };
       
       var modalBody = document.getElementById('modal-body-content');
@@ -1625,6 +1654,52 @@
         }
       }
     });
+
+    // ===== LINK DIRETO PARA UM PARCEIRO (?parceiro=Nome) =====
+    function normalizePartnerName(value) {
+      return (value || '')
+        .toString()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[’']/g, '')
+        .trim()
+        .toLowerCase();
+    }
+
+    (function openPartnerFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var alvo = params.get('parceiro');
+      if (!alvo) return;
+
+      var alvoNorm = normalizePartnerName(alvo);
+      var cards = document.querySelectorAll('.entry-card');
+      var card = null;
+
+      for (var i = 0; i < cards.length; i++) {
+        var dados = cards[i]._partnerData;
+        if (dados && normalizePartnerName(dados.name) === alvoNorm) {
+          card = cards[i];
+          break;
+        }
+      }
+
+      if (!card) {
+        // Não encontrou: usa a busca como fallback
+        var searchInput = document.getElementById('searchInput');
+        searchInput.value = alvo;
+        searchTerm = alvo;
+        applyFilters();
+        return;
+      }
+
+      // Ativa a seção (montarias, parceiros, familiares ou capangas) do parceiro
+      var section = card.closest('.filter-section');
+      var sectionId = section ? section.id.replace('section-', '') : '';
+      var filterBtn = document.querySelector('.filter-bar .filter-btn[data-filter="' + sectionId + '"]');
+      if (filterBtn) filterBtn.click();
+
+      openModalForCard(card);
+    })();
   </script>
 
 </body>

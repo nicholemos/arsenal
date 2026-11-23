@@ -274,6 +274,213 @@ var parceirosData = [
     }
   },
   {
+    "name": "Larva de Abelha Guerreira",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "É muito difícil domesticar uma abelha-grifo guerreira adulta. A melhor forma de domesticar esses animais é criar uma abelha desde o estágio larval. Geralmente, uma larva de abelha guerreira atinge a maturidade em 30 dias — durante esse tempo, deve ser alimentada com mel de abelha-grifo (uma porção por dia). Mesmo domesticada, uma abelha-grifo guerreira continua sendo um animal perigoso, só obedecendo seu tratador. A abelha-grifo é um parceiro montaria (Grande) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "seu deslocamento muda para 15m e você recebe deslocamento de escalada 15m.",
+      "veterano": "como acima, mas você também recebe +2 em testes de agarrar e deslocamento de voo 15m.",
+      "mestre": "como acima, mas aumenta os deslocamentos fornecidos para 18m e você recebe uma ação de movimento extra por turno (apenas para se deslocar)."
+    }
+  },
+  {
+    "name": "Alce",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "O alce é um parceiro montaria (Grande) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "seu deslocamento muda para 12m e você recebe +2 em testes de ataque quando faz investidas.",
+      "veterano": "uma vez por rodada, você recebe +1d6 em uma rolagem de dano corpo a corpo. Se esta rolagem for de uma investida, em vez disso você recebe +2d6.",
+      "mestre": "quando faz uma investida, você pode usar Ataque Pesado. Caso possua esse poder, você recebe +2 no teste de manobra."
+    }
+  },
+  {
+    "name": "Aspecto de Azgher",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O aspecto de Azgher é um parceiro veterano que apoia apenas personagens devotos de Azgher cujo nível seja maior que o dele. Caso você viole as Obrigações e Restrições de Azgher, o aspecto deixa de apoiá-lo.",
+    "tiers": {
+      "veterano": "Você recebe redução de dano de luz, fogo, frio e trevas 5 e pode usar o poder Espada Solar (Tormenta20, p. 133). Caso já possua esse poder, em vez disso, o dano de fogo fornecido por ele aumenta em mais um dado do mesmo tipo."
+    }
+  },
+  {
+    "name": "Aspecto de Hyninn",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O aspecto de Hyninn é um parceiro veterano. Caso você viole as Obrigações e Restrições de Hyninn, o aspecto deixa de apoiá-lo.",
+    "tiers": {
+      "veterano": "Você recebe +2 em testes de Jogatina e Ladinagem e pode usar um poder de Armadilha do caçador (Tormenta20, p. 50), definido pelo aspecto. Por ser criada a partir de energia divina, essa armadilha é mágica, pode ser preparada em locais sem os materiais propícios e não é percebida automaticamente por criaturas que a vejam ser preparada. Se você já possuir um poder de Armadilha, a CD para resistir a todas as suas armadilhas aumenta em +2."
+    }
+  },
+  {
+    "name": "Aspecto de Megalokk",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O aspecto de Megalokk é um parceiro veterano. Caso você viole as Obrigações e Restrições de Megalokk, o aspecto deixa de apoiá-lo.",
+    "tiers": {
+      "veterano": "Você recebe os benefícios de quatro parceiros iniciantes diferentes (exceto montaria) entre os descritos em Tormenta20 ou, a critério do mestre, entre outros parceiros monstros iniciantes. Você só pode receber os benefícios de dois dos tipos escolhidos a qualquer momento, mas pode trocar um ou ambos os tipos no início de cada um dos seus turnos como uma ação livre. Além disso, quando faz um teste de Percepção, você pode jogar um dado adicional e usar o melhor resultado."
+    }
+  },
+  {
+    "name": "Aspecto de Tenebra",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O aspecto de Tenebra é um parceiro veterano que atua como um familiar gato (Tormenta20, p. 38). Caso você viole as Obrigações e Restrições de Tenebra, o aspecto deixa de apoiá-lo.",
+    "tiers": {
+      "veterano": "Você pode lançar as magias Escuridão e Toque Vampírico. Caso já conheça essas magias, o custo delas diminui em –1 PM, cumulativo com reduções fornecidas por poderes concedidos de Tenebra."
+    }
+  },
+  {
+    "name": "Aspecto de Thwor",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O aspecto de Thwor é um parceiro veterano. Caso você viole as Obrigações e Restrições de Thwor, o aspecto deixa de apoiá-lo.",
+    "tiers": {
+      "veterano": "Você recebe +2 na Defesa e em testes para empurrar. Além disso, sempre que faz um ataque corpo a corpo, você pode gastar 1 PM. Se fizer isso e acertar o ataque, causa +1d12 pontos de dano de impacto e pode fazer uma manobra empurrar contra o alvo como uma ação livre."
+    }
+  },
+  {
+    "name": "Canifado",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O canifado é um parceiro especial (vigilante) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "+2 em testes de Percepção e Sobrevivência.",
+      "veterano": "Você pode lançar a magia Leque Cromático (atributo-chave Carisma).",
+      "mestre": "Uma vez por rodada, você pode aumentar para curto o alcance de uma de suas habilidades com alcance de toque que tenha como alvo um aliado."
+    }
+  },
+  {
+    "name": "Chacal",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "O chacal é um parceiro montaria (Pequeno) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "Seu deslocamento muda para 12m e você recebe uma ação de movimento extra por turno (apenas para se deslocar).",
+      "veterano": "Como acima, mas você recebe +2 em Furtividade e, uma vez por rodada, recebe +1d6 em uma rolagem de dano corpo a corpo.",
+      "mestre": "Como acima; além disso, uma vez por rodada, quando acerta um ataque corpo a corpo, você pode fazer a manobra derrubar como uma ação livre."
+    }
+  },
+  {
+    "name": "Corcel das Trevas",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "O corcel das trevas é um parceiro montaria (Grande) que só segue devotos de Tenebra e fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "Seu deslocamento muda para 12m e você recebe uma ação de movimento extra por turno (apenas para se deslocar).",
+      "veterano": "Como acima, mas seu deslocamento muda para voo 15m e, uma vez por rodada, quando causa dano, você causa +1d6 pontos de dano de frio.",
+      "mestre": "Como acima, mas você recebe redução de frio 10 e o dano de frio adicional aumenta para +1d8."
+    }
+  },
+  {
+    "name": "Coruja-Gigante",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "A coruja-gigante é um parceiro montaria (Grande) que fornece os benefícios a seguir. Uma coruja-gigante iniciante é muito jovem para ser usada como montaria.",
+    "tiers": {
+      "iniciante": "Você recebe resistência a magia +2 e +2 em Intuição.",
+      "veterano": "Como acima, mas pode ser usada como montaria, mudando seu deslocamento para 9m (voo 12m).",
+      "mestre": "Como acima, mas seu deslocamento de voo muda para 15m, a resistência a magia muda para +5 e o bônus em Intuição muda para +5."
+    }
+  },
+  {
+    "name": "Aranha Engenhoca",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "A aranha engenhoca é um parceiro engenhômato que conta como uma engenhoca de Teia e aumenta a CD dos testes de Reflexos para resistir às suas engenhocas em +1.",
+    "tiers": {
+      "iniciante": " "
+    }
+  },
+  {
+    "name": "Coruja Engenhoca",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "A coruja engenhoca é um parceiro engenhômato que conta como uma engenhoca de Orientação e fornece +2 em testes de uma perícia originalmente baseada em Sabedoria, definida na fabricação da coruja.",
+    "tiers": {
+      "iniciante": "Conta como uma engenhoca de Orientação e fornece +2 em testes de uma perícia originalmente baseada em Sabedoria, definida na fabricação da coruja."
+    }
+  },
+  {
+    "name": "Cão Engenhoca",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O cão engenhoca é um parceiro engenhômato que conta como uma engenhoca de Arma Espiritual e fornece +1 em testes de ataque corpo a corpo."
+  },
+  {
+    "name": "Urso Engenhoca",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "O urso engenhoca é um parceiro engenhômato que conta como uma engenhoca de Salto Dimensional e como uma montaria (Grande) que muda seu deslocamento para 12m."
+  },
+  {
+    "name": "Golfinho",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O golfinho é um parceiro especial (combatente) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "Uma vez por rodada, você recebe +1d8 em uma rolagem de dano corpo a corpo.",
+      "veterano": "Você pode usar o poder Ímpeto. Se já tiver esse poder, o bônus em deslocamento fornecido por ele aumenta para 9m.",
+      "mestre": "Uma vez por rodada, você pode gastar 1 PM para emitir um raio sônico em uma criatura em alcance curto. Ela fica atordoada por 1 rodada (apenas uma vez por cena) e sofre 4d6 pontos de dano mental (Fort CD Car reduz o dano à metade e evita a condição). Você só pode usar esta habilidade se você e o alvo estiverem no mesmo corpo d’água."
+    }
+  },
+  {
+    "name": "Grifilho",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O grifilho é um parceiro especial (perseguidor) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "Você recebe +2 em Furtividade e Percepção.",
+      "veterano": "Você pode usar Esquiva. Se já possuir esse poder, em vez disso, o bônus fornecido por ele aumenta em +1.",
+      "mestre": "Quando faz uma investida, você causa +3d4 pontos de dano."
+    }
+  },
+  {
+    "name": "Grifo Celestial",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "O grifo celestial é um parceiro montaria (Enorme) que fornece os benefícios a seguir. Um grifo celestial só irá seguir um devoto de Allihanna.",
+    "tiers": {
+      "iniciante": "Seu deslocamento muda para 12m (normal e de voo).",
+      "veterano": "Você recebe uma ação de movimento extra por turno (apenas para se deslocar) e, uma vez por rodada, recebe +1d6 em uma rolagem de dano corpo a corpo.",
+      "mestre": "Seu deslocamento (normal e de voo) muda para 18m e o bônus na rolagem de dano aumenta para +2d6."
+    }
+  },
+  {
+    "name": "Hipogrifo",
+    "category": "montaria",
+    "source": "bestiario",
+    "desc": "O hipogrifo é um parceiro montaria (Grande) que fornece os benefícios a seguir. Um hipogrifo iniciante é um filhote e não pode ser usado como montaria.",
+    "tiers": {
+      "iniciante": "Você recebe +1 em Iniciativa, Reflexos e na Defesa.",
+      "veterano": "Como acima, mas pode ser usado como montaria, mudando seu deslocamento para voo 18m.",
+      "mestre": "Como acima, mas você recebe uma ação de movimento extra por turno (apenas para se deslocar)."
+    }
+  },
+  {
+    "name": "Lagarto-Elétrico",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O lagarto-elétrico é um parceiro especial (destruidor) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "Uma vez por rodada, você pode gastar 1 PM para causar 2d6 pontos de dano de eletricidade em uma criatura em alcance curto.",
+      "veterano": "Você pode lançar Toque Chocante. Se já conhece essa magia, seu custo diminui em –1 PM.",
+      "mestre": "Você recebe redução de eletricidade 20."
+    }
+  },
+  {
+    "name": "Texugo",
+    "category": "parceiro",
+    "source": "bestiario",
+    "desc": "O texugo é um parceiro especial (combatente) que fornece os benefícios a seguir.",
+    "tiers": {
+      "iniciante": "Uma vez por rodada, você recebe +1d4 em um teste de ataque corpo a corpo.",
+      "veterano": "Sua margem de ameaça com armas corpo a corpo aumenta em +1.",
+      "mestre": "Quando sofre dano, você recebe +2 em testes de ataque e rolagens de dano até o fim de seu próximo turno."
+    }
+  },
+  {
     "name": "Gorlogg (Montaria)",
     "category": "montaria",
     "source": "t20",
@@ -1422,5 +1629,47 @@ var parceirosData = [
       "veterano": "o grupo aumenta para cinco arqueiros.",
       "mestre": "o grupo aumenta para seis arqueiros e o dano deles se torna 1d8."
     }
+  },
+  {
+    "name": "Canifado (Familiar)",
+    "category": "familiar",
+    "source": "bestiario",
+    "desc": "Permite que você lance Leque Cromático. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.",
+    "tiers": null
+  },
+  {
+    "name": "Grifilho (Familiar)",
+    "category": "familiar",
+    "source": "bestiario",
+    "desc": "Quando lança uma magia com alcance de toque, você pode gastar 1 PM para receber +2 na CD dessa magia.",
+    "tiers": null
+  },
+  {
+    "name": "Lagarto-Elétrico (Familiar)",
+    "category": "familiar",
+    "source": "bestiario",
+    "desc": "Fornece +1 PM para gastar em aprimoramentos sempre que você lança uma magia de eletricidade.",
+    "tiers": null
+  },
+  {
+    "name": "Vestígio da Encruzilhada (Familiar)",
+    "category": "familiar",
+    "source": "bestiario",
+    "desc": "Reduz em –1 PM o custo de habilidades que permitem rolar dois dados ao fazer um teste e usar o melhor resultado, como a magia Orientação.",
+    "tiers": null
+  },
+  {
+    "name": "Vestígio da Transformação (Familiar)",
+    "category": "familiar",
+    "source": "bestiario",
+    "desc": "Reduz em –1 PM o custo de habilidades com efeitos de metamorfose, como Forma Selvagem ou a magia Metamorfose.",
+    "tiers": null
+  },
+  {
+    "name": "Vestígio do Limiar (Familiar)",
+    "category": "familiar",
+    "source": "bestiario",
+    "desc": "Se uma de suas habilidades causar ao menos dois tipos de dano, aumenta o dano de dois desses tipos em +2 pontos cada.",
+    "tiers": null
   }
 ];
