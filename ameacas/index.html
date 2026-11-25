@@ -251,7 +251,22 @@
                             <option value="nd-asc" selected>ND (Menor - Maior)</option>
                             <option value="nd-desc">ND (Maior - Menor)</option>
                             <option value="pv-desc">PV (Maior - Menor)</option>
+                            <option value="pv-asc">PV (Menor - Maior)</option>
+                            <option value="def-desc">Defesa (Maior - Menor)</option>
+                            <option value="def-asc">Defesa (Menor - Maior)</option>
+                            <option value="fonte-asc">Fonte (A-Z)</option>
+                            <option value="fonte-desc">Fonte (Z-A)</option>
                         </select>
+
+                        <!-- Alternar visão: Cards x Tabela -->
+                        <div class="view-toggle" id="view-toggle" role="group" aria-label="Modo de visualização">
+                            <button type="button" class="active" data-visao="cards" aria-pressed="true" title="Ver em cards">
+                                <i class="fa-solid fa-table-cells-large"></i> <span>Cards</span>
+                            </button>
+                            <button type="button" data-visao="tabela" aria-pressed="false" title="Ver em tabela">
+                                <i class="fa-solid fa-table-list"></i> <span>Tabela</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="active-filters-badges" id="active-filters-badges">
                         <!-- Rendered dynamically -->
@@ -262,6 +277,9 @@
                 <div class="threats-grid" id="threats-grid">
                     <!-- Dynamic threat cards -->
                 </div>
+
+                <!-- Tabela de Ameaças (visão alternativa) -->
+                <div class="threats-table-wrap hidden" id="threats-table-wrap"></div>
 
                 <!-- Empty State -->
                 <div class="empty-state hidden" id="empty-state">

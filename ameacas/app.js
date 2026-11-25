@@ -20,6 +20,14 @@ let activeFilters = {
 };
 let editingThreatName = null;
 
+// Visão da lista: 'cards' | 'tabela' (preferência salva no navegador)
+const VISAO_AMEACAS_KEY = 't20_ameacas_visao';
+let visaoAmeacas = 'cards';
+try {
+    if (localStorage.getItem(VISAO_AMEACAS_KEY) === 'tabela') visaoAmeacas = 'tabela';
+} catch (e) { /* storage indisponível: segue em cards */ }
+let selectedThreatNome = null; // ameaça com a ficha aberta (destaca a linha na tabela)
+
 // Known sizes in Tormenta 20
 const ALL_SIZES = ['Minúsculo', 'Pequeno', 'Médio', 'Grande', 'Enorme', 'Colossal'];
 const SIZE_ORDER = { 'Minúsculo': 1, 'Pequeno': 2, 'Médio': 3, 'Grande': 4, 'Enorme': 5, 'Colossal': 6 };
@@ -66,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initCanvas();
     loadThreats();
     setupEventListeners();
+    setupTableView();
     updateThreatsGrid();
     checkEncounterLocalStorage();
 });
@@ -433,6 +442,16 @@ function filterAndSortThreats() {
             return parseND(b.nd) - parseND(a.nd) || a.nome.localeCompare(b.nome, 'pt-BR');
         } else if (sortVal === "pv-desc") {
             return (parseInt(b.pv) || 0) - (parseInt(a.pv) || 0) || a.nome.localeCompare(b.nome, 'pt-BR');
+        } else if (sortVal === "pv-asc") {
+            return (parseInt(a.pv) || 0) - (parseInt(b.pv) || 0) || a.nome.localeCompare(b.nome, 'pt-BR');
+        } else if (sortVal === "def-desc") {
+            return (parseInt(b.defesa) || 0) - (parseInt(a.defesa) || 0) || a.nome.localeCompare(b.nome, 'pt-BR');
+        } else if (sortVal === "def-asc") {
+            return (parseInt(a.defesa) || 0) - (parseInt(b.defesa) || 0) || a.nome.localeCompare(b.nome, 'pt-BR');
+        } else if (sortVal === "fonte-asc") {
+            return (a.fonte || '').localeCompare(b.fonte || '', 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR');
+        } else if (sortVal === "fonte-desc") {
+            return (b.fonte || '').localeCompare(a.fonte || '', 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR');
         }
         return 0;
     });
@@ -446,14 +465,26 @@ function updateThreatsGrid() {
     const emptyState = document.getElementById("empty-state");
     
     grid.innerHTML = "";
+    const tableWrap = document.getElementById("threats-table-wrap");
     
     if (filteredThreats.length === 0) {
+        tableWrap.innerHTML = "";
         emptyState.classList.remove("hidden");
         return;
     }
     
     emptyState.classList.add("hidden");
     
+    // Visão em tabela
+    if (visaoAmeacas === 'tabela') {
+        grid.classList.add("hidden");
+        tableWrap.classList.remove("hidden");
+        renderThreatsTable(tableWrap);
+        return;
+    }
+    grid.classList.remove("hidden");
+    tableWrap.classList.add("hidden");
+    tableWrap.innerHTML = "";
     filteredThreats.forEach(threat => {
         // Check if added to encounter (at least once)
         const inEncounterCount = encounterList.filter(item => item.nome === threat.nome).length;
@@ -507,6 +538,166 @@ function updateThreatsGrid() {
         `;
         
         grid.appendChild(card);
+    });
+}
+
+// ================================================================
+//  VISÃO EM TABELA (Cards x Tabela)
+//  Nome | ND | Def | PV | Ini | Perc | Fonte | Ataques | [+ Encontro]
+//  Clicar na linha abre a ficha; as colunas menos importantes somem
+//  conforme a largura disponível (container queries no CSS).
+// ================================================================
+function escHtml(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, c => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+    ));
+}
+
+// Cada coluna ordenável mapeia para valores do #sort-select (fonte única da ordenação)
+const TABLE_SORT = {
+    nome:   { asc: 'name-asc',  desc: 'name-desc' },
+    nd:     { asc: 'nd-asc',    desc: 'nd-desc' },
+    defesa: { asc: 'def-asc',   desc: 'def-desc', first: 'desc' },
+    pv:     { asc: 'pv-asc',    desc: 'pv-desc',  first: 'desc' },
+    fonte:  { asc: 'fonte-asc', desc: 'fonte-desc' }
+};
+
+function tableSortState(sortVal) {
+    for (const [key, m] of Object.entries(TABLE_SORT)) {
+        if (m.asc === sortVal) return { key, aria: 'ascending' };
+        if (m.desc === sortVal) return { key, aria: 'descending' };
+    }
+    return { key: null, aria: 'none' };
+}
+
+// Intensidade da cor do selo de ND: quanto maior o ND, mais "quente" (S e S+ = máximo)
+function ndHeat(nd) {
+    return Math.round(10 + (Math.min(parseND(nd), 22) / 22) * 45);
+}
+
+function renderThreatsTable(wrap) {
+    // preserva o foco do teclado (o grid é redesenhado a cada filtro/encontro)
+    const ativo = document.activeElement;
+    const focoLinha = ativo && ativo.closest ? ativo.closest('.tb-row') : null;
+    const foco = focoLinha
+        ? { nome: focoLinha.dataset.nome, botao: ativo.classList.contains('tb-add') }
+        : null;
+
+    const sortVal = document.getElementById("sort-select").value;
+    const estado = tableSortState(sortVal);
+
+    const th = (key, rotulo, cls) => {
+        const aria = estado.key === key ? estado.aria : 'none';
+        return `<th scope="col" class="${cls}" aria-sort="${aria}">
+            <button type="button" class="tb-sort" data-sort="${key}">${rotulo}<span class="seta" aria-hidden="true"></span></button>
+        </th>`;
+    };
+
+    const linhas = filteredThreats.map(t => {
+        const qtd = encounterList.filter(item => item.nome === t.nome).length;
+        const tamanho = getSizeFromTipo(t.tipo);
+        const icone = SIZE_ICONS[tamanho] || 'fa-solid fa-person';
+        const ataques = (t.ataques || []).map(a =>
+            `${a.nome}${a.bonus ? ' ' + a.bonus : ''}${a.dano ? ' (' + a.dano + ')' : ''}`
+        ).join(', ');
+        const fonte = t.isHomebrew ? 'Homebrew' : (t.fonte && t.fonte !== 'Desconhecida' ? t.fonte : '—');
+        const sel = t.nome === selectedThreatNome;
+
+        return `<tr class="tb-row${t.isHomebrew ? ' tb-homebrew' : ''}${sel ? ' selecionada' : ''}" tabindex="0" data-nome="${escHtml(t.nome)}"${sel ? ' aria-current="true"' : ''}>
+            <td class="tb-col-nome">
+                <span class="tb-nome">${escHtml(t.nome)}</span>
+                <span class="tb-sub"><i class="${icone}" title="Tamanho: ${escHtml(tamanho)}"></i>${escHtml(t.tipo || '—')}</span>
+            </td>
+            <td class="tb-col-nd"><span class="tb-nd" style="--heat:${ndHeat(t.nd)}%" title="Nível de Desafio">${escHtml(t.nd)}</span></td>
+            <td class="tb-col-def" data-label="Def">${escHtml(t.defesa)}</td>
+            <td class="tb-col-pv" data-label="PV">${escHtml(t.pv)}</td>
+            <td class="tb-col-ini" data-label="Ini">${escHtml(t.iniciativa)}</td>
+            <td class="tb-col-perc" data-label="Perc">${escHtml(t.percepcao)}</td>
+            <td class="tb-col-fonte" title="${escHtml(t.fonte || '')}">${escHtml(fonte)}</td>
+            <td class="tb-col-atq"><div class="tb-atq">${escHtml(ataques) || '—'}</div></td>
+            <td class="tb-col-acao">
+                <button type="button" class="tb-add${qtd > 0 ? ' added' : ''}" aria-label="Adicionar ${escHtml(t.nome)} ao encontro${qtd > 0 ? ' (já no encontro: ' + qtd + ')' : ''}" title="${qtd > 0 ? 'No encontro: ' + qtd + ' — adicionar mais' : 'Adicionar ao encontro'}">
+                    <i class="fa-solid ${qtd > 0 ? 'fa-check' : 'fa-plus'}"></i>${qtd > 0 ? `<span class="tb-add-n">${qtd}</span>` : ''}
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `
+        <div class="tb-contagem">${filteredThreats.length} ${filteredThreats.length === 1 ? 'criatura' : 'criaturas'} · clique numa linha para abrir a ficha</div>
+        <table class="tb-ameacas">
+            <thead><tr>
+                ${th('nome', 'Nome', 'tb-col-nome')}
+                ${th('nd', 'ND', 'tb-col-nd')}
+                ${th('defesa', 'Def', 'tb-col-def')}
+                ${th('pv', 'PV', 'tb-col-pv')}
+                <th scope="col" class="tb-col-ini">Ini</th>
+                <th scope="col" class="tb-col-perc">Perc</th>
+                ${th('fonte', 'Fonte', 'tb-col-fonte')}
+                <th scope="col" class="tb-col-atq">Ataques</th>
+                <th scope="col" class="tb-col-acao"><span class="sr-only">Encontro</span></th>
+            </tr></thead>
+            <tbody>${linhas}</tbody>
+        </table>`;
+
+    if (foco) {
+        const linha = Array.from(wrap.querySelectorAll('.tb-row')).find(r => r.dataset.nome === foco.nome);
+        if (linha) (foco.botao ? linha.querySelector('.tb-add') : linha).focus({ preventScroll: true });
+    }
+}
+
+function marcarLinhaSelecionada() {
+    document.querySelectorAll('.tb-row').forEach(r => {
+        const on = r.dataset.nome === selectedThreatNome;
+        r.classList.toggle('selecionada', on);
+        if (on) r.setAttribute('aria-current', 'true'); else r.removeAttribute('aria-current');
+    });
+}
+
+function setupTableView() {
+    const toggles = document.querySelectorAll('#view-toggle button');
+    const sincronizar = () => toggles.forEach(b => {
+        const on = b.dataset.visao === visaoAmeacas;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', String(on));
+    });
+    sincronizar();
+
+    toggles.forEach(b => b.addEventListener('click', () => {
+        if (b.dataset.visao === visaoAmeacas) return;
+        visaoAmeacas = b.dataset.visao;
+        try { localStorage.setItem(VISAO_AMEACAS_KEY, visaoAmeacas); } catch (e) { /* ignora */ }
+        sincronizar();
+        updateThreatsGrid();
+    }));
+
+    const wrap = document.getElementById('threats-table-wrap');
+
+    wrap.addEventListener('click', e => {
+        const sort = e.target.closest('.tb-sort');
+        if (sort) {
+            const m = TABLE_SORT[sort.dataset.sort];
+            const primeiro = m.first === 'desc' ? m.desc : m.asc;
+            const segundo = primeiro === m.asc ? m.desc : m.asc;
+            const select = document.getElementById('sort-select');
+            select.value = select.value === primeiro ? segundo : primeiro;
+            updateThreatsGrid();
+            return;
+        }
+        const add = e.target.closest('.tb-add');
+        if (add) {
+            addToEncounter(add.closest('.tb-row').dataset.nome);
+            return;
+        }
+        const linha = e.target.closest('.tb-row');
+        if (linha) showDetail(linha.dataset.nome);
+    });
+
+    wrap.addEventListener('keydown', e => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tb-row')) {
+            e.preventDefault();
+            showDetail(e.target.dataset.nome);
+        }
     });
 }
 
@@ -832,6 +1023,10 @@ function showDetail(threatNome) {
     
     // Add active class for mobile views
     sidebar.classList.add("active");
+
+    // Destaca a linha correspondente na visão em tabela
+    selectedThreatNome = threat.nome;
+    marcarLinhaSelecionada();
 }
 
 function formatAttr(val) {
@@ -843,6 +1038,8 @@ function formatAttr(val) {
 
 function closeDetail() {
     const sidebar = document.getElementById("detail-sidebar");
+    selectedThreatNome = null;
+    marcarLinhaSelecionada();
     sidebar.classList.remove("active");
     
     // Reset to placeholder

@@ -3000,3 +3000,353 @@ body {
 @media (max-width: 640px) {
     .modelo-partes { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   ALTERNAR VISÃO (Cards x Tabela)
+   ============================================================ */
+.view-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border-crimson);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--bg-input);
+}
+
+.view-toggle button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    border: 0;
+    color: var(--text-muted);
+    padding: 0.5rem 0.85rem;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition-speed), color var(--transition-speed);
+}
+
+.view-toggle button + button { border-left: 1px solid var(--border-crimson); }
+
+.view-toggle button:hover { color: var(--text-main); }
+
+.view-toggle button.active {
+    background: color-mix(in srgb, var(--blood-red) 20%, transparent);
+    color: var(--blood-glow);
+}
+
+.view-toggle button:focus-visible,
+.tb-sort:focus-visible,
+.tb-add:focus-visible,
+.tb-row:focus-visible {
+    outline: 2px solid var(--blood-red);
+    outline-offset: -2px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ============================================================
+   TABELA DE AMEAÇAS
+   As colunas se adaptam à LARGURA DA ÁREA (container queries),
+   já que a ficha lateral e o encontro comem espaço da tela.
+   ============================================================ */
+.threats-table-wrap {
+    container-type: inline-size;
+    container-name: tb;
+    flex-shrink: 0;
+    padding-bottom: 2rem;
+}
+
+.tb-contagem {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.7rem;
+}
+
+.tb-ameacas {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: color-mix(in srgb, var(--bg-panel) 88%, transparent);
+    border: 1.5px solid var(--border-crimson);
+    border-radius: 6px;
+    font-size: 0.88rem;
+}
+
+.tb-ameacas thead th {
+    position: sticky;
+    top: -1px;
+    z-index: 5;
+    background: var(--bg-dark-metal);
+    color: var(--gold-accent);
+    text-align: left;
+    padding: 0.7rem 0.6rem;
+    font-family: var(--font-title);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-blood);
+    white-space: nowrap;
+}
+
+.tb-ameacas thead th:first-child { border-top-left-radius: 5px; padding-left: 0.9rem; }
+.tb-ameacas thead th:last-child  { border-top-right-radius: 5px; }
+
+/* larguras: Nome ocupa o que sobrar */
+.tb-col-nd    { width: 66px; }
+.tb-col-def   { width: 56px; }
+.tb-col-pv    { width: 62px; }
+.tb-col-ini   { width: 58px; }
+.tb-col-perc  { width: 58px; }
+.tb-col-fonte { width: 118px; }
+.tb-col-atq   { width: 30%; }
+.tb-col-acao  { width: 60px; }
+
+.tb-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.tb-sort:hover { color: var(--blood-glow); }
+.tb-sort .seta { font-size: 0.65rem; opacity: 0.35; }
+.tb-sort .seta::after { content: "↕"; }
+th[aria-sort="ascending"]  .seta,
+th[aria-sort="descending"] .seta { opacity: 1; color: var(--blood-glow); }
+th[aria-sort="ascending"]  .seta::after { content: "▲"; }
+th[aria-sort="descending"] .seta::after { content: "▼"; }
+
+.tb-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.tb-row td {
+    padding: 0.65rem 0.6rem;
+    vertical-align: middle;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-crimson) 70%, transparent);
+    font-variant-numeric: tabular-nums;
+}
+
+.tb-row td:first-child { padding-left: 0.9rem; }
+
+.tb-row:hover { background: color-mix(in srgb, var(--blood-red) 8%, transparent); }
+
+.tb-row.selecionada {
+    background: color-mix(in srgb, var(--blood-red) 14%, transparent);
+}
+
+.tb-row.selecionada td:first-child { box-shadow: inset 3px 0 0 var(--blood-red); }
+
+.tb-ameacas tbody tr:last-child td { border-bottom: 0; }
+.tb-ameacas tbody tr:last-child td:first-child { border-bottom-left-radius: 5px; }
+.tb-ameacas tbody tr:last-child td:last-child  { border-bottom-right-radius: 5px; }
+
+.tb-nome {
+    display: block;
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--gold-accent);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tb-sub {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.tb-sub i { color: var(--gold-accent); font-size: 0.7rem; flex-shrink: 0; }
+
+.tb-row.tb-homebrew .tb-nome::after {
+    content: "HOMEBREW";
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.3rem;
+    background: var(--gold-accent);
+    color: #000;
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+/* Selo de ND: esquenta conforme o nível */
+.tb-nd {
+    display: inline-block;
+    min-width: 2.4rem;
+    padding: 0.15rem 0.45rem;
+    text-align: center;
+    font-family: var(--font-title);
+    font-weight: 900;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    background: color-mix(in srgb, var(--blood-red) var(--heat, 15%), transparent);
+    border: 1.5px solid color-mix(in srgb, var(--blood-red) 55%, transparent);
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.tb-col-pv { font-weight: 600; }
+
+.tb-col-fonte {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tb-atq {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+/* Botão "+ Encontro" */
+.tb-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-width: 2.2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border-crimson);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+}
+
+.tb-add:hover {
+    border-color: var(--border-blood);
+    color: var(--text-main);
+}
+
+.tb-add.added {
+    background: color-mix(in srgb, var(--blood-red) 15%, transparent);
+    border-color: var(--blood-red);
+    color: var(--blood-glow);
+}
+
+.tb-add-n { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Colunas somem conforme a largura da própria área de conteúdo */
+@container tb (max-width: 899px) {
+    .tb-col-atq { display: none; }
+}
+
+@container tb (max-width: 639px) {
+    .tb-col-fonte,
+    .tb-col-perc { display: none; }
+}
+
+/* Estreito (celular): cada linha vira um cartão compacto */
+@container tb (max-width: 519px) {
+    .tb-ameacas,
+    .tb-ameacas tbody,
+    .tb-ameacas tr,
+    .tb-ameacas td { display: block; }
+
+    .tb-ameacas { table-layout: auto; background: transparent; border: 0; }
+
+    .tb-ameacas thead {
+        position: absolute;
+        left: -9999px;
+    }
+
+    .tb-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-areas:
+            "nome nome nd   acao"
+            "def  pv   ini  perc"
+            "fonte fonte fonte fonte";
+        gap: 0.5rem 0.6rem;
+        align-items: center;
+        margin-bottom: 0.7rem;
+        padding: 0.8rem 0.9rem;
+        background: color-mix(in srgb, var(--bg-panel) 88%, transparent);
+        border: 1.5px solid var(--border-crimson);
+        border-radius: 6px;
+    }
+
+    .tb-row.selecionada { border-color: var(--blood-red); }
+
+    .tb-row td,
+    .tb-row td:first-child { padding: 0; border: 0; }
+
+    .tb-row.selecionada td:first-child { box-shadow: none; }
+
+    .tb-row td.tb-col-nome { grid-area: nome; min-width: 0; }
+    .tb-row td.tb-col-nd   { grid-area: nd; text-align: right; }
+    .tb-row td.tb-col-acao { grid-area: acao; text-align: right; }
+    .tb-row td.tb-col-def  { grid-area: def; }
+    .tb-row td.tb-col-pv   { grid-area: pv; }
+    .tb-row td.tb-col-ini  { grid-area: ini; }
+    .tb-row td.tb-col-perc { grid-area: perc; display: block; }
+    .tb-row td.tb-col-fonte { grid-area: fonte; display: block; }
+
+    .tb-row td[data-label]::before {
+        content: attr(data-label) " ";
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .tb-ameacas tbody tr:last-child td { border-radius: 0; }
+}
+
+/* Tema clássico (claro) */
+.theme-classic .tb-nome { color: #7f0e0e; }
+.theme-classic .tb-nd { color: #7f0e0e; }
+.theme-classic .tb-row.tb-homebrew .tb-nome::after { color: #fff; }
+.theme-classic .view-toggle { background: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+    .tb-row, .view-toggle button, .tb-add { transition: none; }
+}
