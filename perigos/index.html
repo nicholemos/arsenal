@@ -27,10 +27,22 @@
   <div class="container py-4">
 
     <!-- Seletor de modo -->
-    <div class="d-flex justify-content-center mb-4">
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 mb-4">
       <div class="theme-switcher modo-switcher" id="modo-switcher">
         <button class="modo-btn active" data-modo="complexos">⚔️ Perigos Complexos</button>
         <button class="modo-btn" data-modo="diversos">📖 Perigos Diversos</button>
+      </div>
+
+      <!-- Seletor de visão (Cards x Tabela) — vale para os dois modos -->
+      <div class="theme-switcher visao-switcher" id="visao-switcher" role="group" aria-label="Modo de visualização">
+        <button type="button" class="visao-btn active" data-visao="cards" aria-pressed="true" title="Ver em cards">
+          <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.75" y="1.75" width="5" height="5" rx="1"/><rect x="9.25" y="1.75" width="5" height="5" rx="1"/><rect x="1.75" y="9.25" width="5" height="5" rx="1"/><rect x="9.25" y="9.25" width="5" height="5" rx="1"/></svg>
+          Cards
+        </button>
+        <button type="button" class="visao-btn" data-visao="tabela" aria-pressed="false" title="Ver em tabela">
+          <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5"/><path d="M1.75 6.25h12.5M1.75 9.75h12.5M5.75 6.25v7"/></svg>
+          Tabela
+        </button>
       </div>
     </div>
 
@@ -72,6 +84,7 @@
       </div>
 
       <div class="row g-4" id="perigos-container"></div>
+      <div id="perigos-tabela" class="tabela-escopo d-none"></div>
     </div>
 
     <!-- ===================== MODO: PERIGOS DIVERSOS ===================== -->
@@ -92,6 +105,7 @@
       </div>
 
       <div id="perigos-diversos-container"></div>
+      <div id="perigos-diversos-tabela" class="tabela-escopo d-none"></div>
     </div>
   </div>
 

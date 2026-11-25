@@ -854,7 +854,7 @@ const perigos = [
     nd: "14",
     tipo: "Desafio Social",
     nome: "Jogo de Influências",
-    imagem: "https://pa1.aminoapps.com/6907/1f592c2e680bb9618be717b85a4162efd389b8d8r1-500-281_hq.gif",
+    imagem: "https://media.tenor.com/G3mruNXtpokAAAAM/fancy-dinner-fancy-dinner-party.gif",
     efeito: `
       <strong>Objetivo:</strong> Cair nas graças de Schaven para obter a energia elemental do fogo.
       <hr>
@@ -1518,6 +1518,217 @@ const perigos = [
       </ul>
     `
   },
+  {
+    origem: "Duelo de Dragões",
+    nd: "8",
+    tipo: "Desafio de pilotagem e sobrevivência",
+    nome: "Tempestade Fluvial",
+    imagem: "https://media.tenor.com/lvtHIfYGsjIAAAAM/boat-waves.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Sobreviver à fúria das águas e dos ventos enquanto navegam pelo Rio Vermelho.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>A tempestade dura <strong>1d6+6 rodadas</strong>. Depois desse período, a chuva e os ventos continuam, mas sem os perigos abaixo.</li>
+        <li>No início do seu turno, cada personagem deve fazer um teste de <strong>Reflexos</strong> para evitar as ondas gigantes:
+          <ul>
+            <li><strong>Falha:</strong> sofre <strong>4d6 pontos de dano de impacto</strong>.</li>
+            <li><strong>Falha por 10 ou mais:</strong> sofre o dano e cai no rio.</li>
+          </ul>
+        </li>
+        <li>A CD é <strong>20 + 1d6</strong> (role uma vez no início de cada rodada e aplique a mesma CD para todos os personagens).</li>
+        <li>Um personagem na água <strong>falha automaticamente</strong> no teste para evitar as ondas.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Navegar (Pilotagem CD 25):</strong> O personagem conduz a embarcação para fora da tempestade. Cada sucesso reduz a duração da tempestade em <strong>1 rodada</strong> (na prática, é o navio que está se afastando). Apenas <strong>um personagem</strong> pode fazer esta ação por rodada. <strong>Falhar por 10 ou mais</strong> nesta ação aumenta o dano de impacto da rodada em <strong>+2d6</strong>.</li>
+        <li><strong>Ajudar o Piloto (CD variável):</strong> O personagem faz um teste para ajudar (veja <em>Tormenta20</em>, p. 221) o teste de Pilotagem. O jogador pode usar qualquer perícia que conseguir justificar — <strong>Atletismo</strong> para segurar o cordame no lugar, <strong>Percepção</strong> para ver qual a melhor direção para escapar da tempestade etc.</li>
+        <li><strong>Esconder-se (nenhum teste):</strong> O personagem desce até o convés inferior (ou outro lugar tão seguro quanto) para se proteger das ondas. Lá, a CD do teste de Reflexos é <strong>20</strong> (desconsidere o valor do d6) e não há chance de cair no mar. Porém, o personagem <strong>não pode navegar a embarcação ou ajudar o piloto</strong>.</li>
+        <li><strong>Voltar para o Navio (Atletismo CD 30):</strong> Um personagem no rio pode nadar de volta ao navio. Isso exige <strong>dois sucessos</strong> em testes de Atletismo: um para alcançar o navio e outro para subir pelo costado. Em caso de falha, o personagem não avança. Em caso de falha por <strong>5 ou mais</strong>, o personagem afunda. Personagens que não estejam escondidos podem ajudar atirando cordas ou mesmo saltando para o mar.</li>
+      </ul>
+    `
+  },
+  {
+    origem: "Duelo de Dragões",
+    nd: "9",
+    tipo: "Viagem",
+    nome: "Jornada para Tyros",
+    imagem: "https://media.tenor.com/51agD4HYN9EAAAAM/death-stranding-snow.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Chegar a Tyros, alcançando a fronteira com Sckharshantallas.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Considerando apenas a distância, esta seria uma <em>Jornada pelos Ermos</em> média, mas a presença de <strong>Sckhar</strong> muda o clima da fronteira e torna os últimos dias da travessia muito mais difíceis.</li>
+        <li>Para chegar ao destino, o grupo deve fazer <strong>sete testes</strong>.</li>
+        <li>Para cada falha, os personagens perdem <strong>2d8 pontos de vida</strong>. Essa perda representa cansaço e desgaste e só pode ser curada a partir de <strong>um dia após o fim da jornada</strong>.</li>
+        <li>Se o grupo acumular <strong>três falhas</strong>, os pontos de mana máximos dos personagens diminuem em <strong>1 por nível</strong> até o fim da aventura. Isso representa um abalo causado pela dificuldade da travessia.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Avançar (Sobrevivência ou outra, CD variável):</strong> Os personagens se alternam fazendo testes até atingir <strong>sete sucessos</strong> (ou até atingir três falhas).</li>
+        <li>Os testes podem ser de <strong>Sobrevivência</strong> ou de qualquer outra perícia que o jogador consiga justificar e que o mestre aprove. Por exemplo: <strong>Fortitude</strong> para forçar a marcha, ou <strong>Guerra</strong> para se guiar pelo terreno estudando os melhores caminhos.</li>
+        <li>Cada perícia que não seja Sobrevivência só pode ser usada <strong>uma vez</strong> pela jornada.</li>
+        <li><strong>CD progressiva:</strong>
+          <ul>
+            <li><strong>1º e 2º testes:</strong> CD 15 (planícies e colinas no caminho de Fross até Tyros).</li>
+            <li><strong>3º e 4º testes:</strong> CD 20.</li>
+            <li><strong>5º e 6º testes:</strong> CD 25.</li>
+            <li><strong>7º teste:</strong> CD 30.</li>
+          </ul>
+          A CD aumenta em <strong>+5 a cada dois testes</strong>, representando a necessidade de adaptação ao clima e às intempéries de Sckharshantallas.
+        </li>
+      </ul>
+    `
+  },
+  {
+    origem: "Duelo de Dragões",
+    nd: "4",
+    tipo: "Viagem",
+    nome: "Jornada para Thenarallan",
+    imagem: "https://media.tenor.com/7LzeKEzGgS4AAAAM/mushroomtea-dragons.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Chegar a Thenarallan da forma mais segura possível, enquanto atravessa território hostil.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Para chegar ao destino, o grupo deverá fazer <strong>3 testes</strong> da ação <em>avançar</em>.</li>
+        <li>Para cada falha, os personagens perdem <strong>3d6 PV</strong>. Essa perda de vida representa cansaço e desgaste e só pode ser curada a partir de <strong>um dia após o fim da viagem</strong>.</li>
+        <li>Se o grupo acumular <strong>três falhas</strong>, os PM máximos dos personagens diminuem em <strong>1 por nível</strong> até o fim da aventura. Isso representa um abalo causado pelas dificuldades da travessia.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Avançar (CD 25, +5 a cada teste já realizado):</strong> Os personagens se alternam fazendo testes até realizarem 3. Os testes podem ser de <strong>Sobrevivência</strong> ou de qualquer outra perícia que o jogador consiga justificar e o mestre aprove. Contudo, cada perícia que não seja Sobrevivência só pode ser usada <strong>uma vez</strong> durante a jornada.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Encontros:</strong></h6>
+      <ul>
+        <li>Esta é uma viagem difícil, pois grande parte dela se dá em uma região perigosa, marcada pelas chamas de <strong>Sckhar</strong> e tomada por criaturas dracônicas que fugiram do seu território. Por isso, <strong>cada teste</strong>, independente do seu resultado, leva a um encontro (veja a seguir).</li>
+        <li>Se o grupo tiver <strong>passado</strong> no teste, o mestre descreve o encontro aos jogadores e eles podem escolher se envolver com ele — sem garantias de que traga algo bom — ou evitá-lo.</li>
+        <li>Se o grupo tiver <strong>falhado</strong>, não tem essa opção e começa o encontro <strong>surpreendido</strong>.</li>
+        <li><strong>1º Encontro:</strong> <strong>2d4 serpes</strong> (<em>Tormenta20</em>, p. 293) voam na direção do grupo. Elas têm selas em suas costas, indicando que podem ser as montarias de alguém. Se derrotadas, a revoada de serpes da próxima cena começa o combate com <strong>900 PV</strong> em vez de 1.000.</li>
+        <li><strong>2º Encontro:</strong> Quando o grupo parar para descansar durante a noite, uma visão fantasmagórica se desdobra diante de seus olhos. Eles estão em <strong>Hazonnd</strong> e <strong>Wondaronn</strong>, ruínas amaldiçoadas de vilas conquistadas por Sckhar. Os personagens serão tentados por ilusões de espíritos que irão oferecer o que eles mais desejam — ouro, honra, fama e até mesmo o desejo mais íntimo de seus corações. Cada herói tem <strong>2d4 PM</strong> sugado pelos espíritos (<strong>Vontade CD 30</strong> reduz à metade). Com o amanhecer, as visões, as vilas e as tentações desaparecem — por enquanto.</li>
+        <li><strong>3º Encontro:</strong> O grupo encontra um pequeno lago termal com vegetação próxima, fazendo sombra suficiente para protegê-lo do sol por um tempo. Parece um ótimo lugar para descansar. Cada personagem escolhe entre recuperar <strong>1d4 PM</strong> ou <strong>2d8+2 PV</strong>.</li>
+      </ul>
+    `
+  },
+  {
+    origem: "Duelo de Dragões",
+    nd: "6",
+    tipo: "Desafio de resistência e cooperação",
+    nome: "Apagar o Incêndio",
+    imagem: "https://media.tenor.com/olqb-DaZYqMAAAAM/blaze-burning.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Apagar o incêndio e salvar a plantação de treckod.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Este é um incêndio de grandes proporções, ateado com itens alquímicos e magias!</li>
+        <li>As chamas estão se alastrando pelo pomar e é preciso apagar o fogo antes que seja tarde demais. Para isso, o grupo deve acumular <strong>cinco sucessos</strong> nos testes das ações a seguir.</li>
+        <li>No início de cada rodada, cada personagem também deve fazer um teste de <strong>Fortitude (CD 25)</strong> ou perde <strong>3d6 PV</strong> pelo sufocamento com a fumaça (<em>metabolismo</em>).</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Água Mágica (Vontade CD 20 + PM):</strong> Personagens que possam lançar magias como <em>Controlar Água</em>, <em>Sopro das Uivantes</em> e <em>Tempestade Divina</em> podem fazer esta ação. A água ou a redução de temperatura gerada pelas magias diminui o fogo.</li>
+        <li><strong>Carregar Baldes (Atletismo ou Sobrevivência CD 25):</strong> Não muito longe do lago Allinthonarid, é possível carregar baldes cheios de água para apagar as chamas. Dois personagens fazendo esta ação na mesma rodada concedem um bônus de <strong>+2</strong> nos testes um do outro — a união faz a força!</li>
+        <li><strong>Convocar Ajudantes (Diplomacia CD 20 + PM):</strong> Personagens com habilidades como <em>Autoridade Feudal</em> ou <em>Autoridade Eclesiástica</em> podem convencer <strong>Violeta</strong> e/ou <strong>Açucena</strong> a trazer algumas druidas mais velhas para ajudar a apagar as chamas.</li>
+        <li><strong>Convocar Animais (Adestramento ou Sobrevivência, CD 20 + PM):</strong> Personagens com habilidades como <em>Empatia Selvagem</em> e magias como <em>Compreensão</em> e <em>Voz Divina</em> podem reunir animais do pântano para apagar o fogo. Se a habilidade usada nesse teste não gastar PM, a CD é <strong>25</strong>.</li>
+        <li><strong>Coordenar (Guerra ou Sobrevivência, CD 25):</strong> O personagem analisa a região em busca da melhor forma para lidar com as chamas. Um sucesso nesse teste <strong>não conta</strong> para vencer o perigo complexo, mas concede um bônus de <strong>+2</strong> nos testes de todos os aliados até o fim da próxima rodada.</li>
+        <li><strong>Proteger Aliado (Vontade CD 20 + PM):</strong> Um personagem que conheça a magia <em>Suporte Ambiental</em> pode lançá-la para proteger seus aliados. Os alvos da magia passam automaticamente no teste de Fortitude da rodada. Sucesso nesse teste <strong>não conta</strong> para vencer o perigo complexo.</li>
+      </ul>
+    `
+  },
+  {
+    origem: "Duelo de Dragões",
+    nd: "10",
+    tipo: "Desafio social e investigação",
+    nome: "Exposição no Museu de Durtras",
+    imagem: "https://media.tenor.com/unGj9eAJWv0AAAAM/frieren-anime.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Encontrar o ladrão e arrecadar doações.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>A exposição dura <strong>cinco rodadas</strong>. Enquanto ela se desenrola, os heróis precisam se dividir entre dois objetivos: <strong>encontrar o ladrão</strong> e <strong>reunir doações</strong>.</li>
+        <li>O grupo precisa acumular <strong>cinco sucessos</strong> na ação <em>pega ladrão</em>, antes que a exposição acabe, para encontrar o nobre que deseja roubar a exposição. Se obtiverem <strong>três falhas</strong> ou o tempo acabar, serão pegos de surpresa na <strong>Cena 3</strong>.</li>
+        <li>Cada sucesso na ação <em>dourar a pílula</em> aumenta a recompensa final em <strong>T$ 5.000</strong>. Se obtiverem <strong>três falhas</strong>, a arrecadação é muito baixa e não há recompensa além da <strong>lança mágica</strong>.</li>
+        <li>Para representar a alta tensão que esta situação causa, o personagem perde <strong>1d6 PM</strong> para cada falha nas ações a seguir.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Dourar a Pílula (Diplomacia, Enganação ou Intimidação CD 30):</strong> O personagem convence os presentes a doarem dinheiro para o museu.</li>
+        <li><strong>Pega Ladrão (Investigação CD 30):</strong> O personagem procura entre os nobres quem é mais suspeito de ser o ladrão.</li>
+        <li><strong>Ajudar (Varia CD 10):</strong> O personagem faz um teste para ajudar (veja <em>Tormenta20</em>, p. 221) um aliado. <strong>Investigação</strong> e <strong>Percepção</strong> são adequadas para <em>pega ladrão</em>, e qualquer perícia baseada em <strong>Carisma</strong> é adequada para <em>dourar a pílula</em>. Qualquer perícia além dessas pode ser usada, mas apenas <strong>uma vez</strong>, além de exigir uma justificativa.</li>
+        <li><strong>Veja Bem (Diplomacia CD 35):</strong> Com um bom papo, o personagem consegue desviar as atenções e <strong>cancelar uma falha</strong> obtida pelo grupo.</li>
+      </ul>
+    `
+  },
+  {
+    origem: "Duelo de Dragões",
+    nd: "14",
+    tipo: "Desafio social e aquisição",
+    nome: "Presentes para Sckhar",
+    imagem: "https://i.ibb.co/MDJL9Hy2/presentes-sckhar.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Conseguir um bom presente para cada aventureiro.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>Os aventureiros precisam vasculhar <strong>Ghallystrix</strong> em busca dos melhores presentes possíveis para o Dragão-Rei.</li>
+        <li>Os personagens podem fazer testes na <strong>ordem que preferirem</strong>.</li>
+        <li>Se tiverem <strong>três falhas</strong>, não há mais presentes disponíveis — os nobres já compraram tudo que estava disponível! A frustração faz cada personagem perder <strong>1 PM por nível</strong>, recuperados apenas no final da aventura.</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Adquirir (Nobreza CD 30):</strong> O personagem encontra o presente perfeito! Seu custo é <strong>d10 x T$ 2.000</strong>. Para cada presente além do primeiro, aumente a CD em <strong>+5</strong>.</li>
+        <li><strong>Garimpar Pechinchas (Investigação CD 30):</strong> O personagem diminui em <strong>10%</strong> o preço do próximo item comprado. Cumulativo com <em>Pechinchar</em>.</li>
+        <li><strong>Localizar Alvo (Investigação CD 30):</strong> O personagem encontra um nobre que acabou de comprar o presente perfeito.</li>
+        <li><strong>Pechinchar (Diplomacia CD 30):</strong> O personagem diminui em <strong>10%</strong> o preço do item encontrado, <strong>+5%</strong> para cada 5 pontos acima da CD.</li>
+        <li><strong>Surrupiar (Ladinagem CD 30):</strong> O personagem rouba o presente de um nobre. Vale <strong>d10 x T$ 2.000</strong>. Para cada roubo além do primeiro, aumente a CD em <strong>+5</strong>. Crimes são duramente punidos em Ghallystrix: com uma falha o personagem é preso e sua execução é agendada. Um teste de <strong>Diplomacia (CD 25)</strong> convence os guardas a liberá-lo pela proximidade com as princesas. De qualquer forma, resulta em <strong>perda de prestígio</strong>.</li>
+      </ul>
+    `
+  },
+  {
+    origem: "Duelo de Dragões",
+    nd: "18",
+    tipo: "Desafio de natação e sobrevivência",
+    nome: "Jornada Subaquática",
+    imagem: "https://media1.tenor.com/m/wYYfoU0HQX8AAAAd/jack-sparrow-kraken.gif",
+    efeito: `
+      <strong>Objetivo:</strong> Chegar até o Dragão-Rei dos Mares.
+      <hr>
+      <strong>Efeito:</strong>
+      <ul>
+        <li>O grupo navega águas revoltas, escuras e cheias de monstros no caminho até <strong>Benthos</strong>.</li>
+        <li>Cada personagem precisa acumular <strong>três avanços</strong> para alcançar seu destino. No começo de cada rodada, role <strong>1d6</strong>. Com um resultado <strong>1 ou 2</strong>, nada acontece. Com outros resultados, <strong>um monstro marinho ataca o grupo</strong> e desaparece na escuridão logo depois. Qual monstro e quais ataques dependem do resultado (veja a caixa).</li>
+        <li>Um personagem que acumule <strong>três falhas</strong> se separa do grupo e precisa tentar novamente, <strong>sozinho</strong>.</li>
+        <li>Os aventureiros chegarão ao seu destino na próxima parte da aventura.</li>
+      </ul>
+      <hr>
+      <h6 class="text-warning"><strong>Ataques de Monstros na Jornada Subaquática (1d6):</strong></h6>
+      <ul>
+        <li><strong>1-2) Nenhum.</strong></li>
+        <li><strong>3) Mega-selako:</strong> Um personagem aleatório sofre uma mordida (<strong>+47, 4d12+40, 17/x3</strong>; ignora <strong>5 de RD</strong>). Um tubarão do tamanho de uma casa.</li>
+        <li><strong>4) Canceronte de guerra:</strong> Escolha dois personagens aleatórios com o <strong>mesmo número de avanços</strong>; eles sofrem manobras de <strong>agarrar (+55)</strong>. Em caso de falha, cada um perde <strong>1 avanço</strong>.</li>
+        <li><strong>5) Kraken:</strong> Escolha um personagem aleatório; todos os personagens com o <strong>mesmo número de avanços</strong> ficam cobertos de tinta e sofrem <strong>–5 em testes de perícia</strong> durante aquela rodada.</li>
+        <li><strong>6) Enguia rainha:</strong> Escolha um personagem aleatório; todos com o <strong>mesmo número de avanços</strong> sofrem <strong>12d12 de dano</strong>, metade de fogo e metade de ácido, além de <strong>4d12 de dano de ácido</strong> nos próximos <strong>1d4 rodadas</strong> (<strong>Ref CD 47</strong> reduz o dano pela metade e evita a substância).</li>
+      </ul>
+      <hr>
+      <h6 class="text-danger"><strong>Testes:</strong></h6>
+      <ul>
+        <li><strong>Apressar (Atletismo CD 50):</strong> Só pode ser tentado por um personagem que já tenha <strong>um avanço</strong>. Você tenta nadar adiante, prevendo para onde Lauss vai guiá-lo. Se tiver sucesso, consegue <strong>dois avanços</strong>. Se falhar, sai da rota e perde <strong>um avanço</strong>.</li>
+        <li><strong>Carregar Aliado (Atletismo CD 40):</strong> Você consegue um avanço para você e <strong>um para um aliado</strong>.</li>
+        <li><strong>Nadar (Atletismo CD 30):</strong> Você obtém <strong>um avanço</strong>.</li>
+        <li><strong>Prever Caminho (Percepção CD 10):</strong> Você tenta acompanhar o caminho de Lauss com atenção. Essa ação serve como um <strong>teste de ajudar</strong> para o seu teste de <em>Nadar</em> da próxima rodada.</li>
+      </ul>
+    `
+  },
 
   {
     origem: "Breves Jornadas",
@@ -1887,6 +2098,34 @@ const perigos = [
         <li><strong>Lançar Magia (Misticismo CD 20 + Custo em PM da magia):</strong> Você recebe o benefício de uma magia, ou usa uma apropriada para atrapalhar os perseguidores, recebendo <strong>+5</strong> em seu próximo teste de <strong>Escapar</strong>.</li>
       </ul>
     `
+  },
+
+  {
+    origem: "Voz das Marés",
+    nd: "1",
+    tipo: "Desafio de exploração e sobrevivência",
+    nome: "Sala de Mangue",
+    imagem: "https://media.tenor.com/ZwPxXoAnTpwAAAAM/in-the-mud-mud.gif",
+    efeito: `
+    <strong>Objetivo:</strong> Atravessar a sala enlameada, superando o terreno pantanoso antes de afundar completamente no lamaçal.
+    <hr>
+    <strong>Efeito:</strong>
+    <ul>
+      <li>Para atravessar a sala, cada personagem precisa acumular <strong>3 sucessos</strong> nos testes descritos abaixo.</li>
+      <li>A cada falha em um teste, o personagem afunda no lamaçal.</li>
+      <li>Ao acumular <strong>3 falhas</strong>, o personagem deve fazer um teste de <strong>Vontade (CD 14)</strong> para não ficar <strong>abalado</strong> pelo medo de morrer sufocado.</li>
+      <li>Após a <strong>4ª falha</strong>, o personagem não afunda mais, mas fica incapaz de se mover sozinho, necessitando da ajuda de um aliado.</li>
+      <li>Após atravessar o mangue, retornar pelo caminho na direção oposta é mais fácil devido à inclinação da casa.</li>
+    </ul>
+    <hr>
+    <h6 class="text-danger"><strong>Testes:</strong></h6>
+    <ul>
+      <li><strong>Correr (Atletismo CD 15):</strong> O personagem tenta atravessar a lama correndo antes de afundar. Um sucesso por 10 ou mais, ou um resultado 20 natural, conta como <strong>2 sucessos</strong>. Este teste recebe os mesmos modificadores da ação corrida e pode ser substituído por Cavalgar ou Pilotagem, caso o personagem esteja utilizando uma montaria ou veículo.</li>
+      <li><strong>Equilibrar-se (Acrobacia CD 13):</strong> O personagem utiliza escombros e outros elementos da sala para avançar sem afundar. Um sucesso por 10 ou mais, ou um resultado 20 natural, conta como <strong>2 sucessos</strong>.</li>
+      <li><strong>Procurar Rota (Percepção CD 15):</strong> O personagem analisa o terreno em busca de uma rota mais segura. Se passar, recebe <strong>+5 em todos os testes para correr e equilibrar-se</strong> realizados durante este perigo. O personagem precisa entrar na sala para realizar esta ação, portanto, uma falha também faz com que ele afunde no lamaçal.</li>
+      <li><strong>Puxar Outro (Atletismo CD 10):</strong> O personagem tenta carregar um aliado próximo, avançando junto com ele. Se passar, acumula <strong>1 sucesso para si e 1 para o aliado</strong>. Caso possua algum item que facilite a tarefa, como uma corda ou uma vara de 3m, recebe <strong>+5 no teste</strong>. Se falhar, ambos afundam. Esta ação funciona como a ação avançar.</li>
+    </ul>
+  `
   }
 
 ];
@@ -1975,10 +2214,22 @@ function filtrarPerigos() {
 
   // Ordenar se necessário
   if (ordem === "crescente") {
-    filtrados.sort((a, b) => parseFloat(a.nd) - parseFloat(b.nd));
+    filtrados.sort((a, b) => ndNumero(a.nd) - ndNumero(b.nd));
   } else if (ordem === "decrescente") {
-    filtrados.sort((a, b) => parseFloat(b.nd) - parseFloat(a.nd));
+    filtrados.sort((a, b) => ndNumero(b.nd) - ndNumero(a.nd));
   }
+
+  // Visão em tabela: ordenação por cabeçalho (Nome / Local) e render próprio
+  if (visao === "tabela") {
+    if (ordenacaoTabela.chave) aplicarOrdenacaoTabela(filtrados);
+    container.classList.add("d-none");
+    tabelaComplexosEl.classList.remove("d-none");
+    renderizarTabelaComplexos(filtrados);
+    return;
+  }
+  container.classList.remove("d-none");
+  tabelaComplexosEl.classList.add("d-none");
+  tabelaComplexosEl.innerHTML = "";
 
   container.innerHTML = "";
   filtrados.forEach(p => {
@@ -2023,6 +2274,283 @@ function formatarEfeito(html) {
     // Dados de dano tipo 1d6, 16d6 etc → negrito e azul
     .replace(/\b(\d+d\d+)\b/gi, `<span class="fw-bold text-primary">$1</span>`);
 }
+
+
+// ================================================================
+//  VISÃO EM TABELA (Cards x Tabela) — vale para Complexos e Diversos
+//  Colunas: Nome | ND | Local | Efeito (resumo; clique expande o completo)
+// ================================================================
+const VISAO_KEY = "t20_perigos_visao";
+let visao = "cards";
+try {
+  if (localStorage.getItem(VISAO_KEY) === "tabela") visao = "tabela";
+} catch (e) { /* storage indisponível: segue em cards */ }
+
+const tabelaComplexosEl = document.querySelector("#perigos-tabela");
+const tabelaDiversosEl = document.querySelector("#perigos-diversos-tabela");
+let ordenacaoTabela = { chave: null, dir: 1 };
+
+function esc(valor) {
+  return String(valor == null ? "" : valor).replace(/[&<>"']/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+// "4" → 4 · "1/2" → 0,5 · "3 a 11" → 3
+function ndNumero(nd) {
+  const txt = String(nd).trim();
+  const frac = txt.match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (frac) return parseInt(frac[1], 10) / parseInt(frac[2], 10);
+  const n = parseFloat(txt);
+  return isNaN(n) ? Infinity : n;
+}
+
+// Intensidade (%) da cor do selo de ND: quanto maior o ND, mais "quente"
+function ndCalor(nd) {
+  const n = ndNumero(nd);
+  if (!isFinite(n)) return 15;
+  return Math.round(10 + (Math.min(n, 20) / 20) * 45);
+}
+
+// Texto puro do efeito, usado como prévia na célula (calculado uma vez por perigo)
+function resumoEfeito(p) {
+  if (p._resumo === undefined) {
+    const doc = new DOMParser().parseFromString(p.efeito || "", "text/html");
+    p._resumo = (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+  }
+  return p._resumo;
+}
+
+function estadoOrdenacao() {
+  if (ordenacaoTabela.chave) return ordenacaoTabela;
+  if (ordemSelect.value === "crescente") return { chave: "nd", dir: 1 };
+  if (ordemSelect.value === "decrescente") return { chave: "nd", dir: -1 };
+  return { chave: null, dir: 1 };
+}
+
+function ordenarPorCabecalho(chave) {
+  const atual = estadoOrdenacao();
+  const dir = atual.chave === chave && atual.dir === 1 ? -1 : 1;
+  if (chave === "nd") {
+    // reaproveita o select "Ordenar por ND" para os dois controles ficarem em sincronia
+    ordenacaoTabela = { chave: null, dir: 1 };
+    ordemSelect.value = dir === 1 ? "crescente" : "decrescente";
+  } else {
+    ordenacaoTabela = { chave, dir };
+    ordemSelect.value = "nenhum";
+  }
+  filtrarPerigos();
+}
+
+function aplicarOrdenacaoTabela(lista) {
+  const { chave, dir } = ordenacaoTabela;
+  lista.sort((a, b) => {
+    const r = chave === "nome"
+      ? a.nome.localeCompare(b.nome, "pt-BR")
+      : (a.origem.localeCompare(b.origem, "pt-BR") || ndNumero(a.nd) - ndNumero(b.nd));
+    return r * dir;
+  });
+}
+
+// Mexer no select "Ordenar por ND" descarta a ordenação por cabeçalho.
+// (registrado antes do listener de filtrarPerigos, então roda primeiro)
+ordemSelect.addEventListener("change", () => { ordenacaoTabela = { chave: null, dir: 1 }; });
+
+function criarBarraTabela(total) {
+  const barra = document.createElement("div");
+  barra.className = "tabela-barra";
+  barra.innerHTML = `
+    <span class="tabela-contagem">${total} ${total === 1 ? "resultado" : "resultados"} · clique numa linha para ver o efeito completo</span>
+    <div class="tabela-acoes">
+      <button type="button" data-acao="expandir">Expandir todos</button>
+      <button type="button" data-acao="recolher">Recolher todos</button>
+    </div>`;
+  return barra;
+}
+
+/*
+ * opts: { comND, ordenavel, rotuloOrigem, subcats }
+ */
+function criarTabelaPerigos(itens, opts) {
+  const tabela = document.createElement("table");
+  tabela.className = "tabela-perigos" + (opts.comND ? " com-nd" : "");
+  const estado = opts.ordenavel ? estadoOrdenacao() : null;
+
+  const th = (chave, rotulo, cls) => {
+    if (!opts.ordenavel) return `<th scope="col" class="${cls}">${rotulo}</th>`;
+    const aria = estado.chave === chave ? (estado.dir === 1 ? "ascending" : "descending") : "none";
+    return `<th scope="col" class="${cls}" aria-sort="${aria}">
+      <button type="button" class="th-sort" data-sort="${chave}">${rotulo}<span class="seta" aria-hidden="true"></span></button>
+    </th>`;
+  };
+
+  tabela.innerHTML = `
+    <thead><tr>
+      ${th("nome", "Nome", "col-nome")}
+      ${opts.comND ? th("nd", "ND", "col-nd") : ""}
+      ${th("origem", opts.rotuloOrigem, "col-local")}
+      <th scope="col" class="col-efeito">Efeito</th>
+    </tr></thead>
+    <tbody></tbody>`;
+
+  const tbody = tabela.tBodies[0];
+  const nCols = opts.comND ? 4 : 3;
+  let subAtual = null;
+
+  itens.forEach(p => {
+    if (opts.subcats) {
+      const sub = p.subcategoria || "";
+      if (sub !== subAtual) {
+        subAtual = sub;
+        const grupo = document.createElement("tr");
+        grupo.className = "linha-subcat";
+        grupo.innerHTML = `<th colspan="${nCols}" scope="colgroup">${esc(sub || "Geral")}</th>`;
+        tbody.appendChild(grupo);
+      }
+    }
+
+    const secundaria = p.tipo
+      ? `<span class="tipo-tag">${esc(p.tipo)}</span>`
+      : (p.descricao ? `<span class="nome-desc">${esc(p.descricao)}</span>` : "");
+
+    const tr = document.createElement("tr");
+    tr.className = "linha-perigo";
+    tr.tabIndex = 0;
+    tr.setAttribute("aria-expanded", "false");
+    tr._dados = p;
+    tr.innerHTML = `
+      <td class="col-nome">
+        <div class="nome-wrap">
+          <span class="caret" aria-hidden="true"></span>
+          <div><span class="nome-txt">${esc(p.nome)}</span>${secundaria}</div>
+        </div>
+      </td>
+      ${opts.comND ? `<td class="col-nd"><span class="nd-badge" style="--heat:${ndCalor(p.nd)}%">${esc(p.nd)}</span></td>` : ""}
+      <td class="col-local">${esc(p.origem)}</td>
+      <td class="col-efeito"><div class="efeito-resumo">${esc(resumoEfeito(p))}</div></td>`;
+    tbody.appendChild(tr);
+  });
+
+  return tabela;
+}
+
+// Abre/fecha o efeito completo logo abaixo da linha (criado só quando abre)
+function alternarLinha(tr, forcar) {
+  const aberto = tr.getAttribute("aria-expanded") === "true";
+  const abrir = forcar === undefined ? !aberto : forcar;
+  if (abrir === aberto) return;
+
+  if (abrir) {
+    const det = document.createElement("tr");
+    det.className = "linha-detalhe";
+    const td = document.createElement("td");
+    td.colSpan = tr.cells.length;
+    const box = document.createElement("div");
+    box.className = "detalhe-box";
+    box.innerHTML = tr._dados.efeito;
+    td.appendChild(box);
+    det.appendChild(td);
+    tr.after(det);
+  } else {
+    const prox = tr.nextElementSibling;
+    if (prox && prox.classList.contains("linha-detalhe")) prox.remove();
+  }
+  tr.setAttribute("aria-expanded", String(abrir));
+  tr.classList.toggle("aberta", abrir);
+}
+
+function renderizarTabelaComplexos(lista) {
+  tabelaComplexosEl.innerHTML = "";
+  if (lista.length === 0) {
+    tabelaComplexosEl.innerHTML = `<p class="text-muted text-center py-4">Nenhum resultado encontrado.</p>`;
+    return;
+  }
+  tabelaComplexosEl.appendChild(criarBarraTabela(lista.length));
+  tabelaComplexosEl.appendChild(
+    criarTabelaPerigos(lista, { comND: true, ordenavel: true, rotuloOrigem: "Local" })
+  );
+}
+
+function renderizarTabelaDiversos(lista) {
+  tabelaDiversosEl.innerHTML = "";
+  if (lista.length === 0) {
+    tabelaDiversosEl.innerHTML = `<p class="text-muted text-center py-4">Nenhum resultado encontrado.</p>`;
+    return;
+  }
+  tabelaDiversosEl.appendChild(criarBarraTabela(lista.length));
+
+  ORDEM_CATEGORIAS_DIVERSOS.filter(c => lista.some(p => p.categoria === c)).forEach(categoria => {
+    const itensCat = lista.filter(p => p.categoria === categoria);
+    const subs = Array.from(new Set(itensCat.map(p => p.subcategoria || "")));
+    const temSubs = subs.length > 1 || (subs.length === 1 && subs[0] !== "");
+    const ordenados = temSubs
+      ? subs.flatMap(s => itensCat.filter(p => (p.subcategoria || "") === s))
+      : itensCat;
+
+    const secao = document.createElement("div");
+    secao.className = "mb-4 categoria-diversos";
+    const titulo = document.createElement("h3");
+    titulo.className = "categoria-titulo";
+    titulo.textContent = categoria;
+    secao.appendChild(titulo);
+    secao.appendChild(criarTabelaPerigos(ordenados, {
+      comND: ordenados.some(p => p.nd),   // hoje nenhum "diverso" tem ND: a coluna só aparece se houver
+      ordenavel: false,
+      rotuloOrigem: "Fonte",
+      subcats: temSubs
+    }));
+    tabelaDiversosEl.appendChild(secao);
+  });
+}
+
+// Interações da tabela (delegadas: funcionam após qualquer re-render)
+document.addEventListener("click", function (e) {
+  const sort = e.target.closest(".th-sort");
+  if (sort) { ordenarPorCabecalho(sort.dataset.sort); return; }
+
+  const acao = e.target.closest("[data-acao]");
+  if (acao) {
+    const escopo = acao.closest(".tabela-escopo");
+    if (escopo) {
+      escopo.querySelectorAll(".linha-perigo").forEach(tr =>
+        alternarLinha(tr, acao.dataset.acao === "expandir")
+      );
+    }
+    return;
+  }
+
+  const linha = e.target.closest(".linha-perigo");
+  if (linha) alternarLinha(linha);
+});
+
+document.addEventListener("keydown", function (e) {
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("linha-perigo")) {
+    e.preventDefault();
+    alternarLinha(e.target);
+  }
+});
+
+// Seletor Cards x Tabela
+(function initVisaoSwitcher() {
+  const btns = document.querySelectorAll(".visao-btn");
+  if (!btns.length) return;
+
+  const sincronizar = () => btns.forEach(b => {
+    const ativo = b.dataset.visao === visao;
+    b.classList.toggle("active", ativo);
+    b.setAttribute("aria-pressed", String(ativo));
+  });
+  sincronizar();
+
+  btns.forEach(b => b.addEventListener("click", () => {
+    if (visao === b.dataset.visao) return;
+    visao = b.dataset.visao;
+    try { localStorage.setItem(VISAO_KEY, visao); } catch (e) { /* ignora */ }
+    sincronizar();
+    filtrarPerigos();
+    if (diversosCarregados) filtrarPerigosDiversos();
+  }));
+})();
 
 
 carregarPerigos();
@@ -2090,6 +2618,16 @@ function filtrarPerigosDiversos() {
 }
 
 function renderizarPerigosDiversos(lista) {
+  if (visao === "tabela") {
+    containerDiversos.classList.add("d-none");
+    tabelaDiversosEl.classList.remove("d-none");
+    renderizarTabelaDiversos(lista);
+    return;
+  }
+  containerDiversos.classList.remove("d-none");
+  tabelaDiversosEl.classList.add("d-none");
+  tabelaDiversosEl.innerHTML = "";
+
   containerDiversos.innerHTML = "";
 
   if (lista.length === 0) {
