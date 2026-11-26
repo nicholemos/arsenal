@@ -326,7 +326,215 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const all = [...racePowers, ...cursePowers];
         _currentRacialPowers = all; // guarda para export
+
+        // Mostra/esconde seletores de magia condicionais (ex.: bênção feérica,
+        // herança coruja do Moreau) conforme o estado atual da interface.
+        syncRaceSpellPicks(race);
     }
+
+    // ── MAGIAS RACIAIS (seletores) ────────────────────────────
+    // Várias raças concedem magias à escolha. Estes helpers montam os <select>
+    // a partir do SPELLS_DB (../grimorio/spells_db.js) e a exportação para a
+    // ficha reaproveita o formato de t20SheetData.spells.list.
+    // Configuração por raça (RACE_DATA.<raça>.spellPicks):
+    //   { id, label, count, circle, type, school, names }
+    const SPELL_PM_COST = { 1: 1, 2: 3, 3: 6, 4: 10, 5: 15 };
+
+    function _spellNorm(t) {
+        return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
+    function _spellEsc(t) {
+        return String(t == null ? '' : t)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function getSpellPool(cfg = {}) {
+        if (typeof SPELLS_DB === 'undefined' || !Array.isArray(SPELLS_DB)) return [];
+        let nomes = cfg.names;
+        if (typeof nomes === 'function') {
+            try { nomes = nomes(); } catch (e) { nomes = []; }
+            if (!Array.isArray(nomes) || !nomes.length) return []; // lista dinâmica vazia
+        }
+        if (Array.isArray(nomes) && nomes.length) {
+            const byName = new Map();
+            SPELLS_DB.forEach(m => { if (m && m.n) byName.set(_spellNorm(m.n), m); });
+            return nomes.map(n => byName.get(_spellNorm(n))).filter(Boolean);
+        }
+        const vistos = new Set();
+        return SPELLS_DB.filter(m => {
+            if (!m || !m.n) return false;
+            if (cfg.circle && m.c !== cfg.circle) return false;
+            if (cfg.type && _spellNorm(m.t) !== _spellNorm(cfg.type)) return false;
+            if (cfg.school && _spellNorm(m.e) !== _spellNorm(cfg.school)) return false;
+            const k = _spellNorm(m.n);
+            if (vistos.has(k)) return false;
+            vistos.add(k);
+            return true;
+        }).sort((a, b) => a.n.localeCompare(b.n, 'pt-BR'));
+    }
+    function spellOptionsHtml(cfg, selected, outros) {
+        const pool = getSpellPool(cfg);
+        if (!pool.length) return '<option value="">(Banco de magias não carregado)</option>';
+        const sel = _spellNorm(selected);
+        const bloq = new Set((outros || []).map(_spellNorm));
+        let html = '<option value="">Escolha uma magia...</option>';
+        html += pool.map(m => {
+            const k = _spellNorm(m.n);
+            const disabled = (k !== sel && bloq.has(k)) ? ' disabled' : '';
+            return `<option value="${_spellEsc(m.n)}"${k === sel ? ' selected' : ''}${disabled}>${_spellEsc(m.n)}</option>`;
+        }).join('');
+        return html;
+    }
+    // Impede escolher a mesma magia em dois seletores do mesmo grupo
+    function refreshSpellPickLocks(pickId) {
+        const sels = Array.from(document.querySelectorAll(`#race-specific-options select[data-spell-pick="${pickId}"]`));
+        const escolhidas = new Set(sels.map(s => _spellNorm(s.value)).filter(Boolean));
+        sels.forEach(sel => {
+            const atual = _spellNorm(sel.value);
+            Array.from(sel.options).forEach(opt => {
+                if (!opt.value) return;
+                const k = _spellNorm(opt.value);
+                opt.disabled = (k !== atual && escolhidas.has(k));
+            });
+        });
+    }
+    function spellPickerFieldHtml(cfg, opts = {}) {
+        const count = Math.max(1, parseInt(cfg.count, 10) || 1);
+        const hidden = opts.hidden ? ' hidden' : '';
+        return `<div class="race-spell-pick${hidden}" id="wrap-${_spellEsc(cfg.id)}" style="margin-top:8px">
+            ${Array.from({ length: count }, (_, i) => {
+            const id = `spell-${cfg.id}${count > 1 ? '-' + (i + 1) : ''}`;
+            const label = count > 1 ? `${cfg.label} (${i + 1}/${count})` : cfg.label;
+            return `<div style="margin-bottom:6px">
+                    <label for="${_spellEsc(id)}">${_spellEsc(label)}:</label>
+                    <select class="race-spell-select" id="${_spellEsc(id)}" data-spell-pick="${_spellEsc(cfg.id)}" data-spell-index="${i}">
+                        ${spellOptionsHtml(cfg, '', [])}
+                    </select>
+                </div>`;
+        }).join('')}
+        </div>`;
+    }
+    function initSpellPicker(pickId) {
+        const wrap = document.getElementById(`wrap-${pickId}`);
+        if (!wrap) return;
+        wrap.querySelectorAll('select.race-spell-select').forEach(sel => {
+            if (sel.dataset.spellBound) return;
+            sel.dataset.spellBound = '1';
+            sel.addEventListener('change', () => { refreshSpellPickLocks(pickId); updateAll(); });
+        });
+        refreshSpellPickLocks(pickId);
+    }
+    // Reconstrói as opções de um seletor cuja lista depende de outra escolha
+    // (ex.: Natureza Elemental da Medusa Dracônica).
+    function refreshSpellPickerPool(pickId) {
+        const race = RACE_DATA[racaSelect.value];
+        const cfg = race && Array.isArray(race.spellPicks)
+            ? race.spellPicks.find(p => p.id === pickId)
+            : null;
+        const wrap = document.getElementById(`wrap-${pickId}`);
+        if (!cfg || !wrap) return;
+        wrap.querySelectorAll('select.race-spell-select').forEach(sel => {
+            const atual = sel.value;
+            sel.innerHTML = spellOptionsHtml(cfg, atual, []);
+            sel.value = atual;
+        });
+        refreshSpellPickLocks(pickId);
+    }
+    function setSpellPickerVisible(pickId, on) {
+        const wrap = document.getElementById(`wrap-${pickId}`);
+        if (!wrap) return;
+        wrap.classList.toggle('hidden', !on);
+        if (!on) wrap.querySelectorAll('select.race-spell-select').forEach(s => { s.value = ''; });
+        refreshSpellPickLocks(pickId);
+    }
+    function renderRaceSpellPicks(container, race) {
+        if (!container || !race || !Array.isArray(race.spellPicks)) return;
+        race.spellPicks.forEach(cfg => {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = spellPickerFieldHtml(cfg, cfg.when ? { hidden: true } : {});
+            const field = tmp.firstElementChild;
+            if (!field) return;
+            container.appendChild(field);
+            initSpellPicker(cfg.id);
+        });
+        syncRaceSpellPicks(race);
+    }
+    // Avalia as condições de exibição dos seletores de magia da raça atual.
+    function syncRaceSpellPicks(race) {
+        if (!race || !Array.isArray(race.spellPicks)) return;
+        race.spellPicks.forEach(cfg => {
+            let visivel = true;
+            if (typeof cfg.when === 'function') {
+                try { visivel = !!cfg.when(); } catch (e) { visivel = false; }
+            }
+            setSpellPickerVisible(cfg.id, visivel);
+        });
+    }
+    function _spellSheetItem(nome) {
+        if (typeof SPELLS_DB === 'undefined' || !Array.isArray(SPELLS_DB)) return null;
+        const m = SPELLS_DB.find(x => x && _spellNorm(x.n) === _spellNorm(nome));
+        if (!m) return null;
+        let desc = m.desc || '';
+        if (Array.isArray(m.aprimoramentos) && m.aprimoramentos.length) {
+            desc += '\n\n--- APRIMORAMENTOS ---';
+            m.aprimoramentos.forEach(a => { desc += `\n• +${a.cost} PM: ${a.desc}`; });
+        }
+        return {
+            circle: m.c,
+            name: m.n,
+            pm: SPELL_PM_COST[m.c] != null ? SPELL_PM_COST[m.c] : '',
+            school: m.e || '',
+            exec: m.ex || '',
+            range: m.a || '',
+            target: m.al || '',
+            dur: m.d || '',
+            res: m.r || '',
+            desc
+        };
+    }
+    function collectRaceSpellItems() {
+        const sels = Array.from(document.querySelectorAll('#race-specific-options select.race-spell-select'));
+        const nomes = [];
+        sels.forEach(sel => {
+            const wrap = sel.closest('.race-spell-pick');
+            if (wrap && wrap.classList.contains('hidden')) return; // escolha condicional desativada
+            const v = (sel.value || '').trim();
+            if (!v) return;
+            if (!nomes.some(n => _spellNorm(n) === _spellNorm(v))) nomes.push(v);
+        });
+        return nomes.map(_spellSheetItem).filter(Boolean);
+    }
+    // Acrescenta/atualiza as magias raciais escolhidas em t20SheetData.spells.list.
+    // Remove apenas as que a própria calculadora adicionou em um envio anterior.
+    function mergeRaceSpellsIntoSheet(fichaData) {
+        const items = collectRaceSpellItems();
+        const novos = new Set(items.map(i => _spellNorm(i.name)));
+        let anteriores = [];
+        try { anteriores = JSON.parse(localStorage.getItem('t20CalcRaceSpells') || '[]'); } catch (e) { anteriores = []; }
+        anteriores = (anteriores || []).map(_spellNorm);
+        if (!fichaData.spells || typeof fichaData.spells !== 'object') {
+            fichaData.spells = { config: { attr: 'CAR', powers: '', items: '', other: '' }, list: [] };
+        }
+        if (!Array.isArray(fichaData.spells.list)) fichaData.spells.list = [];
+        fichaData.spells.list = fichaData.spells.list.filter(sp => {
+            const k = _spellNorm(sp && sp.name);
+            return !(anteriores.includes(k) && !novos.has(k));
+        });
+        items.forEach(item => {
+            const idx = fichaData.spells.list.findIndex(sp => _spellNorm(sp && sp.name) === _spellNorm(item.name));
+            if (idx >= 0) fichaData.spells.list[idx] = Object.assign({}, fichaData.spells.list[idx], item);
+            else fichaData.spells.list.push(item);
+        });
+        localStorage.setItem('t20CalcRaceSpells', JSON.stringify(items.map(i => i.name)));
+        return items.length;
+    }
+    // Exposto para os createCustomUi definidos em racas.js / racas_dragaobrasil.js
+    window.spellPickerFieldHtml = spellPickerFieldHtml;
+    window.initSpellPicker = initSpellPicker;
+    window.setSpellPickerVisible = setSpellPickerVisible;
+    window.spellOptionsHtml = spellOptionsHtml;
+    window.refreshSpellPickLocks = refreshSpellPickLocks;
+    window.refreshSpellPickerPool = refreshSpellPickerPool;
 
     // ── TROCA DE RAÇA ─────────────────────────────────────────
     function handleRaceChange() {
@@ -353,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (race.createCustomUi) race.createCustomUi(customUI);
+        renderRaceSpellPicks(customUI, race);
 
         // Raças humanoides (e Humano) podem contrair a maldição da licantropia (quando Dragão Brasil ou Bestiário estiverem ativos)
         // Adicionado ao licantropia-container (abaixo de racial-powers-list) para ser sempre o último poder
@@ -957,10 +1166,63 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     }
 
+    // ── QAREEN UBANERI (Dragão Brasil) ─────────────────────────
+    // Atributos: Sabedoria +1 e +1 em dois atributos (livres). A linhagem kipane
+    // não altera atributos, então trocar de linhagem só re-renderiza os poderes
+    // (sem resetar os +1 já distribuídos pelo jogador).
+    function createQareenUbaneriUi(container) {
+        if (!window.QAREEN_UBANERI_LINHAGENS) return;
+        container.innerHTML = `
+            <div class="fold-body" style="margin-top:12px">
+                <label for="qareen-ubaneri-linhagem" class="field-label">
+                    <span class="section-title" style="font-size:18px">Linhagem Kipane</span>
+                </label>
+                <select id="qareen-ubaneri-linhagem">
+                    <option value="">Selecione a linhagem</option>
+                    ${Object.entries(QAREEN_UBANERI_LINHAGENS).map(([key, l]) =>
+            `<option value="${key}">${l.name}</option>`
+        ).join('')}
+                </select>
+            </div>`;
+        container.querySelector('#qareen-ubaneri-linhagem')
+            .addEventListener('change', renderQareenUbaneriPowers);
+    }
+
+    function renderQareenUbaneriPowers() {
+        if (racaSelect.value !== 'qareenUbaneri') return;
+        const race = RACE_DATA.qareenUbaneri;
+        if (!race) return;
+
+        const key = document.getElementById('qareen-ubaneri-linhagem')?.value || '';
+        const linhagem = window.QAREEN_UBANERI_LINHAGENS?.[key];
+        const dynamicPowers = linhagem ? [{
+            name: `Linhagem Kipane (${linhagem.name})`,
+            desc: `${window.QAREEN_UBANERI_INTRO || ''} ${linhagem.desc}`.trim()
+        }] : [];
+
+        document.getElementById('bonusMessage').innerHTML =
+            'Sabedoria +1, +1 em dois atributos' +
+            (linhagem ? `<br><b>Linhagem:</b> ${linhagem.name}` : '');
+        renderRacialPowers(race, dynamicPowers);
+        updateAll();
+    }
+
+    // Chamada pelo handleRaceChange ao selecionar a raça: aplica os atributos
+    // (uma única vez) e desenha os poderes.
+    function updateQareenUbaneriAttributes() {
+        if (racaSelect.value !== 'qareenUbaneri') return;
+        const race = RACE_DATA.qareenUbaneri;
+        if (!race) return;
+        applyRaceAttributes(race.attributes, race.isChoice, race.choiceCount, race.lockedChoiceAttributes, race.maxChoicePerAttribute);
+        renderQareenUbaneriPowers();
+        updateAll();
+    }
+
     // Vincula createCustomUi após definição (script.js carrega depois de racas_dragaobrasil.js)
     if (RACE_DATA.vampiro) RACE_DATA.vampiro.createCustomUi = createVampiroUi;
     if (RACE_DATA.feerico) RACE_DATA.feerico.createCustomUi = createFeericoUi;
     if (RACE_DATA.licantropo) RACE_DATA.licantropo.createCustomUi = createLicantropoUi;
+    if (RACE_DATA.qareenUbaneri) RACE_DATA.qareenUbaneri.createCustomUi = createQareenUbaneriUi;
     if (RACE_DATA.lobisomem) RACE_DATA.lobisomem.createCustomUi = createLobisomemUi;
 
     // ── UPDATE FUNÇÕES ─────────────────────────────────────────
@@ -1635,8 +1897,12 @@ document.addEventListener('DOMContentLoaded', () => {
             fichaData.classAbilities = [...poderesRaciais, ...fichaData.classAbilities];
         }
 
+        // Magias raciais escolhidas na calculadora (Qareen, Sereia, Sílfide, etc.)
+        // entram na lista de magias da ficha (t20SheetData.spells.list).
+        const magiasRaciais = mergeRaceSpellsIntoSheet(fichaData);
+
         localStorage.setItem('t20SheetData', JSON.stringify(fichaData));
-        alert(`Atributos${racaNome ? ` e raça "${racaNome}"` : ''}${tamanho ? ` (${tamanho})` : ''} enviados!\n\nA ficha será aberta em uma nova aba.`);
+        alert(`Atributos${racaNome ? ` e raça "${racaNome}"` : ''}${tamanho ? ` (${tamanho})` : ''}${magiasRaciais ? `, ${magiasRaciais} magia(s)` : ''} enviados!\n\nA ficha será aberta em uma nova aba.`);
         window.open('../ficha/', '_blank');
     }
 
@@ -1665,6 +1931,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updateFeericoAttributes = updateFeericoAttributes;
     window.updateLicantropoAttributes = updateLicantropoAttributes;
     window.updateLobisomemAttributes = updateLobisomemAttributes;
+    window.updateQareenUbaneriAttributes = updateQareenUbaneriAttributes;
 
     // ── INICIALIZAÇÃO ─────────────────────────────────────────
     populateAttributeTable();

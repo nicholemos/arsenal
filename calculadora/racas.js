@@ -541,6 +541,18 @@ const DUENDE_PRESENTES = {
 
 };
 
+// ── QAREEN — ASCENDÊNCIAS ELEMENTAIS ─────────────────────────
+// A ascendência define o tipo de dano da Resistência Elemental (RD 10).
+// Chaves iguais às usadas na ficha (charRaceApplied.qareenElemento).
+const QAREEN_ELEMENTOS = {
+    frio:         { name: 'Frio',         label: 'Água (Frio)',       dano: 'frio' },
+    eletricidade: { name: 'Eletricidade', label: 'Ar (Eletricidade)', dano: 'eletricidade' },
+    fogo:         { name: 'Fogo',         label: 'Fogo',              dano: 'fogo' },
+    acido:        { name: 'Ácido',        label: 'Terra (Ácido)',     dano: 'ácido' },
+    luz:          { name: 'Luz',          label: 'Luz',               dano: 'luz' },
+    trevas:       { name: 'Trevas',       label: 'Trevas',            dano: 'trevas' }
+};
+
 // ── RACE_DATA ─────────────────────────────────────────────────
 const RACE_DATA = {
 
@@ -727,7 +739,45 @@ const RACE_DATA = {
                 desc: 'Você pode lançar uma magia de 1º círculo a sua escolha (atributo-chave Carisma). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.'
             }
         ],
-        imageUrl: 'https://giffiles.alphacoders.com/108/108732.gif'
+        imageUrl: 'https://giffiles.alphacoders.com/108/108732.gif',
+
+        // Tatuagem Mística: uma magia arcana de 1º círculo à escolha.
+        spellPicks: [
+            { id: 'qareen-tatuagem', label: 'Tatuagem Mística (magia arcana de 1º círculo)', count: 1, circle: 1, type: 'Arcana' }
+        ],
+
+        // Ascendência elemental: define o tipo de dano da Resistência Elemental.
+        // O poder dinâmico "Resistência Elemental (Elemento)" substitui o fixo.
+        createCustomUi(container) {
+            container.innerHTML = `
+            <div style="margin-bottom:8px">
+                <label for="qareen-elemental">Ascendência Elemental:</label>
+                <select id="qareen-elemental">
+                    <option value="">Selecione a ascendência</option>
+                    ${Object.entries(QAREEN_ELEMENTOS).map(([key, e]) =>
+                `<option value="${key}">${e.label}</option>`
+            ).join('')}
+                </select>
+            </div>`;
+
+            container.querySelector('#qareen-elemental').addEventListener('change', (ev) => {
+                const elem = QAREEN_ELEMENTOS[ev.target.value];
+
+                document.getElementById('bonusMessage').innerHTML =
+                    (RACE_DATA.qareen.bonusMessage || '') +
+                    (elem ? `<br><b>Ascendência:</b> ${elem.name}` : '');
+
+                const dynamicPowers = elem ? [{
+                    name: `Resistência Elemental (${elem.name})`,
+                    desc: `Sua ascendência é <b>${elem.name}</b>: você recebe redução de dano 10 contra ${elem.dano}.`
+                }] : [];
+
+                if (typeof window.renderRacialPowers === 'function') {
+                    window.renderRacialPowers(RACE_DATA.qareen, dynamicPowers);
+                }
+                if (typeof window.updateAll === 'function') window.updateAll();
+            });
+        }
     },
 
     // ── GOLEM (complexo) ──────────────────────────────────────
@@ -1213,7 +1263,15 @@ const RACE_DATA = {
                 desc: 'Pode respirar debaixo d’água e possui deslocamento de natação 12m. Fora d’água, possui pernas (9m). Precisa de contato diário com água para recuperar PM.'
             }
         ],
-        imageUrl: 'https://i.pinimg.com/originals/ee/3e/b1/ee3eb1c7e56d7c6250d11ae048c45ad2.gif'
+        imageUrl: 'https://i.pinimg.com/originals/ee/3e/b1/ee3eb1c7e56d7c6250d11ae048c45ad2.gif',
+
+        // Canção dos Mares: duas magias da lista fixa (atributo-chave Carisma).
+        spellPicks: [
+            {
+                id: 'siren-cancao', label: 'Canção dos Mares', count: 2,
+                names: ['Amedrontar', 'Comando', 'Despedaçar', 'Enfeitiçar', 'Hipnotismo', 'Sono']
+            }
+        ]
     },
 
     silfide: {
@@ -1237,7 +1295,15 @@ const RACE_DATA = {
                 desc: 'Pode lançar duas magias: Criar Ilusão, Enfeitiçar, Luz ou Sono (atributo-chave Carisma). Se aprender novamente, custo diminui em –1 PM.'
             }
         ],
-        imageUrl: 'https://media.tenor.com/0l34BiWLbNIAAAAM/sword-art-online-sao.gif'
+        imageUrl: 'https://media.tenor.com/0l34BiWLbNIAAAAM/sword-art-online-sao.gif',
+
+        // Magia das Fadas: duas magias da lista fixa (atributo-chave Carisma).
+        spellPicks: [
+            {
+                id: 'silfide-fadas', label: 'Magia das Fadas', count: 2,
+                names: ['Criar Ilusão', 'Enfeitiçar', 'Luz', 'Sono']
+            }
+        ]
     },
 
     trog: {
@@ -1314,6 +1380,16 @@ const RACE_DATA = {
             }
         ],
         imageUrl: 'https://media.tenor.com/QX9KPv8OO70AAAAM/chainsaw-man-csm.gif',
+
+        // Suragel Variante com herança Magika: magia arcana de 1º círculo.
+        spellPicks: [
+            {
+                id: 'aggelus-magika', label: 'Herança de Magika (magia arcana de 1º círculo)',
+                count: 1, circle: 1, type: 'Arcana',
+                when: () => document.getElementById('suragel-variante')?.checked &&
+                    document.getElementById('suragel-heranca')?.value === 'Magika'
+            }
+        ],
         createCustomUi: (container) => createSuragelUi(container),
     },
 
@@ -1335,6 +1411,16 @@ const RACE_DATA = {
             }
         ],
         imageUrl: 'https://i0.wp.com/drunkenanimeblog.com/wp-content/uploads/2019/08/red-oni.gif?fit=500%2C277&ssl=1',
+
+        // Suragel Variante com herança Magika: magia arcana de 1º círculo.
+        spellPicks: [
+            {
+                id: 'sulfure-magika', label: 'Herança de Magika (magia arcana de 1º círculo)',
+                count: 1, circle: 1, type: 'Arcana',
+                when: () => document.getElementById('suragel-variante')?.checked &&
+                    document.getElementById('suragel-heranca')?.value === 'Magika'
+            }
+        ],
         createCustomUi: (container) => createSuragelUi(container),
     },
 
@@ -1527,6 +1613,15 @@ const RACE_DATA = {
             }
         ],
         imageUrl: 'https://media.tenor.com/3IrxSu1aWscAAAAM/resident-evil-resident-evil-2.gif',
+
+        // Mutação Magia Bizarra: magia arcana de 1º círculo à escolha.
+        spellPicks: [
+            {
+                id: 'aberrant-magia-bizarra', label: 'Magia Bizarra (magia arcana de 1º círculo)',
+                count: 1, circle: 1, type: 'Arcana',
+                when: () => document.getElementById('mutacaoMagiaBizarra')?.checked
+            }
+        ],
 
         createCustomUi(container) {
             const mutations = Object.entries(ABERRANT_MUTATIONS);
@@ -1798,6 +1893,16 @@ const RACE_DATA = {
         bonusMessage: '+2 em um atributo ou +1 em dois atributos',
         racialPowers: [],
         imageUrl: 'https://i.pinimg.com/originals/23/cc/03/23cc03827dd5eb610540f4a03ea88190.gif',
+
+        // Bênção Prática Arcana: magia arcana de 1º círculo à escolha
+        // (deve causar dano do tipo da Herança Dracônica).
+        spellPicks: [
+            {
+                id: 'kallyanach-pratica-arcana', label: 'Prática Arcana (magia arcana de 1º círculo)',
+                count: 1, circle: 1, type: 'Arcana',
+                when: () => document.getElementById('bencaoMagia')?.checked
+            }
+        ],
 
         createCustomUi(container) {
             const tipos = ['Ácido', 'Eletricidade', 'Fogo', 'Frio', 'Luz', 'Trevas'];
@@ -2463,6 +2568,15 @@ const RACE_DATA = {
         racialPowers: [],
         imageUrl: 'https://i.pinimg.com/originals/b3/a6/da/b3a6daffbeef2af9e7203dd480e89000.gif',
 
+        // Coruja: Sapiência concede uma magia de 1º círculo de adivinhação.
+        spellPicks: [
+            {
+                id: 'moreau-sapiencia', label: 'Sapiência (magia de adivinhação de 1º círculo)',
+                count: 1, circle: 1, school: 'Adivinhação',
+                when: () => document.getElementById('moreau-heranca')?.value === 'coruja'
+            }
+        ],
+
         createCustomUi(container) {
             const opts = Object.entries(MOREAU_HERANCAS)
                 .map(([k, v]) => `<option value="${k}">${k.charAt(0).toUpperCase() + k.slice(1)}</option>`).join('');
@@ -3056,7 +3170,15 @@ const RACE_DATA = {
             }
         ],
         imageUrl: 'https://i.ibb.co/Z65pMm2y/b55yrc.gif',
-        source: 'Bestiário'
+        source: 'Bestiário',
+
+        // Magia das Lâmias: duas magias da lista fixa (atributo-chave Carisma).
+        spellPicks: [
+            {
+                id: 'lamia-magias', label: 'Magia das Lâmias', count: 2,
+                names: ['Criar Ilusão', 'Compreensão', 'Disfarce Ilusório', 'Visão Mística']
+            }
+        ]
     },
 
     lobisomem: {
@@ -3201,3 +3323,4 @@ const RACE_DATA = {
 // Exportar para uso global
 window.RACE_DATA = RACE_DATA;
 window.SURAGEL_HERANCAS = SURAGEL_HERANCAS;
+window.QAREEN_ELEMENTOS = QAREEN_ELEMENTOS;

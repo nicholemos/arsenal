@@ -19,6 +19,7 @@
 //    - Feérico                (variante de Humano/Humana)
 //    - Medusa Dracônica       (variante de Medusa)
 //    - Teju                   (variante de Tabrachi)
+//    - Qareen Ubaneri         (variante de Qareen — linhagem kipane)
 //
 //  Para adicionar uma raça nova aqui:
 //    1. Crie uma entrada em RACE_DATA_DRAGAOBRASIL
@@ -123,6 +124,47 @@ const FEERICO_BENCAOS = {
         name: 'Sagaz Como um Falcão',
         desc: 'Recebe visão na penumbra e fica permanentemente sob efeito da magia Visão Mística, com o aprimoramento de enxergar criaturas e objetos invisíveis.'
     }
+};
+
+// ── LINHAGEM KIPANE (Qareen Ubaneri) ─────────────────────────
+// Por influência de Kallyadranoch, a linhagem das kipane é uma variante
+// da raça qareen. Escolha 1 linhagem (substitui a habilidade Desejos).
+const QAREEN_UBANERI_INTRO = 'Você herdou um talento da sua ancestral que derrotou uma dracofera primordial.';
+const QAREEN_UBANERI_LINHAGENS = {
+    agua: {
+        name: 'Água',
+        desc: 'Como sua ancestral que driblou o kraken Kivulisi, você tem movimentos fluidos e ágeis. Recebe +2 em Acrobacia e, uma vez por rodada, pode gastar 1 PM para se mover 6m como uma ação livre.'
+    },
+    ar: {
+        name: 'Ar',
+        desc: 'Como sua ancestral que perseguiu o roca Mirandege, você tem sentidos aguçados e paciência considerável. Recebe +2 em Percepção, +2 em testes em que escolhe 10 e +5 em testes para manter a concentração em magias.'
+    },
+    fogo: {
+        name: 'Fogo',
+        desc: 'Como sua ancestral que fez a salamandra Ejotó rir, você tem senso de humor afiado. Recebe +2 em Diplomacia e causa 1 ponto de dano adicional para cada dado de dano psíquico.'
+    },
+    luz: {
+        name: 'Luz',
+        desc: 'Como sua ancestral que fez companhia ao unicórnio Darandaran, você trabalha bem em equipe. Recebe +2 em Cavalgar e aumenta o bônus de parceiro em 1. Se seu parceiro concede mais de um bônus, escolha um deles para aumentar (se fornece bônus em perícia, aumente em +1; se fornece bônus em rolagens de dano, aumente em +1; se fornece bônus na Defesa, aumente em +1; etc.).'
+    },
+    terra: {
+        name: 'Terra',
+        desc: 'Como sua ancestral que superou o bulette Ardile em força bruta, você tem um físico robusto. Recebe +2 em Atletismo e manobras de combate.'
+    },
+    trevas: {
+        name: 'Trevas',
+        desc: 'Como sua ancestral que emboscou o basilisco Ojumajele, você é esquivo. Recebe +2 em Furtividade e testes de resistência contra venenos.'
+    }
+};
+
+// ── MEDUSA DRACÔNICA: magias por Natureza Elemental ──────────
+// Olhar Místico permite lançar uma magia de 1º círculo da energia
+// correspondente à Natureza Elemental escolhida.
+const MEDUSA_ELEMENTO_MAGIAS = {
+    acido: { label: 'Ácido', magias: ['Jato Corrosivo'] },
+    eletricidade: { label: 'Eletricidade', magias: ['Toque Chocante'] },
+    fogo: { label: 'Fogo', magias: ['Açoite Flamejante', 'Criar Elementos', 'Explosão de Chamas'] },
+    frio: { label: 'Frio', magias: ['Dardo Gélido'] }
 };
 
 // ── RAÇAS (DRAGÃO BRASIL) ─────────────────────────────────────
@@ -252,6 +294,15 @@ const RACE_DATA_DRAGAOBRASIL = {
         ],
         imageUrl: 'https://media1.giphy.com/media/v1.Y2lkPTZjMDliOTUycDZhNnE3b2NraDIzem90azV2c3JxcGt1OXEzc2VxbmRtaWp4Y24xMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/LURDTf4W7Er0KVbuH7/giphy.gif',
 
+        // Bênção "Mágico Como uma Borboleta": magia arcana de 1º círculo.
+        spellPicks: [
+            {
+                id: 'feerico-magico', label: 'Mágico Como uma Borboleta (magia arcana de 1º círculo)',
+                count: 1, circle: 1, type: 'Arcana',
+                when: () => document.getElementById('feerico-bencao-magicoComoUmaBorboleta')?.checked
+            }
+        ],
+
         // Marcador usado pela ficha para exibir o aviso de escolhas especiais.
         // A interface real das bênçãos é criada em calculadora/script.js.
         createCustomUi() { },
@@ -305,7 +356,47 @@ const RACE_DATA_DRAGAOBRASIL = {
                 desc: 'Pode lançar uma magia de 1º círculo à sua escolha, da energia correspondente à sua Natureza Elemental. Caso aprenda novamente essa magia, seu custo diminui em −1 PM. Não pode conjurá-la se estiver cego ou em condição semelhante.'
             }
         ],
-        imageUrl: 'https://64.media.tumblr.com/9cb335cbb0b9f0c41073f720b77d0d48/3d9ec350545f656d-cd/s400x600/a4ab05b23fddf849388b9fb06f17dc828648f1d7.gifv'
+        imageUrl: 'https://64.media.tumblr.com/9cb335cbb0b9f0c41073f720b77d0d48/3d9ec350545f656d-cd/s400x600/a4ab05b23fddf849388b9fb06f17dc828648f1d7.gifv',
+
+        // Olhar Místico: magia de 1º círculo da energia da Natureza Elemental.
+        spellPicks: [
+            {
+                id: 'medusa-olhar', label: 'Olhar Místico (magia de 1º círculo da energia escolhida)',
+                count: 1,
+                names: () => {
+                    const el = document.getElementById('medusa-elemento')?.value;
+                    return MEDUSA_ELEMENTO_MAGIAS[el]?.magias || [];
+                },
+                when: () => !!document.getElementById('medusa-elemento')?.value
+            }
+        ],
+
+        createCustomUi(container) {
+            container.innerHTML = `
+            <div style="margin-bottom:8px">
+                <label for="medusa-elemento">Natureza Elemental:</label>
+                <select id="medusa-elemento">
+                    <option value="">Selecione</option>
+                    ${Object.entries(MEDUSA_ELEMENTO_MAGIAS).map(([key, e]) =>
+                `<option value="${key}">${e.label}</option>`
+            ).join('')}
+                </select>
+            </div>`;
+
+            container.querySelector('#medusa-elemento').addEventListener('change', (ev) => {
+                const elem = MEDUSA_ELEMENTO_MAGIAS[ev.target.value];
+                const base = window.RACE_DATA?.medusaDraconica?.bonusMessage || '';
+                document.getElementById('bonusMessage').innerHTML =
+                    base + (elem ? `<br><b>Natureza Elemental:</b> ${elem.label}` : '');
+                if (typeof window.refreshSpellPickerPool === 'function') {
+                    window.refreshSpellPickerPool('medusa-olhar');
+                }
+                if (typeof window.renderRacialPowers === 'function' && window.RACE_DATA?.medusaDraconica) {
+                    window.renderRacialPowers(window.RACE_DATA.medusaDraconica);
+                }
+                if (typeof window.updateAll === 'function') window.updateAll();
+            });
+        }
     },
 
     teju: {
@@ -330,6 +421,43 @@ const RACE_DATA_DRAGAOBRASIL = {
             }
         ],
         imageUrl: 'https://media.tenor.com/OOcL19tPURMAAAAM/the-lizard-marvel.gif'
+    },
+
+    // Variante de Qareen (racas.js). Usa as habilidades do qareen, mas troca os
+    // modificadores de atributo e a habilidade Desejos por Linhagem Kipane.
+    // A escolha da linhagem é feita em calculadora/script.js (createQareenUbaneriUi).
+    qareenUbaneri: {
+        name: 'Qareen Ubaneri',
+        type: 'dragaobrasil',
+        tamanho: 'Médio', raca: 'Humanoide',
+        attributes: { sabedoria: 1 },
+        isChoice: true, choiceCount: 2, maxChoicePerAttribute: 1,
+        bonusMessage: 'Sabedoria +1, +1 em dois atributos',
+        racialPowers: [
+            {
+                name: 'Linhagem Kipane',
+                desc: QAREEN_UBANERI_INTRO + ' Substitui a habilidade Desejos.<br>' +
+                    Object.values(QAREEN_UBANERI_LINHAGENS).map(l => `* <b>${l.name}.</b> ${l.desc}`).join('<br>')
+            },
+            {
+                name: 'Resistência Elemental',
+                desc: 'Recebe redução 10 a um tipo de dano conforme sua ascendência (Frio, Eletricidade, Fogo, Ácido, Luz ou Trevas).'
+            },
+            {
+                name: 'Tatuagem Mística',
+                desc: 'Você pode lançar uma magia de 1º círculo a sua escolha (atributo-chave Carisma). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.'
+            }
+        ],
+        imageUrl: 'https://giffiles.alphacoders.com/108/108732.gif',
+        source: 'Dragão Brasil',
+
+        // Tatuagem Mística: uma magia arcana de 1º círculo à escolha.
+        spellPicks: [
+            { id: 'qareenUbaneri-tatuagem', label: 'Tatuagem Mística (magia arcana de 1º círculo)', count: 1, circle: 1, type: 'Arcana' }
+        ],
+
+        // Marcador: a interface real (seletor de linhagem) é criada em script.js.
+        createCustomUi() { }
     },
 
     sahiri: {
@@ -401,6 +529,8 @@ const RACE_DATA_DRAGAOBRASIL = {
 window.RACE_DATA = Object.assign(window.RACE_DATA || {}, RACE_DATA_DRAGAOBRASIL);
 window.VAMPIRO_BENCAOS = VAMPIRO_BENCAOS;
 window.FEERICO_BENCAOS = FEERICO_BENCAOS;
+window.QAREEN_UBANERI_LINHAGENS = QAREEN_UBANERI_LINHAGENS;
+window.QAREEN_UBANERI_INTRO = QAREEN_UBANERI_INTRO;
 window.LICANTROPO_TIPOS = {
     lobo: {
         nome: 'Lobo',
