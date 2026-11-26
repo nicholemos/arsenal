@@ -98,6 +98,14 @@ const CLASS_SHEET_DETAILS = {
             'Braços Calejados': { defesaAtributo: 'FOR', limiteNivel: true, condicao: 'semArmadura', nota: 'sem armadura, soma Força na Defesa' },
             'Casca Grossa':     { defesaAtributo: 'CON', limiteNivel: true, condicao: 'semArmaduraPesada', nota: 'soma Constituição na Defesa' }
         }
+    },
+
+    mistico: {
+        nome: 'Místico',
+        pmAtributo: 'SAB',
+        poderes: {
+            'Sexto Sentido': { defesaAtributo: 'SAB', limiteNivel: true, nota: 'soma Sabedoria na Defesa, limitada pelo nível' }
+        }
     }
 };
 

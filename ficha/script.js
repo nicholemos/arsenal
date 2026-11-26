@@ -5967,6 +5967,20 @@ function _clsStats(e) {
     return m ? { pv: m.pvInicial, perLv: m.pvPorNivel, pm: m.pm } : { pv: c.pv, perLv: c.pv / 4, pm: c.pm };
 }
 
+// Classes base próprias (Místico/Samurai/Soldado) ficam em classes-db-base-data.js.
+// Entram no acervo de poderes para aparecerem na busca e nas habilidades por nível.
+(function _mergeClassesBasePowers() {
+    if (typeof powersData === 'undefined' || !Array.isArray(powersData)) return;
+    if (typeof classesDbBasePowers === 'undefined' || !Array.isArray(classesDbBasePowers)) return;
+    const vistos = new Set(powersData.map(p => `${p.class}|${p.name}`));
+    classesDbBasePowers.forEach(p => {
+        const k = `${p.class}|${p.name}`;
+        if (vistos.has(k)) return;
+        vistos.add(k);
+        powersData.push(p);
+    });
+})();
+
 // Habilidades de classe (subType "ability") até o nível da classe.
 // level devolvido = nível do PERSONAGEM em que a habilidade é recebida
 // (classes na ordem da lista: a 1ª ocupa os níveis 1..N, a 2ª continua depois).
@@ -5978,9 +5992,17 @@ function _clsPlain(html) {
 function _clsAbilityList(e, offset) {
     const slug = e.variant ? _clsSlug(e.variant) : '';
     const isDb = !!_clsDbMeta(e);
+    const vistos = new Set();
     const pool = [].concat(typeof powersData !== 'undefined' ? powersData : [],
-                           typeof classesDbPowers !== 'undefined' ? classesDbPowers : [])
-        .filter(p => p.type === 'class' && p.subType === 'ability' && p.class === e.id);
+                           typeof classesDbPowers !== 'undefined' ? classesDbPowers : [],
+                           typeof classesDbBasePowers !== 'undefined' ? classesDbBasePowers : [])
+        .filter(p => {
+            if (p.type !== 'class' || p.subType !== 'ability' || p.class !== e.id) return false;
+            const k = `${p.class}|${p.name}`;
+            if (vistos.has(k)) return false; // evita duplicata (base powers também entram em powersData)
+            vistos.add(k);
+            return true;
+        });
     const lvl = p => { const m = String(p.req || '').match(/^N[ií]vel\s+(\d+)/i); return m ? parseInt(m[1]) : null; };
     // variante do Dragão Brasil substitui a progressão inteira; as demais só trocam habilidades pontuais
     const allowed = isDb ? new Set([slug]) : new Set([`${e.id}-base`, 'all'].concat(slug ? [slug] : []));
