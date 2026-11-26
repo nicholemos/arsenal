@@ -1758,6 +1758,21 @@ const armasData = {
             descricao: "Arma híbrida. Para atacar com ela como arma de fogo, você deve também ter proficiência em armas de fogo. Recarregar é uma ação padrão.",
             fonte: "Deuses de Arton",
             imagem: "data/img/espada-longa.webp"
+        },
+        {
+            nome: "Zipana",
+            preco: "T$ 500",
+            dano: "1d4",
+            critico: "19",
+            alcance: "Corpo a Corpo",
+            tipo_dano: "Corte",
+            espacos: "1",
+            categoria: "Arma",
+            tipo: "Marcial Leve",
+            empunhadura: "Uma Mão",
+            descricao: "Se for capaz de lançar magias arcanas e tiver redução de ácido, eletricidade, fogo, frio, luz ou trevas (inclusive por fontes temporárias, como magias), você pode gastar 1 PM para borir a zipana. Até o final da cena, a arma causa 1d8 pontos de dano do elemento ao qual você tem redução, em vez de seu dano normal. Um personagem deve ser treinado em Ofício (alquimia) para fabricar uma zipana. Esta arma não pode receber a melhoria material especial.",
+            fonte: "Dragão Brasil",
+            imagem: "https://gbf.wiki/images/9/92/Weapon_s_1020101800.jpg"
         }
 
     ]
