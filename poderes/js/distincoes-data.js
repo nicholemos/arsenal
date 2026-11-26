@@ -2896,42 +2896,117 @@ const distincoesData = [
             }
         ]
     },
-
     {
-        id: 'andarilhos-do-ocaso',
-        name: 'Andarilhos do Ocaso',
-        source: 'revista-tormenta',
+        id: 'gemeo-do-trovao',
+        name: 'Gêmeo do Trovão',
+        source: 'dragaobrasil',
         exclusiva: false,
-        admissao: 'O candidato deve ser um licantropo e provar sua devoção absoluta a Tenebra. Para isso, deve se submeter a um ritual no Templo de Tenebra em Kriegger, no extremo sul de Ahlen. Primeiro, precisa entregar-se à selvageria de sua transformação por uma noite, permitindo que a escuridão da Deusa o consuma. Depois, deve permanecer por cinco noites em um lugar completamente intocado pela luz, incluindo a da lua, do fogo e das estrelas. Ao emergir de seu esconderijo para o luar, será testado por um licantropo enviado por Tenebra, que geralmente o ataca. Caso sobreviva ao encontro, receberá a visita de Tenebra em sonho e se tornará um andarilho do ocaso.',
+        admissao: 'O candidato deve estabelecer um elo extremamente forte com um espírito elemental, que precisa estar constantemente presente em sua vida, como um familiar, guia elemental ou melhor amigo. Essa conexão deve transcender uma parceria ou irmandade comum, alcançando limites emocionais e espirituais profundos. O candidato precisa demonstrar sentimentos sinceros e intensos pelo elemental, podendo fazê-lo por meio de um sacrifício em prol dele, como aconteceu com Gilvir Mirandege e seu alikunhá. A comunhão deve ser genuína, não sendo suficiente apenas cooperar com elementais ou desejar obter os poderes da distinção.',
         marca: {
-            name: 'Marca da Distinção: Transformação Indolor',
-            desc: 'O custo para assumir sua forma híbrida ou de fera diminui em 1 PM.'
+            name: 'Marca da Distinção: Comunhão Elétrica',
+            desc: 'Você recebe redução de eletricidade 10, aumentando em 5 para cada poder da distinção obtido. Também recebe vulnerabilidade a ácido. Além disso, pode alterar a CD dos poderes da distinção para seu atributo-chave de magias, em vez de Constituição, caso deseje.'
         },
         poderes: [
             {
-                name: 'Licantropo Verdadeiro',
-                req: 'Controlar Licantropia, treinado em Percepção e Sobrevivência',
-                desc: 'Em sua forma híbrida ou de fera, recebe +1 em testes de ataque, Percepção e Sobrevivência e na Defesa. Esses bônus aumentam em +1 para cada dois outros poderes da distinção que você possui.'
+                name: 'Dínamo Vivo',
+                req: 'Treinado em Reflexos e Vontade',
+                desc: 'Você pode gastar uma ação de movimento e PM para gerar eletricidade. Cada PM gasto concede uma carga elétrica, que dura até o final da cena. Você não pode ter mais cargas que seu número de poderes da distinção + sua Constituição. Enquanto tiver cargas elétricas, seus ataques corpo a corpo com armas naturais ou armas de metal causam +1 ponto de dano extra de eletricidade para cada carga. Você pode gastar cargas como uma ação padrão para disparar raios. Um raio atinge todos os alvos em uma linha de 30m. Cada criatura na área sofre 1d6 pontos de dano de eletricidade por carga gasta e fica ofuscada por 1d4 rodadas (Ref CD Con reduz à metade e evita a condição).'
             },
             {
-                name: 'Caçador Noturno',
-                req: 'Licantropo Verdadeiro',
-                desc: 'Recebe o poder Marca da Presa (Tormenta20, p. 50) como um caçador de nível igual ao seu total de poderes da distinção × 4. Se já possuir esse poder, seu custo diminui em 1 PM. Essa redução não afeta habilidades baseadas no total de PM gastos em Marca da Presa.'
+                name: 'Atração e Repulsão',
+                req: 'Dínamo Vivo',
+                desc: 'Enquanto tiver uma carga elétrica, você pode usar uma ação de movimento e 1 PM para escolher um alvo no alcance curto. O alvo deve ser um objeto metálico ou uma criatura que esteja empunhando armas de metal, vestindo armaduras de metal ou que tenha metal na composição do corpo. Objetos soltos podem ser deslocados para qualquer lugar dentro do alcance curto, como se manipulados com Força igual à sua Constituição + número de poderes da distinção que você possui. Para outros alvos, faça uma manobra de combate, recebendo um bônus no teste de manobra igual à sua Constituição (ou seu atributo-chave de magias). No caso de manobras como desarmar ou empurrar, você decide se os alvos são movidos na sua direção ou na direção contrária. Você pode gastar +1 PM para afetar humanoides e outras criaturas com ferro no sangue, independentemente de estarem portando itens metálicos. Se usar uma ação padrão e gastar pelo menos uma carga elétrica, você pode emitir uma onda eletromagnética. Todas as criaturas e objetos em alcance curto sofrem dano de eletricidade e são empurrados para trás. Cada carga elétrica causa 1d6 pontos de dano de eletricidade e empurra 1,5m (Ref CD Con reduz o dano à metade e impede o empurrão).'
             },
             {
-                name: 'Noite Imortal',
-                req: 'Licantropo Verdadeiro, outro poder da distinção',
-                desc: 'Ao assumir sua forma híbrida ou de fera, pode gastar 2 PM para receber PV temporários em quantidade igual ao seu total de poderes da distinção × 10.'
+                name: 'Escudo Cintilante',
+                req: 'Dínamo Vivo',
+                desc: 'Quando usa Dínamo Vivo, você pode gastar +1 PM para se envolver em um campo de força defensivo. Você soma +1 na Defesa por cada carga elétrica que tiver. Além disso, quando um inimigo acerta você, fica ofuscado por 1d4 rodadas (Fort CD Con evita a condição) e você recebe uma carga elétrica. Finalmente, no seu turno, como uma ação livre, você pode gastar cargas para fortalecer seu campo de força. Cada carga gasta concede 5 PV temporários.'
             },
             {
-                name: 'Presas de Sombras',
-                req: 'Caçador Noturno',
-                desc: 'Ao assumir sua forma híbrida ou de fera, pode cobrir qualquer quantidade de suas armas naturais com sombras mágicas. Gasta 1 PM por arma escolhida, que causa +1d6 de dano de trevas até o fim da cena. Esse dano aumenta em um passo para cada dois outros poderes da distinção que você possui.'
+                name: 'Salto Trovejante',
+                req: 'Atração e Repulsão',
+                desc: 'Seu deslocamento aumenta em 1,5m por carga elétrica que você tiver. Além disso, você pode gastar 1 PM para voar 9m como uma ação livre. Este movimento deve terminar em uma superfície que possa suportar seu peso. Você pode gastar uma carga na decolagem ou na aterrissagem para causar um trovão e atordoar todas as criaturas a 1,5m de você (Fort CD Con evita a condição; uma criatura só pode ser atordoada por esse efeito uma vez por cena).'
             },
             {
-                name: 'Sentidos do Predador',
-                req: 'Dois outros poderes da distinção',
-                desc: 'Ao assumir sua forma híbrida ou de fera, pode gastar 2 PM para receber Percepção às Cegas com alcance médio até o fim da cena.'
+                name: 'Super Choque',
+                req: 'Escudo Cintilante, Salto Trovejante',
+                desc: 'Quando usa Dínamo Vivo para disparar raios, você causa 1d12 pontos de dano de eletricidade por carga gasta e pode gastar +1 PM para ignorar a redução de eletricidade do alvo. Além disso, enquanto tiver cargas de eletricidade, seus acertos críticos corpo a corpo com armas naturais e armas metálicas deixam o alvo atordoado por uma rodada (apenas uma vez por cena; Fort CD Con evita). Finalmente, você pode usar Dínamo Vivo para gerar cargas de eletricidade como uma ação livre, uma vez por rodada.'
+            }
+        ]
+    },
+    {
+        id: 'retalhador-panzajiri',
+        name: 'Retalhador Panzajiri',
+        source: 'dragaobrasil',
+        exclusiva: false,
+        admissao: 'O candidato deve ser treinado por um retalhador experiente, o que pode ser difícil devido ao estigma da prática de panzaji em Ubani e à morte de muitos mestres na destruição de Ojumajele. Um dos poucos mestres conhecidos é Gizachini Ojumajele, o Tio Giz, diretor da Escola de Etiqueta Elemental em Mirandege, que abandonou a violência e pode ser difícil de convencer a ensinar suas técnicas. Após alguns meses de treinamento, o candidato deve realizar um ritual com incensos especiais acesos, entrando em transe hipnótico para contemplar sua própria mortalidade e a severidade do ato de matar. Aqueles que perseveram após essa experiência tornam-se retalhadores.',
+        marca: {
+            name: 'Marca da Distinção: Instinto Assassino',
+            desc: 'Você recebe +2 em Furtividade e no dano de armas de corte corpo a corpo. Esses bônus aumentam em +1 para cada dois poderes da distinção que você possuir.'
+        },
+        poderes: [
+            {
+                name: 'Talho Tenebroso',
+                req: 'Proficiente com uma arma de corte corpo a corpo marcial, treinado em Furtividade e Luta',
+                desc: 'Quando faz um ataque com uma arma de corte corpo a corpo, você pode gastar 1 PM para causar +1d8 pontos de dano extra de trevas. Esse dado de dano é multiplicado em acertos críticos e aumenta em um passo para cada dois poderes da distinção que você possuir. Além disso, vítimas do seu Talho Tenebroso não podem curar PV por 1 rodada.'
+            },
+            {
+                name: 'Ardil da Lâmina',
+                req: 'Talho Tenebroso',
+                desc: 'Quando faz um ataque com uma arma de corte corpo a corpo, se fizer um acerto crítico ou acertar um alvo desprevenido, você recebe camuflagem leve por escuridão contra o alvo. Esse efeito dura até o início do seu próximo turno ou até você fazer um ataque contra outro alvo.'
+            },
+            {
+                name: 'Cortar Almas',
+                req: 'Talho Tenebroso',
+                desc: 'Quando usa Talho Tenebroso, você ignora redução de dano e imunidade contra corte e trevas, exceto caso o alvo seja imune tanto a corte quanto a trevas. Além disso, quando usa Talho Tenebroso e faz um acerto crítico ou reduz o alvo a 0 PV, você recebe 1 PM temporário para cada poder da distinção.'
+            },
+            {
+                name: 'Mortalha Afiada',
+                req: 'Talho Tenebroso',
+                desc: 'Quando for alvo de um ataque, você pode gastar 1 PM para receber camuflagem leve por escuridão. Se já tinha camuflagem leve, recebe camuflagem total. Se o ataque errar, seu inimigo sofre dano de trevas igual ao seu dano extra de Talho Tenebroso.'
+            },
+            {
+                name: 'Passo Instantâneo',
+                req: 'Treinado em Acrobacia, Ardil da Lâmina',
+                desc: 'Você recebe +3m de deslocamento e +2 em Acrobacia. Além disso, quando se move mais de 6m, pode gastar 1 PM para escolher um inimigo dentro de uma área com 9m de raio. Você pode fintar contra esse inimigo como uma ação livre, usando Furtividade em vez de Enganação.'
+            }
+        ]
+    },
+    {
+        id: 'senhor-das-chamas',
+        name: 'Senhor das Chamas',
+        source: 'dragaobrasil',
+        exclusiva: false,
+        admissao: 'Tornar-se um senhor das chamas exige longos períodos de treinamento em lugares de clima extremamente quente, onde uma pessoa normal não sobreviveria mais que poucos dias. As areias escaldantes de Halak-Tûr são um local comum para os ubaneri, enquanto Escamas Vivas e sckharjagar podem escolher regiões vulcânicas do reino de Sckhar e das Montanhas Sanguinárias. A última etapa do treinamento, porém, deve ser realizada em Pyra, mundo de Thyatis, onde o calor supera até mesmo o dos desertos mais escaldantes. Aqueles que sobrevivem à jornada retornam como membros da distinção.',
+        marca: {
+            name: 'Marca da Distinção: Abraço da Chama',
+            desc: 'Você recebe redução de fogo 10, aumentando em 5 para cada poder da distinção obtido. Também recebe vulnerabilidade a frio. Além disso, pode alterar a CD dos poderes da distinção para seu atributo-chave de magias, em vez de Constituição, caso deseje.'
+        },
+        poderes: [
+            {
+                name: 'Labaredas',
+                req: 'Treinado em Fortitude e Sobrevivência',
+                desc: 'Você pode gastar 1 PM para conceder o encanto flamejante às suas armas empunhadas e ataques desarmados até o final da cena. O dado de dano de fogo extra (d6) e cada dado de dano da Bola de Fogo (ou da magia homônima, se a tiver aprendido) aumentam em um passo para cada dois outros poderes da distinção. Esse é o seu dado de labareda. Quando usa a Bola de Fogo do encanto flamejante ou a magia homônima, você pode optar por trocar o atributo da CD do teste de resistência para Constituição. Além disso, ao fazer a ação agredir, também pode gastar 1 PM para disparar rajadas de fogo. Elas funcionam como uma arma à distância de disparo com alcance curto, causando dano igual a dois dados de labareda. Finalmente, enquanto tiver uma arma flamejante, pode gastar uma ação de movimento para cauterizar ferimentos e remover a condição sangrando de você ou de outra criatura.'
+            },
+            {
+                name: 'Contos nas Cinzas',
+                req: 'Labaredas',
+                desc: 'Você aprende e pode lançar Augúrio como uma magia simulada, usando cinzas para a adivinhação. Se tiver cinco poderes da distinção, pode tocar as cinzas de uma criatura ou objeto para lançar Lendas e Histórias como uma magia simulada, obtendo informações sobre a criatura ou objeto queimados. Caso já tenha aprendido essas magias, seus custos diminuem em –1 PM (cumulativo com outros redutores de custo).'
+            },
+            {
+                name: 'Em Chamas',
+                req: 'Labaredas',
+                desc: 'Você pode gastar 2 PM e uma ação de movimento para imolar o próprio corpo. Você fica envolto em chamas, emitindo luz como uma tocha, até o fim da cena. Durante esse período, recebe deslocamento de voo igual ao seu deslocamento padrão e pode rolar novamente seu dado de labareda se obtiver um resultado 1 ou 2. Além disso, qualquer criatura que comece seu turno a 1,5m de você sofre dano de fogo igual ao seu dado de labareda e fica em chamas (Reflexos CD Con evita o dano e a condição).'
+            },
+            {
+                name: 'Moldar Fogo',
+                req: 'Labaredas',
+                desc: 'Você pode lançar Explosão de Chamas e Bola de Fogo como magias simuladas. Se tiver cinco poderes da distinção, também pode lançar Muralha Elemental (somente fogo) como uma magia simulada. Caso já tenha aprendido essas magias, seus custos diminuem em –1 PM (cumulativo com outros redutores de custo).'
+            },
+            {
+                name: 'Obliterar',
+                req: 'Labaredas',
+                desc: 'Quando causa dano de fogo, você pode gastar PM para aumentar esse dano. Cada PM gasto aumenta o dano em um dado extra do mesmo tipo, limitado pela quantidade de poderes da distinção que possui. Você também pode gastar +1 PM para ignorar redução de fogo e +3 PM para ignorar imunidade a fogo.'
             }
         ]
     },

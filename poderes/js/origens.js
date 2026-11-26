@@ -1343,7 +1343,7 @@ const origensData = [
     source: 'Atlas',
     region: 'Nova Malpetrim',
     desc: 'Batizado com nome de herói em uma cidade de heróis, seu único objetivo é superar as lendas que o cercam.',
-    items: 'Uma arma simples ou marcial com nome pomposo, essência de mana (x2).',
+    items: 'Uma arma simples ou marcial com nome pomposo, gibão de peles, essência de mana (x2).',
     autoTraining: [],
     uniqueBenefit: {
       name: 'Início Promissor',
@@ -2409,7 +2409,6 @@ const origensData = [
     }
   },
 
-  // --- Continuação: A LENDA DE RUFF GHANOR ---
 
   {
     id: 'campones-ghanor',
@@ -2692,7 +2691,8 @@ const origensData = [
     }
   },
 
-   // ──────────────────────────────────────────────────────────
+
+  // ──────────────────────────────────────────────────────────
   //  DRAGAO BRASIL
   // ──────────────────────────────────────────────────────────
 
@@ -2734,6 +2734,59 @@ const origensData = [
     uniqueBenefit: {
       name: 'Astúcia dos Ermos',
       desc: 'Recebe +2 em Fortitude e Furtividade e nas rolagens de dano contra criaturas desprevenidas. Pode atravessar terrenos difíceis sem redução de deslocamento — se já puder, em vez disso seu deslocamento aumenta em +3m.'
+    }
+  },
+//URBANI
+  {
+    id: 'ajudante-nato',
+    name: 'Ajudante Nato',
+    type: 'outras',
+    source: 'Dragão Brasil',
+    desc: 'Você abraçou perfeitamente os ideais comunitários de Ubani. Todos são capazes por conta própria, mas você consegue fazer todos cooperarem ainda mais para ter resultados melhores.',
+    items: 'Essência de mana x2, pergaminho com magia de 1º círculo, lança.',
+    autoTraining: [],
+    uniqueBenefit: {
+      name: 'Cooperação Natural',
+      desc: '• Recebe +10 em testes de perícia para ajudar e pode fazer testes para ajudar mesmo quando não é treinado na perícia.\n• Torna-se treinado em uma perícia à sua escolha.\n• Recebe um alikunhá (ver Atlas de Arton, p. 471).'
+    }
+  },
+  {
+    id: 'bori-enredado',
+    name: 'Bori Enredado',
+    type: 'outras',
+    source: 'Dragão Brasil',
+    desc: 'Você nasceu com grande potencial arcano, mas sob um mau agouro. As coisas costumam dar errado com você.',
+    items: 'Essência de mana, um esotérico à sua escolha (até T$ 500) ou uma zipana.',
+    autoTraining: [],
+    uniqueBenefit: {
+      name: 'Mau Agouro',
+      desc: '• Recebe +3 PM e +2 em Misticismo.\n• A CD para resistir às suas magias aumenta em +1.\n• Porém, quando faz um teste e o resultado do d20 é 2 ou 3, você falha automaticamente (como se tivesse tirado 1 natural).'
+    }
+  },
+  {
+    id: 'celebrante-da-vida',
+    name: 'Celebrante da Vida',
+    type: 'outras',
+    source: 'Dragão Brasil',
+    desc: 'Alguns habitantes de Ojumajele celebravam a vida. Eram oradores invejáveis, convidados para relembrar os falecidos nos aniversários de suas mortes. A visão de seus trajes pretos elaborados, cobertos de joias, trazia conforto aos corações dos que permaneciam. Ojumajele pode ter sido destruída, mas você ainda segue as tradições, glorifica a memória e convida para o amanhã.',
+    items: 'Pergaminho de Bênção, poção de Santuário, símbolo sagrado (Allihanna, Kallyadranoch, Megalokk ou Wynna), traje da corte.',
+    autoTraining: ['Diplomacia', 'Religião'],
+    uniqueBenefit: {
+      name: 'Tradição de Ojumajele',
+      desc: '• Enquanto usa um traje da corte, recebe +5 em testes de Diplomacia para mudar atitude de ubaneris.'
+    }
+  },
+  {
+    id: 'verdugo-da-morte',
+    name: 'Verdugo da Morte',
+    type: 'outras',
+    source: 'Dragão Brasil',
+    desc: 'Alguns habitantes de Ojumajele tratavam dos recém-mortos e dos desmortos descontrolados. A imagem de homens trajados de branco, usando colares de contas pretas e empunhando armas cortantes se tornou uma das mais agourentas da savana. Ojumajele não existe mais, mas você mantém viva a tradição dos verdugos, eliminando mortos-vivos e realizando ritos fúnebres.',
+    items: 'Água benta x2, cimitarra ou espada longa, símbolo sagrado (Allihanna, Kallyadranoch, Megalokk ou Wynna), T$ 50 (pagamento por ritos fúnebres realizados).',
+    autoTraining: ['Religião'],
+    uniqueBenefit: {
+      name: 'Ritos do Verdugo',
+      desc: '• Recebe proficiência com cimitarra e espada longa.\n• Uma vez por rodada, quando acerta um alvo sangrando ou um morto-vivo com uma arma de corte, pode gastar 1 PM para causar um dado de dano extra do mesmo tipo.'
     }
   }
 

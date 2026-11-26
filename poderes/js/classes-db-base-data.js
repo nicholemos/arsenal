@@ -11,119 +11,158 @@
 //  '<classe>-base' para habilidades fixas por nível e 'all'
 //  para o pool de poderes selecionáveis — plugam direto no
 //  motor de renderização de Classes existente.
+//
+//  Místico atualizado para a versão final da classe: Combate
+//  Elemental, Afinidade Elemental, Moldar Elemento, Tradição
+//  Oral reformulada, novos poderes e Guias Elementais.
+//  `classesDbBaseGuides` reúne os seis guias como parceiros
+//  especiais (fora do pool de poderes), com suas ordens.
 // ============================================================
 
 const classesDbBasePowers = [
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 1",
-    name: "Afinidade",
-    desc: "Escolha um elemento entre água, ar, fogo, luz, terra e trevas. Uma vez feita, essa escolha não pode ser mudada. Para cada círculo de magia que pode lançar, você recebe redução 5 contra o tipo de dano associado ao elemento escolhido (veja o quadro). Além disso, quando lança uma magia que causa dano de um tipo associado a outro elemento, você pode gastar 1 PM para transformar esse dano no tipo associado ao seu elemento. Por fim, cada elemento adiciona uma perícia à sua lista de perícias de classe.<br><br><strong>Regras adicionais (Ditames, Elementos e Manifestações Elementais):</strong><br>Ditames O místico expande suas magias conhecidas através de ditames, conjuntos temáticos fechados de conhecimento mágico. Ele não tem acesso a poderes como Conhecimento Mágico do arcanista e precisa seguir padrões e tradições estabelecidos há muito tempo e passados de geração a geração. Quando você adquire um poder de ditame, se já conhece uma das magias fornecidas pelo poder, pode trocá-la por outra magia de mesmo círculo, desde que essa magia seja de uma de suas escolas permitidas. Quando você lança uma magia aprendida. por meio de um poder de ditame, se estiver em contato com uma expressão natural do seu elemento de volume equivalente a uma criatura Média, o custo dessa magia é reduzido em -1 PM. Os Seis Elementos Elementos	Energia	Escola de Magia	Perícia Água	Frio	Encantamento	Diplomacia (Car) Ar	Eletricidade	Ilusão	Enganação (Car) Fogo	Fogo	Transmutação	Acrobacia (Des) Luz	Luz	Abjuração	Cura (Sab) Terra	Ácido	Convocação	Investigação (Int) Trevas	Trevas	Necromacia	Intimidação (Car) Manifestações Elementais Manifestações elementais são pequenos espíritos ligados a um tipo de energia elemental, Um místico que tenha realizado o ritual apropriado, pode se conectar a uma dessas manifestações e invocá-la em seu auxílio, Em termos de regras, manifestações elementais são parceiros que usam as regras a seguir. Para usar uma manifestação elemental você precisa primeiro gastar uma ação de movimento e 2 PM para evocá-la. Para isso, você precisa de acesso a uma expressão natural do elemento correspondente, Uma manifestação evocada desaparece no fim da cena. Em seu turno, você pode dar uma ordem para a manifestação usando uma ação de movimento. As ações que cada manifestação pode executar são apresentadas em sua descrição. Se a ação tiver um custo em PM, ele deve ser pago por você. Para outros usos criativos do parceiro, caso a manifestação precise realizar um teste, considere um modificador igual ao círculo máximo de magias que você pode lançar. Quando ela faz um teste, você pode gastar uma quantidade de PM limitada por sua Sabedoria. Para cada PM gasto, a manifestação recebe +2 nesse teste. Se a situação for condizente com a natureza do parceiro (como pedir que uma manifestação da água apague um incêndio ou que uma manifestação da terra erga algo pesado), ela recebe +5 nesse teste. Água Bolha. O elemental envolve seu corpo como uma bolha de água. Você recebe +4 na Defesa e pode respirar normalmente sob a água por uma rodada. Empurrão Hidráulico (2 PM). O elemental dispara um jato de água pressurizado em um alvo em alcance curto. O alvo sofre 3d6 pontos de dano de impacto e fica caído (Fortitude CD Sab reduz o dano à metade e evita a condição). Surfar. Uma criatura em alcance curto recebe deslocamento de natação 12m por uma rodada. Ar Barreira Eólica. Você recebe camuflagem contra ataques à distância e +2 em Reflexos por uma rodada. Conduzir ao Solo. Ao contrário de outras ações do elemental, esta é uma reação; você pode lançar Queda Suave, mas apenas em você mesmo. Planar (2 PM). Uma criatura em alcance curto recebe deslocamento de voo 12m por uma rodada. Fogo Aura de Calor. Até sua próxima rodada, inimigos que terminarem seus turnos adjacentes a você sofrem 2d6+2 pontos de dano de fogo. Chicote de Chamas (2 PM). O elemental acerta uma criatura em alcance curto com um jato de chamas que causa 4d6 pontos de dano de fogo (Reflexos CD Sab reduz à metade). Ladareda Propulsora. Uma criatura em alcance curto recebe +10 em testes de Atletismo para correr e saltar por uma rodada. Luz Brilhar. Emite luz como uma tocha. Uma criatura dentro do alcance curto fica ofuscada por 1 rodada (Vontade CD Sab nega). Curar (2 PM). Uma criatura dentro do alcance curto cura 4d8 pontos de vida. Cegar. Uma criatura dentro do alcance curto fica cega por 1 rodada (Vontade CD Sab nega) Terra Arremesso de Rocha (2 PM). O elemental arremessa um pedregulho contra um alvo em alcance médio, causando 5d6 pontos de dano de impacto (Reflexos CD Sab evita). Muralha. Você recebe redução de corte, impacto e perfuração 10 por uma rodada. Tunelar. Uma criatura dentro do alcance curto recebe deslocamento de escalada (12m) ou escavar (9m) por uma rodada. Trevas Manto de Sombras. Uma criatura dentro do alcance curto recebe +10 em testes de Furtividade para se esconder por 1 rodada. Tentáculo Obscuro (2 PM). O elemental agarra uma criatura dentro do alcance médio com seu tentáculo. Faça um teste de Misticismo para agarrar, com um bônus igual ao círculo máximo de magias que pode lançar. Apavorar. Uma criatura dentro do alcance curto fica abalada (Vontade CD Sab nega)"
+    name: "Afinidade Elemental",
+    desc: "Escolha um elemento entre água, ar, fogo, luz, terra e trevas. Uma vez feita, essa escolha não pode ser mudada. Você recebe redução 5 contra o tipo de dano associado ao seu elemento para cada círculo de magia que pode lançar (RD 5 no 1º nível, RD 10 no 6º, RD 15 no 10º e RD 20 no 14º). Além disso, cada elemento adiciona uma perícia à sua lista de perícias de classe e define a condição adicional causada pelo seu Combate Elemental.<br><br><strong>Os Seis Elementos</strong><br>• <strong>Água</strong> — dano de frio; escola Encantamento; condição Lento; perícia Diplomacia (Car); guias assassino, perseguidor ou vigilante.<br>• <strong>Ar</strong> — dano de eletricidade; escola Ilusão; condição Ofuscado; perícia Enganação (Car); guias ajudante, guardião ou médico.<br>• <strong>Fogo</strong> — dano de fogo; escola Transmutação; condição Em Chamas (não tem duração de 1 rodada); perícia Acrobacia (Des); guias atirador, combatente ou fortão.<br>• <strong>Luz</strong> — dano de luz; escola Abjuração; condição Ofuscado; perícia Cura (Sab); guias guardião, médico ou vigilante.<br>• <strong>Terra</strong> — dano de ácido; escola Convocação; condição Vulnerável; perícia Investigação (Int); guias combatente, guardião ou montaria.<br>• <strong>Trevas</strong> — dano de trevas; escola Necromancia; condição Não pode curar PV; perícia Intimidação (Car); guias assassino, magivocador ou perseguidor.<br><br><strong>Ditames.</strong> O místico expande suas magias conhecidas através de ditames, conjuntos temáticos fechados. Ele não tem acesso a habilidades como Conhecimento Mágico do arcanista, precisando seguir padrões e tradições estabelecidos há muito tempo e passados de geração em geração. Quando adquire um poder de ditame, se o místico já conhece uma das magias indicadas, pode trocá-la por outra magia arcana de mesmo círculo, desde que essa magia seja de uma de suas escolas permitidas.<br><br><strong>Expressões naturais.</strong> Alguns poderes fazem referência a expressões naturais de um elemento: manifestações que ocorrem sem serem alimentadas de magia. Uma fogueira pode servir como expressão natural de fogo mesmo que tenha sido acesa com uma Bola de Fogo, mas um ber'baram ou outro elemental não poderia, bem como as chamas da magia Muralha Elemental. Para luz, são ambientes iluminados; para trevas, ambientes desprovidos de iluminação; para água, corpos de água limpos como poças, lagos e rios; para terra, montanhas e extensões de terra fértil; para ar, ambientes com ar puro, normalmente encontrados em altitudes elevadas."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 1",
-    name: "Ataque Elemental",
-    desc: "Quando faz um ataque corpo a corpo, você pode gastar uma quantidade de PM limitada pelo círculo máximo de magia que pode lançar para infundir à arma com energia elemental. Para cada PM gasto, O ataque causa + 1d8 pontos de dano do tipo associado a sua Afinidade."
+    name: "Combate Elemental",
+    desc: "Quando faz um ataque com uma arma corpo a corpo, você pode gastar PM para infundir a arma com seu elemento. Para cada PM gasto (limitado pelo seu círculo máximo de magias), você causa +1d6 pontos de dano extra do seu elemento. Esse valor aumenta para +2d6 no 6º nível, +3d6 no 10º nível e +4d6 no 14º nível. Se causar dano, também causa a condição do seu elemento (veja Afinidade Elemental) por 1 rodada — exceto Em Chamas, que não tem duração de 1 rodada. Se você lançou uma magia do seu elemento no turno em que fez o ataque, recebe um bônus nesse teste de ataque igual ao dobro do círculo da magia."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 1",
     name: "Magias",
-    desc: "Você pode lançar magias arcanas de 1º circulo de evocação, de uma segunda escola definida por sua Afinidade e de uma terceira escola à sua escolha (uma vez feita, essa escolha não pode ser mudada). À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º circulo no 14º nível). Você começa com Criar Elementos e duas outras magias de 1º círculo a sua escolha. A cada nível par (2º, 4º etc), aprende uma magia de qualquer círculo e escola que possa lançar. Você pode lançar essas magias vestindo armaduras leves sem precisar de testes de Misticismo. Seu atributo-chave para lançar magias é Sabedoria e você soma sua Sabedoria no seu total de PM."
+    desc: "Você pode lançar magias arcanas de 1º círculo de evocação, de uma segunda escola definida pelo seu elemento e de uma terceira escola à sua escolha (uma vez feita, essa escolha não pode ser mudada). À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com Criar Elementos e duas magias de 1º círculo a sua escolha. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo e escola que possa lançar. Você pode lançar essas magias vestindo armaduras leves sem precisar de testes de Misticismo. Seu atributo-chave para lançar magias é Sabedoria e você soma sua Sabedoria no seu total de PM.<br><br>Alguns poderes fazem referência a magias do seu elemento. Isso quer dizer magias que causem dano do tipo do seu elemento e magias da escola associada ao seu elemento."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 2",
     name: "Língua Primordial",
-    desc: "No 2º nível, você pode se comunicar com espíritos ligados ao elemento de sua Afinidade, como o efeito básico da magia Voz Divina, e recebe +5 em testes de Carisma e de perícias originalmente baseadas em Carisma com essas criaturas, O mestre define exatamente quais criaturas se encaixam nessa descrição mas, como regra geral, qualquer criatura do tipo espírito com imunidade ao tipo de dano associado à sua Afinidade é considerada ligada ao seu elemento."
+    desc: "No 2º nível, você pode se comunicar com qualquer espírito com quem compartilhe Afinidade Elemental. Você recebe +5 em testes de Carisma e de perícias originalmente baseadas em Carisma com essas criaturas."
   },
   {
     type: "class",
+    source: "dragaobrasil",
+    class: "mistico",
+    subType: "ability",
+    pathReq: "mistico-base",
+    req: "Nível 3",
+    name: "Moldar Elemento",
+    desc: "No 3º nível, você pode usar a energia elemental do ambiente para fortalecer suas magias. Se estiver em contato com uma expressão natural do seu elemento de tamanho Grande, você pode gastar uma ação de movimento para aumentar seu limite de PM para magias do seu elemento em +1. Conforme sobe de nível, precisa de expressões cada vez menores e obtém bônus cada vez maiores: Médio, +2 no 8º nível; Pequeno, +3 no 15º nível; Minúsculo, +4 no 20º nível (como ação livre, pela Comunhão Suprema)."
+  },
+  {
+    type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 3",
     name: "Tradição Oral",
-    desc: "No 3º nível, você recebe +2 em Misticismo. Esse bônus aumenta para +4 no 9º nível e para +6 no 13º nível."
+    desc: "A partir do 3º nível, você pode fazer testes de Conhecimento mesmo sem ser treinado e, quando faz um teste de Conhecimento ou Misticismo, pode gastar 1 PM para rolá-lo novamente."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 4",
     name: "Sexto Sentido",
-    desc: "No 4º nível, você soma sua Sabedoria, limitada pelo seu nível, à sua Defesa. Esta habilidade exige liberdade de movimentos; você não pode usa-la se estiver de armadura pesada ou na condição imóvel."
+    desc: "No 4º nível, você pode somar sua Sabedoria, limitada pelo seu nível, à sua Defesa."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 6",
     name: "Afinidade Evoluída",
-    desc: "No 6º nível, À, escolha uma das seguintes opções. Afinidade Concentrada. Você recebe +2 na CD de suas habilidades de místico e em testes de ataque usando Ataque Elemental. Afinidade Expandida. Escolha um segundo elemento para sua habilidade Afinidade. Você se torna treinado na perícia relacionada a este segundo elemento e recebe todos os benefícios de Afinidade relativos a ele, incluindo redução de dano e acesso a sua escola associada."
+    desc: "No 6º nível, escolha uma das seguintes opções.<br><br><strong>Afinidade Concentrada.</strong> A CD para resistir a suas magias aumenta em +2. Além disso, magias de dano causam um dado de dano extra do mesmo tipo.<br><br><strong>Afinidade Expandida.</strong> Escolha um segundo elemento para sua habilidade Afinidade Elemental. Você se torna treinado na perícia relacionada ao segundo elemento e recebe todos os benefícios de Afinidade Elemental relativos a ele, incluindo redução de dano e acesso a sua escola associada. Para todos os sentidos, o segundo elemento também é considerado seu elemento."
   },
   {
     type: "class",
+    source: "dragaobrasil",
+    class: "mistico",
+    subType: "ability",
+    pathReq: "mistico-base",
+    req: "Nível 6",
+    name: "Guias Elementais (regras)",
+    desc: "Guias elementais são um tipo especial de parceiro, obtido pelo poder Pacto Elemental. Um guia deve ser invocado através de uma expressão natural do seu elemento de qualquer tamanho, com uma ação de movimento e 2 PM; ele desaparece no final da cena. No 7º nível, você pode gastar +1 PM para invocá-lo como parceiro veterano; no 15º nível, +2 PM para invocá-lo como parceiro mestre.<br><br>Em seu turno, você pode dar uma ordem ao guia usando uma ação de movimento. As ordens de cada guia são apresentadas em sua descrição; algumas custam PM. Quaisquer bônus das ordens acumulam com os bônus de parceiro do guia, mas não com os bônus de outros parceiros. Todas essas ações são habilidades mágicas.<br><br>O bônus para testes do guia é igual à sua Sabedoria mais seu círculo máximo de magias. Em situações condizentes com a natureza do guia, esse bônus aumenta em +2 por patamar do guia. Ordens além das listadas podem receber esse bônus, a critério do mestre; situações completamente avessas à natureza do guia aplicam um redutor de mesmo valor.<br><br>Se você tem um alikunhá, não precisa de uma expressão natural do seu elemento para invocar o guia. Em vez disso, você transforma o alikunhá no guia ao realizar o ritual.<br><br><strong>Ordens por elemento:</strong><br>• <strong>Água:</strong> Bolha; Escudo Hídrico; Jato Hidráulico (1 PM).<br>• <strong>Ar:</strong> Barreira Eólica; Bons Ventos (reação); Planar (2 PM).<br>• <strong>Fogo:</strong> Aura de Calor; Chicote de Chamas (2 PM); Labareda Propulsora.<br>• <strong>Luz:</strong> Brilhar; Curar (2 PM); Cegar (1/cena).<br>• <strong>Terra:</strong> Arremesso de Rocha (2 PM); Muralha; Tunelar.<br>• <strong>Trevas:</strong> Manto Sombrio; Tentáculo Obscuro (2 PM); Apavorar."
+  },
+  {
+    type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "ability",
     pathReq: "mistico-base",
     req: "Nível 20",
     name: "Comunhão Suprema",
-    desc: "No 20º nível, você desenvolve uma comunhão perfeita com seu elemento. Você se torna imune ao tipo de dano da sua Afinidade e o custo em PM de suas magias que causem dano desse tipo ou façam parte da escola associada é reduzido à metade (após aplicar aprimoramentos e quaisquer outros efeitos que reduzam custo)."
+    desc: "No 20º nível, você desenvolve uma comunhão perfeita com seu elemento. Você se torna imune ao tipo de dano da sua Afinidade Elemental e pode usar Moldar Elemento como uma ação livre com uma expressão elemental Minúscula (+4). Além disso, uma vez por cena, você pode gastar uma ação de movimento para receber três poderes de magia que cumpram os pré-requisitos à sua escolha. Se também gastar 1 PM por poder, você não precisa cumprir seus pré-requisitos. Você mantém os poderes até o final da cena. Finalmente, você pode gastar o dobro de PM em Combate Elemental."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: null,
     name: "Absorver Elemento",
-    desc: "Uma vez por cena, quando está em contato com uma expressão natural do seu elemento, você pode gastar uma ação de movimento para absorver energia mágica. Você adquire uma quantidade de PMs temporários igual ao círculo máximo de magias que pode lançar. Esses PMs duram por uma cena e não são cumulativos."
+    desc: "Uma vez por cena, quando está em contato com uma expressão natural do seu elemento de tamanho Médio ou maior, você pode gastar uma ação de movimento para absorver energia mágica. Você adquire uma quantidade de PM temporários igual ao seu círculo máximo de magias. Esses PM duram por uma cena e não são cumulativos."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "12º nível de místico, Afinidade Expandida",
     name: "Afinidade Maior",
-    desc: "Você escolhe um terceiro elemento para sua habilidade Afinidade."
+    desc: "Escolha um terceiro elemento para sua habilidade Afinidade Elemental. Você se torna treinado na perícia relacionada ao terceiro elemento e recebe todos os benefícios de Afinidade Elemental relativos a ele, incluindo redução de dano e acesso a sua escola associada. Para todos os sentidos, o terceiro elemento também é considerado seu elemento."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (terra)",
+    req: "Afinidade Elemental (terra)",
     name: "Andar pelas Paredes",
-    desc: "Você recebe deslocamento de escalada igual ao seu deslocamento terrestre. Você não fica desprevenido enquanto escala desse modo."
+    desc: "Você recebe deslocamento de escalada igual ao seu deslocamento padrão. Você não fica desprevenido enquanto escala desse modo."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "4º nível de místico, Afinidade (terra)",
+    req: "4º nível de místico, Afinidade Elemental (terra)",
     name: "Armadura Rochosa",
-    desc: "Você pode gastar uma ação de movimento e 2 PM para moldar uma esfera de terra ou rocha que fica orbitando ao seu redor. Para cada círculo de magia além do 1º que puder lançar, você pode gastar +2 PM para moldar mais uma dessas esferas. Quando sofre dano, você pode gastar 1 esfera para receber RD 30 contra esse dano. Você também pode gastar uma ação de movimento e 1 esfera para causar 4d6 + Sabedoria pontos de dano de impacto em uma criatura em alcance curto (Ret CD Sab reduz à metade). As esferas permanecem ao seu redor até o fim da cena ou até serem usadas. Você precisa ter acesso a uma expressão de seu elemento para usar este poder."
+    desc: "Você pode usar uma ação de movimento e 1 PM para criar uma couraça ou uma meia armadura de terra e rocha que não atrapalha os gestos necessários para lançar magias arcanas. Você é proficiente com a armadura e ela dura por uma cena antes de se desfazer em poeira. Se estiver em contato com uma expressão natural de terra Grande ou maior, a penalidade da armadura diminui em 1."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
@@ -133,78 +172,107 @@ const classesDbBasePowers = [
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (luz)",
+    req: "Afinidade Elemental (luz)",
     name: "Auréola Celeste",
-    desc: "Quando lança uma magia de abjuração ou que causa dano de luz, você pode gastar uma ação de movimento e PM para evocar uma auréola sobre a cabeça de um aliado em alcance curto. A auréola concede 5 PV temporários por PM gasto e +1 em testes de resistência e dura até o fim da cena ou até que os PV temporários sejam perdidos."
+    desc: "Quando usa uma magia de abjuração ou que cause dano de luz, você pode gastar uma ação de movimento e PM para fazer uma auréola surgir sobre a cabeça de um aliado em alcance curto. A auréola concede 5 PV temporários por PM gasto, desaparecendo quando acabarem os PV ou no final da cena. Além disso, enquanto a auréola durar, o aliado recebe +1 em testes de resistência."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "6° nível de místico",
-    name: "Contramágica Elemental",
-    desc: "Você aprende Dissipar Magia e soma sua Sabedoria em testes de Misticismo para usar usá-la contra magias do elemento ou da escola associada a sua Afinidade."
+    req: "Pacto Elemental",
+    name: "Busca Mágica",
+    desc: "Escolha uma magia de um círculo ao qual você tenha acesso (mesmo não tendo acesso à escola da magia ou a magias divinas). Seu guia elemental vai buscar a magia e você a aprende e pode lançar por um dia. Seu parceiro atravessa os planos de existência para encontrar a magia, se ausentando por uma hora por círculo da magia requisitada, mais uma hora adicional caso a magia seja de uma escola à qual você não tenha acesso e outra hora adicional caso a magia seja divina."
   },
   {
     type: "class",
+    source: "dragaobrasil",
+    class: "mistico",
+    subType: "power",
+    pathReq: "all",
+    req: null,
+    name: "Contramágica Elemental",
+    desc: "Você pode fazer contramágicas contra magias do seu elemento usando qualquer magia do mesmo círculo. Se usar uma magia do seu elemento para fazer uma contramágica, pode fazê-lo como reação."
+  },
+  {
+    type: "class",
+    source: "dragaobrasil",
+    class: "mistico",
+    subType: "power",
+    pathReq: "all",
+    req: "Contramágica Elemental",
+    name: "Contramágica Poderosa",
+    desc: "Quando faz contramágicas usando magias do seu elemento, você pode usar magias um círculo abaixo da magia que quer anular."
+  },
+  {
+    type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: null,
     name: "Corpo Elemental",
-    desc: "Uma vez por cena, você pode gastar uma ação de movimento para fortalecer seu físico com energia elemental. Você recebe 5 PV temporários para cada círculo de magias que pode lançar, ou o dobro disso se estiver em contato com uma expressão natural do seu elemento. Esses PV duram por uma cena."
+    desc: "Uma vez por cena, você pode gastar uma ação de movimento para fortalecer seu físico. Você adquire uma quantidade de PV temporários igual a 5 vezes seu círculo máximo de magias, ou o dobro disso se estiver em contato com uma expressão natural do seu elemento de tamanho Médio ou maior. Esses PV duram por uma cena e não são cumulativos."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "18º nível de místico, dois poderes de ditame",
+    req: "17º nível de místico, dois poderes de ditame",
     name: "Ditame Absoluto",
-    desc: "Você aprende uma magia de 5º circulo a sua escolha de qualquer escola que possa lançar. Além disso, recebe acesso ao 5º círculo de magias para todos os efeitos, exceto para magias que pode aprender."
+    desc: "Você ganha acesso ao 5º círculo de magias e aprende uma magia de uma escola associada à sua Afinidade Elemental. Você não pode saber mais de uma magia de 5º círculo."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (água)",
+    req: "Afinidade Elemental (água)",
     name: "Ditame da Chuva",
-    desc: "Você aprende a magia Área Escorregadia. No 6º nível, aprende Tempestade Divina e no 10º nível aprende Controlar Água."
+    desc: "Você aprende a magia Área Escorregadia. No 6º nível, aprende Tempestade Divina. No 10º nível, aprende Controlar Água."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (luz)",
+    req: "Afinidade Elemental (luz)",
     name: "Ditame da Cura",
-    desc: "Você aprende a magia Curar Ferimentos. No 6º nível, aprende Purificação e no 10º nível aprende Sopro da Salvação."
+    desc: "Você aprende a magia Curar Ferimentos. No 6º nível, aprende Purificação. No 10º nível, aprende Sopro da Salvação."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (fogo ou luz)",
+    req: "Afinidade Elemental (fogo ou luz)",
     name: "Ditame da Manhã",
-    desc: "Você aprende a magia Luz com todos os seus aprimoramentos, como se fosse um conjurador arcano e divino. No 6º nível, aprende Raio Solar e, no 10º nível, aprende Coluna de Chamas."
+    desc: "Você aprende a magia Luz e tem acesso a todos os seus aprimoramentos, como se fosse um conjurador arcano e divino. No 6º nível, aprende Raio Solar. No 10º nível, aprende Coluna de Chamas."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (terra)",
+    req: "Afinidade Elemental (terra)",
     name: "Ditame da Montanha",
-    desc: "Você aprende a magia Primor Atlético. No 10º nível, aprende Controlar Terra é no 14º nível aprende Terremoto."
+    desc: "Você aprende a magia Primor Atlético. No 10º nível, aprende Controlar Terra. No 14º nível, aprende Terremoto."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
@@ -214,300 +282,303 @@ const classesDbBasePowers = [
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (água ou ar)",
+    req: "Afinidade Elemental (água ou ar)",
     name: "Ditame das Brumas",
     desc: "Você aprende a magia Névoa. No 6º nível, aprende Camuflagem Ilusória e Miasma Mefítico."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (fogo)",
+    req: "Afinidade Elemental (fogo)",
     name: "Ditame das Chamas",
-    desc: "Você aprende a magia Explosão de Chamas. No 6º nível, aprende Controlar Fogo e no 10º nível aprende Lança Ígnea de Aleph."
+    desc: "Você aprende a magia Explosão de Chamas. No 6º nível, aprende Controlar Fogo. No 10º nível, aprende Muralha Elemental (somente fogo)."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (trevas)",
+    req: "Afinidade Elemental (trevas)",
     name: "Ditame do Breu",
-    desc: "Você aprende a magia Escuridão, No 10º nível, aprende Anular a Luz é Manto de Sombras."
+    desc: "Você aprende a magia Escuridão. No 10º nível, aprende Anular a Luz e Manto de Sombras."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (luz ou trevas)",
+    req: "Afinidade Elemental (luz ou trevas)",
     name: "Ditame do Crepúsculo",
-    desc: "Você aprende as magias Consagrar e Profanar e, no 6º nível, aprende Crânio Voador de Vladislav."
+    desc: "Você aprende as magias Consagrar e Profanar. No 6º nível, aprende Crânio Voador de Vladislav."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "treinado em Luta",
     name: "Ditame do Espadachim",
-    desc: "Você aprende a magia Concentração de Combate. No 6º nível, aprende Velocidade e, no 10º nível, aprende Transformação de Guerra."
+    desc: "Você aprende a magia Concentração de Combate. No 6º nível, aprende Velocidade. No 10º nível, aprende Transformação de Guerra."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "6º nível de místico",
     name: "Ditame dos Portais",
-    desc: "Você aprende Salto Dimensional. No 10º nível, aprende Teletransporte e, no 14º nível, aprende Viagem Planar."
+    desc: "Você aprende a magia Salto Dimensional. A partir do 10º nível, aprende Teletransporte. A partir do 14º nível, aprende Viagem Planar."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (ar)",
+    req: "Afinidade Elemental (ar)",
     name: "Ditame dos Ventos",
-    desc: "Você aprende a magia Queda Suave. No 6º nível, aprende Controlar Ar e, no 14º nível, aprende Controlar o Clima."
+    desc: "Você aprende a magia Queda Suave. No 6º nível, aprende Controlar Ar. No 14º nível, aprende Controlar o Clima."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "Disparo Elemental",
     name: "Disparo em Linha",
-    desc: "Quando usa Disparo Elemental, você pode gastar 2 PM para atingir vários alvos alinhados. Faça um ataque à distância e compare-o com a Defesa de cada inimigo em uma linha de 9m e então faça uma única rolagem de dano e aplique o resultado a cada alvo atingido."
+    desc: "Quando usa Disparo Elemental, você pode gastar 2 PM para atingir vários alvos. Faça um ataque à distância e compare-o com a Defesa de cada inimigo em uma linha de 9m."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "treinado em Pontaria",
     name: "Disparo Elemental",
-    desc: "Você pode usar seu Ataque Elemental com armas de ataque à distância."
+    desc: "Você pode usar Combate Elemental com armas de ataque à distância."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "10º nível de místico, treinado em Luta",
-    name: "Elementalismo Marcial",
-    desc: "Quando usa Ataque Elemental, você pode gastar 2 PM para lançar uma magia que tenha tempo de execução de uma ação padrão ou menor, como uma ação livre."
+    req: "17º nível de místico",
+    name: "Elemento Indomável",
+    desc: "Quando usa Elemento Penetrante, se gastar 5 PM, você também ignora a imunidade dos alvos."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: null,
     name: "Elemento Penetrante",
-    desc: "Quando causa dano do tipo da sua Afinidade, você pode gastar uma quantidade de PM limitada pelo círculo máximo de magias que pode lançar. Para cada PM gasto dessa forma, você ignora até 10 pontos da redução de dano dos alvos."
+    desc: "Quando causa dano do seu elemento, você pode gastar uma quantidade de PM limitada pelo seu círculo máximo de magias. Para cada PM gasto dessa forma, você ignora até 10 pontos da redução de dano dos alvos contra esse tipo de dano."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "6º nível de místico",
     name: "Elemento Poderoso",
-    desc: "A CD para resistir a suas habilidades de místico aumenta em +2."
+    desc: "Quando lança uma magia do seu elemento, você pode gastar PM (limitado pelo seu círculo máximo de magias) para aumentar seu poder. Para cada PM gasto, a CD para resistir à sua magia aumenta em +1."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (água ou ar)",
+    req: "Afinidade Elemental (água ou ar)",
     name: "Empuxo",
-    desc: "Você pode caminhar sobre água e fluidos similares e ganha deslocamento de natação igual ao seu deslocamento terrestre."
+    desc: "Você sempre flutua na superfície de qualquer corpo d'água ou fluido similar, e ganha deslocamento de natação igual ao seu deslocamento padrão."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (terra)",
-    name: "Escavador",
-    desc: "Você recebe deslocamento de escavação igual a seu deslocamento terrestre."
+    req: "Afinidade Elemental (terra)",
+    name: "Escavadeira",
+    desc: "Você recebe deslocamento de escavar igual a seu deslocamento padrão."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (terra)",
+    req: "Afinidade Elemental (terra)",
     name: "Estabilidade Terrena",
-    desc: "Você recebe um bônus igual ao circulo máximo de magias que pode lançar em testes para resistir a manobras de combate e a efeitos de movimento."
+    desc: "Você recebe um bônus igual ao seu círculo máximo de magias em testes de manobra para se defender."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: null,
     name: "Escudo Elemental",
-    desc: "Quando usa Ataque Elemental, para cada PM gasto você recebe + 1 na Defesa e em testes de resistência por 1 rodada."
+    desc: "Quando usa seu Combate Elemental, você recebe um bônus na Defesa e em testes de resistência igual à quantidade de PM gastos nele por 1 rodada. Se você lançou uma magia do seu elemento neste turno, também recebe redução de dano igual ao dobro do círculo da magia por 1 rodada."
   },
   {
     type: "class",
+    source: "dragaobrasil",
+    class: "mistico",
+    subType: "power",
+    pathReq: "all",
+    req: null,
+    name: "Familiar Elemental",
+    desc: "Você recebe um familiar arcano (Tormenta20 Jogo do Ano, página 38). Seu familiar deve ser um elemental com quem você compartilhe Afinidade Elemental (veja Ameaças de Arton)."
+  },
+  {
+    type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: null,
     name: "Flagelo Elemental",
-    desc: "Quando usa Ataque Elemental você aumenta seu multiplicador de crítico em +1."
+    desc: "Quando usa Combate Elemental e faz um acerto crítico, seu dano extra fornecido por Combate Elemental é multiplicado junto do dano da arma. Se você lançou uma magia de 4º ou 5º círculo do seu elemento neste turno, aumente o multiplicador de crítico em 1."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (fogo)",
-    name: "Golpe Ardente",
-    desc: "Quando você usa Ataque Elemental é acerta o ataque, o alvo fica em chamas (Reflexos CD Sab evita)."
+    req: null,
+    name: "Frenesi Elemental",
+    desc: "Uma vez por rodada, quando faz um acerto crítico com uma arma corpo a corpo, você pode gastar 2 PM para lançar uma magia do seu elemento como parte da mesma ação. Essa magia não pode receber aprimoramentos."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (ar)",
-    name: "Golpe Cortante",
-    desc: "Quando você usa Ataque Elemental e acerta o ataque, o alvo fica sangrando (Reflexos CD Sab evita)."
-  },
-  {
-    type: "class",
-    class: "mistico",
-    subType: "power",
-    pathReq: "all",
-    req: "Afinidade (água)",
-    name: "Golpe Congelante",
-    desc: "Quando você usa Ataque Elemental e acerta o ataque, o alvo fica lento por 1 rodada (Reflexos CD Sab evita)."
-  },
-  {
-    type: "class",
-    class: "mistico",
-    subType: "power",
-    pathReq: "all",
-    req: "Afinidade (ar, fogo ou luz)",
-    name: "Golpe Ofuscante",
-    desc: "Quando você usa Ataque Elemental e acerta o ataque, o alvo fica cego por 1 rodada (Reflexos CD Sab evita)."
-  },
-  {
-    type: "class",
-    class: "mistico",
-    subType: "power",
-    pathReq: "all",
-    req: "Afinidade (água, terra ou trevas)",
-    name: "Golpe Pujante",
-    desc: "Quando você usa Ataque Elemental e acerta o ataque, o alvo fica caído (Reflexos CD Sab evita)."
-  },
-  {
-    type: "class",
-    class: "mistico",
-    subType: "power",
-    pathReq: "all",
-    req: "Afinidade (água)",
+    req: "Afinidade Elemental (água)",
     name: "Hidratação",
-    desc: "Quando lança uma magia de encantamento ou que cause dano de frio, você pode gastar PM para se hidratar. Para cada PM que gastar, você cura 5 PV."
+    desc: "Quando lança uma magia de encantamento ou que cause dano de frio, você pode gastar PM para se hidratar. Cada PM gasto cura 5 PV."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (ar)",
+    req: "Afinidade Elemental (ar)",
     name: "Oito Nuvens",
-    desc: "Quando lança uma magia de ilusão ou que cause dano de eletricidade, você pode usar uma ação de movimento e gastar até 8 PM para ser rodeado por nuvens até o final da cena. Para cada PM gasto, você recebe uma nuvem, que concede + 1 na Defesa. Além disso, se tiver pelo menos cinco nuvens, você recebe camuflagem. Sempre que um ataque contra você errar, uma nuvem é dissipada e o bônus na Defesa diminui em 1."
+    desc: "Quando lança uma magia de ilusão ou que cause dano de eletricidade, você pode gastar uma ação de movimento e PM para ser rodeado por nuvens até o final da cena. Cada nuvem custa 1 PM e concede +1 na Defesa; enquanto tiver cinco nuvens ou mais, você tem camuflagem. Quando um ataque contra você erra, uma nuvem se dissipa. Você não pode ter mais que oito nuvens."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "Pacto Elemental",
     name: "Pacto Cooperativo",
-    desc: "Uma vez por rodada, você pode dar uma ordem para sua manifestação elemental como uma ação livre. Além disso, sua manifestação fornece bônus por flanquear contra um inimigo por rodada."
+    desc: "Uma vez por rodada, você pode dar ordens para seu guia elemental como uma ação livre. Seu guia também fornece bônus por flanquear contra um inimigo por rodada."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: "6º nível de místico",
     name: "Pacto Elemental",
-    desc: "Através de um ritual místico, você cria um vínculo mágico com uma manifestação elemental do mesmo tipo de sua Afinidade (veja o quadro)."
+    desc: "Você cria um vínculo mágico com uma criatura primordial através de um ritual. Este guia elemental é do mesmo tipo da sua Afinidade Elemental, obedece às suas ordens e se arrisca para ajudá-lo. Para receber seus benefícios, você deve invocá-lo (veja a seção Guias Elementais)."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Pacto Elemental,",
-    name: "Pacto Mágico",
-    desc: "Você pode gastar uma ação de movimento para pedir que sua manifestação elemental busque uma magia em seu lugar. Você escolhe a magia quando faz o pedido, e pode pedir magias arcanas ou divinas, de qualquer escola, de um círculo ao qual tenha acesso. Uma vez ordenada, sua manifestação parte em busca da magia; encontrá-la demora um número de rodadas igual a 1d4 + o círculo da magia. Esse tempo aumenta em 2 rodadas se a magia for divina, e em 2 rodadas se for de uma escola à qual você não tem acesso. Ao final desse período, faça um teste de Misticismo (CD 15 + o círculo da magia; a cada novo pedido no mesmo dia aumenta a CD do teste em +5). Se você passar, a manifestação retorna e você aprende a magia por um dia. Se falhar, o parceiro se perde e só retorna no dia seguinte."
+    req: "Pacto Elemental",
+    name: "Pacto Hábil",
+    desc: "Você recebe um bônus de +2 nos testes do seu guia elemental. Este bônus aumenta em +1 por patamar acima de iniciante (+3 no 5º nível, +4 no 11º nível, +5 no 17º nível)."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "3º nível de místico",
+    req: null,
     name: "Perícia Mística",
-    desc: "Você aplica seu bônus de Tradição Oral à perícia extra recebida por sua Afinidade."
+    desc: "Você recebe um bônus de +2 nos testes da perícia da sua Afinidade Elemental. Este bônus aumenta em +1 por patamar acima de iniciante, como Pacto Hábil."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (ar ou fogo)",
+    req: "Afinidade Elemental (ar ou fogo)",
     name: "Propulsão",
-    desc: "Você pode gastar 1 PM para adquirir deslocamento de voo 12m por uma rodada, mas cai se não encerrar seu movimento em uma superfície que sustente seu peso. No 10° nível, você aprende Voo."
+    desc: "Você pode gastar 1 PM para adquirir deslocamento de voo 12m, mas cai se não encerrar seu movimento em uma superfície que sustente seu peso. A partir do 10º nível, você aprende e pode lançar Voo."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (trevas)",
+    req: "Afinidade Elemental (trevas)",
     name: "Resistência Tenebrosa",
-    desc: "Quando faz um teste de resistência, você pode gastar 1 PM para receber um bônus igual ao circulo máximo de magia que pode lançar."
+    desc: "Quando faz um teste de resistência, você pode gastar 1 PM para receber um bônus igual ao círculo máximo de magia que pode lançar."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (fogo)",
+    req: "Afinidade Elemental (fogo)",
     name: "Supernova",
-    desc: "Quando lança uma magia que causa dano de fogo, você pode gastar pontos de vida para deixar as chamas mais intensas. Para cada 5 PV que gastar (conta como perda de vida), você aumenta o dano da magia em + 1d12."
+    desc: "Quando lança uma magia instantânea que cause dano de fogo, você pode sofrer perda de vida (limitada a 5x seu círculo máximo de magia) para deixar as chamas brancas e mais perigosas. Cada 5 PV perdidos aumentam o dano em +1d12."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
     req: null,
     name: "Sustento Primordial",
-    desc: "Quando descansa em uma área ocupada pela expressão natural de seu elemento, suas condições de descanso melhoram em um passo."
+    desc: "Quando descansa em contato com uma expressão natural do seu elemento de tamanho Grande ou maior, suas condições de descanso melhoram em um passo."
   },
   {
     type: "class",
+    source: "dragaobrasil",
     class: "mistico",
     subType: "power",
     pathReq: "all",
-    req: "Afinidade (trevas)",
+    req: "Afinidade Elemental (trevas)",
     name: "Visão Noturna",
-    desc: "Você recebe +2 em Percepção e visão no escuro. Se você já possui visão no escuro, seu alcance aumenta em um passo (de curto para médio, de médio para longo)."
+    desc: "Você recebe visão na penumbra. Se já tem visão na penumbra, em vez disso, recebe visão no escuro. Se já tem visão na penumbra e visão no escuro, em vez disso, quando faz ataques afetados por camuflagem leve ou total, a chance de falha é reduzida em 10% (camuflagem leve fica com 10% de chance e camuflagem total fica com 40%)."
   },
   {
     type: "class",
@@ -1435,5 +1506,186 @@ const classesDbBasePowers = [
     req: null,
     name: "Valentão",
     desc: "Você recebe +2 em testes de ataque e rolagens de dano contra oponentes caídos, desprevenidos, flanqueados ou indefesos"
+  }
+];
+
+// ============================================================
+//  GUIAS ELEMENTAIS — PARCEIROS ESPECIAIS DO MÍSTICO
+// ------------------------------------------------------------
+//  Dados estruturados para o sistema de parceiros. Cada guia é
+//  invocado por Pacto Elemental e usa as regras gerais de guias
+//  elementais (ver habilidade "Guias Elementais (regras)").
+//  `orders` são as ordens que o místico pode conceder com uma
+//  ação de movimento; ordens sem custo indicado são gratuitas.
+// ============================================================
+
+const classesDbBaseGuides = [
+  {
+    id: "guia-agua",
+    name: "Guia Elemental da Água",
+    element: "Água",
+    damageType: "Frio",
+    school: "Encantamento",
+    condition: "Lento",
+    skill: "Diplomacia (Car)",
+    partnerTypes: ["Assassino", "Perseguidor", "Vigilante"],
+    invocation: "Ação de movimento e 2 PM, em contato com uma expressão natural de água de qualquer tamanho. Dura até o final da cena. No 7º nível, +1 PM para parceiro veterano; no 15º nível, +2 PM para parceiro mestre.",
+    orders: [
+      {
+        name: "Bolha",
+        cost: "0 PM",
+        desc: "O guia cria uma bolha esférica contendo ar até o final da cena. A bolha tem raio em metros igual à sua Sabedoria x3. Todas as criaturas no interior podem respirar normalmente, mesmo embaixo d'água. Você pode direcionar o elemental como uma ação de movimento, com deslocamento de natação 9m; além disso, pode gastar PM para aumentar esse deslocamento em +3m por PM (limitado pelo seu círculo máximo de magias) até o final da cena. A bolha estoura caso sofra qualquer dano."
+      },
+      {
+        name: "Escudo Hídrico",
+        cost: "0 PM",
+        desc: "O guia se transforma em um disco de água rodopiante e o protege de ataques. Você recebe +2 na Defesa até o começo do seu próximo turno. Se uma criatura o atingir com um ataque corpo a corpo enquanto este efeito estiver ativo, você pode gastar 1 PM para fazer uma manobra de empurrar como reação."
+      },
+      {
+        name: "Jato Hidráulico",
+        cost: "1 PM",
+        desc: "O guia dispara um jato de água pressurizado em um alvo em alcance curto. O alvo sofre 3d6 pontos de dano de impacto (+1d6 por patamar acima de iniciante) e fica caído (Fortitude CD Sab reduz o dano à metade e evita a condição). Alternativamente, o jato pode empurrar uma criatura voluntária até 6m em uma direção à sua escolha."
+      }
+    ]
+  },
+  {
+    id: "guia-ar",
+    name: "Guia Elemental do Ar",
+    element: "Ar",
+    damageType: "Eletricidade",
+    school: "Ilusão",
+    condition: "Ofuscado",
+    skill: "Enganação (Car)",
+    partnerTypes: ["Ajudante", "Guardião", "Médico"],
+    invocation: "Ação de movimento e 2 PM, em contato com uma expressão natural de ar de qualquer tamanho. Dura até o final da cena. No 7º nível, +1 PM para parceiro veterano; no 15º nível, +2 PM para parceiro mestre.",
+    orders: [
+      {
+        name: "Barreira Eólica",
+        cost: "0 PM",
+        desc: "Você recebe camuflagem contra ataques à distância e +2 em Reflexos por uma rodada."
+      },
+      {
+        name: "Bons Ventos",
+        cost: "0 PM",
+        desc: "Ao contrário de outras ações do elemental, esta é uma reação; você pode lançar Queda Suave, mas apenas em você mesmo."
+      },
+      {
+        name: "Planar",
+        cost: "2 PM",
+        desc: "Uma criatura em alcance curto recebe deslocamento de voo 12m por uma rodada."
+      }
+    ]
+  },
+  {
+    id: "guia-fogo",
+    name: "Guia Elemental do Fogo",
+    element: "Fogo",
+    damageType: "Fogo",
+    school: "Transmutação",
+    condition: "Em Chamas",
+    skill: "Acrobacia (Des)",
+    partnerTypes: ["Atirador", "Combatente", "Fortão"],
+    invocation: "Ação de movimento e 2 PM, em contato com uma expressão natural de fogo de qualquer tamanho. Dura até o final da cena. No 7º nível, +1 PM para parceiro veterano; no 15º nível, +2 PM para parceiro mestre.",
+    orders: [
+      {
+        name: "Aura de Calor",
+        cost: "0 PM",
+        desc: "Até sua próxima rodada, inimigos que terminarem seus turnos adjacentes a você sofrem 2d6+2 pontos de dano de fogo."
+      },
+      {
+        name: "Chicote de Chamas",
+        cost: "2 PM",
+        desc: "O elemental acerta uma criatura em alcance curto com um jato de chamas que causa 4d6 pontos de dano de fogo (Reflexos CD Sab reduz à metade)."
+      },
+      {
+        name: "Labareda Propulsora",
+        cost: "0 PM",
+        desc: "Uma criatura em alcance curto recebe +10 em Atletismo para correr e saltar por uma rodada."
+      }
+    ]
+  },
+  {
+    id: "guia-luz",
+    name: "Guia Elemental da Luz",
+    element: "Luz",
+    damageType: "Luz",
+    school: "Abjuração",
+    condition: "Ofuscado",
+    skill: "Cura (Sab)",
+    partnerTypes: ["Guardião", "Médico", "Vigilante"],
+    invocation: "Ação de movimento e 2 PM, em contato com uma expressão natural de luz de qualquer tamanho. Dura até o final da cena. No 7º nível, +1 PM para parceiro veterano; no 15º nível, +2 PM para parceiro mestre.",
+    orders: [
+      {
+        name: "Brilhar",
+        cost: "0 PM",
+        desc: "Emite luz como uma tocha. Uma criatura dentro do alcance curto fica ofuscada por 1 rodada (Vontade CD Sab evita)."
+      },
+      {
+        name: "Curar",
+        cost: "2 PM",
+        desc: "Uma criatura dentro do alcance curto cura 4d8 pontos de vida."
+      },
+      {
+        name: "Cegar",
+        cost: "0 PM",
+        desc: "Uma criatura dentro do alcance curto fica cega por 1 rodada (apenas uma vez por cena; Vontade CD Sab evita)."
+      }
+    ]
+  },
+  {
+    id: "guia-terra",
+    name: "Guia Elemental da Terra",
+    element: "Terra",
+    damageType: "Ácido",
+    school: "Convocação",
+    condition: "Vulnerável",
+    skill: "Investigação (Int)",
+    partnerTypes: ["Combatente", "Guardião", "Montaria"],
+    invocation: "Ação de movimento e 2 PM, em contato com uma expressão natural de terra de qualquer tamanho. Dura até o final da cena. No 7º nível, +1 PM para parceiro veterano; no 15º nível, +2 PM para parceiro mestre.",
+    orders: [
+      {
+        name: "Arremesso de Rocha",
+        cost: "2 PM",
+        desc: "O elemental arremessa um pedregulho contra um alvo em alcance médio, causando 5d6 pontos de dano de impacto (Reflexos CD Sab evita)."
+      },
+      {
+        name: "Muralha",
+        cost: "0 PM",
+        desc: "Você recebe resistência a corte, impacto e perfuração 10 por uma rodada."
+      },
+      {
+        name: "Tunelar",
+        cost: "0 PM",
+        desc: "Uma criatura dentro do alcance curto recebe deslocamento de escalada 12m ou escavar 9m por uma rodada."
+      }
+    ]
+  },
+  {
+    id: "guia-trevas",
+    name: "Guia Elemental das Trevas",
+    element: "Trevas",
+    damageType: "Trevas",
+    school: "Necromancia",
+    condition: "Não pode curar PV",
+    skill: "Intimidação (Car)",
+    partnerTypes: ["Assassino", "Magivocador", "Perseguidor"],
+    invocation: "Ação de movimento e 2 PM, em contato com uma expressão natural de trevas de qualquer tamanho. Dura até o final da cena. No 7º nível, +1 PM para parceiro veterano; no 15º nível, +2 PM para parceiro mestre.",
+    orders: [
+      {
+        name: "Manto Sombrio",
+        cost: "0 PM",
+        desc: "Uma criatura dentro do alcance curto recebe +10 em Furtividade para se esconder por 1 rodada."
+      },
+      {
+        name: "Tentáculo Obscuro",
+        cost: "2 PM",
+        desc: "O elemental agarra uma criatura dentro do alcance médio com seu tentáculo."
+      },
+      {
+        name: "Apavorar",
+        cost: "0 PM",
+        desc: "Uma criatura dentro do alcance curto fica abalada (Vontade CD Sab evita)."
+      }
+    ]
   }
 ];

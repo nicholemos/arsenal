@@ -10,6 +10,22 @@ const pathsWrap = document.getElementById('pathsWrap');
 const racialFiltersDiv = document.getElementById('racialFilters');
 const raceSelector = document.getElementById('raceSelector');
 
+// --- CLASSES BASE PRÓPRIAS ---
+// A página usa `powersData` como acervo único. Incorporamos aqui as
+// habilidades/poderes do Místico definidos em classes-db-base-data.js.
+if (typeof classesDbBasePowers !== 'undefined') {
+    const existingKeys = new Set(powersData.map(p => `${p.class}|${p.name}`));
+    classesDbBasePowers
+        .filter(p => p.class === 'mistico')
+        .forEach(p => {
+            const key = `${p.class}|${p.name}`;
+            if (!existingKeys.has(key)) {
+                powersData.push(p);
+                existingKeys.add(key);
+            }
+        });
+}
+
 // MODAL
 const modal = document.getElementById('powerModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -53,7 +69,8 @@ const classPaths = {
     'cavaleiro': ['cavaleiro-base', 'vassalo'],
     'clerigo': ['clerigo-base', 'usurpador'],
     'treinador': [],
-    'frade': [] // Adicione esta linha
+    'frade': [], // Adicione esta linha
+    'mistico': []
     // Classes sem variantes (Guerreiro, etc) não precisam estar aqui; o código esconderá os botões.
 };
 
@@ -197,7 +214,7 @@ function renderPowers(powers) {
                 ${sourceBadge}
             </div>
             <div class="power-meta">
-                <strong>Pré-requisito:</strong> ${power.req}
+                <strong>Pré-requisito:</strong> ${power.req || '—'}
             </div>
             <div class="power-desc">
                 ${power.desc} 
@@ -217,7 +234,7 @@ const CLASS_NAMES = {
     'clerigo': 'Clérigo', 'druida': 'Druida', 'guerreiro': 'Guerreiro',
     'inventor': 'Inventor', 'ladino': 'Ladino', 'lutador': 'Lutador',
     'nobre': 'Nobre', 'paladino': 'Paladino', 'treinador': 'Treinador',
-    'frade': 'Frade'
+    'frade': 'Frade', 'mistico': 'Místico'
 };
 
 // Mapa de caminhos/variantes para nome legível
@@ -279,6 +296,7 @@ function translateSource(source) {
         'herois': 'Heróis de Arton',
         'ameacas': 'Ameaças de Arton',
         'jornada': 'Jornada Heróica',
+        'dragaobrasil': 'Dragão Brasil',
         'outras': 'Outras Fontes'
     };
     return map[source] || source;
@@ -352,7 +370,7 @@ function filterPowers() {
         // 5. Busca
         const matchesSearch = power.name.toLowerCase().includes(searchTerm) ||
             power.desc.toLowerCase().includes(searchTerm) ||
-            power.req.toLowerCase().includes(searchTerm);
+            (power.req || '').toLowerCase().includes(searchTerm);
 
         return matchesSearch;
     });
@@ -728,7 +746,7 @@ function openModal(power, list = null) {
 
     modalTitle.innerText = power.name;
     modalType.innerText = translateType(power);
-    modalReq.innerText = power.req;
+    modalReq.innerText = power.req || '—';
     modalDesc.innerHTML = power.desc;
     modal.style.display = 'flex';
 
@@ -933,7 +951,7 @@ function renderCart() {
             li.innerHTML = `
                 <div class="cart-item-info">
                     <div class="cart-item-name">${power.name}</div>
-                    <div class="cart-item-meta">${translateType(power)} · Req: ${power.req}</div>
+                    <div class="cart-item-meta">${translateType(power)} · Req: ${power.req || '—'}</div>
                 </div>
                 <button class="cart-item-remove" title="Remover" data-idx="${idx}">✕</button>
             `;
