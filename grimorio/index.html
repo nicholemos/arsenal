@@ -241,7 +241,20 @@
                             <option value="name-desc">Nome (Z-A)</option>
                             <option value="circle-asc">Círculo (Crescente)</option>
                             <option value="circle-desc">Círculo (Decrescente)</option>
+                            <option value="school-asc">Escola (A-Z)</option>
+                            <option value="custom" hidden>Coluna da tabela</option>
                         </select>
+                        <!-- Alternar entre cards e tabela -->
+                        <div class="view-toggle" role="group" aria-label="Modo de visualização">
+                            <button type="button" class="view-toggle-btn active" id="btn-view-cards" data-view="cards"
+                                title="Ver em cards" aria-pressed="true">
+                                <i class="fa-solid fa-table-cells-large"></i>
+                            </button>
+                            <button type="button" class="view-toggle-btn" id="btn-view-table" data-view="table"
+                                title="Ver em tabela" aria-pressed="false">
+                                <i class="fa-solid fa-table-list"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="active-filters-badges" id="active-filters-badges">
                         <!-- Rendered dynamically -->
@@ -250,6 +263,31 @@
 
                 <div class="spells-grid" id="spells-grid">
                     <!-- Spells cards rendered dynamically -->
+                </div>
+
+                <!-- Visualização em tabela -->
+                <div class="spells-table-wrap view-hidden" id="spells-table-wrap">
+                    <table class="spells-table" id="spells-table">
+                        <thead>
+                            <tr>
+                                <th class="col-fav" aria-label="Favorito"><i class="fa-solid fa-star"></i></th>
+                                <th class="sortable col-name" data-sort="name">Magia<span class="sort-ind"></span></th>
+                                <th class="sortable col-circle" data-sort="circle">Círculo<span class="sort-ind"></span></th>
+                                <th class="sortable col-school" data-sort="school">Escola<span class="sort-ind"></span></th>
+                                <th class="sortable col-tipo" data-sort="tipo">Tipo<span class="sort-ind"></span></th>
+                                <th class="sortable col-exec" data-sort="exec">Execução<span class="sort-ind"></span></th>
+                                <th class="sortable col-range" data-sort="range">Alcance<span class="sort-ind"></span></th>
+                                <th class="sortable col-target col-opt2" data-sort="target">Alvo / Área<span class="sort-ind"></span></th>
+                                <th class="sortable col-dur" data-sort="dur">Duração<span class="sort-ind"></span></th>
+                                <th class="sortable col-res col-opt2" data-sort="res">Resistência<span class="sort-ind"></span></th>
+                                <th class="sortable col-upg col-opt1" data-sort="upg" title="Quantidade de aprimoramentos">Aprim.<span class="sort-ind"></span></th>
+                                <th class="sortable col-source col-opt1" data-sort="source">Fonte<span class="sort-ind"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="spells-table-body">
+                            <!-- Linhas renderizadas dinamicamente -->
+                        </tbody>
+                    </table>
                 </div>
 
                 <div class="empty-state hidden" id="empty-state">

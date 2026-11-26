@@ -25,6 +25,8 @@ const STATE = {
         resistance: ""
     },
     sortBy: "name-asc",
+    // Modo de visualização da lista: "cards" ou "table"
+    viewMode: "cards",
     
     // Spell Details Selection State
     selectedSpell: null,
@@ -297,20 +299,40 @@ function getFilteredSpells() {
         
         return true;
     }).sort((a, b) => {
-        // Sort Rules
-        switch (STATE.sortBy) {
-            case "name-asc":
-                return a.n.localeCompare(b.n, 'pt');
-            case "name-desc":
-                return b.n.localeCompare(a.n, 'pt');
-            case "circle-asc":
-                return a.c - b.c || a.n.localeCompare(b.n, 'pt');
-            case "circle-desc":
-                return b.c - a.c || a.n.localeCompare(b.n, 'pt');
-            default:
-                return 0;
-        }
+        // Formato de sortBy: "<chave>-<asc|desc>" (ex.: "name-asc", "dur-desc")
+        const [key, dir] = STATE.sortBy.split("-");
+        const sign = dir === "desc" ? -1 : 1;
+        const va = getSpellSortValue(a, key);
+        const vb = getSpellSortValue(b, key);
+        if (va === undefined) return 0;
+
+        let cmp = (typeof va === "number" && typeof vb === "number")
+            ? va - vb
+            : String(va).localeCompare(String(vb), 'pt', { numeric: true, sensitivity: 'base' });
+        if (cmp !== 0) return cmp * sign;
+
+        // Desempate: círculo (exceto quando já é a chave) e depois nome
+        if (key !== "circle" && key !== "name" && a.c !== b.c) return a.c - b.c;
+        return a.n.localeCompare(b.n, 'pt');
     });
+}
+
+// Valor usado para ordenar cada coluna (cards e tabela)
+function getSpellSortValue(spell, key) {
+    switch (key) {
+        case "name":   return spell.n;
+        case "circle": return spell.c;
+        case "school": return spell.e || "";
+        case "tipo":   return spell.t || "Universal";
+        case "exec":   return spell.ex || "";
+        case "range":  return spell.a || "";
+        case "target": return spell.al || "";
+        case "dur":    return spell.d || "";
+        case "res":    return spell.r || "";
+        case "upg":    return spell.aprimoramentos ? spell.aprimoramentos.length : 0;
+        case "source": return getSpellSource(spell);
+        default:       return undefined;
+    }
 }
 
 // ==========================================================================
@@ -319,21 +341,34 @@ function getFilteredSpells() {
 
 function renderSpellsGrid() {
     const grid = document.getElementById("spells-grid");
+    const tableWrap = document.getElementById("spells-table-wrap");
+    const tableBody = document.getElementById("spells-table-body");
     const emptyState = document.getElementById("empty-state");
     if (!grid) return;
     
     grid.innerHTML = "";
+    if (tableBody) tableBody.innerHTML = "";
+    
+    const isTable = STATE.viewMode === "table";
+    grid.classList.toggle("view-hidden", isTable);
+    if (tableWrap) tableWrap.classList.toggle("view-hidden", !isTable);
     
     const filteredSpells = getFilteredSpells();
     
     if (filteredSpells.length === 0) {
         emptyState.classList.remove("hidden");
+        if (tableWrap) tableWrap.classList.add("view-hidden");
         return;
     } else {
         emptyState.classList.add("hidden");
     }
     
     const favorites = STATE.grimoires[STATE.activeGrimoireName] || [];
+    
+    if (isTable) {
+        renderSpellsTable(filteredSpells, favorites);
+        return;
+    }
     
     filteredSpells.forEach(spell => {
         const isFav = favorites.includes(spell.n);
@@ -384,6 +419,139 @@ function renderSpellsGrid() {
         
         grid.appendChild(card);
     });
+}
+
+// --------------------------------------------------------------------------
+// 5B. VISUALIZAÇÃO EM TABELA
+// --------------------------------------------------------------------------
+
+const VIEW_STORAGE_KEY = "grimorio_arton_view";
+let _tableRowSpells = []; // magias na ordem atual das linhas (índice = data-i)
+
+function renderSpellsTable(spells, favorites) {
+    const body = document.getElementById("spells-table-body");
+    if (!body) return;
+
+    _tableRowSpells = spells;
+    const favSet = new Set(favorites);
+    const html = spells.map((spell, i) => {
+        const isFav = favSet.has(spell.n);
+        const tipo = spell.t || "Universal";
+        const upg = spell.aprimoramentos ? spell.aprimoramentos.length : 0;
+        const selected = STATE.selectedSpell && STATE.selectedSpell.n === spell.n;
+        const alvo = bonusEsc(spell.al || "—");
+        const res = bonusEsc(spell.r || "—");
+        const fonte = bonusEsc(getSpellSource(spell));
+        return `<tr class="spell-row ${getSchoolCssClass(spell.e)}${selected ? " selected" : ""}" data-i="${i}" data-name="${bonusEsc(spell.n)}" tabindex="0">
+            <td class="col-fav">
+                <button type="button" class="row-fav-btn ${isFav ? "favorited" : ""}" title="${isFav ? "Remover do Grimório" : "Adicionar ao Grimório"}" aria-label="${isFav ? "Remover do Grimório" : "Adicionar ao Grimório"}">
+                    <i class="${isFav ? "fa-solid" : "fa-regular"} fa-star"></i>
+                </button>
+            </td>
+            <td class="col-name"><span class="row-name">${bonusEsc(spell.n)}</span>${spell.isHomebrew ? '<span class="badge-homebrew">Homebrew</span>' : ""}</td>
+            <td class="col-circle"><span class="circle-pill">${spell.c}º</span></td>
+            <td class="col-school"><span class="school-dot"></span>${bonusEsc(spell.e || "—")}</td>
+            <td class="col-tipo"><span class="badge-tipo badge-tipo-${bonusEsc(tipo.toLowerCase())}">${bonusEsc(tipo)}</span></td>
+            <td class="col-exec">${bonusEsc(spell.ex || "—")}</td>
+            <td class="col-range">${bonusEsc(spell.a || "—")}</td>
+            <td class="col-target col-opt2 col-clip" title="${alvo}">${alvo}</td>
+            <td class="col-dur">${bonusEsc(spell.d || "—")}</td>
+            <td class="col-res col-opt2 col-clip" title="${res}">${res}</td>
+            <td class="col-upg col-opt1">${upg > 0 ? "+" + upg : "—"}</td>
+            <td class="col-source col-opt1 col-clip" title="${fonte}">${fonte}</td>
+        </tr>`;
+    }).join("");
+    body.innerHTML = html;
+
+    updateTableSortIndicators();
+}
+
+// Marca na tabela a linha da magia aberta no painel de detalhes
+function markSelectedTableRow() {
+    const body = document.getElementById("spells-table-body");
+    if (!body) return;
+    const nome = STATE.selectedSpell ? STATE.selectedSpell.n : null;
+    body.querySelectorAll("tr.spell-row").forEach(tr => {
+        tr.classList.toggle("selected", nome !== null && tr.dataset.name === nome);
+    });
+}
+
+function updateTableSortIndicators() {
+    const [key, dir] = STATE.sortBy.split("-");
+    document.querySelectorAll("#spells-table th.sortable").forEach(th => {
+        const ativo = th.dataset.sort === key;
+        th.classList.toggle("sorted-asc", ativo && dir !== "desc");
+        th.classList.toggle("sorted-desc", ativo && dir === "desc");
+        th.setAttribute("aria-sort", ativo ? (dir === "desc" ? "descending" : "ascending") : "none");
+    });
+}
+
+// Mantém o seletor "Ordenar por" coerente com a ordenação escolhida
+function syncSortSelect() {
+    const sel = document.getElementById("sort-select");
+    if (!sel) return;
+    const existe = Array.from(sel.options).some(o => o.value === STATE.sortBy);
+    sel.value = existe ? STATE.sortBy : "custom";
+}
+
+function handleTableSortClick(key) {
+    const [atual, dir] = STATE.sortBy.split("-");
+    STATE.sortBy = (atual === key && dir === "asc") ? `${key}-desc` : `${key}-asc`;
+    syncSortSelect();
+    renderSpellsGrid();
+}
+
+function setViewMode(mode, persist = true) {
+    STATE.viewMode = mode === "table" ? "table" : "cards";
+    document.querySelectorAll(".view-toggle-btn").forEach(btn => {
+        const ativo = btn.dataset.view === STATE.viewMode;
+        btn.classList.toggle("active", ativo);
+        btn.setAttribute("aria-pressed", ativo ? "true" : "false");
+    });
+    if (persist) {
+        try { localStorage.setItem(VIEW_STORAGE_KEY, STATE.viewMode); } catch (e) { /* ignora */ }
+    }
+    renderSpellsGrid();
+}
+
+function initTableView() {
+    let salvo = null;
+    try { salvo = localStorage.getItem(VIEW_STORAGE_KEY); } catch (e) { /* ignora */ }
+    STATE.viewMode = salvo === "table" ? "table" : "cards";
+    document.querySelectorAll(".view-toggle-btn").forEach(btn => {
+        const ativo = btn.dataset.view === STATE.viewMode;
+        btn.classList.toggle("active", ativo);
+        btn.setAttribute("aria-pressed", ativo ? "true" : "false");
+        btn.addEventListener("click", () => setViewMode(btn.dataset.view));
+    });
+
+    document.querySelectorAll("#spells-table th.sortable").forEach(th => {
+        th.addEventListener("click", () => handleTableSortClick(th.dataset.sort));
+    });
+
+    const body = document.getElementById("spells-table-body");
+    if (body) {
+        body.addEventListener("click", (e) => {
+            const tr = e.target.closest("tr.spell-row");
+            if (!tr) return;
+            const spell = _tableRowSpells[Number(tr.dataset.i)];
+            if (!spell) return;
+            if (e.target.closest(".row-fav-btn")) {
+                toggleFavoriteSpell(spell.n);
+            } else {
+                openSpellDetails(spell);
+            }
+        });
+        body.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            const tr = e.target.closest("tr.spell-row");
+            if (!tr || e.target.closest(".row-fav-btn")) return;
+            e.preventDefault();
+            const spell = _tableRowSpells[Number(tr.dataset.i)];
+            if (spell) openSpellDetails(spell);
+        });
+    }
+    syncSortSelect();
 }
 
 function getSchoolCssClass(school) {
@@ -456,6 +624,7 @@ function toggleFavoriteSpell(spellName) {
 function openSpellDetails(spell) {
     STATE.selectedSpell = spell;
     STATE.selectedUpgrades.clear(); // Reset selections
+    markSelectedTableRow();
     
     const sidebar = document.getElementById("detail-sidebar");
     const content = document.getElementById("detail-content");
@@ -740,6 +909,7 @@ function closeSpellDetails() {
     document.body.classList.remove("detail-open");
     STATE.selectedSpell = null;
     STATE.selectedUpgrades.clear();
+    markSelectedTableRow();
 }
 
 // ==========================================================================
@@ -2432,6 +2602,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // O. Bonus card (soma de bônus de magias ativas)
     initBonusCard();
+
+    // P. Visualização em tabela (cards/tabela)
+    initTableView();
 
     // Render initial grid and stats
     renderSpellsGrid();
