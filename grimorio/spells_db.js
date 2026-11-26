@@ -2543,7 +2543,7 @@ const SPELLS_DB = [
             {
                 "cost": 5,
                 "desc": "muda o alvo para área: esfera com 6m de raio centrada em você e a resistência para Fortitude reduz à metade. Em vez do normal, você suga energia das criaturas vivas na área, causando 1d10 pontos de dano de trevas e recebendo PV temporários iguais ao dano total causado. Os PV temporários desaparecem ao final da cena. Requer 2º círculo."
-            }            
+            }
         ]
     },
     {
@@ -2937,6 +2937,24 @@ const SPELLS_DB = [
             {
                 "cost": 2,
                 "desc": "os noggs ganham a capacidade de atacar em equipe. Quando mais de um nogg ataca a mesma criatura no mesmo turno, seu dano total é somado e aplicado ao alvo como se fosse uma única fonte de dano.  Requer 3º círculo."
+            }
+        ]
+    },
+    {
+        "n": "Controlar Ar",
+        "c": 2,
+        "t": "Divina",
+        "e": "Transmutação",
+        "ex": "padrão",
+        "a": "médio",
+        "al": "veja texto",
+        "d": "cena",
+        "r": "veja texto",
+        "desc": "Você pode controlar os movimentos e comportamentos de massas de ar. Ao lançar a magia, escolha um dos efeitos abaixo.\n\nAscender: cria uma corrente de ar ascendente capaz de erguer do chão uma criatura ou objeto Médio, fazendo o alvo flutuar para cima e para baixo conforme sua vontade. Você pode gastar uma ação de movimento para subir ou descer o alvo até 6m por rodada, até um máximo de 30m de altura. Você não pode mover o alvo horizontalmente, mas o alvo pode, por exemplo, escalar uma colina ou se apoiar no teto para mover-se lateralmente (com metade de seu deslocamento normal). Uma criatura levitando fica vulnerável e sofre –2 em testes de ataque. Alvos involuntários têm direito a um teste de Fortitude no início de seu turno para evitar o efeito. Derrubar um alvo flutuando (simplesmente parando a corrente de ar) causa o dano normal de queda, mas um alvo que passe no teste pode “nadar” para o chão contra a corrente. Você pode usar essa opção para fazer uma manobra derrubar contra uma criatura voadora dentro do alcance, usando seu atributo-chave de magias no lugar de Força.\n\nSopro: cria uma lufada de vento a partir de suas mãos, que empurra qualquer criatura Média ou menor em um cone de 4,5m. Faça uma manobra empurrar usando seu atributo-chave ao invés de Força, usando o mesmo resultado de sua rolagem para todos os alvos. A lufada de vento também faz qualquer coisa que um vento forte e súbito faria, como levantar pó, dispersar vapores, apagar chamas, espalhar papéis ou mover uma embarcação. Manter o sopro ativo exige uma ação padrão.\n\nVento: cria uma área de vento forte (Tormenta20 Jogo do Ano, página 267) dentro do alcance da magia. Se lançada numa área que já esteja com algum efeito de vento, aumenta esse efeito em um passo. Manter o vento ativo requer uma ação de movimento. Você também pode usar essa opção para reduzir os efeitos de vento em uma área.",
+        "aprimoramentos": [
+            {
+                "cost": 2,
+                "desc": "aumenta o limite de tamanho de criaturas e objetos afetados em um passo."
             }
         ]
     },
@@ -5426,6 +5444,7 @@ const SPELLS_DB = [
         "desc": "Você controla os efeitos da gravidade dentro da área. Ao lançar a magia, escolha um dos efeitos abaixo. Enquanto a magia durar, você pode gastar uma ação padrão para mudar o efeito. Aumentar: no início de seus turnos, cada criatura na área deve fazer um teste de Atletismo. Se passar, fica fatigada. Se falhar, fica fatigada e caída. Inverter: inverte a gravidade da área, fazendo com que criaturas e objetos “caiam” para cima, atingindo o topo (12m) em uma rodada. Se um obstáculo (como um teto) impedir o movimento das criaturas, elas sofrem 1d6 pontos de dano de impacto para cada 1,5m de “queda”. Elas podem então se levantar e caminhar no obstáculo, de cabeça para baixo. Se não houver obstáculo, as criaturas e objetos ficam flutuando no topo da área afetada, sem poder sair do lugar. Criaturas voadoras podem se movimentar normalmente. Alguém adjacente a algo que possa agarrar tem direito a um teste de Reflexos para evitar a “queda”. A criatura deve permanecer presa pela duração da magia; caso contrário “cairá”. Reduzir: criaturas ou objetos livres Médios ou menores flutuam para cima e para baixo conforme sua vontade, com deslocamento de voo 6m. Criaturas na área recebem +20 em testes de Atletismo para escalar e saltar. Uma criatura levitando fica instável, sofrendo –2 em testes de ataque.",
         "aprimoramentos": []
     },
+
     {
         "n": "Controlar o Clima",
         "c": 4,
@@ -6436,7 +6455,10 @@ const SPELL_SOURCES = {
 
     // Bestiário de Arton
     "Conjurar Noggs": "Bestiário de Arton",
-    "Megalon": "Bestiário de Arton"
+    "Megalon": "Bestiário de Arton",
+
+    //Dragão Brasil
+    "Controlar ar": "Dragão Brasil"
 };
 
 const SPELL_DEFAULT_SOURCE = "Tormenta 20 Livro Básico";
