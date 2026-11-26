@@ -1,5 +1,147 @@
 const DATABASE = [
   {
+    "id": "db233",
+    "label": "DB 233 (Nov/26)",
+    "artigos": [
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "origem",
+          "poderes",
+          "ataque furtivo"
+        ],
+        "pergunta": "Como funciona a combinação da origem Pedinte (Heróis de Arton) e o poder de ladino Bombardeiro Furtivo (também de Heróis)? Os dados de Ataque Furtivo são rolados novamente?",
+        "conselheiro": "— Cons. Loop Daed",
+        "resposta": "Saudações explosivas, conselheiro! Todos os dados são rolados novamente."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "culinária",
+          "regras",
+          "Ghanor",
+          "compatibilidade"
+        ],
+        "pergunta": "1) Como se aplica o efeito de um tempero especial (Heróis de Arton), principalmente quando interage com um benefício expresso através de uma rolagem de dados? Tomemos como exemplo o prato pavão celestial, cujo efeito concede +1d4 em testes de perícias mentais. O tempero especial aumenta o bônus para +2d4 ou para +1d4+1?\n2) Em A Lenda de Ghanor RPG, existe o poder Glutão, cujo efeito determina que benefícios recebidos por alimentação sejam dobrados. Considerando que esse poder foi publicado anteriormente e desenvolvido para o cenário e as regras de Ghanor, seria considerada adequada ou recomendável sua utilização em uma campanha de Tormenta20 que adota as regras de culinária avançada, apresentadas posteriormente em Heróis de Arton? Caso seja possível utilizar ambos em conjunto, como deveria ser interpretado o trecho “os benefícios que recebe por alimentação são dobrados” diante das receitas da culinária avançada? Ele continuaria funcionando normalmente sobre esses novos benefícios ou seria necessário algum tipo de adaptação por se tratar de conteúdos concebidos em momentos e contextos diferentes?",
+        "conselheiro": "— Cons. Vanguard",
+        "resposta": "Saudações gastronômicas, conselheiro! Vamos às suas deliciosas respostas:\n1) O bônus é +1, independente de ser um valor fixo ou um bônus em dados. Dessa forma, +1d4 se torna +1d4+1.\n2) A Lenda de Ghanor RPG e Tormenta20 são jogos compatíveis entre si. Isso permite o uso do poder Glutão em Tormenta20, mas qualquer um desses usos deve ser aprovado pelo mestre. A este tribunal não parece inadequada a utilização nem a manutenção de seus efeitos como escritos, mas só quem pode responder a essa pergunta com certeza é o mestre de cada mesa. Além disso, lembre que efeitos que dobram outros são aplicados antes de efeitos que somam (Tormenta20, p. 226). Por exemplo, um efeito que forneça +5 PV temporários ou +1d6 a um prato especial não será dobrado, pois é aplicado depois."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "magia",
+          "poderes",
+          "equipamentos",
+          "dano",
+          "regras"
+        ],
+        "pergunta": "1) Como funciona a interação entre Abençoar Arma e Armamento Sagrado, do forjador litúrgico (Deuses de Arton)? Abençoar Arma concede proficiência na arma favorita da divindade. Se eu fabricar e consagrar, com Armamento Sagrado, uma arma de outro tipo com a qual não sou proficiente, poderei utilizá-la normalmente ou ainda sofrerei as penalidades por não ter proficiência?\n2) Uma ferramenta com a melhoria Inscrito conta como símbolo sagrado. Ela pode ser utilizada com Energizar Símbolo Sagrado? Em caso positivo, a ferramenta precisa estar empunhada e visível ou basta estar equipada ou carregada pelo personagem?\n3) Desprezo Pelo Ordinário, do forjador litúrgico, permite reduzir pela metade dano não mágico. Após essa redução, ainda posso utilizar outros efeitos que reduzam o dano, como Instante Estoico ou Campo de Força? Se sim, essas reduções são aplicadas sobre o dano restante?",
+        "conselheiro": "— Cons. Corvin, Forjador da Guerra",
+        "resposta": "Saudações bélicas, conselheiro! Vamos forjar suas respostas:\n1) Você recebe proficiência com a arma forjada.\n2) Sim, pode. E deve ser empunhada.\n3) Reduza o dano à metade primeiro e depois aplique a RD, como consta da página 226 de Tormenta20."
+      },
+
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "poderes",
+          "itens alquímicos",
+          "forma selvagem",
+          "magias"
+        ],
+        "pergunta": "1) O poder concedido O Dobro ou Nada (Deuses de Arton) poderia ser usado em habilidades como Sequência Especial e Bombardeio Sequencial (inovador, variante de guerreiro) para aumentar a CD de itens alquímicos (como bombas)? Como fica essa interação?\n2) O poder Criatura da Noite, da distinção Vigilante Mascarado (Guia de Distinções), transforma o personagem em uma forma híbrida baseada em Forma Selvagem. Posso empunhar itens nessa forma?\n3) Como funciona a interação da magia Maaais Klunc se o melhor amigo de um treinador a usa a partir do truque Magia Inata? O melhor amigo ainda precisa realizar os testes exigidos pela magia, ou o fato de ele seguir as instruções e ordens do treinador faria com que esses testes fossem ignorados?",
+        "conselheiro": "— Cons. Godrakke",
+        "resposta": "Saudações caóticas, conselheiro! Vamos às suas bombásticas respostas:\n1) Não. O Dobro ou Nada afeta apenas habilidades que tenham CD. Bombardeio Sequencial afeta a CD de um item, mas não tem uma CD própria. Dessa forma, é incompatível.\n2) Essa distinção foi atualizada para a versão Jogo do Ano em Jornada Heroica: Fim dos Tempos Arco 2 — Valkaria. De qualquer forma, a habilidade ainda segue as regras normais de Forma Selvagem e não permite empunhar itens.\n3) Sem moleza para melhores amigos que fiquem muito maaais Klunc! Eles ainda precisam fazer testes de Inteligência mesmo sob direção do treinador. Talvez eles mal consigam entender suas ordens!"
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "raças",
+          "poderes",
+          "magias",
+          "poções"
+        ],
+        "pergunta": "Um duende com os poderes Preparar Poção e Glamour pode fabricar poções com suas magias de glamour? Se sim, existe algum revés ou fabricar e usar poção não se enquadra em “lançar magia”?",
+        "conselheiro": "— Cons. BiOShift",
+        "resposta": "Saudações feéricas, conselheiro! Pela leitura mais rígida da regra, uma vez que Glamour menciona “aprender novamente” as magias, seria sim possível. Porém, essas magias são ilusões. Seria perfeitamente pertinente um mestre não permitir esse funcionamento para poções."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "magia",
+          "dano",
+          "redução de dano",
+          "equipamentos"
+        ],
+        "pergunta": "Como a magia Instante Estoico (Deuses de Arton) funciona com fontes mistas de dano? Por exemplo, se um vilão está prestes a me acertar com um golpe de sua espada mágica que causa +2d6 de dano de fogo, a RD fornecida pela magia não funciona? Ou a magia até fornece RD, mas apenas contra o dano base da arma?",
+        "conselheiro": "— Cons. dragaofada",
+        "resposta": "Saudações inabaláveis, conselheiro! Instante Estoico concede RD contra dano não mágico. Como a espada é mágica, todo o seu dano ignora a RD da magia (isso não são fontes mistas de dano; há apenas um dano sendo causado, que é mágico e inclui os +2d6 em seu valor total)."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "magia",
+          "aprimoramentos",
+          "círculos de magia",
+          "regras"
+        ],
+        "pergunta": "A magia Conjurar Armadilha (Heróis de Arton) pertence ao segundo círculo, porém um dos seus aprimoramentos requer segundo círculo. O certo deveria ser o aprimoramento não ter pré-requisito? Ou a magia deveria ser de primeiro círculo? Não vejo sentido o aprimoramento ter requisito do mesmo círculo da magia.",
+        "conselheiro": "— Cons. leozin",
+        "resposta": "Saudações arapuquentas, conselheiro! Este tribunal entende seu estranhamento, mas existem raras situações nas quais uma criatura pode lançar uma magia de 2º círculo sem ter acesso ao 2º círculo de magias (por exemplo, com o poder Criar Armadilha Mágica, da distinção Infiltrador de Wynlla). Nesses casos, a criatura não poderia usar o aprimoramento."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "poderes",
+          "classes",
+          "perícias",
+          "itens mágicos",
+          "tamanho"
+        ],
+        "pergunta": "1) O Ventanista (Heróis de Arton) tem a habilidade Disfarce Elaborado que lhe permite escolher poderes relacionados ao seu disfarce. Para poderes de classe, isso o limita ao primeiro nível ou ele usa o nível de ventanista como nível da classe?\n2) A resposta sobre o poder Resistência Montada na DB 230 indica uma mudança no entendimento do tribunal sobre o significado de perícias de resistência? Afinal, na DB 230 se afirma que substituição de perícias permite receber bônus concedidos a perícias de resistência, enquanto a DB 207 delimita perícias de resistência como Fortitude, Reflexos e Vontade.\n3) Um inventor fabrica itens mágicos por meio de uma habilidade. Isso leva ao sacrifício de PM. Poderia o inventor cancelar a habilidade, desfazer o encanto e recuperar seus PM? E se o item for destruído ou consumido?\n4) Um bugbear com o poder Empunhadura Poderosa pode usar uma arma de duas categorias maiores que ele, mas, pela natureza das categorias de tamanho, ele ainda fica restrito a armas aumentadas. Isso foi um erro durante a escrita de Ameaças de Arton e o intuito era ele usar armas colossais ou foi pensado dessa forma?",
+        "conselheiro": "— Cons. Vic, Deusa Menor dos Kiwis",
+        "resposta": "Saudações variadíssimas, conselheira! Vamos às suas cabeludas respostas:\n1) Para poderes de classe que efetivamente possuam requisitos de nível (como Golpe Pessoal, que requer 5º nível de guerreiro), use seu nível de ventanista.\n2) Não, o entendimento do tribunal permanece o mesmo. Acontece que, ao substituir uma perícia de resistência, a perícia substituída ocupa o mesmo lugar da perícia citada dentro do âmbito das perícias de resistência. Porém, como tal substituição é um caso à parte, raro no sistema, abordá-lo na DB 207 não viria ao caso e seria detrimental, visto que a questão daquela edição era sobre outro assunto.\n3) Não. O PM só pode ser recuperado se o personagem destruir o item da forma normal (Tormenta20, p. 334). Além disso, para encerrar a duração de uma habilidade e desfazer seu efeito, a habilidade precisa ter duração contínua (ou seja, diferente de instantânea), o que não é o caso aqui, pois Fabricar Itens Mágicos apenas permite fabricar o item com Ofícios, sendo ele totalmente independente da habilidade ou mesmo da perícia (como os PV já curados por um uso de Curar Ferimentos são independentes dessa magia instantânea).\n4) De fato, o texto inicial do bugbear não deixou o funcionamento pretendido claro, mas implementamos melhorias para comunicar de maneira mais eficaz o que ele faz. Você pode conferir isso na nossa errata."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "perícias",
+          "obrigações e restrições",
+          "transformação monstruosa",
+          "itens"
+        ],
+        "pergunta": "1) Suponhamos que um devoto de Megalokk tenha o poder Língua dos Becos. Quando usa essa habilidade para substituir um teste de perícias baseadas em Carisma para Força, o devoto quebra suas Obrigações e Restrições?\n2) Além disso, caso um personagem tenha a transformação monstruosa Dilacerar da distinção Colecionador Monstruoso (Deuses de Arton) e acertar mais de dois ataques com garra em uma criatura na mesma rodada, poderia ativá-la mais de uma vez?\n3) Por fim, se um personagem usar um mutagênico despersonalizante da distinção Mutagenista (Heróis de Arton), pode obter a habilidade Mordida várias vezes, escolhendo raças diferentes?",
+        "conselheiro": "— Cons. Zen Samkim",
+        "resposta": "Saudações monstruosas, conselheiro! Vamos às suas respostas ferais:\n1) Não. Usando Língua dos Becos, a perícia deixa de ser baseada em Carisma temporariamente. Por isso, algumas habilidades fazem distinção entre perícias baseadas em um atributo e perícias originalmente baseadas em um atributo.\n2) Não. O gatilho é ativado quando acerta dois ataques na mesma rodada. Ao acertar quatro ataques, por exemplo, o mesmo gatilho já foi acionado e não é disparado novamente.\n3) Não, pois o efeito do item é fornecer uma habilidade. Dessa forma, como efeitos de itens não se acumulam, estar sob efeito de dois personalizantes fornece apenas uma habilidade, não duas. Porém, esse tipo de transformação monstruosa com muitas armas naturais é muito coerente com o tema. Converse com seu mestre: se ele for bonzinho, talvez permita para habilidades diferentes (como Mordida de trogs e Chifres de minotauros)!"
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "habilidades",
+          "itens",
+          "rolagens",
+          "regras"
+        ],
+        "pergunta": "Habilidades engatilhadas quando o alvo sofre um ataque também devem ser anunciadas antes do mestre rolar os dados, como descrito na DB 209 sobre magias? Existe alguma exceção, além da bondade do mestre, de permitir o uso dessas habilidades entre o rolamento do dado e o anúncio final do mestre? E quanto a alimentos ou habilidades que concedem bônus aleatórios à rolagem dos dados? Eles também devem ser usados antes do dado rolar?",
+        "conselheiro": "— Cons. paladinoazul2k5",
+        "resposta": "Saudações justíssimas, conselheiro! Todas essas habilidades e itens devem ter seu uso declarado antes da rolagem dos dados. No calor do jogo, é comum que o mestre permita algumas exceções, especialmente se o dado foi rolado e o resultado não foi declarado ainda, mas a regra é clara."
+      },
+      {
+        "sistema": "Tormenta20",
+        "tags": [
+          "magia",
+          "aprimoramentos",
+          "área"
+        ],
+        "pergunta": "O poder Magia Ampliada pode ser aplicado mais de uma vez com a finalidade de dobrar novamente a área de uma magia?",
+        "conselheiro": "— Cons. Sucumba",
+        "resposta": "Saudações amplificadas, conselheiro! Não. Como explicado na página 36 do FAQ, somente é possível aumentar o alcance da magia pagando novamente o custo. O segundo aprimoramento, embora seja mencionado na mesma frase, não começa com “aumenta”, mas sim com “dobra”, portanto utilizá-lo novamente não é cumulativo."
+      }
+
+
+    ],
+  },
+//DB 232 
+  {
     "id": "db232",
     "label": "DB 232 (Out/26)",
     "artigos": [
