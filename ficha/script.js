@@ -221,6 +221,12 @@ const CLASS_SKILLS = {
     'Nobre': { total: 6, skills: ['Diplomacia', 'Intimidação', 'Vontade', 'Adestramento', 'Atuação', 'Cavalgar', 'Conhecimento', 'Enganação', 'Fortitude', 'Guerra', 'Iniciativa', 'Intuição', 'Investigação', 'Jogatina', 'Luta', 'Nobreza', 'Ofício', 'Percepção', 'Pontaria'] },
     'Paladino': { total: 4, skills: ['Luta', 'Vontade', 'Adestramento', 'Atletismo', 'Cavalgar', 'Cura', 'Diplomacia', 'Fortitude', 'Guerra', 'Iniciativa', 'Intuição', 'Nobreza', 'Percepção', 'Religião'] },
     'Treinador': { total: 6, skills: ['Adestramento', 'Vontade', 'Atletismo', 'Cavalgar', 'Diplomacia', 'Guerra', 'Iniciativa', 'Intimidação', 'Intuição', 'Luta', 'Ofício', 'Percepção', 'Pontaria', 'Reflexos', 'Religião', 'Sobrevivência'] },
+    // Classes extras (Dragão Brasil / A Lenda de Ruff Ghanor).
+    // Místico: a Afinidade Elemental acrescenta 1 perícia condicional (água = Diplomacia, ar = Enganação,
+    // fogo = Acrobacia, luz = Cura, terra = Investigação, trevas = Intimidação), por isso ela não entra aqui.
+    'Místico': { total: 6, skills: ['Misticismo', 'Vontade', 'Atletismo', 'Conhecimento', 'Fortitude', 'Iniciativa', 'Luta', 'Ofício', 'Percepção', 'Pontaria', 'Reflexos'] },
+    'Samurai': { total: 4, skills: ['Luta', 'Vontade', 'Acrobacia', 'Adestramento', 'Atletismo', 'Cavalgar', 'Conhecimento', 'Diplomacia', 'Fortitude', 'Guerra', 'Iniciativa', 'Intimidação', 'Intuição', 'Nobreza', 'Ofício', 'Percepção', 'Pontaria'] },
+    'Soldado': { total: 4, skills: ['Luta', 'Vontade', 'Acrobacia', 'Adestramento', 'Atletismo', 'Cavalgar', 'Conhecimento', 'Diplomacia', 'Fortitude', 'Guerra', 'Iniciativa', 'Intimidação', 'Intuição', 'Nobreza', 'Ofício', 'Percepção', 'Pontaria'] },
 };
 
 let activeClassFilter = '';
