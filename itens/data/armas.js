@@ -1768,8 +1768,8 @@ const armasData = {
             tipo_dano: "Corte",
             espacos: "1",
             categoria: "Arma",
-            tipo: "Marcial Leve",
-            empunhadura: "Uma Mão",
+            tipo: "Marcial",
+            empunhadura: "Leve",
             descricao: "Se for capaz de lançar magias arcanas e tiver redução de ácido, eletricidade, fogo, frio, luz ou trevas (inclusive por fontes temporárias, como magias), você pode gastar 1 PM para borir a zipana. Até o final da cena, a arma causa 1d8 pontos de dano do elemento ao qual você tem redução, em vez de seu dano normal. Um personagem deve ser treinado em Ofício (alquimia) para fabricar uma zipana. Esta arma não pode receber a melhoria material especial.",
             fonte: "Dragão Brasil",
             imagem: "https://gbf.wiki/images/9/92/Weapon_s_1020101800.jpg"
