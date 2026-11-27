@@ -1763,7 +1763,7 @@ const armasData = {
             nome: "Zipana",
             preco: "T$ 500",
             dano: "1d4",
-            critico: "19",
+            critico: "19/x2",
             alcance: "Corpo a Corpo",
             tipo_dano: "Corte",
             espacos: "1",
